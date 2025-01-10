@@ -29,15 +29,13 @@ import static gov.nysenate.sage.model.job.JobProcessStatus.Condition;
  * JobProcessDao provides persistence for submitted requests and process statuses.
  */
 @Repository
-public class SqlJobProcessDao implements JobProcessDao {
+public class SqlJobProcessDao extends BaseDao implements JobProcessDao {
     private static final Logger logger = LoggerFactory.getLogger(SqlJobProcessDao.class);
     private final RowMapper<JobProcessStatus> statusHandler;
     private final RowMapper<JobProcessStatus> statusListHandler;
-    private final BaseDao baseDao;
 
     @Autowired
-    public SqlJobProcessDao(BaseDao baseDao, SqlJobUserDao sqlJobUserDao) {
-        this.baseDao = baseDao;
+    public SqlJobProcessDao(SqlJobUserDao sqlJobUserDao) {
         this.statusHandler = new JobStatusHandler(sqlJobUserDao);
         this.statusListHandler = new JobProcessStatusListHandler(sqlJobUserDao);
     }
@@ -45,8 +43,7 @@ public class SqlJobProcessDao implements JobProcessDao {
     /** {@inheritDoc} */
     public int addJobProcess(JobProcess p) {
         try {
-            var params = new MapSqlParameterSource()
-                    .addValue("userId", p.getRequestor().getId())
+            var params = new MapSqlParameterSource("userId", p.getRequestor().getId())
                     .addValue("fileName", p.getFileName())
                     .addValue("fileType", p.getFileType())
                     .addValue("sourceFileName", p.getSourceFileName())
@@ -56,8 +53,8 @@ public class SqlJobProcessDao implements JobProcessDao {
                     .addValue("geocodeReq", p.isGeocodeRequired())
                     .addValue("districtReq", p.isDistrictRequired());
 
-            List<Integer> jobProcessIdList = baseDao.geoApiNamedJbdcTemplate.query(
-                    JobProcessQuery.INSERT_JOB_PROCESS.getSql(baseDao.getJobSchema()), params, new JobProcessIdHandler());
+            List<Integer> jobProcessIdList = geoApiNamedJbdcTemplate.query(
+                    JobProcessQuery.INSERT_JOB_PROCESS.getSql(getJobSchema()), params, new JobProcessIdHandler());
 
             if (jobProcessIdList.get(0) != null) {
                 return jobProcessIdList.get(0);
@@ -74,25 +71,21 @@ public class SqlJobProcessDao implements JobProcessDao {
         // If it fails then we can insert a new record.
         if (jps != null) {
             int processId = jps.getProcessId();
-            MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue("processId", processId);
-            params.addValue("condition", jps.getCondition().name());
-            params.addValue("completedRecords", jps.getCompletedRecords());
-            params.addValue("startTime", jps.getStartTime());
-            params.addValue("completeTime", jps.getCompleteTime());
-            params.addValue("completed", jps.isCompleted());
-            params.addValue("messages", FormatUtil.toJsonString(jps.getMessages()));
+            var params = new MapSqlParameterSource("processId", processId)
+                    .addValue("condition", jps.getCondition().name())
+                    .addValue("completedRecords", jps.getCompletedRecords())
+                    .addValue("startTime", jps.getStartTime())
+                    .addValue("completeTime", jps.getCompleteTime())
+                    .addValue("completed", jps.isCompleted())
+                    .addValue("messages", FormatUtil.toJsonString(jps.getMessages()));
             try {
-                //insert sql
-                return baseDao.geoApiNamedJbdcTemplate.update(
-                        JobProcessQuery.INSERT_JOB_PROCESS_STATUS.getSql(baseDao.getJobSchema()), params);
+                return geoApiNamedJbdcTemplate.update(
+                        JobProcessQuery.INSERT_JOB_PROCESS_STATUS.getSql(getJobSchema()), params);
             }
             catch (Exception ex) {
-                //insert failed do update
-
                 try {
-                    return baseDao.geoApiNamedJbdcTemplate.update(
-                            JobProcessQuery.UPDATE_JOB_PROCESS_STATUS.getSql(baseDao.getJobSchema()), params);
+                    return geoApiNamedJbdcTemplate.update(
+                            JobProcessQuery.UPDATE_JOB_PROCESS_STATUS.getSql(getJobSchema()), params);
                 }
                 catch (Exception ex2) {
                     logger.error("Failed to set job process status for process {}", jps.getProcessId(), ex);
@@ -110,14 +103,14 @@ public class SqlJobProcessDao implements JobProcessDao {
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("processId", processId);
 
-            List<JobProcessStatus> jobProcessStatusList = baseDao.geoApiNamedJbdcTemplate.query(
-                    JobProcessQuery.GET_JOB_PROCESS_STATUS.getSql(baseDao.getJobSchema()), params, statusHandler);
+            List<JobProcessStatus> jobProcessStatusList = geoApiNamedJbdcTemplate.query(
+                    JobProcessQuery.GET_JOB_PROCESS_STATUS.getSql(getJobSchema()), params, statusHandler);
 
             if (jobProcessStatusList.get(0) != null) {
                 return jobProcessStatusList.get(0);
             }
         } catch (Exception ex) {
-            logger.error("Failed to retrieve job process status for process " + processId, ex);
+            logger.error("Failed to retrieve job process status for process {}", processId, ex);
         }
         return null;
     }
@@ -148,9 +141,8 @@ public class SqlJobProcessDao implements JobProcessDao {
 
         String restOfQuery = conditionFilter + " " + jobUserFilter + " " + requestTimeFilter + " ORDER BY processId DESC";
         try {
-
-            return baseDao.geoApiNamedJbdcTemplate.query(
-                    JobProcessQuery.GET_JOB_PROCESS_STATUS_BY_CONDITIONS.getSql(baseDao.getJobSchema()) + restOfQuery, statusListHandler);
+            return geoApiNamedJbdcTemplate.query(
+                    JobProcessQuery.GET_JOB_PROCESS_STATUS_BY_CONDITIONS.getSql(getJobSchema()) + restOfQuery, statusListHandler);
         } catch (Exception ex) {
             logger.error("Failed to retrieve statuses by conditions!", ex);
         }
@@ -166,7 +158,9 @@ public class SqlJobProcessDao implements JobProcessDao {
 
         try {
             var params = new MapSqlParameterSource("afterThis", afterThis);
-            return baseDao.geoApiNamedJbdcTemplate.query(JobProcessQuery.GET_RECENTLY_COMPLETED_JOB_PROCESSES.getSql(baseDao.getJobSchema()) + restOfQuery, params, statusListHandler);
+            return geoApiNamedJbdcTemplate.query(
+                    JobProcessQuery.GET_RECENTLY_COMPLETED_JOB_PROCESSES.getSql(getJobSchema()) + restOfQuery,
+                    params, statusListHandler);
         } catch (Exception ex) {
             logger.error("Failed to retrieve recent job statuses!", ex);
         }

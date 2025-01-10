@@ -37,19 +37,17 @@ import java.util.Set;
  */
 // TODO: be sure to resolve county stuff correctly
 @Repository
-public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
+public class SqlDistrictShapefileDao extends BaseDao implements DistrictShapeFileDao {
     private static final Logger logger = LoggerFactory.getLogger(SqlDistrictShapefileDao.class);
     /** Set of DistrictTypes that can't be cached effectively due to non-unique codes.
      * These district maps are retrieved during getDistrictInfo() queries. */
     private static final Set<DistrictType> retrieveMapSet = Set.of(DistrictType.SCHOOL);
 
-    private final BaseDao baseDao;
     private final CountyDao countyDao;
     private ImmutableMultimap<DistrictType, DistrictMap> districtMapCache = ImmutableMultimap.of();
 
     @Autowired
-    public SqlDistrictShapefileDao(BaseDao baseDao, CountyDao countyDao) {
-        this.baseDao = baseDao;
+    public SqlDistrictShapefileDao(CountyDao countyDao) {
         this.countyDao = countyDao;
         if (!cacheDistrictMaps()) {
             throw new RuntimeException("Failed to initialize district map cache");
@@ -81,7 +79,7 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
         String sqlQuery = StringUtils.join(queryList, " UNION ALL ");
 
         try {
-            return baseDao.geoApiJbdcTemplate.query(sqlQuery, new DistrictInfoHandler());
+            return geoApiJbdcTemplate.query(sqlQuery, new DistrictInfoHandler());
         } catch (Exception ex) {
             logger.error("{}", String.valueOf(ex));
         }
@@ -96,7 +94,7 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
                 .addValue("nameField", intersectType.nameColumn())
                 .addValue("codeField", intersectType.codeColumn());
 
-        return baseDao.geoApiNamedJbdcTemplate.query(ShapefileQueries.GET_INTERSECTION.getSql("districts"), params,
+        return geoApiNamedJbdcTemplate.query(ShapefileQueries.GET_INTERSECTION.getSql("districts"), params,
                 new DistrictOverlapHandler());
     }
 
@@ -122,7 +120,7 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
             String codeColumn = districtType.codeColumn();
             String currSql = String.format(baseSql, nameColumn, codeColumn, districtType,
                                                            nameColumn, codeColumn);
-            List<DistrictMap> maps = baseDao.geoApiNamedJbdcTemplate.query(currSql, new DistrictCacheMapper(districtType));
+            List<DistrictMap> maps = geoApiNamedJbdcTemplate.query(currSql, new DistrictCacheMapper(districtType));
             tempMultimap.putAll(districtType, maps);
         }
         this.districtMapCache = ImmutableMultimap.copyOf(tempMultimap);

@@ -4,7 +4,6 @@ import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.job.JobUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
@@ -17,19 +16,13 @@ import java.util.List;
  * JobUserDao provides database persistence for the JobUser model.
  */
 @Repository
-public class SqlJobUserDao {
+public class SqlJobUserDao extends BaseDao {
     private static final Logger logger = LoggerFactory.getLogger(SqlJobUserDao.class);
-    private final BaseDao baseDao;
-
-    @Autowired
-    public SqlJobUserDao(BaseDao baseDao) {
-        this.baseDao = baseDao;
-    }
 
     public List<JobUser> getJobUsers() {
         try {
-            return baseDao.geoApiNamedJbdcTemplate.query(
-                    JobUserQuery.GET_ALL_JOB_USERS.getSql(baseDao.getJobSchema()), new JobUserHandler());
+            return geoApiNamedJbdcTemplate.query(
+                    JobUserQuery.GET_ALL_JOB_USERS.getSql(getJobSchema()), new JobUserHandler());
         }
         catch (Exception sqlEx) {
             logger.error("Failed to get JobUsers!");
@@ -47,8 +40,8 @@ public class SqlJobUserDao {
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("id", id);
 
-            List<JobUser> jobUserList = baseDao.geoApiNamedJbdcTemplate.query(
-                    JobUserQuery.GET_JOB_USER_BY_ID.getSql(baseDao.getJobSchema()),
+            List<JobUser> jobUserList = geoApiNamedJbdcTemplate.query(
+                    JobUserQuery.GET_JOB_USER_BY_ID.getSql(getJobSchema()),
                     params, new JobUserHandler());
 
             if (!jobUserList.isEmpty() && jobUserList.get(0) != null) {
@@ -65,8 +58,8 @@ public class SqlJobUserDao {
     public JobUser getJobUserByEmail(String email) {
         try {
             var params = new MapSqlParameterSource("email", email);
-            List<JobUser> jobUserList = baseDao.geoApiNamedJbdcTemplate.query(
-                    JobUserQuery.GET_JOB_USER_BY_EMAIL.getSql(baseDao.getJobSchema()),
+            List<JobUser> jobUserList = geoApiNamedJbdcTemplate.query(
+                    JobUserQuery.GET_JOB_USER_BY_EMAIL.getSql(getJobSchema()),
                     params, new JobUserHandler());
 
             if (jobUserList.get(0) != null) {
@@ -85,16 +78,13 @@ public class SqlJobUserDao {
      */
     public int addJobUser(JobUser jobUser) {
         try {
-            var params = new MapSqlParameterSource()
-                    .addValue("email",jobUser.getEmail())
-                    .addValue("password",jobUser.getPassword())
-                    .addValue("firstname",jobUser.getFirstname())
-                    .addValue("lastname",jobUser.getLastname())
-                    .addValue("active",jobUser.isActive())
-                    .addValue("admin",jobUser.isAdmin());
-
-            return baseDao.geoApiNamedJbdcTemplate.update(JobUserQuery.INSERT_JOB_USER.getSql(baseDao.getJobSchema()),
-                    params);
+            var params = new MapSqlParameterSource("email", jobUser.getEmail())
+                    .addValue("password", jobUser.getPassword())
+                    .addValue("firstname", jobUser.getFirstname())
+                    .addValue("lastname", jobUser.getLastname())
+                    .addValue("active", jobUser.isActive())
+                    .addValue("admin", jobUser.isAdmin());
+            return geoApiNamedJbdcTemplate.update(JobUserQuery.INSERT_JOB_USER.getSql(getJobSchema()), params);
         }
         catch (Exception sqlEx) {
             logger.error("Failed to add JobUser in JobUserDao!");
@@ -106,7 +96,7 @@ public class SqlJobUserDao {
     public int removeJobUser(JobUser jobUser) {
         try {
             var params = new MapSqlParameterSource("id", jobUser.getId());
-            return baseDao.geoApiNamedJbdcTemplate.update(JobUserQuery.REMOVE_JOB_USER.getSql(baseDao.getJobSchema()), params);
+            return geoApiNamedJbdcTemplate.update(JobUserQuery.REMOVE_JOB_USER.getSql(getJobSchema()), params);
         }
         catch (Exception sqlEx) {
             logger.error("Failed to remove JobUser in JobUserDao!");

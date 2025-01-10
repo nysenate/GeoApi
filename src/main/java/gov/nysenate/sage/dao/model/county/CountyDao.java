@@ -4,26 +4,24 @@ import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.district.County;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.PostConstruct;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
 @Repository
-public class CountyDao {
+public class CountyDao extends BaseDao {
     private static final Logger logger = LoggerFactory.getLogger(CountyDao.class);
-    private final BaseDao baseDao;
-    private final List<County> counties;
+    private List<County> counties;
 
-    @Autowired
-    public CountyDao(BaseDao baseDao) {
-        this.baseDao = baseDao;
-        this.counties = baseDao.geoApiNamedJbdcTemplate.query(
-                CountyQuery.GET_ALL_COUNTIES.getSql(baseDao.getPublicSchema()), new CountyHandler());
+    @PostConstruct
+    private void init() {
+        this.counties = geoApiNamedJbdcTemplate.query(
+                CountyQuery.GET_ALL_COUNTIES.getSql(getPublicSchema()), new CountyHandler());
     }
 
     public List<County> getCounties() {
@@ -38,8 +36,8 @@ public class CountyDao {
     public County getCountyBySenateCode(int code) {
         try {
             var params = new MapSqlParameterSource("senateCode", code);
-            List<County> countyList = baseDao.geoApiNamedJbdcTemplate
-                    .query(CountyQuery.GET_COUNTY_BY_ID.getSql(baseDao.getPublicSchema()), params, new CountyHandler());
+            List<County> countyList = geoApiNamedJbdcTemplate
+                    .query(CountyQuery.GET_COUNTY_BY_ID.getSql(getPublicSchema()), params, new CountyHandler());
             if (countyList.get(0) != null) {
                 return countyList.get(0);
             }

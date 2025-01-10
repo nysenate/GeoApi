@@ -14,12 +14,13 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 @Repository
-public class BaseDao {
+public abstract class BaseDao {
     private static final Logger logger = LoggerFactory.getLogger(BaseDao.class);
     @Value("${env.log.schema:log}")
     private String logSchema;
@@ -27,13 +28,14 @@ public class BaseDao {
     private String publicSchema;
     @Value("${env.job.schema:job}")
     private String jobSchema;
-
-    // TODO: should be protected and other DAOs should inherit
-    public final JdbcTemplate geoApiJbdcTemplate;
-    public final NamedParameterJdbcTemplate geoApiNamedJbdcTemplate;
-
     @Autowired
-    public BaseDao(DatabaseConfig databaseConfig) {
+    private DatabaseConfig databaseConfig;
+
+    protected JdbcTemplate geoApiJbdcTemplate;
+    protected NamedParameterJdbcTemplate geoApiNamedJbdcTemplate;
+
+    @PostConstruct
+    private void init() {
         this.geoApiJbdcTemplate = databaseConfig.geoApiJdbcTemplate();
         this.geoApiNamedJbdcTemplate = databaseConfig.geoApiNamedJdbcTemplate();
     }
@@ -81,16 +83,15 @@ public class BaseDao {
         return null;
     }
 
-    // TODO: should be protected fields
-    public String getJobSchema() {
+    protected String getJobSchema() {
         return jobSchema;
     }
 
-    public String getPublicSchema() {
+    protected String getPublicSchema() {
         return publicSchema;
     }
 
-    public String getLogSchema() {
+    protected String getLogSchema() {
         return logSchema;
     }
 }

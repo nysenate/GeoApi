@@ -5,7 +5,6 @@ import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.model.api.ApiUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
@@ -15,14 +14,8 @@ import java.sql.SQLException;
 import java.util.List;
 
 @Repository
-public class SqlApiRequestLogger implements ApiRequestLogger {
+public class SqlApiRequestLogger extends BaseDao implements ApiRequestLogger {
     private static final Logger logger = LoggerFactory.getLogger(SqlApiRequestLogger.class);
-    private final BaseDao baseDao;
-
-    @Autowired
-    public SqlApiRequestLogger(BaseDao baseDao) {
-        this.baseDao = baseDao;
-    }
 
     /** {@inheritDoc} */
     public int logApiRequest(ApiRequest apiRequest) {
@@ -37,8 +30,8 @@ public class SqlApiRequestLogger implements ApiRequestLogger {
                         .addValue("requestTypeName",apiRequest.getRequest())
                         .addValue("serviceName", apiRequest.getService());
 
-                List<Integer> idList = baseDao.geoApiNamedJbdcTemplate.query(
-                        ApiRequestQuery.INSERT_API_REQUEST.getSql(baseDao.getLogSchema()), params, new ApiRequestIdHandler());
+                List<Integer> idList = geoApiNamedJbdcTemplate.query(
+                        ApiRequestQuery.INSERT_API_REQUEST.getSql(getLogSchema()), params, new ApiRequestIdHandler());
                 return idList.get(0);
             }
             catch (Exception ex) {

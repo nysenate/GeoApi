@@ -4,7 +4,6 @@ import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.stats.ApiUsageStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
@@ -17,41 +16,31 @@ import java.util.List;
 import static gov.nysenate.sage.model.stats.ApiUsageStats.IntervalUsage;
 
 @Repository
-public class SqlApiUsageStatsDao implements ApiUsageStatsDao
-{
-    private static Logger logger = LoggerFactory.getLogger(SqlApiUsageStatsDao.class);
-    private BaseDao baseDao;
+public class SqlApiUsageStatsDao extends BaseDao implements ApiUsageStatsDao {
+    private static final Logger logger = LoggerFactory.getLogger(SqlApiUsageStatsDao.class);
 
     public enum RequestInterval {
-        MINUTE("minute", 1), HOUR("hour", 60), DAY("day", 1440), WEEK("week", 10080), MONTH("month", 43829), QUARTER("quarter", 131487);
-        String field;
-        int minutes;
+        MINUTE("minute", 1), HOUR("hour", 60), DAY("day", 1440),
+        WEEK("week", 10080), MONTH("month", 43829), QUARTER("quarter", 131487);
+        private final String field;
+        private final int minutes;
+
         RequestInterval(String field, int minutes) {
             this.field = field;
             this.minutes = minutes;
         }
     }
 
-    @Autowired
-    public SqlApiUsageStatsDao(BaseDao baseDao) {
-        this.baseDao = baseDao;
-    }
-
     /** {@inheritDoc} */
-    public ApiUsageStats getApiUsageStats(Timestamp from, Timestamp to, RequestInterval requestInterval)
-    {
+    public ApiUsageStats getApiUsageStats(Timestamp from, Timestamp to, RequestInterval requestInterval) {
         ApiUsageStats apiUsageStats = new ApiUsageStats();
         try {
-            MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue("from",from);
-            params.addValue("to", to);
-            params.addValue("requestInterval", requestInterval.field);
-
-            List<IntervalUsage> intervalUsageCounts = baseDao.geoApiNamedJbdcTemplate.query(
-                    ApiUsageStatsQuery.GET_USAGE_STATS.getSql(baseDao.getLogSchema()),
+            var params = new MapSqlParameterSource("from", from)
+                    .addValue("to", to)
+                    .addValue("requestInterval", requestInterval.field);
+            List<IntervalUsage> intervalUsageCounts = geoApiNamedJbdcTemplate.query(
+                    ApiUsageStatsQuery.GET_USAGE_STATS.getSql(getLogSchema()),
                     params, new ApiIntervalUsageHandler());
-
-
 
             apiUsageStats.setIntervalSizeInMinutes(requestInterval.minutes);
             apiUsageStats.setIntervalFrom(from);
@@ -66,11 +55,9 @@ public class SqlApiUsageStatsDao implements ApiUsageStatsDao
     }
 
     private static class ApiIntervalUsageHandler implements RowMapper<IntervalUsage> {
-
         @Override
         public IntervalUsage mapRow(ResultSet rs, int rowNum) throws SQLException {
             return new IntervalUsage(rs.getTimestamp("requestInterval"), rs.getInt("requests"));
-
         }
     }
 }

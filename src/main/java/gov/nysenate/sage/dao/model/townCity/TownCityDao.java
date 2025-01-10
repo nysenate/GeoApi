@@ -3,7 +3,6 @@ package gov.nysenate.sage.dao.model.townCity;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.provider.district.MunicipalityType;
 import org.apache.tomcat.util.collections.CaseInsensitiveKeyMap;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.stereotype.Repository;
 
@@ -17,23 +16,16 @@ import static gov.nysenate.sage.dao.provider.district.MunicipalityType.CITY;
 import static gov.nysenate.sage.dao.provider.district.MunicipalityType.TOWN;
 
 @Repository
-public class TownCityDao {
-    private final BaseDao baseDao;
-
-    @Autowired
-    public TownCityDao(BaseDao baseDao) {
-        this.baseDao = baseDao;
-    }
-
+public class TownCityDao extends BaseDao {
     public Map<String, String> getAbbrevToNameMap() {
         var rch = new SimpleMapCallbackHandler();
-        baseDao.geoApiNamedJbdcTemplate.query(TownCityQuery.SELECT_ALL.getSql(), Map.of(), rch);
+        geoApiNamedJbdcTemplate.query(TownCityQuery.SELECT_ALL.getSql(), Map.of(), rch);
         return rch.abbrevToNameMap;
     }
 
     public Map<MunicipalityType, Map<String, String>> getTypeAndNameToAbbrevMap() {
         var rch = new NestedMapCallbackHandler();
-        baseDao.geoApiJbdcTemplate.query(TownCityQuery.SELECT_ALL.getSql(), rch);
+        geoApiJbdcTemplate.query(TownCityQuery.SELECT_ALL.getSql(), rch);
         return rch.results;
     }
 

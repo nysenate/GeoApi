@@ -7,47 +7,32 @@ import gov.nysenate.services.model.District;
 import gov.nysenate.services.model.Senator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.PostConstruct;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Repository
-public class SqlSenateDao implements SenateDao {
+public class SqlSenateDao extends BaseDao implements SenateDao {
     private static final Logger logger = LoggerFactory.getLogger(SqlSenateDao.class);
-    /**
-     * Mapper used to serialize into json
-     */
     private static final ObjectMapper mapper = new ObjectMapper();
+    private Map<Integer, Senator> codeToSenatorMap;
 
-    private final BaseDao baseDao;
-    private final Integer refreshIntervalHours;
-    /**
-     * Cached district code, Senator
-     */
-    private Map<Integer, Senator> senatorMap;
-    private Timestamp cacheUpdated;
-
-    @Autowired
-    public SqlSenateDao(BaseDao baseDao,
-                        @Value("${senator.cache.refresh.hours:12}") int refreshIntervalHours) {
-        this.baseDao = baseDao;
-        this.senatorMap = getSenatorMap();
-        this.refreshIntervalHours = refreshIntervalHours;
+    @PostConstruct
+    private void init() {
+        this.codeToSenatorMap = queryForSenatorCache();
     }
 
     /** {@inheritDoc} */
     public Senator getSenatorByDistrict(int senateCode) {
-        return getSenatorMap().get(senateCode);
+        return codeToSenatorMap.get(senateCode);
     }
 
     /** {@inheritDoc} */
@@ -57,15 +42,14 @@ public class SqlSenateDao implements SenateDao {
         String json = FormatUtil.toJsonString(senator);
 
         try {
-            MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue("district", senateCode);
+            var params = new MapSqlParameterSource("district", senateCode);
             params.addValue("name", senatorName);
             params.addValue("data", json);
 
-            int numRows = baseDao.geoApiNamedJbdcTemplate.update(
-                    SenateQuery.INSERT_SENATOR.getSql(baseDao.getPublicSchema()), params);
+            int numRows = geoApiNamedJbdcTemplate.update(
+                    SenateQuery.INSERT_SENATOR.getSql(getPublicSchema()), params);
             if (numRows > 0) {
-                logger.info("Added data for Senator " + senatorName);
+                logger.info("Added data for Senator {}", senatorName);
             }
         } catch (Exception ex) {
             logger.error(ex.getMessage());
@@ -80,8 +64,8 @@ public class SqlSenateDao implements SenateDao {
         try {
             var params = new MapSqlParameterSource("district", senateCode)
                     .addValue("url", url);
-            int numRows = baseDao.geoApiNamedJbdcTemplate.update(
-                    SenateQuery.INSERT_SENATE.getSql(baseDao.getPublicSchema()), params);
+            int numRows = geoApiNamedJbdcTemplate.update(
+                    SenateQuery.INSERT_SENATE.getSql(getPublicSchema()), params);
             if (numRows > 0) {
                 logger.info("Added data for senate district {}", senateCode);
             }
@@ -93,7 +77,7 @@ public class SqlSenateDao implements SenateDao {
     /** {@inheritDoc} */
     public void deleteSenators() {
         try {
-            baseDao.geoApiJbdcTemplate.update(SenateQuery.CLEAR_SENATORS.getSql(baseDao.getPublicSchema()));
+            geoApiJbdcTemplate.update(SenateQuery.CLEAR_SENATORS.getSql(getPublicSchema()));
         } catch (Exception ex) {
             logger.error("Failed to delete senators {}", ex.getMessage());
         }
@@ -103,24 +87,25 @@ public class SqlSenateDao implements SenateDao {
     public void deleteSenator(int district) {
         try {
             var params = new MapSqlParameterSource("district", district);
-            baseDao.geoApiNamedJbdcTemplate.update(
-                    SenateQuery.DELETE_SENATOR_BY_DISTRICT.getSql(baseDao.getPublicSchema()), params);
+            geoApiNamedJbdcTemplate.update(
+                    SenateQuery.DELETE_SENATOR_BY_DISTRICT.getSql(getPublicSchema()), params);
         } catch (Exception ex) {
             logger.error("Failed to delete senator in district {}", district);
         }
     }
 
     /** {@inheritDoc} */
+    @Scheduled(cron = "${senator.refresh.cron:0 0 0/12 * * *}")
     public void updateSenatorCache() {
-        senatorMap = queryForSenatorCache();
+        codeToSenatorMap = queryForSenatorCache();
     }
 
     private Map<Integer, Senator> queryForSenatorCache() {
         Map<Integer, Senator> senatorMap = new HashMap<>();
         try {
             List<Map<Integer, Senator>> uncompiledSenatorMap =
-                    baseDao.geoApiNamedJbdcTemplate.query(
-                            SenateQuery.GET_ALL_SENATORS.getSql(baseDao.getPublicSchema()), new SenatorMapHandler());
+                    geoApiNamedJbdcTemplate.query(
+                            SenateQuery.GET_ALL_SENATORS.getSql(getPublicSchema()), new SenatorMapHandler());
 
             senatorMap = compileSenateMap(uncompiledSenatorMap);
 
@@ -130,56 +115,34 @@ public class SqlSenateDao implements SenateDao {
         return senatorMap;
     }
 
-    private Map<Integer, Senator> getSenatorMap() {
-        if (senatorMap == null || cacheUpdated == null || refreshIntervalElapsed()) {
-            senatorMap = new HashMap<>();
-            senatorMap = queryForSenatorCache();
-        }
-        return senatorMap;
-    }
-
     private Map<Integer, Senator> compileSenateMap(List<Map<Integer, Senator>> uncompiledSenatorMap) {
         Map<Integer, Senator> compiledSenatorMap = new HashMap<>();
         for (Map<Integer, Senator> integerSenatorMap : uncompiledSenatorMap) {
             compiledSenatorMap.putAll(integerSenatorMap);
         }
-        logger.info("Cached " + senatorMap.size() + " senators.");
-        cacheUpdated = new Timestamp(new Date().getTime());
+        logger.info("Cached {} senators.", codeToSenatorMap.size());
         return compiledSenatorMap;
     }
 
     /**
-     * Indicates if it's time for a senator cache refresh.
-     *
-     * @return
-     */
-    private boolean refreshIntervalElapsed() {
-        Timestamp now = new Timestamp(new Date().getTime());
-        Timestamp refreshTime = new Timestamp(cacheUpdated.getTime() + (1000L * 3600 * refreshIntervalHours));
-        return now.after(refreshTime);
-    }
-
-    /**
      * Retrieves senators from the database and puts Senator objects into the cache map.
-     * The senator data is deserialzed from the JSON representation of the Senator object
+     * The senator data is deserialized from the JSON representation of the Senator object
      * that is stored in the database.
      */
     private class SenatorMapHandler implements RowMapper<Map<Integer, Senator>> {
         @Override
         public Map<Integer, Senator> mapRow(ResultSet rs, int rowNum) throws SQLException {
-
             Integer senateCode = rs.getInt("district");
             String name = rs.getString("name");
             String json = rs.getString("data");
+
             try {
                 Senator senator = mapper.readValue(json, Senator.class);
-                senatorMap.put(senateCode, senator);
+                codeToSenatorMap.put(senateCode, senator);
             } catch (Exception ex) {
                 logger.error("Failed to get senator data for {}", name, ex);
             }
-            return senatorMap;
+            return codeToSenatorMap;
         }
     }
-
-
 }

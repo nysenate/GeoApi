@@ -5,7 +5,6 @@ import gov.nysenate.sage.model.admin.AdminUser;
 import org.mindrot.jbcrypt.BCrypt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
@@ -18,44 +17,28 @@ import java.util.List;
  * AdminUserDao provides database persistence for the AdminUser model.
  */
 @Repository
-public class SqlAdminUserDao implements AdminUserDao
-{
-    private Logger logger = LoggerFactory.getLogger(SqlAdminUserDao.class);
-    private BaseDao baseDao;
-
-    @Autowired
-    public SqlAdminUserDao(BaseDao baseDao) {
-        this.baseDao = baseDao;
-    }
+public class SqlAdminUserDao extends BaseDao implements AdminUserDao {
+    private static final Logger logger = LoggerFactory.getLogger(SqlAdminUserDao.class);
 
     /** {@inheritDoc} */
-    public boolean checkAdminUser(String username, String password)
-    {
-        AdminUser adminUser = null;
+    public boolean checkAdminUser(String username, String password) {
         try {
-            MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue("username", username);
-
-            adminUser = getAdminUser(username);
+            AdminUser adminUser = getAdminUser(username);
+            return BCrypt.checkpw(password, adminUser.getPassword());
         }
         catch (Exception ex) {
             logger.error("Failed to retrieve admin user!", ex);
+            return false;
         }
-
-        if (adminUser != null) {
-            return BCrypt.checkpw(password, adminUser.getPassword());
-        }
-        return false;
     }
 
     /** {@inheritDoc} */
     public AdminUser getAdminUser(String username) {
         AdminUser adminUser = null;
         try {
-            MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue("username", username);
-            List<AdminUser> adminUserList = baseDao.geoApiNamedJbdcTemplate.query(
-                    AdminUserQuery.GET_ADMIN.getSql(baseDao.getPublicSchema()), params, new AdminUserHandler() );
+            var params = new MapSqlParameterSource("username", username);
+            List<AdminUser> adminUserList = geoApiNamedJbdcTemplate.query(
+                    AdminUserQuery.GET_ADMIN.getSql(getPublicSchema()), params, new AdminUserHandler());
             if (!adminUserList.isEmpty() && adminUserList.get(0) != null) {
                 adminUser = adminUserList.get(0);
             }
@@ -67,21 +50,16 @@ public class SqlAdminUserDao implements AdminUserDao
             else {
                 logger.error("Failed to retrieve admin user!", ex);
             }
-
-
         }
         return adminUser;
     }
 
     /** {@inheritDoc} */
     public void insertAdmin(String username, String password) {
-
-
         try {
-            MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue("username", username);
-            params.addValue("password", password);
-            baseDao.geoApiNamedJbdcTemplate.update(AdminUserQuery.INSERT_ADMIN.getSql(baseDao.getPublicSchema()), params);
+            var params = new MapSqlParameterSource("username", username)
+                    .addValue("password", password);
+            geoApiNamedJbdcTemplate.update(AdminUserQuery.INSERT_ADMIN.getSql(getPublicSchema()), params);
         }
         catch (Exception e) {
             logger.error("Failed to insert admin user!", e);
@@ -91,10 +69,10 @@ public class SqlAdminUserDao implements AdminUserDao
 
     private static class AdminUserHandler implements RowMapper<AdminUser> {
         public AdminUser mapRow(ResultSet rs, int rowNum) throws SQLException {
-            AdminUser adminUser = new AdminUser();
+            var adminUser = new AdminUser();
             adminUser.setId( rs.getInt("id") );
-            adminUser.setUsername( rs.getString("username") );
-            adminUser.setPassword( rs.getString("password") );
+            adminUser.setUsername(rs.getString("username"));
+            adminUser.setPassword(rs.getString("password"));
             return adminUser;
         }
     }

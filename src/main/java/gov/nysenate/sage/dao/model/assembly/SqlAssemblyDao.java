@@ -4,7 +4,6 @@ import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.district.Assembly;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
@@ -14,22 +13,14 @@ import java.sql.SQLException;
 import java.util.List;
 
 @Repository
-public class SqlAssemblyDao implements AssemblyDao
-{
-    private Logger logger = LoggerFactory.getLogger(SqlAssemblyDao.class);
-    private BaseDao baseDao;
-
-    @Autowired
-    public SqlAssemblyDao(BaseDao baseDao) {
-        this.baseDao = baseDao;
-    }
+public class SqlAssemblyDao extends BaseDao implements AssemblyDao {
+    private static final Logger logger = LoggerFactory.getLogger(SqlAssemblyDao.class);
 
     /** {@inheritDoc} */
-    public List<Assembly> getAssemblies()
-    {
+    public List<Assembly> getAssemblies() {
         try {
-            return baseDao.geoApiNamedJbdcTemplate.query(
-                    AssemblyQuery.GET_ALL_ASSEMBLY_MEMBERS.getSql(baseDao.getPublicSchema()), new AssemblyHandler());
+            return geoApiNamedJbdcTemplate.query(
+                    AssemblyQuery.GET_ALL_ASSEMBLY_MEMBERS.getSql(getPublicSchema()), new AssemblyHandler());
         }
         catch (Exception ex){
             logger.error("Failed to retrieve assemblies", ex);
@@ -38,38 +29,34 @@ public class SqlAssemblyDao implements AssemblyDao
     }
 
     /** {@inheritDoc} */
-    public Assembly getAssemblyByDistrict(int district)
-    {
+    public Assembly getAssemblyByDistrict(int district) {
         try {
-            MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue("district", district);
-
-            List<Assembly> assemblyList = baseDao.geoApiNamedJbdcTemplate.query(
-                    AssemblyQuery.GET_ASSMEBLY_MEMBER_BY_DISTRICT.getSql(baseDao.getPublicSchema()),
+            var params = new MapSqlParameterSource("district", district);
+            List<Assembly> assemblyList = geoApiNamedJbdcTemplate.query(
+                    AssemblyQuery.GET_ASSMEBLY_MEMBER_BY_DISTRICT.getSql(getPublicSchema()),
                     params, new AssemblyHandler());
+
             if (assemblyList.isEmpty()) {
                 return null;
             }
             return assemblyList.get(0);
 
         }
-        catch (Exception ex){
+        catch (Exception ex) {
             logger.error("Failed to retrieve assembly", ex);
         }
         return null;
     }
 
     /** {@inheritDoc} */
-    public void insertAssembly(Assembly assembly)
-    {
+    public void insertAssembly(Assembly assembly) {
         try {
-            MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue("district",assembly.getDistrict());
-            params.addValue("memberName", assembly.getMemberName());
-            params.addValue("memberUrl",assembly.getMemberUrl());
+            var params = new MapSqlParameterSource("district", assembly.getDistrict())
+                    .addValue("memberName", assembly.getMemberName())
+                    .addValue("memberUrl", assembly.getMemberUrl());
 
-            int numRows = baseDao.geoApiNamedJbdcTemplate.update(
-                    AssemblyQuery.INSERT_ASSEMBLY_MEMBER.getSql(baseDao.getPublicSchema()), params);
+            int numRows = geoApiNamedJbdcTemplate.update(
+                    AssemblyQuery.INSERT_ASSEMBLY_MEMBER.getSql(getPublicSchema()), params);
             if (numRows > 0) { logger.info("Added Assembly member " + assembly.getMemberName()); }
         }
         catch (Exception ex){
@@ -78,17 +65,15 @@ public class SqlAssemblyDao implements AssemblyDao
     }
 
     /** {@inheritDoc} */
-    public void deleteAssemblies(int district)
-    {
+    public void deleteAssemblies(int district) {
         try {
-            MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue("district", district);
+            var params = new MapSqlParameterSource("district", district);
 
-            baseDao.geoApiNamedJbdcTemplate.update(
-                    AssemblyQuery.DELETE_ASSEMBLY_DISTRICT.getSql(baseDao.getPublicSchema()), params);
+            geoApiNamedJbdcTemplate.update(
+                    AssemblyQuery.DELETE_ASSEMBLY_DISTRICT.getSql(getPublicSchema()), params);
         }
         catch (Exception ex) {
-            logger.error("Failed to delete assembly " + district + " " + ex.getMessage());
+            logger.error("Failed to delete assembly {} {}", district, ex.getMessage());
         }
     }
 
@@ -96,7 +81,7 @@ public class SqlAssemblyDao implements AssemblyDao
     private static class AssemblyHandler implements RowMapper<Assembly> {
         @Override
         public Assembly mapRow(ResultSet rs, int rowNum) throws SQLException {
-            Assembly assembly = new Assembly();
+            var assembly = new Assembly();
             assembly.setDistrict(rs.getInt("district"));
             assembly.setMemberName(rs.getString("membername"));
             assembly.setMemberUrl(rs.getString("memberurl"));
