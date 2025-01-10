@@ -19,11 +19,13 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.setAuthenticated;
-import static gov.nysenate.sage.util.controller.ConstantUtil.*;
+import static gov.nysenate.sage.util.controller.ConstantUtil.ADMIN_REST_PATH;
+import static gov.nysenate.sage.util.controller.ConstantUtil.ADMIN_USERNAME_ATTR;
 
 @Controller
 @RequestMapping(value = ADMIN_REST_PATH)
 public class AdminController {
+    private static final String ADMIN_LOGIN_JSP = "/WEB-INF/views/adminlogin.jsp", ADMIN_MAIN_PATH = "/admin";
     private final SqlAdminUserDao sqlAdminUserDao;
 
     @Autowired

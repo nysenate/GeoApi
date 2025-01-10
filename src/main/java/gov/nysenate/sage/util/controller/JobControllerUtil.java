@@ -12,12 +12,10 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
-import static gov.nysenate.sage.util.controller.ConstantUtil.JOB_REQUEST_ATTR;
-import static gov.nysenate.sage.util.controller.ConstantUtil.JOB_USER_ATTR;
-
 public final class JobControllerUtil {
     private static final Logger logger = LoggerFactory.getLogger(JobControllerUtil.class);
     private static final ObjectMapper jsonMapper = new ObjectMapper();
+    private static final String JOB_USER_ATTR = "jobuser", JOB_REQUEST_ATTR = "jobrequest";
 
     private JobControllerUtil() {}
 

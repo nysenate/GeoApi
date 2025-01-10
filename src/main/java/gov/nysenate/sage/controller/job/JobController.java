@@ -42,13 +42,13 @@ import java.util.Iterator;
 import java.util.List;
 
 import static gov.nysenate.sage.util.controller.ConstantUtil.DOWNLOAD_BASE_URL;
-import static gov.nysenate.sage.util.controller.ConstantUtil.JOB_LOGIN_JSP;
 import static gov.nysenate.sage.util.controller.JobControllerUtil.*;
 
 @Controller
 @RequestMapping(value = "/job")
 public class JobController {
     private static final Logger logger = LoggerFactory.getLogger(JobController.class);
+    private static final String JOB_LOGIN_JSP = "/WEB-INF/views/joblogin.jsp";
     private final Environment env;
     private final JobUserAuth jobUserAuth;
     private final SqlJobProcessDao sqlJobProcessDao;
