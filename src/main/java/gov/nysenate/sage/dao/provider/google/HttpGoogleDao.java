@@ -45,7 +45,9 @@ public class HttpGoogleDao implements GeocoderDao {
      * @return          GeocodedAddress containing best matched Geocode.
      */
     public GeocodedAddress getGeocodedAddress(Address address) {
-        // TODO: check for valid Zip5
+        if (address.getZip5() == null) {
+            return new GeocodedAddress(address, null);
+        }
         String url = baseUrl + String.format(GEOCODE_QUERY,
                 URLEncoder.encode(address.toString(), StandardCharsets.UTF_8),
                 apiKey);

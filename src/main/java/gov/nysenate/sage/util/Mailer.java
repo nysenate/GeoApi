@@ -16,7 +16,6 @@ import java.util.StringTokenizer;
 
 @Component
 public class Mailer {
-    // TODO: add new property
     private static final Logger logger = LoggerFactory.getLogger(Mailer.class);
     @Value("${smtp.host}")
     private String smtpHostName;
