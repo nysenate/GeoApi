@@ -36,13 +36,10 @@ import java.util.Set;
  * overlaps and intersections between districts.
  */
 // TODO: be sure to resolve county stuff correctly
+// TODO: cache schools
 @Repository
 public class SqlDistrictShapefileDao extends BaseDao implements DistrictShapeFileDao {
     private static final Logger logger = LoggerFactory.getLogger(SqlDistrictShapefileDao.class);
-    /** Set of DistrictTypes that can't be cached effectively due to non-unique codes.
-     * These district maps are retrieved during getDistrictInfo() queries. */
-    private static final Set<DistrictType> retrieveMapSet = Set.of(DistrictType.SCHOOL);
-
     private final CountyDao countyDao;
     private ImmutableMultimap<DistrictType, DistrictMap> districtMapCache = ImmutableMultimap.of();
 
@@ -55,11 +52,9 @@ public class SqlDistrictShapefileDao extends BaseDao implements DistrictShapeFil
     }
 
     /** {@inheritDoc} */
-    public DistrictInfo getDistrictInfo(Point point, List<DistrictType> districtTypes, boolean getSpecialMaps) {
-        // Template SQL for looking up district given a point
+    public DistrictInfo getDistrictInfo(Point point, List<DistrictType> districtTypes) {
         String sqlTmpl =
                 "SELECT '%s' AS type, %s AS name, %s as code " +
-                        "%s \n" + // <- mapQuery
                 "FROM districts.%s " +
                 "WHERE ST_CONTAINS(geom, ST_PointFromText('POINT(%f %f)'))";
 
@@ -68,10 +63,8 @@ public class SqlDistrictShapefileDao extends BaseDao implements DistrictShapeFil
         for (DistrictType districtType : districtTypes) {
             String nameColumn = districtType.nameColumn();
             if (nameColumn != null) {
-                String mapQuery = ((getSpecialMaps && retrieveMapSet.contains(districtType)) ?
-                        ", ST_AsGeoJson(geom) AS map" : ", null as map");
                 queryList.add(String.format(sqlTmpl, districtType, nameColumn, districtType.codeColumn(),
-                        mapQuery, districtType, point.lon(), point.lat())); // lon,lat is correct order
+                        districtType, point.lon(), point.lat())); // lon,lat is correct order
             }
         }
 
@@ -94,8 +87,8 @@ public class SqlDistrictShapefileDao extends BaseDao implements DistrictShapeFil
                 .addValue("nameField", intersectType.nameColumn())
                 .addValue("codeField", intersectType.codeColumn());
 
-        return geoApiNamedJbdcTemplate.query(ShapefileQueries.GET_INTERSECTION.getSql("districts"), params,
-                new DistrictOverlapHandler());
+        return geoApiNamedJbdcTemplate.query(ShapefileQueries.GET_INTERSECTION.getSql("districts"),
+                params, new DistrictOverlapHandler());
     }
 
     /** {@inheritDoc} */

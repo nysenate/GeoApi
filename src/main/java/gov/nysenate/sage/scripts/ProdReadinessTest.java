@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.geo.Point;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -49,17 +50,16 @@ public class ProdReadinessTest {
     }
 
     private void initializeTestAddresses() {
-        // TODO: removed ids
-        badTestAddresses.add(new Address("","Albany","NY","12205"));
-        badTestAddresses.add(new Address("25 Smithtown Circle","Smithtown", "NY","11787"));
-        badTestAddresses.add(new Address("25 Smithtown","Smithtown", "NY","11787"));
+        badTestAddresses.add(new BuildingAddress("","Albany","NY","12205"));
+        badTestAddresses.add(new BuildingAddress("25 Smithtown Circle","Smithtown", "NY","11787"));
+        badTestAddresses.add(new BuildingAddress("25 Smithtown","Smithtown", "NY","11787"));
 
-        testAddresses.add(new Address("100 Nyroy Dr", "Troy", "NY", "12180"));
-        testAddresses.add(new Address("44 Fairlawn Ave","Albany","NY","12203"));
-        testAddresses.add(new Address("903 London Square Drive","Clifton Park","NY","12065"));
-        testAddresses.add(new Address("535 Highland Ave","Rochester","NY","14620"));
-        testAddresses.add(new Address("46-08 74th Street","Flushing","NY","11373"));
-        testAddresses.add(new Address("200 State Street","Albany","NY","12210"));
+        testAddresses.add(new BuildingAddress("100 Nyroy Dr", "Troy", "NY", "12180"));
+        testAddresses.add(new BuildingAddress("44 Fairlawn Ave","Albany","NY","12203"));
+        testAddresses.add(new BuildingAddress("903 London Square Drive","Clifton Park","NY","12065"));
+        testAddresses.add(new BuildingAddress("535 Highland Ave","Rochester","NY","14620"));
+        testAddresses.add(new BuildingAddress("46-08 74th Street","Flushing","NY","11373"));
+        testAddresses.add(new BuildingAddress("200 State Street","Albany","NY","12210"));
     }
 
 

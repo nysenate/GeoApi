@@ -55,13 +55,13 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
 
         var urlParams = new StringBuilder();
         try {
-            urlParams.append("?addr1=").append(encode(address.getStreetWithNum()))
+            urlParams.append("?addr1=").append(encode(address.getAddr1()))
                     .append("&city=").append(encode(address.getPostalCity()))
                     .append("&state=").append(encode(address.getState()))
                     .append("&zip5=").append(address.getZip5())
                     .append("&initCaps=true");
-            if (address.getInternal() != null) {
-                urlParams.append("&addr2=").append(encode(address.getInternal()));
+            if (address.getAddr2() != null) {
+                urlParams.append("&addr2=").append(encode(address.getAddr2()));
             }
 
             String url = base_url + VALIDATE_METHOD + urlParams;
@@ -103,8 +103,8 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
         ArrayNode requestRoot = jsonNodeFactory.arrayNode();
         for (Address address : addresses) {
             ObjectNode addressNode = jsonNodeFactory.objectNode()
-                    .put("addr1", address.getStreetWithNum())
-                    .put("addr2", address.getInternal())
+                    .put("addr1", address.getAddr1())
+                    .put("addr2", address.getAddr2())
                     .put("city", address.getPostalCity())
                     .put("state", address.getState())
                     .put("zip5", address.getZip5())
@@ -162,9 +162,8 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
                 String zip5 = addressNode.get("zip5").asText();
                 String zip4 = addressNode.get("zip4").asText();
 
-                Address validatedAddress = new Address(addr1, addr2, city, state, zip5, zip4);
+                var validatedAddress = Address.getAddress(addr1, addr2, city, state, zip5, zip4);
                 validatedAddress.setUspsValidated(true);
-
                 addressResult.setAddress(validatedAddress);
             } catch (NullPointerException ex) {
                 logger.error("Bad root: {}", root);

@@ -2,7 +2,7 @@ package gov.nysenate.sage.dao.provider.nysgeo;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
@@ -29,8 +29,13 @@ public class HttpNYSGeoDao implements GeocoderDao {
     @Value("${nys.revgeocode.ext:/reverseGeocode}")
     private String REV_GEOCODE_EXTENSION;
 
+    @Override
+    public Geocoder geocoder() {
+        return Geocoder.NYSGEO;
+    }
+
     /** {@inheritDoc} */
-    public GeocodedAddress getGeocodedAddress(Address address) {
+    public GeocodedAddress getGeocodedAddress(BuildingAddress address) {
         try {
             String formattedQuery = String.format("?SingleLine=%s",address.getStreetWithNum() + " " + address.getInternal() + " "
                     + address.getPostalCity() + "," + address.getZip5());
@@ -69,11 +74,11 @@ public class HttpNYSGeoDao implements GeocoderDao {
             }
             JsonNode node = objectMapper.readTree(response);
             int score = -1;
-            Address address;
+            BuildingAddress address;
 
             if (isRevGeocode && node.has("address") && node.get("address") != null) {
                 JsonNode addressNode = node.get("address");
-                address = new Address(addressNode.get("Street").toString().trim().replaceAll("\"", ""),
+                address = new BuildingAddress(addressNode.get("Street").toString().trim().replaceAll("\"", ""),
                         addressNode.get("City").toString().trim().replaceAll("\"", ""),
                         addressNode.get("State").toString().trim().replaceAll("\"", ""),
                         addressNode.get("ZIP").toString().trim().replaceAll("\"", ""));
@@ -86,7 +91,7 @@ public class HttpNYSGeoDao implements GeocoderDao {
                     candidateAddress[i] = candidateAddress[i].trim().replaceAll("\"", "");
                 }
 
-                address = new Address(candidateAddress[0], candidateAddress[1], candidateAddress[2], candidateAddress[3]);
+                address = new BuildingAddress(candidateAddress[0], candidateAddress[1], candidateAddress[2], candidateAddress[3]);
 
                 if (node.has("score") && node.get("score") != null) {
                     score = node.get("score").asInt();

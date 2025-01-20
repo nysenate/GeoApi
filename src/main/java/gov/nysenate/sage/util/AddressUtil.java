@@ -1,6 +1,7 @@
 package gov.nysenate.sage.util;
 
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.BuildingAddress;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.text.WordUtils;
 
@@ -17,9 +18,10 @@ public final class AddressUtil {
      * @return Punctuated address
      */
     public static Address addPunctuation(Address address) {
-        if (address == null || !address.isValid()) {
+        if (address == null || !address.isValid() || address.isPoBox()) {
             return address;
         }
+        var bldgAddr = ((BuildingAddress) address);
         Set<String> streetTypes = new HashSet<>();
         streetTypes.addAll(AddressDictionary.streetTypeMap.values());
         streetTypes.addAll(AddressDictionary.highWayMap.values());
@@ -28,9 +30,9 @@ public final class AddressUtil {
         String stTypeAlt = String.join("|", streetTypes);
         String directionalAlt = String.join("|", AddressDictionary.directionMap.values());
 
-        String streetWithNum = address.getStreetWithNum();
+        String streetWithNum = bldgAddr.getStreetWithNum();
 
-        if (streetWithNum != null && !streetWithNum.isEmpty()) {
+        if (!streetWithNum.isEmpty()) {
             Matcher m = Pattern.compile("(?i)(" + unitAlt + ")( *#? *\\d*-?\\w*)$").matcher(streetWithNum);
             if (m.find()) {
                 streetWithNum = m.replaceFirst("$1.$2");
@@ -45,7 +47,7 @@ public final class AddressUtil {
                 streetWithNum = StringUtils.reverseDelimited(stypeM.replaceAll("$1."), ' ');
             }
         }
-        address.setStreetWithNum(streetWithNum);
+        bldgAddr.setStreetWithNum(streetWithNum);
         return address;
     }
 
@@ -55,9 +57,10 @@ public final class AddressUtil {
      * @param address address
      */
     public static Address performInitCapsOnAddress(Address address) {
-        address.setStreetWithNum(initCapStreetLine(address.getStreetWithNum()));
-        address.setInternal(initCapStreetLine(address.getInternal()));
-        address.setPostalCity(WordUtils.capitalizeFully(address.getPostalCity().toLowerCase()));
+        var bldgAddr = ((BuildingAddress) address);
+        bldgAddr.setStreetWithNum(initCapStreetLine(bldgAddr.getStreetWithNum()));
+        bldgAddr.setInternal(initCapStreetLine(bldgAddr.getInternal()));
+        bldgAddr.setPostalCity(WordUtils.capitalizeFully(bldgAddr.getPostalCity().toLowerCase()));
         return address;
     }
 

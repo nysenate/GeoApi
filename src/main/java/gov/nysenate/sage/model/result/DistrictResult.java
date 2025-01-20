@@ -7,24 +7,30 @@ import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
+import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.provider.district.DistrictSource;
-import gov.nysenate.sage.service.district.DistrictServiceValidator;
 
 import javax.annotation.Nonnull;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+
+import static gov.nysenate.sage.model.result.ResultStatus.*;
 
 /**
  * Represents the result returned by district assignment services.
  */
 public class DistrictResult extends BaseResult<DistrictSource> {
+    /** We should only attempt to assign districts to a geocode if it is accurate enough. */
+    private static final List<GeocodeQuality> DISTRICT_ASSIGNABLE_GEOCODE_QUALITIES =
+            List.of(GeocodeQuality.HOUSE, GeocodeQuality.POINT);
+
     /** Contains the geocoded address and district information */
     @Nonnull
     private DistrictedAddress districtedAddress;
 
-    public DistrictResult(DistrictSource source, GeocodedAddress geoAddress,
-                          boolean requireGeocode, boolean requiresValidAddress) {
-        this(source, geoAddress, DistrictServiceValidator.getStatus(geoAddress, requireGeocode, requiresValidAddress));
+    public DistrictResult(DistrictSource source, GeocodedAddress geoAddress) {
+        this(source, geoAddress, getStatus(geoAddress, source));
     }
 
     public DistrictResult(DistrictSource source, GeocodedAddress geoAddress, ResultStatus statusCode) {
@@ -35,6 +41,10 @@ public class DistrictResult extends BaseResult<DistrictSource> {
 
     public DistrictInfo getDistrictInfo() {
         return districtedAddress.getDistrictInfo();
+    }
+
+    public void setDistrictInfo(DistrictInfo districtInfo) {
+        this.districtedAddress.setDistrictInfo(districtInfo);
     }
 
     public Geocode getGeocode() {
@@ -77,5 +87,29 @@ public class DistrictResult extends BaseResult<DistrictSource> {
      */
     public boolean isMultiMatch() {
         return isSuccess() && getDistrictMatchLevel().compareTo(DistrictMatchLevel.HOUSE) < 0;
+    }
+
+    private static ResultStatus getStatus(final GeocodedAddress geoAddress, DistrictSource source) {
+        if (geoAddress == null) {
+            return MISSING_GEOCODED_ADDRESS;
+        }
+        if (!geoAddress.isValidAddress() && source == DistrictSource.STREETFILE) {
+            return MISSING_ADDRESS;
+        }
+        else if (source == DistrictSource.SHAPEFILE) {
+            if (!geoAddress.isValidGeocode()) {
+                return MISSING_GEOCODE;
+            }
+            if (!DISTRICT_ASSIGNABLE_GEOCODE_QUALITIES.contains(geoAddress.getGeocode().quality())) {
+                return INSUFFICIENT_GEOCODE;
+            }
+        }
+        else if (geoAddress.isValidAddress()) {
+            String state = geoAddress.getAddress().getState();
+            if (state != null && !state.isEmpty() && !state.matches("(?i)(NY|NEW YORK)")) {
+                return NON_NY_STATE;
+            }
+        }
+        return SUCCESS;
     }
 }

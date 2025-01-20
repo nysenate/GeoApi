@@ -1,13 +1,13 @@
 package gov.nysenate.sage.util;
 
-import gov.nysenate.sage.model.address.Address;
-import gov.nysenate.sage.model.address.PostOfficeAddress;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import gov.nysenate.sage.model.address.BuildingAddress;
+import gov.nysenate.sage.model.address.Zip5;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -17,8 +17,8 @@ import java.util.Scanner;
 public final class PostOfficeParser {
     private PostOfficeParser() {}
 
-    public static List<PostOfficeAddress> getData(File dataFile) throws IOException {
-        var dataList = new ArrayList<PostOfficeAddress>();
+    public static Multimap<Zip5, BuildingAddress> getData(File dataFile) throws IOException {
+        Multimap<Zip5, BuildingAddress> dataMap = ArrayListMultimap.create();
         var scanner = new Scanner(dataFile);
         String extension = FilenameUtils.getExtension(dataFile.getName());
         String fileDelim = switch (extension) {
@@ -44,10 +44,10 @@ public final class PostOfficeParser {
             if (!lineData[numParts - 3].equals("NY")) {
                 continue;
             }
-            var currAddr = new Address(lineData[numParts - 5], lineData[numParts - 4], "NY",
+            var currAddr = new BuildingAddress(lineData[numParts - 5], lineData[numParts - 4], "NY",
                     lineData[numParts - 2] + "-" + lineData[numParts - 1]);
-            dataList.add(new PostOfficeAddress(lineData[zipIndex], currAddr));
+            dataMap.put(new Zip5(Integer.parseInt(lineData[zipIndex])), currAddr);
         }
-        return dataList;
+        return dataMap;
     }
 }

@@ -6,9 +6,17 @@ import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.CityStateResult;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
 import java.util.List;
 
+// TODO: should take in AddressSource
 public interface AddressProvider {
+    AddressResult validate(Address address, String provider, boolean usePunct);
+
+    default Address validateOrDefault(Address address, String provider, boolean usePunct) {
+        return getOrDefault(validate(address, provider, usePunct), address);
+    }
+
     /**
      * Validates addresses using USPS or another provider if available.
      * @param addresses List of Addresses to validate
@@ -17,6 +25,15 @@ public interface AddressProvider {
      * @return List<AddressResult>
      */
     List<AddressResult> validate(List<Address> addresses, String provider, boolean usePunct);
+
+    default List<Address> validateOrDefault(List<Address> addresses, String provider, boolean usePunct) {
+        List<Address> finalAddresses = new ArrayList<>();
+        List<AddressResult> results = validate(addresses, provider, usePunct);
+        for (int i = 0; i < addresses.size(); i++) {
+            finalAddresses.add(getOrDefault(results.get(i), addresses.get(i)));
+        }
+        return finalAddresses;
+    }
 
     /**
      * Use USPS for a city state lookup by default.
@@ -30,4 +47,8 @@ public interface AddressProvider {
      * Zipcode lookup is the same as a validate request with less output.
      */
     AddressResult lookupZipcode(Address address, String provider);
+
+    private static Address getOrDefault(AddressResult result, Address defaultAddress) {
+        return result != null && result.isSuccess() ? result.getAddress() : defaultAddress;
+    }
 }

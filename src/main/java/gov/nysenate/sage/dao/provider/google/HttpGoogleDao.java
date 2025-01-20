@@ -3,7 +3,7 @@ package gov.nysenate.sage.dao.provider.google;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.dao.provider.nysgeo.GeocoderDao;
-import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
@@ -37,6 +37,11 @@ public class HttpGoogleDao implements GeocoderDao {
         this.apiKey = apiKey;
     }
 
+    @Override
+    public Geocoder geocoder() {
+        return Geocoder.GOOGLE;
+    }
+
     /**
      * This method performs geocoding.
      * Retrieves a GeocodedAddress given an Address using Google.
@@ -44,7 +49,8 @@ public class HttpGoogleDao implements GeocoderDao {
      * @param address   Address to geocode
      * @return          GeocodedAddress containing best matched Geocode.
      */
-    public GeocodedAddress getGeocodedAddress(Address address) {
+    @Override
+    public GeocodedAddress getGeocodedAddress(BuildingAddress address) {
         if (address.getZip5() == null) {
             return new GeocodedAddress(address, null);
         }
@@ -122,8 +128,7 @@ public class HttpGoogleDao implements GeocoderDao {
                         }
                     }
                 }
-                String addr1 = streetNumber + " " + street;
-                Address address = new Address(addr1, "", city, state, zip5, zip4);
+                var address = new BuildingAddress(streetNumber, street, city, state, zip5, zip4);
                 JsonNode location = result.get("geometry").get("location");
                 String lat = location.get("lat").asText("0");
                 String lon = location.get("lng").asText("0");

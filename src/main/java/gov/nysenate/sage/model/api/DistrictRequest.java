@@ -28,7 +28,6 @@ public abstract class DistrictRequest {
     protected Geocoder geocoder = null;
     protected boolean uspsValidate = false;
     protected boolean usePunct = false;
-    protected boolean skipGeocode = false;
     private final Timestamp requestTime = TimeUtil.currentTimestamp();
 
     public DistrictRequest() {}
@@ -83,14 +82,6 @@ public abstract class DistrictRequest {
 
     public void setUsePunct(boolean usePunct) {
         this.usePunct = usePunct;
-    }
-
-    public boolean isSkipGeocode() {
-        return skipGeocode;
-    }
-
-    public void setSkipGeocode(boolean skipGeocode) {
-        this.skipGeocode = skipGeocode;
     }
 
     public void setDistrictTypes(List<DistrictType> districtTypes) {

@@ -3,7 +3,7 @@ package gov.nysenate.sage.provider.district;
 import gov.nysenate.sage.BaseTests;
 import gov.nysenate.sage.annotation.IntegrationTest;
 import gov.nysenate.sage.config.DatabaseConfig;
-import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
@@ -24,7 +24,7 @@ import java.util.List;
 public class StreetfileTest extends BaseTests {
 
     @Autowired
-    private Streetfile streetFile;
+    private DistrictService districtService;
 
     private static final List<DistrictType> types = Arrays.asList(DistrictType.ASSEMBLY, DistrictType.CONGRESSIONAL,
             DistrictType.COUNTY, DistrictType.SENATE, DistrictType.SCHOOL, DistrictType.TOWN_CITY, DistrictType.ZIP);
@@ -33,11 +33,11 @@ public class StreetfileTest extends BaseTests {
     @Test
     @Transactional(value = DatabaseConfig.geoApiTxManager)
     public void shouldNotDistrictAssignCityGeocodeQuality() {
-        Address addr = new Address("", "Delmar", "NY", "");
+        var addr = new BuildingAddress("", "Delmar", "NY", "");
         addr.setUspsValidated(false);
         Geocode geo = new Geocode(new Point("42.6220235", "-73.8326232"), GeocodeQuality.CITY, Geocoder.GOOGLE.toString());
         GeocodedAddress geoAddr = new GeocodedAddress(addr, geo);
-        DistrictResult districtResult = streetFile.assignDistricts(geoAddr, types);
+        DistrictResult districtResult = districtService.assignDistricts(List.of(DistrictSource.STREETFILE), geoAddr, types);
         System.out.println(districtResult);
     }
 }

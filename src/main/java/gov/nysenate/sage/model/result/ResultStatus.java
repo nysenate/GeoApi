@@ -24,8 +24,10 @@ public enum ResultStatus {
     MISSING_POINT(45, "A coordinate pair is required."),
     MISSING_GEOCODED_ADDRESS(46, "The address was unable to be matched using the geocoding service. Please ensure that the address is valid " +
                                   "or try using a different geocoder."),
+    MULTIPLE_POST_OFFICES(47, "The PO box could be in multiple post offices."),
 
     INVALID_GEOCODE(52, "The geocoding process did not yield a successful response. Please ensure that you have entered a valid address or try selecting a different geocoding provider."),
+    MISSING_GEOCODER(53, "No geocoder provided."),
     INVALID_BATCH_ADDRESSES(55, "The supplied batch address list could not be parsed."),
     INVALID_BATCH_POINTS(56, "The supplied batch point list could not be parsed"),
     NON_NY_STATE(57, "The address you have supplied is not a valid New York address. Only NY addresses are supported at this time."),

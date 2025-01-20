@@ -7,18 +7,15 @@ import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Point;
 
 import java.util.List;
-import java.util.Map;
 
 public interface DistrictShapeFileDao {
     /**
      * Retrieves a DistrictInfo object based on the districts that intersect the given point.
      * @param point          Point of interest
      * @param districtTypes  Collection of district types to resolve
-     * @param getSpecialMaps If true then query will return DistrictMap values for districts in the retrieveMapSet
-     *                       since they do not have a unique district code identifier.
      * @return  DistrictInfo if query was successful, null otherwise
      */
-    DistrictInfo getDistrictInfo(Point point, List<DistrictType> districtTypes, boolean getSpecialMaps);
+    DistrictInfo getDistrictInfo(Point point, List<DistrictType> districtTypes);
 
     /**
      * Creates and returns a DistrictOverlap object which contains lists of all districts that contained

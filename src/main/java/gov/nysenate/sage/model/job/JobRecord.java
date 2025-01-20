@@ -39,7 +39,7 @@ public class JobRecord {
         String state = (String) dataMap.get(Column.state);
         String zip5 = (String) dataMap.get(Column.zip5);
         String zip4 = (String) dataMap.get(Column.zip4);
-        this.address = new Address(street, "", city, state, zip5, zip4);
+        this.address = Address.getAddress(street, "", city, state, zip5, zip4);
     }
 
     public List<Object> getRow() {
@@ -53,7 +53,7 @@ public class JobRecord {
         if (addressResult != null && addressResult.isValidated() && addressResult.getAddress() != null) {
             this.correctedAddress = addressResult.getAddress();
 
-            this.dataMap.put(Column.uspsStreet, this.correctedAddress.getStreetWithNum());
+            this.dataMap.put(Column.uspsStreet, this.correctedAddress.getAddr1());
             this.dataMap.put(Column.uspsCity, this.correctedAddress.getPostalCity());
             this.dataMap.put(Column.uspsState, this.correctedAddress.getState());
             this.dataMap.put(Column.uspsZip5, this.correctedAddress.getZip5());

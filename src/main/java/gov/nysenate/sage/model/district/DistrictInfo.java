@@ -22,6 +22,7 @@ public class DistrictInfo {
     private final Map<DistrictType, DistrictOverlap> districtOverlaps = new HashMap<>();
 
     private List<DistrictedStreetRange> streetRanges = new ArrayList<>();
+    private DistrictMatchLevel matchLevel = DistrictMatchLevel.NOMATCH;
 
     public DistrictInfo() {}
 
@@ -33,6 +34,14 @@ public class DistrictInfo {
         this.setDistCode(ASSEMBLY, assemblyCode);
         this.setDistCode(TOWN_CITY, townCode);
         this.setDistCode(SCHOOL, schoolCode);
+    }
+
+    public DistrictMatchLevel getMatchLevel() {
+        return matchLevel;
+    }
+
+    public void setMatchLevel(DistrictMatchLevel matchLevel) {
+        this.matchLevel = matchLevel;
     }
 
     public String getDistName(DistrictType districtType){

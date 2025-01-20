@@ -189,7 +189,7 @@ public class USPSAIS implements AddressService {
 
                         /** USPS usually sets the addr2 which is not intuitive. Here we can
                          *  create a new Address object with addr1 initialized with addr2. */
-                        Address validatedAddr = new Address(addr2, "", city, state, zip5, zip4);
+                        var validatedAddr = Address.getAddress(addr2, "", city, state, zip5, zip4);
 
                         /** Mark address as validated */
                         validatedAddr.setUspsValidated(true);
@@ -330,7 +330,7 @@ public class USPSAIS implements AddressService {
                            + "<Zip5>%s</Zip5>"
                            + "<Zip4>%s</Zip4>"
                            + "</Address>",
-                           id, "", (addr.getStreetWithNum() + " " + addr.getInternal()).trim(), addr.getPostalCity(),
+                           id, "", (addr.getAddr1() + " " + addr.getAddr2()).trim(), addr.getPostalCity(),
                            addr.getState(), addr.getZip5(), addr.getZip4());
     }
 }

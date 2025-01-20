@@ -1,6 +1,7 @@
 package gov.nysenate.sage.scripts.streetfinder.model;
 
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.Intern;
 
 public record AddressWithoutNum(String street, String postalCity, int zip5) {
@@ -11,11 +12,14 @@ public record AddressWithoutNum(String street, String postalCity, int zip5) {
     }
 
     public static AddressWithoutNum fromAddress(Address addr) {
-        return new AddressWithoutNum(addr.getStreet(), addr.getPostalCity(), addr.getZip5());
+        if (addr.isPoBox()) {
+            throw new IllegalArgumentException("Address is a PO Box address");
+        }
+        return new AddressWithoutNum(((BuildingAddress) addr).getStreet(), addr.getPostalCity(), addr.getZip5());
     }
 
     public Address toAddress(int num) {
-        return new Address(num + " " + street, postalCity, String.valueOf(zip5));
+        return new BuildingAddress(num, this);
     }
 
     public AddressWithoutNum intern() {

@@ -1,7 +1,7 @@
 package gov.nysenate.sage.model;
 
 import gov.nysenate.sage.annotation.UnitTest;
-import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
@@ -20,7 +20,7 @@ public class GeocodedAddressTest {
     public void isGeocodedTest()
     {
         GeocodedAddress geocodedAddress = new GeocodedAddress();
-        geocodedAddress.setAddress(new Address("Some addresss", "Some town", "NY", "12313"));
+        geocodedAddress.setAddress(new BuildingAddress("Some addresss", "Some town", "NY", "12313"));
 
         geocodedAddress.setGeocode(new Geocode(new Point("1", "1"), GeocodeQuality.POINT, Geocoder.NYSGEO, false));
         assertTrue(geocodedAddress.isValidGeocode());

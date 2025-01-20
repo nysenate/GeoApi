@@ -5,7 +5,9 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.model.county.CountyDao;
 import gov.nysenate.sage.dao.model.townCity.TownCityDao;
-import gov.nysenate.sage.model.address.*;
+import gov.nysenate.sage.model.address.BuildingAddress;
+import gov.nysenate.sage.model.address.DistrictedStreetRange;
+import gov.nysenate.sage.model.address.StreetAddressRange;
 import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMatchLevel;
@@ -95,17 +97,16 @@ public class SqlStreetfileDao extends BaseDao implements StreetfileDao {
         locked = false;
     }
 
-    public DistrictedAddress getDistrictedAddress(Address addr, @Nonnull DistrictMatchLevel matchLevel) {
-        if (matchLevel == DistrictMatchLevel.NOMATCH || matchLevel == DistrictMatchLevel.STATE) {
-            return new DistrictedAddress(new GeocodedAddress(addr), new DistrictInfo(), matchLevel);
+    public DistrictInfo getDistrictInfo(BuildingAddress addr, @Nonnull DistrictMatchLevel matchLevel) {
+        if (matchLevel == DistrictMatchLevel.STATE || matchLevel == DistrictMatchLevel.NOMATCH) {
+            return new DistrictInfo();
         }
-        AddressWithoutNum awn = AddressWithoutNum.fromAddress(addr);
-        var sqlBuilder = new StringBuilder("SELECT * FROM streetfile WHERE postal_city = '%s'\n".formatted(awn.postalCity().toUpperCase()));
+        var sqlBuilder = new StringBuilder("SELECT * FROM streetfile WHERE postal_city = '%s'\n".formatted(addr.getPostalCity().toUpperCase()));
         if (matchLevel.compareTo(DistrictMatchLevel.ZIP5) >= 0) {
-            sqlBuilder.append("AND zip5 = %d\n".formatted(awn.zip5()));
+            sqlBuilder.append("AND zip5 = %d\n".formatted(addr.getZip5()));
         }
         if (matchLevel.compareTo(DistrictMatchLevel.STREET) >= 0) {
-            sqlBuilder.append("AND street = '%s'".formatted(awn.street().toUpperCase()));
+            sqlBuilder.append("AND street = '%s'".formatted(addr.getStreet().toUpperCase()));
         }
         if (matchLevel.compareTo(DistrictMatchLevel.HOUSE) >= 0) {
             int bldgNum;
@@ -113,7 +114,7 @@ public class SqlStreetfileDao extends BaseDao implements StreetfileDao {
                 bldgNum = Integer.parseInt(addr.getStreetWithNum().replaceFirst("(?i)[a-z]? .*$", ""));
             } catch (NumberFormatException ex) {
                 logger.warn("Could not parse building number from {}", addr.getStreetWithNum());
-                return getDistrictedAddress(addr, matchLevel.getNextHighestLevel());
+                return getDistrictInfo(addr, matchLevel.getNextHighestLevel());
             }
             StreetParity parity = bldgNum%2 == 0 ? EVENS : ODDS;
             sqlBuilder.append("AND (bldg_low <= %d AND %d <= bldg_high)".formatted(bldgNum, bldgNum))
@@ -124,11 +125,12 @@ public class SqlStreetfileDao extends BaseDao implements StreetfileDao {
         List<DistrictedStreetRange> ranges = geoApiNamedJbdcTemplate.query(sqlBuilder.toString(),
                 new DistrictStreetRangeMapper());
         if (ranges.isEmpty()) {
-            return getDistrictedAddress(addr, matchLevel.getNextHighestLevel());
+            return getDistrictInfo(addr, matchLevel.getNextHighestLevel());
         }
         DistrictInfo consolidatedInfo = consolidateDistrictInfo(ranges.stream()
                 .map(DistrictedStreetRange::districtInfo).toList());
-        return new DistrictedAddress(new GeocodedAddress(addr), consolidatedInfo, DistrictMatchLevel.ZIP5);
+        consolidatedInfo.setMatchLevel(matchLevel);
+        return consolidatedInfo;
     }
 
     /** {@inheritDoc} */

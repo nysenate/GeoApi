@@ -1,8 +1,8 @@
 package gov.nysenate.sage.dao.provider.streetfile;
 
-import gov.nysenate.sage.model.address.Address;
-import gov.nysenate.sage.model.address.DistrictedAddress;
+import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.address.DistrictedStreetRange;
+import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
 
@@ -24,7 +24,7 @@ public interface StreetfileDao {
      * @param matchLevel the highest DistrictMatchLevel to attempt.
      * @return a districted address, with the highest possible match level.
      */
-    DistrictedAddress getDistrictedAddress(Address addr, @Nonnull DistrictMatchLevel matchLevel);
+    DistrictInfo getDistrictInfo(BuildingAddress addr, @Nonnull DistrictMatchLevel matchLevel);
 
     /**
      * Returns a list of street ranges with district information for a given zip5.

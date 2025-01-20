@@ -17,8 +17,8 @@ public class AddressView {
     protected Integer id;
 
     public AddressView(Address address) {
-        this.addr1 = address.getStreetWithNum();
-        this.addr2 = address.getInternal();
+        this.addr1 = address.getAddr1();
+        this.addr2 = address.getAddr2();
         this.city = address.getPostalCity();
         this.state = address.getState();
         this.zip5 = address.getZip5();

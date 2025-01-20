@@ -2,12 +2,9 @@ package gov.nysenate.sage.provider.district;
 
 import gov.nysenate.sage.dao.model.county.CountyDao;
 import gov.nysenate.sage.dao.provider.district.SqlDistrictShapefileDao;
-import gov.nysenate.sage.model.address.DistrictedAddress;
-import gov.nysenate.sage.model.address.GeocodedAddress;
-import gov.nysenate.sage.model.district.*;
-import gov.nysenate.sage.model.geo.Geocode;
-import gov.nysenate.sage.model.geo.GeocodeQuality;
-import gov.nysenate.sage.model.result.DistrictResult;
+import gov.nysenate.sage.model.district.DistrictMap;
+import gov.nysenate.sage.model.district.DistrictOverlap;
+import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.IntersectResult;
 import gov.nysenate.sage.model.result.MapResult;
 import gov.nysenate.sage.model.result.ResultStatus;
@@ -17,58 +14,16 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static gov.nysenate.sage.model.result.ResultStatus.INSUFFICIENT_GEOCODE;
-
 @Service
-public class DistrictShapefile extends DistrictService implements MapService {
+public class DistrictShapefile implements MapService {
     private final SqlDistrictShapefileDao sqlDistrictShapefileDao;
 
     private final CountyDao countyDao;
-
-    /** We should only attempt to assign districts to a geocode if it is accurate enough.
-     * i.e. We can't accurately assign a district to a ZIP, CITY, or STATE quality geocode. */
-    private static final List<GeocodeQuality> DISTRICT_ASSIGNABLE_GEOCODE_QUALITIES =
-            List.of(GeocodeQuality.HOUSE, GeocodeQuality.POINT);
 
     @Autowired
     public DistrictShapefile(SqlDistrictShapefileDao sqlDistrictShapefileDao, CountyDao countyDao) {
         this.sqlDistrictShapefileDao = sqlDistrictShapefileDao;
         this.countyDao = countyDao;
-    }
-
-    /** {@inheritDoc} */
-    public DistrictResult assignDistricts(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes, boolean getSpecialMaps) {
-        var districtResult = new DistrictResult(districtSource(), geocodedAddress, true, false);
-        if (!districtResult.isSuccess()) {
-            return districtResult;
-        }
-        if (!DISTRICT_ASSIGNABLE_GEOCODE_QUALITIES.contains(geocodedAddress.getGeocode().quality())) {
-            districtResult.setStatusCode(INSUFFICIENT_GEOCODE);
-            return districtResult;
-        }
-        Geocode geocode = geocodedAddress.getGeocode();
-        DistrictInfo districtInfo = sqlDistrictShapefileDao.getDistrictInfo(geocode.point(), reqTypes, getSpecialMaps);
-        districtResult.setDistrictedAddress(new DistrictedAddress(geocodedAddress, districtInfo, DistrictMatchLevel.HOUSE));
-        districtResult.setResultTime();
-
-        return districtResult;
-    }
-
-    @Override
-    public DistrictSource districtSource() {
-        return DistrictSource.SHAPEFILE;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public DistrictResult assignDistricts(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes) {
-        return assignDistricts(geocodedAddress, reqTypes, true);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public DistrictResult assignDistrictsForBatch(GeocodedAddress geocodedAddress, List<DistrictType> reqTypes) {
-        return assignDistricts(geocodedAddress, reqTypes, false);
     }
 
     /** {@inheritDoc} */
@@ -79,7 +34,8 @@ public class DistrictShapefile extends DistrictService implements MapService {
             code = FormatUtil.trimLeadingZeroes(code);
             DistrictMap map = sqlDistrictShapefileDao.getDistrictMap(districtType, code);
             if (map != null) {
-                if (districtType.equals(DistrictType.COUNTY)) { //This if block is for the COVID19 links
+                // For COVID links
+                if (districtType.equals(DistrictType.COUNTY)) {
                     map.setLink(countyDao.getCountyBySenateCode(Integer.parseInt(code)).link());
                 }
                 mapResult.setDistrictMap(map);

@@ -2,8 +2,6 @@ package gov.nysenate.sage.service.job;
 
 import gov.nysenate.sage.model.job.JobProcessStatus;
 
-import java.util.List;
-
 public interface JobProcessor {
     /**
      * Processing the actual job process
@@ -11,18 +9,6 @@ public interface JobProcessor {
      * @throws Exception
      */
     void run(String[] args) throws Exception;
-
-    /**
-     * Retrieves all job processes that are waiting to be picked up.
-     * @return List<JobProcessStatus>
-     */
-    List<JobProcessStatus> getWaitingJobProcesses();
-
-    /**
-     * Retrieves jobs that are still running and need to be finished.
-     * @return List<JobProcessStatus>
-     */
-    List<JobProcessStatus> getRunningJobProcesses();
 
     /**
      * Main routine for processing a JobProcess.

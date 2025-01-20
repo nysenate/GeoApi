@@ -89,12 +89,6 @@ distassign.threads = 3
 geocode.threads = 3
 revgeocode.threads = 3
 
-################################
-## GeoServer Integration
-################################
-geoserver.url = http://geoserver:8080/wfs
-geoserver.workspace = nysenate
-
 ##################################
 ## GeoApi Database Configuration
 ##################################

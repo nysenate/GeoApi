@@ -6,15 +6,12 @@ import gov.nysenate.sage.client.response.geo.BatchGeocodeResponse;
 import gov.nysenate.sage.client.response.geo.GeocodeResponse;
 import gov.nysenate.sage.client.response.geo.RevGeocodeResponse;
 import gov.nysenate.sage.model.address.Address;
-import gov.nysenate.sage.model.api.BatchGeocodeRequest;
-import gov.nysenate.sage.model.api.SingleGeocodeRequest;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
+import gov.nysenate.sage.provider.geocode.GeocodeService;
 import gov.nysenate.sage.provider.geocode.Geocoder;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
-import gov.nysenate.sage.service.geo.RevGeocodeServiceProvider;
-import gov.nysenate.sage.service.geo.SageGeocodeServiceProvider;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,17 +35,13 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 @Controller
 @RequestMapping(value = ConstantUtil.REST_PATH + "geo")
 public class GeocodeController {
-    private final SageGeocodeServiceProvider geocodeServiceProvider;
-    private final RevGeocodeServiceProvider revGeocodeServiceProvider;
     private final AddressServiceProvider addressProvider;
+    private final GeocodeService geocodeService;
 
     @Autowired
-    public GeocodeController(SageGeocodeServiceProvider geocodeServiceProvider,
-                             RevGeocodeServiceProvider revGeocodeServiceProvider,
-                             AddressServiceProvider addressProvider) {
-        this.geocodeServiceProvider = geocodeServiceProvider;
-        this.revGeocodeServiceProvider = revGeocodeServiceProvider;
+    public GeocodeController(AddressServiceProvider addressProvider, GeocodeService geocodeService) {
         this.addressProvider = addressProvider;
+        this.geocodeService = geocodeService;
     }
 
     /**
@@ -68,7 +61,6 @@ public class GeocodeController {
                                 @RequestParam(required = false) String zip5,
                                 @RequestParam(required = false) String zip4,
                                 @RequestParam(required = false, defaultValue = "true") boolean useFallback,
-                                @RequestParam(required = false, defaultValue = "false") boolean doNotCache,
                                 @RequestParam(required = false,  defaultValue = "true") boolean uspsValidate) {
 
         Geocoder geocoder = Geocoder.getGeocoder(provider);
@@ -76,22 +68,17 @@ public class GeocodeController {
             return new ApiError(this.getClass(), PROVIDER_NOT_SUPPORTED);
         }
 
-        var geocodeRequest = new SingleGeocodeRequest(
-                getAddressFromParams(addr, addr1, addr2, city, state, zip5, zip4), geocoder,
-                useFallback, true, doNotCache, uspsValidate);
-        // TODO: normalize address
-        geocodeRequest.setAddress(geocodeRequest.getAddress());
-
-        Address uspsAddress = performAddressCorrection(geocodeRequest.getAddress());
-        if (uspsAddress != null) {
-            geocodeRequest.setAddress(uspsAddress);
+        Address address = getAddressFromParams(addr, addr1, addr2, city, state, zip5, zip4);
+        List<Geocoder> geocoders = Geocoder.getGeocoders(geocoder, true, useFallback);
+        if (uspsValidate) {
+            address = performAddressCorrection(address);
         }
 
-        if (geocodeRequest.getAddress() == null || !geocodeRequest.getAddress().isValid()) {
+        if (address == null || !address.isValid()) {
             return new ApiError(this.getClass(), MISSING_ADDRESS);
 
         }
-        return new GeocodeResponse(geocodeServiceProvider.geocode(geocodeRequest));
+        return new GeocodeResponse(geocodeService.geocode(geocoders, address));
     }
 
     /**
@@ -105,7 +92,7 @@ public class GeocodeController {
     public BaseResponse revGeocode(@RequestParam(required = false) String provider,
                                    @RequestParam String lat, @RequestParam String lon,
                                    @RequestParam(required = false, defaultValue = "true") boolean useFallback,
-                                   @RequestParam(required = false, defaultValue = "false") boolean doNotCache,
+                                   // TODO: use
                                    @RequestParam(required = false,  defaultValue = "true") boolean uspsValidate) {
         Geocoder geocoder = Geocoder.getGeocoder(provider);
         if (geocoder == null) {
@@ -116,12 +103,9 @@ public class GeocodeController {
         if (point == null) {
             return new ApiError(this.getClass(), MISSING_POINT);
         }
-        var geocodeRequest = new SingleGeocodeRequest(
-                null, geocoder, useFallback, true, doNotCache, uspsValidate);
-        geocodeRequest.setReverse(true);
-        geocodeRequest.setPoint(point);
-        GeocodeResult revGeocodeResult = revGeocodeServiceProvider.reverseGeocode(geocodeRequest);
-        return new RevGeocodeResponse(revGeocodeResult);
+        return new RevGeocodeResponse(geocodeService.reverseGeocode(
+                Geocoder.getGeocoders(geocoder, false, useFallback),
+                point));
     }
 
     /**
@@ -135,7 +119,6 @@ public class GeocodeController {
     public BaseResponse batchGeocode(HttpServletRequest request,
                                      @RequestParam(required = false) String provider,
                                      @RequestParam(required = false, defaultValue = "true") boolean useFallback,
-                                     @RequestParam(required = false, defaultValue = "false") boolean doNotCache,
                                      @RequestParam(required = false,  defaultValue = "true") boolean uspsValidate)
             throws IOException {
 
@@ -146,13 +129,14 @@ public class GeocodeController {
 
         String batchJsonPayload = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
         List<Address> addresses = getAddressesFromJsonBody(batchJsonPayload);
+        if (uspsValidate) {
+            addresses = performAddressCorrection(addresses);
+        }
         if (addresses.isEmpty()) {
             return new ApiError(this.getClass(), INVALID_BATCH_ADDRESSES);
         }
-        var batchGeocodeRequest = new BatchGeocodeRequest(geocoder, useFallback, false, doNotCache, uspsValidate);
-        batchGeocodeRequest.setAddresses(addresses);
 
-        List<GeocodeResult> geocodeResults = geocodeServiceProvider.geocode(batchGeocodeRequest);
+        List<GeocodeResult> geocodeResults = geocodeService.geocode(Geocoder.getGeocoders(geocoder, true, useFallback), addresses);
         return new BatchGeocodeResponse(geocodeResults);
     }
 
@@ -167,7 +151,7 @@ public class GeocodeController {
     public BaseResponse batchRevGeocode(HttpServletRequest request,
                                 @RequestParam(required = false) String provider,
                                 @RequestParam(required = false, defaultValue = "true") boolean useFallback,
-                                @RequestParam(required = false, defaultValue = "false") boolean doNotCache,
+                                // TODO: use
                                 @RequestParam(required = false,  defaultValue = "true") boolean uspsValidate)
             throws IOException {
 
@@ -181,12 +165,9 @@ public class GeocodeController {
         if (points.isEmpty()) {
             return new ApiError(this.getClass(), INVALID_BATCH_POINTS);
         }
-        var batchGeocodeRequest = new BatchGeocodeRequest(geocoder, useFallback, true, doNotCache, uspsValidate);
-        batchGeocodeRequest.setPoints(points);
 
-        List<GeocodeResult> revGeocodeResults = revGeocodeServiceProvider.reverseGeocode(
-                points, Geocoder.valueOf(provider.toUpperCase().trim())
-        );
+        List<Geocoder> geocoders = Geocoder.getGeocoders(geocoder, false, useFallback);
+        List<GeocodeResult> revGeocodeResults = geocodeService.reverseGeocode(geocoders, points);
         return new BatchGeocodeResponse(revGeocodeResults);
     }
 
@@ -203,6 +184,10 @@ public class GeocodeController {
         if (addressResult != null && addressResult.isValidated()) {
             return addressResult.getAddress();
         }
-        return null;
+        return address;
+    }
+
+    private List<Address> performAddressCorrection(List<Address> addresses) {
+        return addresses.stream().map(this::performAddressCorrection).toList();
     }
 }

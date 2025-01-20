@@ -1,16 +1,18 @@
 package gov.nysenate.sage.dao.data;
 
-import gov.nysenate.sage.model.address.PostOfficeAddress;
+import com.google.common.collect.Multimap;
+import gov.nysenate.sage.model.address.BuildingAddress;
+import gov.nysenate.sage.model.address.Zip5;
 
 import javax.annotation.Nonnull;
 import java.util.List;
 
 public interface PostOfficeDao {
     @Nonnull
-    List<PostOfficeAddress> getPostOffices(int deliveryZip);
+    List<BuildingAddress> getPostOffices(int deliveryZip);
 
     /**
      * Clears the database table, and adds the given data.
      */
-    void replaceData(List<PostOfficeAddress> postalAddresses);
+    void replaceData(Multimap<Zip5, BuildingAddress> postOfficeMap);
 }

@@ -3,16 +3,15 @@ package gov.nysenate.sage.service.job;
 import gov.nysenate.sage.config.ApplicationConfig;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.model.job.SqlJobProcessDao;
-import gov.nysenate.sage.model.api.BatchDistrictRequest;
-import gov.nysenate.sage.model.api.BatchGeocodeRequest;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.job.*;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
+import gov.nysenate.sage.provider.district.DistrictService;
+import gov.nysenate.sage.provider.geocode.GeocodeService;
+import gov.nysenate.sage.provider.geocode.Geocoder;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
-import gov.nysenate.sage.service.district.DistrictServiceProvider;
-import gov.nysenate.sage.service.geo.SageGeocodeServiceProvider;
 import gov.nysenate.sage.util.FileUtil;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.Mailer;
@@ -44,6 +43,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedTransferQueue;
 
 import static gov.nysenate.sage.model.job.JobProcessStatus.Condition.*;
+import static gov.nysenate.sage.provider.district.DistrictSource.SHAPEFILE;
+import static gov.nysenate.sage.provider.district.DistrictSource.STREETFILE;
 import static gov.nysenate.sage.util.controller.ConstantUtil.DOWNLOAD_BASE_URL;
 
 @Service
@@ -59,8 +60,8 @@ public class JobBatchProcessor implements JobProcessor {
     // TODO: just log ApiRequests
     private final Mailer mailer;
     private final AddressServiceProvider addressProvider;
-    private final SageGeocodeServiceProvider geocodeProvider;
-    private final DistrictServiceProvider districtProvider;
+    private final GeocodeService geocodeService;
+    private final DistrictService districtService;
     private final SqlJobProcessDao sqlJobProcessDao;
 
     private final ThreadPoolTaskExecutor addressExecutor;
@@ -74,8 +75,7 @@ public class JobBatchProcessor implements JobProcessor {
 
     @Autowired
     public JobBatchProcessor(Environment env, Mailer mailer, AddressServiceProvider addressServiceProvider,
-                             SageGeocodeServiceProvider geocodeServiceProvider,
-                             DistrictServiceProvider districtServiceProvider,
+                             GeocodeService geocodeService, DistrictService districtService,
                              SqlJobProcessDao sqlJobProcessDao, ApplicationConfig applicationConfig) {
         this.uploadDir = env.getJobUploadDir();
         this.downloadDir = env.getJobDownloadDir();
@@ -83,8 +83,8 @@ public class JobBatchProcessor implements JobProcessor {
 
         this.mailer = mailer;
         this.addressProvider = addressServiceProvider;
-        this.geocodeProvider = geocodeServiceProvider;
-        this.districtProvider = districtServiceProvider;
+        this.geocodeService = geocodeService;
+        this.districtService = districtService;
         this.sqlJobProcessDao = sqlJobProcessDao;
 
         this.addressExecutor = applicationConfig.getJobAddressValidationExecutor();
@@ -103,55 +103,38 @@ public class JobBatchProcessor implements JobProcessor {
 
     /** Entry point for cron job */
     public synchronized void run(String[] args) throws Exception {
-        if (args.length > 0) {
-            switch (args[0]) {
-                case "clean" : {
-                    cancelRunningJobs();
-                    break;
-                }
-                case "process" : {
-                    List<JobProcessStatus> runningJobs = getRunningJobProcesses();
-                    logger.info("Resuming {} jobs.", runningJobs.size());
-                    for (JobProcessStatus runningJob : runningJobs) {
-                        logger.info("Processing job process id {}", runningJob.getProcessId());
-                        processJob(runningJob);
-                    }
-
-                    List<JobProcessStatus> waitingJobs = getWaitingJobProcesses();
-                    logger.info("{} batch jobs have been queued for processing.", waitingJobs.size());
-                    for (JobProcessStatus waitingJob : waitingJobs){
-                        logger.info("Processing job process id {}", waitingJob.getProcessId());
-                        processJob(waitingJob);
-                    }
-                    break;
-                }
-                default : {
-                    logger.error("Unsupported argument. {} Exiting..", args[0]);
-                }
-            }
-            logger.info("Finishing processing, Exiting Data Processor");
-        }
-        else {
+        if (args.length == 0) {
             logger.error("Usage: jobBatchProcessor [process | clean]");
             logger.error("Process: Iterates through all pending jobs and completes them.");
             logger.error("Clean:   Cancels all running jobs.");
+            return;
         }
-    }
+        switch (args[0]) {
+            case "clean": {
+                cancelRunningJobs();
+                break;
+            }
+            case "process": {
+                List<JobProcessStatus> runningJobs = sqlJobProcessDao.getJobStatusesByCondition(RUNNING, null);
+                logger.info("Resuming {} jobs.", runningJobs.size());
+                for (JobProcessStatus runningJob : runningJobs) {
+                    logger.info("Processing job process id {}", runningJob.getProcessId());
+                    processJob(runningJob);
+                }
 
-    /**
-     * Retrieves all job processes that are waiting to be picked up.
-     * @return List<JobProcessStatus>
-     */
-    public List<JobProcessStatus> getWaitingJobProcesses() {
-        return sqlJobProcessDao.getJobStatusesByCondition(WAITING_FOR_CRON, null);
-    }
-
-    /**
-     * Retrieves jobs that are still running and need to be finished.
-     * @return List<JobProcessStatus>
-     */
-    public List<JobProcessStatus> getRunningJobProcesses() {
-        return sqlJobProcessDao.getJobStatusesByCondition(RUNNING, null);
+                List<JobProcessStatus> waitingJobs = sqlJobProcessDao.getJobStatusesByCondition(WAITING_FOR_CRON, null);
+                logger.info("{} batch jobs have been queued for processing.", waitingJobs.size());
+                for (JobProcessStatus waitingJob : waitingJobs) {
+                    logger.info("Processing job process id {}", waitingJob.getProcessId());
+                    processJob(waitingJob);
+                }
+                break;
+            }
+            default: {
+                logger.error("Unsupported argument. {} Exiting..", args[0]);
+            }
+        }
+        logger.info("Finishing processing, Exiting Data Processor");
     }
 
     /**
@@ -252,14 +235,14 @@ public class JobBatchProcessor implements JobProcessor {
                         Future<JobBatch> futureGeocodedBatch;
                         // TODO: Future<X> vs. X, can be combined
                         if (jobFile.requiresAddressValidation() && futureValidatedBatch != null) {
-                            futureGeocodedBatch = geocodeExecutor.submit(new JobBatchProcessor.GeocodeJobBatch(futureValidatedBatch, jobProcess,geocodeProvider));
+                            futureGeocodedBatch = geocodeExecutor.submit(new JobBatchProcessor.GeocodeJobBatch(futureValidatedBatch, jobProcess, geocodeService));
                         }
                         else {
-                            futureGeocodedBatch = geocodeExecutor.submit(new JobBatchProcessor.GeocodeJobBatch(jobBatch, jobProcess, geocodeProvider));
+                            futureGeocodedBatch = geocodeExecutor.submit(new JobBatchProcessor.GeocodeJobBatch(jobBatch, jobProcess, geocodeService));
                         }
 
                         if (jobFile.requiresDistrictAssign()) {
-                            Future<JobBatch> futureDistrictedBatch = districtExecutor.submit(new JobBatchProcessor.DistrictJobBatch(futureGeocodedBatch, districtTypes, districtProvider));
+                            Future<JobBatch> futureDistrictedBatch = districtExecutor.submit(new DistrictJobBatch(futureGeocodedBatch, districtTypes, districtService));
                             jobResultsQueue.add(futureDistrictedBatch);
                         }
                         else {
@@ -428,22 +411,22 @@ public class JobBatchProcessor implements JobProcessor {
      */
     public class GeocodeJobBatch implements Callable<JobBatch> {
         private final JobProcess jobProcess;
-        private final SageGeocodeServiceProvider geocodeServiceProvider;
+        private final GeocodeService geocodeService;
         private JobBatch jobBatch;
         private Future<JobBatch> futureJobBatch;
 
         public GeocodeJobBatch(JobBatch jobBatch, JobProcess jobProcess,
-                               SageGeocodeServiceProvider geocodeServiceProvider) {
+                               GeocodeService geocodeService) {
             this.jobBatch = jobBatch;
             this.jobProcess = jobProcess;
-            this.geocodeServiceProvider = geocodeServiceProvider;
+            this.geocodeService = geocodeService;
         }
 
         public GeocodeJobBatch(Future<JobBatch> futureValidatedJobBatch, JobProcess jobProcess,
-                               SageGeocodeServiceProvider geocodeServiceProvider) {
+                               GeocodeService geocodeService) {
             this.futureJobBatch = futureValidatedJobBatch;
             this.jobProcess = jobProcess;
-            this.geocodeServiceProvider = geocodeServiceProvider;
+            this.geocodeService = geocodeService;
         }
 
         @Override
@@ -453,9 +436,9 @@ public class JobBatchProcessor implements JobProcessor {
             }
             logger.info("Geocoding for records {}-{}", jobBatch.fromRecord(), jobBatch.toRecord());
 
-            var batchGeoRequest = new BatchGeocodeRequest(this.jobBatch.getAddresses(true));
 
-            List<GeocodeResult> geocodeResults = geocodeServiceProvider.geocode(batchGeoRequest);
+            List<Geocoder> geocoders = Geocoder.getGeocoders(Geocoder.NYSGEO, true, true);
+            List<GeocodeResult> geocodeResults = geocodeService.geocode(geocoders, jobBatch.getAddresses(true));
             if (geocodeResults.size() == jobBatch.jobRecords().size()) {
                 for (int i = 0; i < geocodeResults.size(); i++) {
                     jobBatch.setGeocodeResult(i, geocodeResults.get(i));
@@ -469,18 +452,16 @@ public class JobBatchProcessor implements JobProcessor {
     /**
      * A callable for the executor to perform district assignment for a JobBatch.
      */
-    public class DistrictJobBatch implements Callable<JobBatch> {
+    private static class DistrictJobBatch implements Callable<JobBatch> {
         private final Future<JobBatch> futureJobBatch;
         private final List<DistrictType> districtTypes;
+        private final DistrictService districtService;
 
-        private final DistrictServiceProvider districtServiceProvider;
-
-        public DistrictJobBatch(Future<JobBatch> futureJobBatch, List<DistrictType> types,
-                                DistrictServiceProvider districtServiceProvider)
+        public DistrictJobBatch(Future<JobBatch> futureJobBatch, List<DistrictType> types, DistrictService districtService)
                 throws InterruptedException, ExecutionException {
             this.futureJobBatch = futureJobBatch;
             this.districtTypes = types;
-            this.districtServiceProvider = districtServiceProvider;
+            this.districtService = districtService;
         }
 
         @Override
@@ -488,11 +469,9 @@ public class JobBatchProcessor implements JobProcessor {
             JobBatch jobBatch = futureJobBatch.get();
             logger.info("District assignment for records {}-{}", jobBatch.fromRecord(), jobBatch.toRecord());
 
-            var batchDistRequest = new BatchDistrictRequest();
-            batchDistRequest.setDistrictTypes(this.districtTypes);
-            batchDistRequest.setGeocodedAddresses(jobBatch.getGeocodedAddresses());
-
-            List<DistrictResult> districtResults = districtServiceProvider.assignDistricts(batchDistRequest);
+            List<DistrictResult> districtResults = districtService.assignDistricts(
+                    List.of(STREETFILE, SHAPEFILE), jobBatch.getGeocodedAddresses(), districtTypes
+            );
             for (int i = 0; i < districtResults.size(); i++) {
                 jobBatch.setDistrictResult(i, districtResults.get(i));
             }

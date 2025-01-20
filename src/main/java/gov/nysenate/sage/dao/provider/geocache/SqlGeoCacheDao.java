@@ -3,10 +3,12 @@ package gov.nysenate.sage.dao.provider.geocache;
 import gov.nysenate.sage.config.DatabaseConfig;
 import gov.nysenate.sage.dao.provider.nysgeo.GeocoderDao;
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
+import gov.nysenate.sage.provider.geocode.Geocoder;
 import gov.nysenate.sage.util.TimeUtil;
 import org.apache.commons.text.WordUtils;
 import org.slf4j.Logger;
@@ -30,7 +32,7 @@ import static gov.nysenate.sage.dao.provider.geocache.SqlGeocacheQuery.*;
 @Repository
 public class SqlGeoCacheDao implements GeoCacheDao, GeocoderDao {
     private static final Logger logger = LoggerFactory.getLogger(SqlGeoCacheDao.class);
-    private static final BlockingQueue<GeocodedAddress> cacheBuffer = new LinkedBlockingQueue<>();
+    private final BlockingQueue<GeocodedAddress> cacheBuffer = new LinkedBlockingQueue<>();
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
     @Value("${geocache.buffer.size:100}")
@@ -70,8 +72,8 @@ public class SqlGeoCacheDao implements GeoCacheDao, GeocoderDao {
             }
             Address address = geocodedAddress.getAddress();
             Geocode gc = geocodedAddress.getGeocode();
-            if (isCacheable(address)) {
-                var params = getIdParams(address)
+            if (address.isValid() && !address.isPoBox()) {
+                var params = getIdParams(((BuildingAddress) address))
                         .addValue("zip4", address.getZip4() == null ? null : address.getZip4().toString())
                         .addValue("latlon", "POINT(" + gc.lon() + " " + gc.lat() + ")")
                         .addValue("method", gc.originalGeocoder())
@@ -88,9 +90,13 @@ public class SqlGeoCacheDao implements GeoCacheDao, GeocoderDao {
     }
 
     @Override
-    public GeocodedAddress getGeocodedAddress(Address address) {
-        if (isCacheable(address)) {
-            // TODO: handle PO boxes elsewhere
+    public Geocoder geocoder() {
+        return Geocoder.GEOCACHE;
+    }
+
+    @Override
+    public GeocodedAddress getGeocodedAddress(BuildingAddress address) {
+        if (address.isValid()) {
             List<GeocodedAddress> geoAddrs = jdbcTemplate.query(SELECT_CACHE_ENTRY.getSql(),
                     getIdParams(address), new GeocodedStreetAddressMapper());
             if (!geoAddrs.isEmpty()) {
@@ -108,8 +114,8 @@ public class SqlGeoCacheDao implements GeoCacheDao, GeocoderDao {
     private static class GeocodedStreetAddressMapper implements RowMapper<GeocodedAddress> {
         @Override
         public GeocodedAddress mapRow(ResultSet rs, int rowNum) throws SQLException {
-            var addr = Address.getAddress(rs.getString("bldg_id"), WordUtils.capitalizeFully(rs.getString("street")),
-                    WordUtils.capitalizeFully(rs.getString("postal_city")), rs.getString("zip5"), rs.getString("zip4"));
+            var addr = new BuildingAddress(rs.getString("bldg_id"), WordUtils.capitalizeFully(rs.getString("street")),
+                    WordUtils.capitalizeFully(rs.getString("postal_city")), "NY", rs.getString("zip5"), rs.getString("zip4"));
             return new GeocodedAddress(addr, getGeocodeFromResultSet(rs));
         }
     }
@@ -124,14 +130,10 @@ public class SqlGeoCacheDao implements GeoCacheDao, GeocoderDao {
         return new Geocode(point, quality, rs.getString("method"), true);
     }
 
-    private static MapSqlParameterSource getIdParams(Address address) {
+    private static MapSqlParameterSource getIdParams(BuildingAddress address) {
         return new MapSqlParameterSource("bldgId", address.getBldgId())
                 .addValue("street", address.getStreet())
                 .addValue("postalCity", address.getPostalCity())
                 .addValue("zip5", address.getZip5().toString());
-    }
-
-    private static boolean isCacheable(Address addr) {
-        return !addr.getStreetWithNum().isEmpty() && !addr.getPostalCity().isEmpty() && addr.getZip5() != null;
     }
 }

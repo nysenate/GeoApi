@@ -7,6 +7,7 @@ import java.util.Map;
 /**
  * Represents a mapping of districts that overlap a given reference area.
  */
+// TODO: finish
 public class DistrictOverlap {
     /** A map of `targetType` district codes along with the intersection geometry */
     private final Map<String, DistrictMap> intersectionMaps = new HashMap<>();

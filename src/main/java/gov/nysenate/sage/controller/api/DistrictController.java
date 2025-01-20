@@ -7,17 +7,19 @@ import gov.nysenate.sage.client.response.district.DistrictResponse;
 import gov.nysenate.sage.client.response.district.IntersectResponse;
 import gov.nysenate.sage.client.response.district.MultiDistrictResponse;
 import gov.nysenate.sage.model.address.Address;
-import gov.nysenate.sage.model.api.BatchDistrictRequest;
+import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.api.IntersectRequest;
-import gov.nysenate.sage.model.api.SingleDistrictRequest;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.IntersectResult;
+import gov.nysenate.sage.provider.address.AddressSource;
+import gov.nysenate.sage.provider.district.DistrictService;
 import gov.nysenate.sage.provider.district.DistrictSource;
+import gov.nysenate.sage.provider.geocode.GeocodeService;
 import gov.nysenate.sage.provider.geocode.Geocoder;
+import gov.nysenate.sage.service.address.AddressProvider;
 import gov.nysenate.sage.service.district.IntersectService;
-import gov.nysenate.sage.service.district.TopLevelDistrictService;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,8 +35,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import static gov.nysenate.sage.controller.api.DistrictUtil.createBatchAssignDistrictRequest;
-import static gov.nysenate.sage.controller.api.DistrictUtil.createFullDistrictRequest;
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 import static gov.nysenate.sage.provider.district.DistrictSource.SHAPEFILE;
 import static gov.nysenate.sage.provider.district.DistrictSource.STREETFILE;
@@ -47,19 +47,24 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 @RequestMapping(value = ConstantUtil.REST_PATH + "district")
 public class DistrictController {
     private final String bluebirdStrategy, defaultSingleStrategy, defaultBatchStrategy;
-    private final TopLevelDistrictService districtService;
     private final IntersectService intersectService;
+    private final AddressProvider addressProvider;
+    private final GeocodeService geocodeService;
+    private final DistrictService districtService;
 
     @Autowired
     public DistrictController(@Value("${district.strategy.bluebird}") String bluebirdDistrictStrategy,
                               @Value("${district.strategy.single}") String singleDistrictStrategy,
                               @Value("${district.strategy.batch}") String batchDistrictStrategy,
-                              TopLevelDistrictService districtService, IntersectService intersectService) {
+                              IntersectService intersectService, AddressProvider addressProvider,
+                              GeocodeService geocodeService, DistrictService districtService) {
         this.bluebirdStrategy = bluebirdDistrictStrategy;
         this.defaultSingleStrategy = singleDistrictStrategy;
         this.defaultBatchStrategy = batchDistrictStrategy;
         this.districtService = districtService;
         this.intersectService = intersectService;
+        this.addressProvider = addressProvider;
+        this.geocodeService = geocodeService;
     }
 
     /**
@@ -71,10 +76,8 @@ public class DistrictController {
      */
     @GetMapping(value = "/assign")
     public BaseResponse districtAssign(
-            @RequestParam(required = false) String provider,
             @RequestParam(required = false) String geoProvider,
             @RequestParam(required = false, defaultValue = "true") boolean uspsValidate,
-            @RequestParam(required = false, defaultValue = "false") boolean skipGeocode,
             @RequestParam(required = false) boolean showMultiMatch,
             @RequestParam(required = false) String districtStrategy,
             @RequestParam(required = false) boolean usePunct,
@@ -103,11 +106,16 @@ public class DistrictController {
         }
 
         Address address = getAddressFromParams(addr, addr1, addr2, city, state, zip5, zip4);
-        SingleDistrictRequest districtRequest = createFullDistrictRequest(address,
-                getPointFromParams(lat, lon), geocoder, uspsValidate, usePunct, skipGeocode, getProviders(districtStrategy));
-        districtRequest.setAddress(districtRequest.getAddress());
+        if (uspsValidate) {
+            address = addressProvider.validateOrDefault(address, AddressSource.AMS.name(), usePunct);
+        }
+        Point point = getPointFromParams(lat, lon);
 
-        DistrictResult districtResult = districtService.handleDistrictRequest(districtRequest);
+        // TODO: only geocode if shapefile used
+        GeocodedAddress geocodedAddress = point == null ? geocodeService.getGeocodedAddress(List.of(geocoder), address) :
+                geocodeService.getRevGeocodedAddress(List.of(geocoder), point);
+
+        DistrictResult districtResult = districtService.assignDistricts(providers, geocodedAddress);
         if (districtResult.isMultiMatch() && showMultiMatch) {
             return new MultiDistrictResponse(districtResult);
         } else {
@@ -125,10 +133,8 @@ public class DistrictController {
     @PostMapping(value = "/assign/batch")
     public BaseResponse districtBatchAssign(
             HttpServletRequest request,
-            @RequestParam(required = false) String provider,
             @RequestParam(required = false) String geoProvider,
             @RequestParam(required = false, defaultValue = "true") boolean uspsValidate,
-            @RequestParam(required = false, defaultValue = "false") boolean skipGeocode,
             @RequestParam(required = false) String districtStrategy,
             @RequestParam(required = false) boolean usePunct)
             throws IOException {
@@ -147,11 +153,12 @@ public class DistrictController {
         } catch (IllegalArgumentException e) {
             return new ApiError(DistrictController.class, GEOCODE_PROVIDER_NOT_SUPPORTED);
         }
-        BatchDistrictRequest batchDistrictRequest = createBatchAssignDistrictRequest(geocoder,
-                uspsValidate, usePunct, skipGeocode, getProviders(districtStrategy));
 
         String batchJsonPayload = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
         List<Address> addresses = getAddressesFromJsonBody(batchJsonPayload);
+        if (uspsValidate) {
+            addresses = addressProvider.validateOrDefault(addresses, AddressSource.AMS.name(), usePunct);
+        }
         List<Point> points = List.of();
         if (addresses.isEmpty()) {
             points = getPointsFromJsonBody(batchJsonPayload);
@@ -159,11 +166,13 @@ public class DistrictController {
                 return new ApiError(this.getClass(), INVALID_BATCH_ADDRESSES);
             }
         }
-        batchDistrictRequest.setAddresses(addresses);
-        batchDistrictRequest.setPoints(points);
 
-        List<DistrictResult> districtResults = districtService.handleBatchDistrictRequest(batchDistrictRequest);
-        return new BatchDistrictResponse(districtResults);
+        // TODO: only geocode if shapefile used?
+        List<GeocodedAddress> geocodedAddresses = points.isEmpty() ?
+                geocodeService.getGeocodedAddresses(List.of(geocoder), addresses) :
+                geocodeService.getRevGeocodedAddresses(List.of(geocoder), points);
+
+        return new BatchDistrictResponse(districtService.assignDistricts(providers, geocodedAddresses));
     }
 
     /**
@@ -175,7 +184,6 @@ public class DistrictController {
      */
     @GetMapping(value = "/bluebird")
     public BaseResponse bluebirdAssign(
-            @RequestParam(required = false) String provider,
             @RequestParam(required = false) String geoProvider,
             @RequestParam(required = false) boolean usePunct,
             @RequestParam(required = false) String lat,
@@ -187,7 +195,7 @@ public class DistrictController {
             @RequestParam(required = false) String state,
             @RequestParam(required = false) String zip5,
             @RequestParam(required = false) String zip4) {
-        return districtAssign(provider, geoProvider, true, false, false, bluebirdStrategy,
+        return districtAssign(geoProvider, true, false, bluebirdStrategy,
                 usePunct, lat, lon, addr, addr1, addr2, city, state, zip5, zip4);
     }
 
@@ -201,10 +209,9 @@ public class DistrictController {
     @PostMapping(value = "/bluebird/batch")
     public BaseResponse bluebirdBatchAssign(
             HttpServletRequest request,
-            @RequestParam(required = false) String provider,
             @RequestParam(required = false) String geoProvider,
             @RequestParam(required = false) boolean usePunct) throws IOException {
-        return districtBatchAssign(request, provider, geoProvider, true, false, bluebirdStrategy, usePunct);
+        return districtBatchAssign(request, geoProvider, true, bluebirdStrategy, usePunct);
     }
 
     /**

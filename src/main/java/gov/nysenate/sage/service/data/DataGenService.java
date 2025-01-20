@@ -5,13 +5,13 @@ import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.dao.model.assembly.SqlAssemblyDao;
 import gov.nysenate.sage.dao.model.congressional.SqlCongressionalDao;
 import gov.nysenate.sage.dao.model.senate.SqlSenateDao;
-import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.district.Assembly;
 import gov.nysenate.sage.model.district.Congressional;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.result.GeocodeResult;
+import gov.nysenate.sage.provider.geocode.GeocodeService;
 import gov.nysenate.sage.provider.geocode.Geocoder;
-import gov.nysenate.sage.service.geo.GeocodeServiceProvider;
 import gov.nysenate.sage.util.AddressUtil;
 import gov.nysenate.sage.util.AssemblyScraper;
 import gov.nysenate.sage.util.CongressScraper;
@@ -38,17 +38,17 @@ public class DataGenService implements SageDataGenService {
     private final SqlAssemblyDao sqlAssemblyDao;
     private final SqlCongressionalDao sqlCongressionalDao;
     private final SqlSenateDao sqlSenateDao;
-    private final GeocodeServiceProvider geocodeProvider;
+    private final GeocodeService geocodeService;
     @Value("${nysenate.domain:https://www.nysenate.gov}")
     private String nysenateDomain;
 
     @Autowired
     public DataGenService(SqlSenateDao sqlSenateDao, SqlAssemblyDao sqlAssemblyDao,
-                          SqlCongressionalDao sqlCongressionalDao, GeocodeServiceProvider geocodeProvider) {
+                          SqlCongressionalDao sqlCongressionalDao, GeocodeService geocodeService) {
         this.sqlSenateDao = sqlSenateDao;
         this.sqlAssemblyDao = sqlAssemblyDao;
         this.sqlCongressionalDao = sqlCongressionalDao;
-        this.geocodeProvider = geocodeProvider;
+        this.geocodeService = geocodeService;
     }
 
     public Object vacantizeSenateData() {
@@ -249,13 +249,13 @@ public class DataGenService implements SageDataGenService {
     }
 
     private void setUpdatedGeocode(Office senatorOffice) {
-        //Convert Senator Object info into an address
+        // Convert Senator Object info into an address
         String street = senatorOffice.getStreet().replaceAll("(?i)Avesuite", "Ave Suite")
                 .replaceAll("(?i)avenuesuite", "Avenue Suite");
-        Address officeAddress = new Address(street, senatorOffice.getCity(), senatorOffice.getPostalCode());
+        var officeAddress = new BuildingAddress(street, senatorOffice.getCity(), senatorOffice.getPostalCode());
         //Ensure Mixed Case
         AddressUtil.performInitCapsOnAddress(officeAddress);
-        GeocodeResult result = geocodeProvider.geocode(officeAddress, List.of(Geocoder.NYSGEO, Geocoder.GOOGLE), false);
+        GeocodeResult result = geocodeService.geocode(List.of(Geocoder.NYSGEO, Geocoder.GOOGLE), officeAddress);
 
         if (result.isSuccess()) {
             Geocode geocodedOffice = result.getGeocode();

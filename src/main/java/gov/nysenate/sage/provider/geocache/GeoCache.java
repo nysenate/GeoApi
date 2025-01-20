@@ -3,19 +3,16 @@ package gov.nysenate.sage.provider.geocache;
 import gov.nysenate.sage.dao.provider.geocache.SqlGeoCacheDao;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.result.GeocodeResult;
-import gov.nysenate.sage.provider.geocode.GeocodeService;
 import gov.nysenate.sage.provider.geocode.Geocoder;
-import gov.nysenate.sage.service.geo.ParallelGeocodeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class GeoCache extends GeocodeService {
+public class GeoCache {
     private final SqlGeoCacheDao sqlGeoCacheDao;
 
     @Value("${geocache.enabled:true}")
@@ -23,9 +20,7 @@ public class GeoCache extends GeocodeService {
     private boolean CACHE_ENABLED;
 
     @Autowired
-    public GeoCache(SqlGeoCacheDao sqlGeoCacheDao, ParallelGeocodeService parallelGeocodeService) {
-        // TODO: add PO Box specific code?
-        super(sqlGeoCacheDao,  parallelGeocodeService);
+    public GeoCache(SqlGeoCacheDao sqlGeoCacheDao) {
         this.sqlGeoCacheDao = sqlGeoCacheDao;
     }
 
@@ -47,11 +42,5 @@ public class GeoCache extends GeocodeService {
         }
         sqlGeoCacheDao.cacheGeocodedAddresses(geocodedAddresses);
         sqlGeoCacheDao.flushCacheBuffer();
-    }
-
-    @Nonnull
-    @Override
-    public Geocoder name() {
-        return Geocoder.GEOCACHE;
     }
 }

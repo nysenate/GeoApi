@@ -1,10 +1,13 @@
 package gov.nysenate.sage.dao.provider.nysgeo;
 
-import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Point;
+import gov.nysenate.sage.provider.geocode.Geocoder;
 
 public interface GeocoderDao {
-    GeocodedAddress getGeocodedAddress(Address address);
+    Geocoder geocoder();
+    GeocodedAddress getGeocodedAddress(BuildingAddress address);
+    // TODO: should probably just return an address
     GeocodedAddress getGeocodedAddress(Point point);
 }

@@ -2,91 +2,57 @@ package gov.nysenate.sage.model.address;
 
 import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
 import gov.nysenate.sage.util.FormatUtil;
-import gov.nysenate.sage.util.Pair;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-/**
- *
- */
-public class Address {
-    private static final String bldgNumPattern = "^[0-9]+-?[0-9]*[a-zA-Z]?";
-    private static final String poBoxPattern = "(?i)PO Box \\d+";
-    private String bldgId;
-    private String street;
+public abstract sealed class Address permits BuildingAddress, PostOfficeBox {
+    private static final Pattern poBoxPattern = Pattern.compile("(?i)PO Box (\\d+)");
     private String postalCity;
     private String state = "NY";
     private Zip5 zip5;
     private Zip4 zip4 = new Zip4(null);
-    private String internal;
 
     /** Verification info */
     private boolean uspsValidated = false;
 
-    public Address() {}
-
-    public Address(String fullAddr) {
+    public static Address getAddress(String addr) {
         // TODO: complete. Perhaps get a full list of street, town, zip5, zip4?
+        return null;
     }
 
-    public Address(int bldgNum, AddressWithoutNum awn) {
-        this.bldgId = String.valueOf(bldgNum);
-        this.street = awn.street();
+    public static Address getAddress(String addr1, String addr2, String city, String state, String zip5, String zip4) {
+        Matcher poBoxMatcher =  poBoxPattern.matcher(addr1);
+        if (poBoxMatcher.matches()) {
+            int boxNumber = Integer.parseInt(poBoxMatcher.group(1));
+            return new PostOfficeBox(boxNumber, addr2, city, state, zip5, zip4);
+        }
+        return new BuildingAddress(addr1, addr2, city, state, zip5, zip4);
+    }
+
+    public Address(AddressWithoutNum awn) {
         this.postalCity = awn.postalCity();
         this.zip5 = new Zip5(awn.zip5());
     }
 
-    public Address(String streetWithNum, String postalCity, String zip5) {
-        this(streetWithNum, postalCity, "NY", zip5);
-    }
-
-    public Address(String addr1, String postalCity, String state, String postal) {
-        setStreetWithNum(addr1);
+    public Address(String postalCity, String state, String postal) {
         setPostalCity(postalCity);
         this.state = state;
         setZip9(postal);
     }
 
-    public Address(String addr1, String addr2, String postalCity, String state, String zip5, String zip4) {
-        this(addr1, postalCity, state, zip5 + "-" + zip4);
-        this.internal = addr2;
-    }
+    public abstract String getAddr1();
 
-    public static Address getAddress(String bldgId, String street, String postalCity, String zip5, String zip4) {
-        var addr = new Address();
-        addr.bldgId = bldgId;
-        addr.street = street;
-        addr.postalCity = postalCity;
-        addr.setZip5(zip5);
-        addr.setZip4(zip4);
-        return addr;
-    }
-
-    public String getBldgId() {
-        return bldgId;
-    }
-
-    public String getStreet() {
-        return street;
-    }
-
-    public String getStreetWithNum() {
-        return bldgId + " " + street;
-    }
-
-    public void setStreetWithNum(String streetWithNum) {
-        Pair<String> parts = splitBldgId(streetWithNum);
-        this.bldgId = parts.first();
-        // The following line would remove all numerical suffixes and special characters.
-        // This causes problems when matching the street file table. This may adversely affect the geocache table
-        this.street = parts.second().replaceAll("[#:;.,']", "").replaceAll("[ -]+", " ").toUpperCase();
+    public String getAddr2() {
+        return "";
     }
 
     public String getPostalCity() {
         return postalCity;
     }
 
+    // TODO: should return Zip5
     public Integer getZip5() {
         return zip5.zip();
     }
@@ -95,6 +61,7 @@ public class Address {
         this.zip5 = new Zip5(Integer.parseInt(zip5.trim()));
     }
 
+    // TODO: should return Zip4
     public Integer getZip4() {
         return zip4.zip();
     }
@@ -105,19 +72,8 @@ public class Address {
 
     @Override
     public String toString() {
-        return bldgId + " " + street + (!internal.isEmpty() ? " " + internal : "")
-                + (!postalCity.isEmpty() ? " " + postalCity + "," : "")
+        return (!postalCity.isEmpty() ? " " + postalCity + "," : "")
                 + (!zip5.isMissing() ? " " + zip5 : "") + (!zip4.isMissing() ? "-" + zip4 : "");
-    }
-
-    public String getInternal() {
-        return internal;
-    }
-
-    public void setInternal(String addr2) {
-        if (addr2 != null) {
-            this.internal = FormatUtil.cleanString(addr2);
-        }
     }
 
     public void setPostalCity(String postalCity) {
@@ -157,27 +113,15 @@ public class Address {
     }
 
     public boolean isValid() {
-        return !StringUtils.isBlank(bldgId) && !street.isEmpty() &&
-                (!postalCity.isEmpty() || !zip5.isMissing());
-    }
-
-    public boolean isPOBox() {
-        // TODO: another subclass
-//        return streetWithNum.replaceAll("[.,:]", "")
-//                .replaceAll("\\s+", " ").matches(poBoxPattern);
-        return false;
+        return !postalCity.isEmpty() || !zip5.isMissing();
     }
 
     public static boolean validState(String state) {
         return state.replaceAll("[.]", "").toUpperCase().trim().matches("^$|NY|NEW YORK");
     }
 
-    private static Pair<String> splitBldgId(String toSplit) {
-        // TODO: may need to remove "#"
-        String[] parts = toSplit.trim().split(" ", 2);
-        if (parts.length != 2 || !parts[0].matches(bldgNumPattern)) {
-            throw new IllegalArgumentException("Cannot parse bldg ID from: " + toSplit);
-        }
-        return new Pair<>(parts[0], parts[1]);
+    // TODO: can switch on sealed classes in Java 21
+    public boolean isPoBox() {
+        return false;
     }
 }

@@ -44,6 +44,7 @@ public class AddressServiceProvider implements AddressProvider {
      * @param usePunct If true, validated address will have periods after abbreviations.
      * @return AddressResult
      */
+    @Override
     public AddressResult validate(Address address, String providerStr, boolean usePunct) {
         Timestamp startTime = TimeUtil.currentTimestamp();
         AddressResult addressResult = internalValidate(address, providerStr);

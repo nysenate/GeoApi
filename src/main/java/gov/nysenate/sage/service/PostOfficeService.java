@@ -1,12 +1,10 @@
 package gov.nysenate.sage.service;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import gov.nysenate.sage.dao.data.PostOfficeDao;
-import gov.nysenate.sage.model.PostOfficeDistrictData;
-import gov.nysenate.sage.model.address.DistrictedAddress;
-import gov.nysenate.sage.model.address.PostOfficeAddress;
-import gov.nysenate.sage.model.api.SingleDistrictRequest;
-import gov.nysenate.sage.model.result.DistrictResult;
-import gov.nysenate.sage.service.district.TopLevelDistrictService;
+import gov.nysenate.sage.model.address.BuildingAddress;
+import gov.nysenate.sage.model.address.Zip5;
 import gov.nysenate.sage.util.PostOfficeParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,18 +12,11 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 @Service
 public class PostOfficeService {
-    private final ConcurrentMap<Integer, PostOfficeDistrictData> cache = new ConcurrentHashMap<>();
     private final File dataDir;
     private final PostOfficeDao dao;
-    // Autowired to prevent circular dependency
-    @Autowired
-    private TopLevelDistrictService districtService;
 
     @Autowired
     public PostOfficeService(@Value("${post.office.data.dir}") String postOfficeDataDir,
@@ -47,34 +38,11 @@ public class PostOfficeService {
         if (files.length == 0) {
             return "No files found.";
         }
-        var poAddrs = new ArrayList<PostOfficeAddress>();
+        Multimap<Zip5, BuildingAddress> poAddrs = ArrayListMultimap.create();
         for (File file : files) {
-            poAddrs.addAll(PostOfficeParser.getData(file));
+            poAddrs.putAll(PostOfficeParser.getData(file));
         }
         dao.replaceData(poAddrs);
-        cache.clear();
         return "Success.";
-    }
-
-    public DistrictedAddress getDistrictedAddress(Integer poBoxZip5, String city) {
-        if (poBoxZip5 == null) {
-            return null;
-        }
-        PostOfficeDistrictData result = cache.get(poBoxZip5);
-        if (result == null) {
-            result = new PostOfficeDistrictData(
-                    dao.getPostOffices(poBoxZip5).stream().map(this::getDistrictedAddress).toList()
-            );
-            cache.put(poBoxZip5, result);
-        }
-        return result.isEmpty() ? null : result.getDistrictedAddress(city);
-    }
-
-    private DistrictedAddress getDistrictedAddress(PostOfficeAddress poAddress) {
-        var request = new SingleDistrictRequest();
-        request.setAddress(poAddress.address());
-        request.setUspsValidate(true);
-        DistrictResult results = districtService.handleDistrictRequest(request);
-        return results.getDistrictedAddress();
     }
 }

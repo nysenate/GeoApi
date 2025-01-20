@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.controller.api.filter.ApiFilter;
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.logging.log4j.LogManager;
@@ -26,26 +27,6 @@ public final class ApiControllerUtil {
     private ApiControllerUtil() {}
 
     /**
-     * Constructs a new Address object using the query parameters of the supplied HttpServletRequest.
-     * This method exists to provide consistency among the different controllers when retrieving an
-     * address from the query string.
-     * @param request     HttpServletRequest object
-     * @return      new Address instance if r was valid
-     *              null if r was null
-     */
-    public static Address getAddressFromParams(HttpServletRequest request) {
-        if (request == null) {
-            return null;
-        }
-        if (request.getParameter("addr") != null) {
-            return new Address(request.getParameter("addr"));
-        } else {
-            return new Address(request.getParameter("addr1"), request.getParameter("addr2"), request.getParameter("city"),
-                    request.getParameter("state"), request.getParameter("zip5"), request.getParameter("zip4"));
-        }
-    }
-
-    /**
      * Constructs a new Address object using the query parameters of the supplied input.
      * This method exists to provide consistency among the different controllers when retrieving an
      * address from the api.
@@ -56,10 +37,10 @@ public final class ApiControllerUtil {
     public static Address getAddressFromParams(String addr, String addr1, String addr2 , String city,
                                                String state, String zip5, String zip4) {
         if (addr != null) {
-            return new Address(addr);
+            return Address.getAddress(addr);
         }
         else {
-            return new Address(addr1, addr2, city, state, zip5, zip4);
+            return new BuildingAddress(addr1, addr2, city, state, zip5, zip4);
         }
     }
 
