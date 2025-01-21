@@ -18,7 +18,7 @@ import gov.nysenate.sage.provider.district.DistrictService;
 import gov.nysenate.sage.provider.district.DistrictSource;
 import gov.nysenate.sage.provider.geocode.GeocodeService;
 import gov.nysenate.sage.provider.geocode.Geocoder;
-import gov.nysenate.sage.service.address.AddressProvider;
+import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.service.district.IntersectService;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;
@@ -48,7 +48,7 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 public class DistrictController {
     private final String bluebirdStrategy, defaultSingleStrategy, defaultBatchStrategy;
     private final IntersectService intersectService;
-    private final AddressProvider addressProvider;
+    private final AddressService addressService;
     private final GeocodeService geocodeService;
     private final DistrictService districtService;
 
@@ -56,14 +56,14 @@ public class DistrictController {
     public DistrictController(@Value("${district.strategy.bluebird}") String bluebirdDistrictStrategy,
                               @Value("${district.strategy.single}") String singleDistrictStrategy,
                               @Value("${district.strategy.batch}") String batchDistrictStrategy,
-                              IntersectService intersectService, AddressProvider addressProvider,
+                              IntersectService intersectService, AddressService addressService,
                               GeocodeService geocodeService, DistrictService districtService) {
         this.bluebirdStrategy = bluebirdDistrictStrategy;
         this.defaultSingleStrategy = singleDistrictStrategy;
         this.defaultBatchStrategy = batchDistrictStrategy;
         this.districtService = districtService;
         this.intersectService = intersectService;
-        this.addressProvider = addressProvider;
+        this.addressService = addressService;
         this.geocodeService = geocodeService;
     }
 
@@ -107,7 +107,7 @@ public class DistrictController {
 
         Address address = getAddressFromParams(addr, addr1, addr2, city, state, zip5, zip4);
         if (uspsValidate) {
-            address = addressProvider.validateOrDefault(address, AddressSource.AMS.name(), usePunct);
+            address = addressService.validateOrDefault(address, AddressSource.AMS, usePunct);
         }
         Point point = getPointFromParams(lat, lon);
 
@@ -157,7 +157,7 @@ public class DistrictController {
         String batchJsonPayload = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
         List<Address> addresses = getAddressesFromJsonBody(batchJsonPayload);
         if (uspsValidate) {
-            addresses = addressProvider.validateOrDefault(addresses, AddressSource.AMS.name(), usePunct);
+            addresses = addressService.validateOrDefault(addresses, AddressSource.AMS, usePunct);
         }
         List<Point> points = List.of();
         if (addresses.isEmpty()) {

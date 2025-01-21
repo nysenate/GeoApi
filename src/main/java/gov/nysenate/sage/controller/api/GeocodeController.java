@@ -11,7 +11,7 @@ import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.provider.geocode.GeocodeService;
 import gov.nysenate.sage.provider.geocode.Geocoder;
-import gov.nysenate.sage.service.address.AddressServiceProvider;
+import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,12 +35,12 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 @Controller
 @RequestMapping(value = ConstantUtil.REST_PATH + "geo")
 public class GeocodeController {
-    private final AddressServiceProvider addressProvider;
+    private final AddressService addressService;
     private final GeocodeService geocodeService;
 
     @Autowired
-    public GeocodeController(AddressServiceProvider addressProvider, GeocodeService geocodeService) {
-        this.addressProvider = addressProvider;
+    public GeocodeController(AddressService addressService, GeocodeService geocodeService) {
+        this.addressService = addressService;
         this.geocodeService = geocodeService;
     }
 
@@ -180,7 +180,7 @@ public class GeocodeController {
      * @return GeocodedAddress the address corrected geocodedAddress.
      */
     private Address performAddressCorrection(Address address) {
-        AddressResult addressResult = addressProvider.validate(address, null, false);
+        AddressResult addressResult = addressService.validate(address, null, false);
         if (addressResult != null && addressResult.isValidated()) {
             return addressResult.getAddress();
         }

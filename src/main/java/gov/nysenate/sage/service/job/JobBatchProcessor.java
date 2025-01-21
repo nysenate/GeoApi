@@ -8,10 +8,11 @@ import gov.nysenate.sage.model.job.*;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
+import gov.nysenate.sage.provider.address.AddressSource;
 import gov.nysenate.sage.provider.district.DistrictService;
 import gov.nysenate.sage.provider.geocode.GeocodeService;
 import gov.nysenate.sage.provider.geocode.Geocoder;
-import gov.nysenate.sage.service.address.AddressServiceProvider;
+import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.util.FileUtil;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.Mailer;
@@ -59,7 +60,7 @@ public class JobBatchProcessor implements JobProcessor {
 
     // TODO: just log ApiRequests
     private final Mailer mailer;
-    private final AddressServiceProvider addressProvider;
+    private final AddressService addressService;
     private final GeocodeService geocodeService;
     private final DistrictService districtService;
     private final SqlJobProcessDao sqlJobProcessDao;
@@ -74,7 +75,7 @@ public class JobBatchProcessor implements JobProcessor {
     private boolean sendEmails;
 
     @Autowired
-    public JobBatchProcessor(Environment env, Mailer mailer, AddressServiceProvider addressServiceProvider,
+    public JobBatchProcessor(Environment env, Mailer mailer, AddressService addressService,
                              GeocodeService geocodeService, DistrictService districtService,
                              SqlJobProcessDao sqlJobProcessDao, ApplicationConfig applicationConfig) {
         this.uploadDir = env.getJobUploadDir();
@@ -82,7 +83,7 @@ public class JobBatchProcessor implements JobProcessor {
         this.downloadUrl = env.getBaseUrl() + DOWNLOAD_BASE_URL;
 
         this.mailer = mailer;
-        this.addressProvider = addressServiceProvider;
+        this.addressService = addressService;
         this.geocodeService = geocodeService;
         this.districtService = districtService;
         this.sqlJobProcessDao = sqlJobProcessDao;
@@ -228,7 +229,7 @@ public class JobBatchProcessor implements JobProcessor {
 
                     Future<JobBatch> futureValidatedBatch = null;
                     if (jobFile.requiresAddressValidation()) {
-                        futureValidatedBatch = addressExecutor.submit(new JobBatchProcessor.ValidateJobBatch(jobBatch, addressProvider));
+                        futureValidatedBatch = addressExecutor.submit(new JobBatchProcessor.ValidateJobBatch(jobBatch, addressService));
                     }
 
                     if (jobFile.requiresGeocode() || jobFile.requiresDistrictAssign()) {
@@ -387,16 +388,16 @@ public class JobBatchProcessor implements JobProcessor {
 
     public static class ValidateJobBatch implements Callable<JobBatch> {
         private final JobBatch jobBatch;
-        private final AddressServiceProvider addressProvider;
+        private final AddressService addressService;
 
-        public ValidateJobBatch(JobBatch jobBatch, AddressServiceProvider addressProvider) {
+        public ValidateJobBatch(JobBatch jobBatch, AddressService addressService) {
             this.jobBatch = jobBatch;
-            this.addressProvider = addressProvider;
+            this.addressService = addressService;
         }
 
         @Override
         public JobBatch call() throws Exception {
-            List<AddressResult> addressResults = addressProvider.validate(jobBatch.getAddresses(), null, false);
+            List<AddressResult> addressResults = addressService.validate(jobBatch.getAddresses(), AddressSource.AMS, false);
             if (addressResults.size() == jobBatch.getAddresses().size()) {
                 for (int i = 0; i < addressResults.size(); i++) {
                     jobBatch.setAddressResult(i, addressResults.get(i));

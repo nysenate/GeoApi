@@ -18,7 +18,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import javax.annotation.Nonnull;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -73,7 +72,7 @@ import java.util.List;
  * <a href="https://www.usps.com/webtools/_pdf/Address-Information-v3-1b.pdf">...</a>
  */
 @Service
-public class USPSAIS implements AddressService {
+public class USPSAIS implements AddressDao {
     private static final int BATCH_SIZE = 5;
     private static final Logger logger = LoggerFactory.getLogger(USPSAIS.class);
     private static final XPath xpath = XPathFactory.newInstance().newXPath();
@@ -89,20 +88,6 @@ public class USPSAIS implements AddressService {
     @Override
     public AddressSource source() {
         return AddressSource.AIS;
-    }
-
-    /**
-     * Proxies to the overloaded validate method.
-     */
-    @Nonnull
-    @Override
-    public AddressResult validate(Address address) {
-        List<Address> addressList = new ArrayList<>(List.of(address));
-        List<AddressResult> resultList = validate(addressList);
-        if (resultList != null && !resultList.isEmpty()) {
-            return resultList.get(0);
-        }
-        return new AddressResult(AddressSource.AIS, ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
     }
 
     /**
@@ -127,7 +112,7 @@ public class USPSAIS implements AddressService {
         for (int a = 1; a <= addresses.size(); a++){
             Address address = addresses.get(a - 1);
 
-            var addressResult = new AddressResult(AddressSource.AIS);
+            var addressResult = new AddressResult(source());
             addressResult.setAddress(address);
             batchResults.add(addressResult);
 
@@ -232,19 +217,8 @@ public class USPSAIS implements AddressService {
     }
 
 
-    @Nonnull
     @Override
-    public CityStateResult lookupCityState(Zip5 zip5) {
-        List<CityStateResult> resultList = lookupCityState(List.of(zip5));
-        if (resultList != null && !resultList.isEmpty()) {
-            return resultList.get(0);
-        }
-        return new CityStateResult(AddressSource.AIS, ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
-    }
-
-
-    @Override
-    public List<CityStateResult> lookupCityState(List<Zip5> zips) {
+    public List<CityStateResult> lookupCityStates(List<Zip5> zips) {
         String url = "";
         Document response = null;
 
@@ -266,7 +240,7 @@ public class USPSAIS implements AddressService {
             if (error != null) {
                 List<String> messages = new ArrayList<>();
                 messages.add(xpath.evaluate("Description", error).trim());
-                var result = new CityStateResult(AddressSource.AIS, ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
+                var result = new CityStateResult(source(), ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
                 result.setMessages(messages);
                 for (int i = 0; i < zips.size(); i++) {
                     results.add(result);
@@ -279,7 +253,7 @@ public class USPSAIS implements AddressService {
 
                 error = (Node)xpath.evaluate("Error", addressResponse, XPathConstants.NODE);
                 if (error != null) {
-                    var result = new CityStateResult(AddressSource.AIS, ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
+                    var result = new CityStateResult(source(), ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
                     result.addMessage(xpath.evaluate("Description", error).trim());
                     results.add(result);
                     continue;
@@ -292,7 +266,7 @@ public class USPSAIS implements AddressService {
                 String city = xpath.evaluate("City", addressResponse);
                 city = (city != null) ? WordUtils.capitalizeFully(city) : city;
                 String zip5 = xpath.evaluate("Zip5", addressResponse);
-                results.add(new CityStateResult(AddressSource.AIS, city, state, Integer.parseInt(zip5)));
+                results.add(new CityStateResult(source(), city, state, Integer.parseInt(zip5)));
             }
         }
         catch (MalformedURLException e) {

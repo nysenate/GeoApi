@@ -5,7 +5,10 @@ import gov.nysenate.sage.provider.geocode.DataSource;
 public enum AddressSource implements DataSource {
     AMS, AIS;
 
-    public static AddressSource fromString(String value) {
+    public static AddressSource fromString(String value, AddressSource defaultValue) {
+        if (value == null || value.isBlank()) {
+            return defaultValue;
+        }
         value = value.toUpperCase().trim();
         if (value.matches("(?i)AMS|usps")) {
             return AMS;

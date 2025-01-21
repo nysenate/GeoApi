@@ -12,6 +12,7 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.Zip5;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.CityStateResult;
+import gov.nysenate.sage.provider.address.AddressDao;
 import gov.nysenate.sage.provider.address.AddressSource;
 import gov.nysenate.sage.util.AddressUtil;
 import gov.nysenate.sage.util.UrlRequest;
@@ -35,7 +36,7 @@ import static gov.nysenate.sage.model.result.ResultStatus.NO_ADDRESS_VALIDATE_RE
  * lookups.
  */
 @Repository
-public class HttpUSPSAMSDao implements USPSAMSDao {
+public class HttpUSPSAMSDao implements AddressDao {
     private static final Logger logger = LoggerFactory.getLogger(HttpUSPSAMSDao.class);
     private static final String VALIDATE_METHOD = "validate";
     private static final String CITYSTATE_METHOD = "citystate";
@@ -47,12 +48,13 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
         this.base_url = env.getUspsAmsApiUrl();
     }
 
-    /** {@inheritDoc} */
-    public AddressResult getValidatedAddressResult(Address address) {
-        if (address == null) {
-            return null;
-        }
+    @Override
+    public AddressSource source() {
+        return AddressSource.AMS;
+    }
 
+    /** {@inheritDoc} */
+    public AddressResult validate(Address address) {
         var urlParams = new StringBuilder();
         try {
             urlParams.append("?addr1=").append(encode(address.getAddr1()))
@@ -95,10 +97,7 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
     }
 
     /** {@inheritDoc} */
-    public List<AddressResult> getValidatedAddressResults(List<Address> addresses) {
-        if (addresses == null) {
-            return List.of();
-        }
+    public List<AddressResult> validate(List<Address> addresses) {
         JsonNodeFactory jsonNodeFactory = JsonNodeFactory.instance;
         ArrayNode requestRoot = jsonNodeFactory.arrayNode();
         for (Address address : addresses) {
@@ -124,7 +123,7 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
         }
         catch (IOException | IllegalArgumentException ex) {
             logger.error("Failed to get and parse response from batch validate request!", ex);
-            return List.of();
+            return null;
         }
     }
 
@@ -136,7 +135,7 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
         if (root == null) {
             return null;
         }
-        var addressResult = new AddressResult(AddressSource.AMS);
+        var addressResult = new AddressResult(source());
         JsonNode statusNode = root.get("status");
         JsonNode addressNode = root.get("address");
         JsonNode footnotesNode = root.get("footnotes");
@@ -177,11 +176,7 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
         return addressResult;
     }
 
-    public CityStateResult getCityStateResult(Zip5 zip5) {
-        if (zip5 == null || zip5.isMissing()) {
-            return null;
-        }
-
+    public CityStateResult lookupCityState(Zip5 zip5) {
         StringBuilder urlParams = new StringBuilder("?initCaps=true");
         try {
             urlParams.append("&zip5=").append(zip5.zip());
@@ -205,11 +200,8 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
         return null;
     }
 
-    public List<CityStateResult> getCityStateResults(List<Zip5> zips) {
+    public List<CityStateResult> lookupCityStates(List<Zip5> zips) {
         List<CityStateResult> addressResults = new ArrayList<>();
-        if (zips == null) {
-            return addressResults;
-        }
         var zip5List = zips.stream().map(Zip5::toString).collect(Collectors.toList());
         Gson prettyGson = new GsonBuilder().setPrettyPrinting().create();
 
@@ -235,16 +227,17 @@ public class HttpUSPSAMSDao implements USPSAMSDao {
         return addressResults;
     }
 
-    private static CityStateResult getAddressResultFromJsonCityState(JsonNode root) {
+    private CityStateResult getAddressResultFromJsonCityState(JsonNode root) {
         if (root == null) {
             return null;
         }
         CityStateResult cityStateResult;
         if (root.get("success").asBoolean(false)) {
-            cityStateResult = new CityStateResult(AddressSource.AMS, root.get("cityName").asText(), root.get("stateAbbr").asText(), root.get("zipCode").asInt());
+            cityStateResult = new CityStateResult(source(), root.get("cityName").asText(),
+                    root.get("stateAbbr").asText(), root.get("zipCode").asInt());
         }
         else {
-            cityStateResult = new CityStateResult(AddressSource.AMS, NO_ADDRESS_VALIDATE_RESULT);
+            cityStateResult = new CityStateResult(source(), NO_ADDRESS_VALIDATE_RESULT);
         }
         cityStateResult.setResultTime();
         return cityStateResult;

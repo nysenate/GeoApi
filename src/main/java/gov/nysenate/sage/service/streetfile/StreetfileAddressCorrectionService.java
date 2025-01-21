@@ -1,6 +1,6 @@
 package gov.nysenate.sage.service.streetfile;
 
-import gov.nysenate.sage.dao.provider.usps.USPSAMSDao;
+import gov.nysenate.sage.dao.provider.usps.HttpUSPSAMSDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
@@ -19,10 +19,10 @@ public final class StreetfileAddressCorrectionService {
     private static final Logger logger = LoggerFactory.getLogger(StreetfileAddressCorrectionService.class);
     private static final Map<String, Integer> rankMap = Map.of("Address Component Changed", 1, "Status: DEFAULT_MATCH", 2);
     private static final int VALIDATION_BATCH_SIZE = 4000;
-    private final USPSAMSDao amsDao;
+    private final HttpUSPSAMSDao amsDao;
 
     @Autowired
-    public StreetfileAddressCorrectionService(USPSAMSDao amsDao) {
+    public StreetfileAddressCorrectionService(HttpUSPSAMSDao amsDao) {
         this.amsDao = amsDao;
     }
 
@@ -41,7 +41,7 @@ public final class StreetfileAddressCorrectionService {
             List<Integer> numsToValidate = awns.stream().map(awn -> toCorrectMap.get(awn).poll()).toList();
             List<Address> toValidate = IntStream.range(0, awns.size())
                     .mapToObj(index -> awns.get(index).toAddress(numsToValidate.get(index))).toList();
-            List<AddressResult> validationResults = amsDao.getValidatedAddressResults(toValidate);
+            List<AddressResult> validationResults = amsDao.validate(toValidate);
 
             for (int addrIndex = 0; addrIndex < validationResults.size(); addrIndex++) {
                 AddressResult result = validationResults.get(addrIndex);
