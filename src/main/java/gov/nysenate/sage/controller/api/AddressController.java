@@ -6,6 +6,7 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.api.ApiRequest;
 import gov.nysenate.sage.provider.address.AddressService;
 import gov.nysenate.sage.service.address.AddressServiceProvider;
+import gov.nysenate.sage.util.AddressUtil;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;
@@ -85,6 +86,9 @@ public final class AddressController
 
         if (checkProvider(provider)) {
             Address address = getAddressFromParams(addr,addr1,addr2,city,state,zip5,zip4);
+            if (addr != null) {
+                address = AddressUtil.reorderAddress(address);
+            }
             if (FormatUtil.isStringEmptyorNull(provider)) {
                 addressResponse = new ValidateResponse(addressProvider.validate(address, provider, punct));
             }

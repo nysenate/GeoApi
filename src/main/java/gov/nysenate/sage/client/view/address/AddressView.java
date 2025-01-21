@@ -19,6 +19,9 @@ public class AddressView
 
     public AddressView(Address address)
     {
+        if (address == null) {
+            return;
+        }
         this.addr1 = address.getAddr1();
         this.addr2 = address.getAddr2();
         this.city = address.getPostalCity();
