@@ -147,7 +147,7 @@ public class SqlDistrictShapefileDao implements DistrictShapeFileDao {
             targetCode = resolveCode(targetDistrictType, targetCode);
             targetWhereList.add(String.format("trim(leading '0' from %s) = trim(leading '0' from '%s')", targetDistrictType.codeColumn(), StringEscapeUtils.escapeSql(targetCode)));
         }
-        String targetWhereSql = targetWhereList.isEmpty() ? intersectSql + " > 0" : String.join(" OR ", targetWhereList);
+        String targetWhereSql = targetWhereList.isEmpty() ? "ST_AREA(%s) > 0".formatted(intersectSql) : String.join(" OR ", targetWhereList);
         String sqlQuery = String.format(sqlTmpl, targetDistrictType.codeColumn(), targetDistrictType.name(), targetDistrictType.name(), refDistrictType.name(),
                                                  refWhereSql, targetWhereSql);
         try {
