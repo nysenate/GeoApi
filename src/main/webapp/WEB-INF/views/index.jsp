@@ -542,8 +542,8 @@
                     <div id="multi-senate-results" ng-show="multiMatch && (visible || overlap.senate.length > 1)">
                         <div class="info-container title connected-bottom">
                             <p class="member-name" ng-click="drawIntersect()">{{overlaps[intersectType].length + " " +
-                                intersectType.charAt(0).toUpperCase() +
-                                intersectType.slice(1)}} District Matches &nbsp; <a title="Show Map"
+                                (intersectType.charAt(0).toUpperCase() +
+                                intersectType.slice(1)).replace("Town_city", "Town/City")}} District Matches &nbsp; <a title="Show Map"
                                                                                     class="icon-map"></a></p>
                         </div>
                         <div class="info-container title connected" ng-show="id == 1">
@@ -581,7 +581,7 @@
                                         <div ng-show="intersectType != 'senate'">
                                             <p style="font-size:16px;padding-left: 10px;" class="senate district"
                                                ng-style="getColorStyle(d.district)">
-                                                {{intersectType.charAt(0).toUpperCase() + intersectType.slice(1)}}
+                                                {{(intersectType.charAt(0).toUpperCase() + intersectType.slice(1)).replace("Town_city", "Town/City")}}
                                                 District {{d.district}}
                                             </p>
                                         </div>
