@@ -130,7 +130,7 @@ public class GeocodeController {
         String batchJsonPayload = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
         List<Address> addresses = getAddressesFromJsonBody(batchJsonPayload);
         if (uspsValidate) {
-            addresses = performAddressCorrection(addresses);
+            addresses = addresses.stream().map(this::performAddressCorrection).toList();
         }
         if (addresses.isEmpty()) {
             return new ApiError(this.getClass(), INVALID_BATCH_ADDRESSES);
@@ -185,9 +185,5 @@ public class GeocodeController {
             return addressResult.getAddress();
         }
         return address;
-    }
-
-    private List<Address> performAddressCorrection(List<Address> addresses) {
-        return addresses.stream().map(this::performAddressCorrection).toList();
     }
 }
