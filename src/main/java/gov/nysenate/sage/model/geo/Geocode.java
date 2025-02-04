@@ -1,7 +1,6 @@
 package gov.nysenate.sage.model.geo;
 
 import gov.nysenate.sage.provider.geocode.Geocoder;
-import org.jsoup.internal.FieldsAreNonnullByDefault;
 
 import java.math.BigDecimal;
 
@@ -10,14 +9,15 @@ import java.math.BigDecimal;
  * service. This includes the lat/log pair represented by a Point and various
  * metrics describing the accuracy of the geocoding.
  */
-@FieldsAreNonnullByDefault
 public record Geocode(Point point, GeocodeQuality quality, Geocoder originalGeocoder, boolean isCached) {
     public Geocode(Point point, GeocodeQuality quality, String originalGeocoder) {
         this(point, quality, originalGeocoder, false);
     }
 
     public Geocode(Point point, GeocodeQuality quality, String originalGeocoder, boolean isCached) {
-        this(point, quality, Geocoder.valueOf(originalGeocoder.toUpperCase().trim()), isCached);
+        this(point, quality,
+                originalGeocoder == null ? null : Geocoder.valueOf(originalGeocoder.toUpperCase().trim()),
+                isCached);
     }
 
     public BigDecimal lat() {

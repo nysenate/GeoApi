@@ -111,7 +111,7 @@ public class DistrictController {
         }
         Point point = getPointFromParams(lat, lon);
 
-        // TODO: only geocode if shapefile used
+        // TODO: only geocode if shapefile used?
         GeocodedAddress geocodedAddress = point == null ? geocodeService.getGeocodedAddress(List.of(geocoder), address) :
                 geocodeService.getRevGeocodedAddress(List.of(geocoder), point);
 

@@ -67,7 +67,6 @@ public record JobBatch(List<JobRecord> jobRecords, int fromRecord, int toRecord)
         }
     }
 
-    // TODO: is this even used
     public void setGeocodeResult(int index, GeocodeResult geocodeResult) {
         if (this.jobRecords.get(index) != null) {
             this.jobRecords.get(index).applyGeocodeResult(geocodeResult);

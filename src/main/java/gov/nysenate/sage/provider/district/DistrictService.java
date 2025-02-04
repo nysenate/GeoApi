@@ -81,9 +81,9 @@ public class DistrictService {
                 if (currStatusCode == null) {
                     currStatusCode = result.getStatusCode();
                 }
-                // Using this to cover when there are multiple problems TODO new status
+                // Using this to cover when there are multiple problems
                 else if (currStatusCode != ResultStatus.SUCCESS) {
-                    currStatusCode = ResultStatus.MISSING_GEOCODED_ADDRESS;
+                    currStatusCode = ResultStatus.MULTIPLE_DISTRICT_ASSIGNMENT_PROBLEMS;
                 }
             }
             else if (provider == STREETFILE) {

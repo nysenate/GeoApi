@@ -98,8 +98,7 @@ public class AddressService {
         if (addressResults == null) {
             addressResults = new ArrayList<>();
             for (int i = 0; i < addresses.size(); i++) {
-                // TODO: add source
-                addressResults.add(new AddressResult(null, ResultStatus.NO_ADDRESS_VALIDATE_RESULT));
+                addressResults.add(new AddressResult(source, ResultStatus.NO_ADDRESS_VALIDATE_RESULT));
             }
         }
         logger.info("USPS validate time: {} ms.", TimeUtil.getElapsedMs(startTime));

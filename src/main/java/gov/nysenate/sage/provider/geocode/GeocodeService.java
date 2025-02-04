@@ -89,7 +89,7 @@ public class GeocodeService {
             }
         }
         var result = new GeocodeResult(geocoder, status, GeocodedAddress.from(geocodedAddress, address));
-        geoCache.saveToCacheAndFlush(result);
+        geoCache.cache(result);
         return result;
     }
 
@@ -119,7 +119,7 @@ public class GeocodeService {
                 logger.error("{}", String.valueOf(ex));
             }
         }
-        geoCache.saveToCacheAndFlush(geocodeResults);
+        geoCache.cache(geocodeResults);
         return geocodeResults;
     }
 
@@ -184,8 +184,7 @@ public class GeocodeService {
     }
 
     private static GeocodedAddress getOrDefault(GeocodeResult baseResult, Point defaultPoint) {
-        // TODO: add "user provided"
         return baseResult.isSuccess() ? baseResult.getGeocodedAddress() :
-                new GeocodedAddress(new Geocode(defaultPoint, GeocodeQuality.POINT, "User provided"));
+                new GeocodedAddress(new Geocode(defaultPoint, GeocodeQuality.POINT, null));
     }
 }

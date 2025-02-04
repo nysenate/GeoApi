@@ -7,7 +7,11 @@ import gov.nysenate.sage.provider.geocode.Geocoder;
 
 public interface GeocoderDao {
     Geocoder geocoder();
+
     GeocodedAddress getGeocodedAddress(BuildingAddress address);
+
     // TODO: should probably just return an address
-    GeocodedAddress getGeocodedAddress(Point point);
+    default GeocodedAddress getGeocodedAddress(Point point) {
+        return null;
+    }
 }

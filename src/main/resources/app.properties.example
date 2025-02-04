@@ -171,10 +171,6 @@ district.strategy.job = shapeFallback
 # Enable/Disable use of geocode cache (true/false)
 geocache.enabled = true
 
-# The cache buffer size indicates the number of geocode results that
-# are queued before being written to the cache database.
-geocache.buffer.size = 100
-
 #####################################
 ## Cron Configuration
 #####################################
