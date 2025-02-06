@@ -1,10 +1,7 @@
 package gov.nysenate.sage.provider.geocache;
 
 import gov.nysenate.sage.dao.provider.geocache.SqlGeoCacheDao;
-import gov.nysenate.sage.model.address.Address;
-import gov.nysenate.sage.model.address.GeocodedAddress;
-import gov.nysenate.sage.model.address.GeocodedStreetAddress;
-import gov.nysenate.sage.model.address.StreetAddress;
+import gov.nysenate.sage.model.address.*;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.geocode.GeocodeService;
@@ -81,9 +78,12 @@ public class GeoCache implements GeocodeCacheService
         /* Retrieve geocoded address from cache */
         StreetAddress sa = StreetAddressParser.parseAddress(address);
         if (sa.isPoBoxAddress()) {
-            GeocodedAddress poGeoAddr = postOfficeService.getDistrictedAddress(sa.getZip5(), sa.getLocation())
-                    .getGeocodedAddress();
-            return new GeocodeResult(PostOfficeService.class, ResultStatus.SUCCESS, poGeoAddr);
+            DistrictedAddress poDistAddr = postOfficeService.getDistrictedAddress(sa.getZip5(), sa.getLocation());
+            if (poDistAddr == null) {
+                return new GeocodeResult(PostOfficeService.class, ResultStatus.NO_GEOCODE_RESULT,
+                        new GeocodedAddress(address));
+            }
+            return new GeocodeResult(PostOfficeService.class, ResultStatus.SUCCESS, poDistAddr.getGeocodedAddress());
         }
         GeocodedStreetAddress geocodedStreetAddress = sqlGeoCacheDao.getCacheHit(sa);
         if ( geocodedStreetAddress == null )  {
