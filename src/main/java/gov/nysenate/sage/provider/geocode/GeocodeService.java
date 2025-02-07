@@ -37,7 +37,6 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 /**
 * Base interface for providers of geocoding services.
 */
-// TODO: does not use punct
 @Service
 public class GeocodeService {
     private static final Logger logger = LoggerFactory.getLogger(GeocodeService.class);
@@ -115,8 +114,8 @@ public class GeocodeService {
                 geocodeResults.add(geocodeResult.get());
             }
             catch (Exception ex) {
-                // TODO: still add a result
-                logger.error("{}", String.valueOf(ex));
+                geocodeResults.add(new GeocodeResult(null, INTERNAL_ERROR));
+                logger.error("Error while processing Future", ex);
             }
         }
         geoCache.cache(geocodeResults);
@@ -173,7 +172,8 @@ public class GeocodeService {
                 geocodeResults.add(geocodeResult.get());
             }
             catch (Exception ex) {
-                logger.error("{}", String.valueOf(ex));
+                geocodeResults.add(new GeocodeResult(null, INTERNAL_ERROR));
+                logger.error("Error while processing Future", ex);
             }
         }
         return geocodeResults;

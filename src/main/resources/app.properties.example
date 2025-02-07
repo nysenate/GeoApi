@@ -74,13 +74,6 @@ nys.revgeocode.ext = /reverseGeocode
 # uspsais   -- Utilizes the Free AIS Web Service
 usps.default = usps
 
-###############################
-## Geocoder Settings
-###############################
-
-# TigerGeocoder (in database) query time-out in ms
-tiger.geocoder.timeout = 30000
-
 ################################
 ## Multi-Threading
 ################################

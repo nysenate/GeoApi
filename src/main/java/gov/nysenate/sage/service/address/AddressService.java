@@ -40,20 +40,15 @@ public class AddressService {
 
     /**
      * Validates an address using USPS or another provider if available.
-     * @param address  Address to validate
+     * @param address Address to validate
      * @param source Source to use
      * @param usePunct If true, validated address will have periods after abbreviations.
      * @return AddressResult
      */
     public AddressResult validate(Address address, AddressSource source, boolean usePunct) {
-        Timestamp startTime = TimeUtil.currentTimestamp();
         AddressResult addressResult = internalValidate(address, source);
-        if (addressResult.isValidated()) {
-            logger.info("USPS validate time: {} ms", TimeUtil.getElapsedMs(startTime));
-            // Apply punctuation to the address if requested
-            if (usePunct) {
-                addressResult.setAddress(AddressUtil.addPunctuation(addressResult.getAddress()));
-            }
+        if (addressResult.isValidated() && usePunct) {
+            addressResult.setAddress(AddressUtil.addPunctuation(addressResult.getAddress()));
         }
         return addressResult;
     }

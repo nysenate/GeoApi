@@ -7,8 +7,8 @@ import gov.nysenate.sage.client.response.geo.GeocodeResponse;
 import gov.nysenate.sage.client.response.geo.RevGeocodeResponse;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.geo.Point;
-import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
+import gov.nysenate.sage.provider.address.AddressSource;
 import gov.nysenate.sage.provider.geocode.GeocodeService;
 import gov.nysenate.sage.provider.geocode.Geocoder;
 import gov.nysenate.sage.service.address.AddressService;
@@ -71,7 +71,7 @@ public class GeocodeController {
         Address address = getAddressFromParams(addr, addr1, addr2, city, state, zip5, zip4);
         List<Geocoder> geocoders = Geocoder.getGeocoders(geocoder, true, useFallback);
         if (uspsValidate) {
-            address = performAddressCorrection(address);
+            address = addressService.validateOrDefault(address, AddressSource.AMS, false);
         }
 
         if (address == null || !address.isValid()) {
@@ -92,7 +92,6 @@ public class GeocodeController {
     public BaseResponse revGeocode(@RequestParam(required = false) String provider,
                                    @RequestParam String lat, @RequestParam String lon,
                                    @RequestParam(required = false, defaultValue = "true") boolean useFallback,
-                                   // TODO: use
                                    @RequestParam(required = false,  defaultValue = "true") boolean uspsValidate) {
         Geocoder geocoder = Geocoder.getGeocoder(provider);
         if (geocoder == null) {
@@ -103,9 +102,12 @@ public class GeocodeController {
         if (point == null) {
             return new ApiError(this.getClass(), MISSING_POINT);
         }
-        return new RevGeocodeResponse(geocodeService.reverseGeocode(
-                Geocoder.getGeocoders(geocoder, false, useFallback),
-                point));
+        GeocodeResult result = geocodeService.reverseGeocode(
+                Geocoder.getGeocoders(geocoder, false, useFallback), point);
+        if (uspsValidate) {
+            result.setAddress(addressService.validateOrDefault(result.getAddress(), AddressSource.AMS,  false));
+        }
+        return new RevGeocodeResponse(result);
     }
 
     /**
@@ -130,7 +132,7 @@ public class GeocodeController {
         String batchJsonPayload = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
         List<Address> addresses = getAddressesFromJsonBody(batchJsonPayload);
         if (uspsValidate) {
-            addresses = addresses.stream().map(this::performAddressCorrection).toList();
+            addresses = addressService.validateOrDefault(addresses, AddressSource.AMS, false);
         }
         if (addresses.isEmpty()) {
             return new ApiError(this.getClass(), INVALID_BATCH_ADDRESSES);
@@ -151,7 +153,6 @@ public class GeocodeController {
     public BaseResponse batchRevGeocode(HttpServletRequest request,
                                 @RequestParam(required = false) String provider,
                                 @RequestParam(required = false, defaultValue = "true") boolean useFallback,
-                                // TODO: use
                                 @RequestParam(required = false,  defaultValue = "true") boolean uspsValidate)
             throws IOException {
 
@@ -168,22 +169,13 @@ public class GeocodeController {
 
         List<Geocoder> geocoders = Geocoder.getGeocoders(geocoder, false, useFallback);
         List<GeocodeResult> revGeocodeResults = geocodeService.reverseGeocode(geocoders, points);
-        return new BatchGeocodeResponse(revGeocodeResults);
-    }
-
-
-    /**
-     * Perform USPS address correction on either the geocoded address or the input address.
-     * If the geocoded address is invalid, the original address will be corrected and set as the address
-     * on the supplied geocodedAddress parameter.
-     *
-     * @return GeocodedAddress the address corrected geocodedAddress.
-     */
-    private Address performAddressCorrection(Address address) {
-        AddressResult addressResult = addressService.validate(address, null, false);
-        if (addressResult != null && addressResult.isValidated()) {
-            return addressResult.getAddress();
+        if (uspsValidate) {
+            List<Address> addresses = revGeocodeResults.stream().map(GeocodeResult::getAddress).toList();
+            addresses = addressService.validateOrDefault(addresses, AddressSource.AMS, false);
+            for (int i = 0; i < addresses.size(); i++) {
+                revGeocodeResults.get(i).setAddress(addresses.get(i));
+            }
         }
-        return address;
+        return new BatchGeocodeResponse(revGeocodeResults);
     }
 }
