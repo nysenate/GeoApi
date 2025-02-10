@@ -23,7 +23,7 @@ public class SqlApiUserDao extends BaseDao implements ApiUserDao {
     public ApiUser getApiUserById(int id) {
         try {
             var params = new MapSqlParameterSource("id", id);
-            List<ApiUser> apiUserList = geoApiNamedJbdcTemplate.query(
+            List<ApiUser> apiUserList = namedJdbcTemplate.query(
                     ApiUserQuery.GET_API_USER_BY_ID.getSql(getPublicSchema()), params, new ApiUserHandler());
 
             return apiUserList.get(0);
@@ -39,7 +39,7 @@ public class SqlApiUserDao extends BaseDao implements ApiUserDao {
     public ApiUser getApiUserByKey(String key) {
         try {
             var params = new MapSqlParameterSource("apikey", key);
-            List<ApiUser> apiUserList = geoApiNamedJbdcTemplate.query(
+            List<ApiUser> apiUserList = namedJdbcTemplate.query(
                     ApiUserQuery.GET_API_USER_BY_KEY.getSql(getPublicSchema()), params, new ApiUserHandler());
             return apiUserList.get(0);
         }
@@ -53,7 +53,7 @@ public class SqlApiUserDao extends BaseDao implements ApiUserDao {
     /** {@inheritDoc} */
     public List<ApiUser> getApiUsers() {
         try {
-            return geoApiNamedJbdcTemplate.query(
+            return namedJdbcTemplate.query(
                     ApiUserQuery.GET_ALL_API_USERS.getSql(getPublicSchema()), new ApiUserHandler());
         }
         catch (Exception sqlEx) {
@@ -71,7 +71,7 @@ public class SqlApiUserDao extends BaseDao implements ApiUserDao {
                     .addValue("description",  apiUser.getDescription())
                     .addValue("admin", apiUser.isAdmin());
 
-            return geoApiNamedJbdcTemplate.update(
+            return namedJdbcTemplate.update(
                     ApiUserQuery.INSERT_API_USER.getSql(getPublicSchema()), params);
         }
         catch (Exception sqlEx) {
@@ -87,7 +87,7 @@ public class SqlApiUserDao extends BaseDao implements ApiUserDao {
     public void removeApiUser(ApiUser apiUser) {
         try {
             var params = new MapSqlParameterSource("id", apiUser.getId());
-            geoApiNamedJbdcTemplate.update(
+            namedJdbcTemplate.update(
                     ApiUserQuery.REMOVE_API_USER.getSql(getPublicSchema()), params);
         }
         catch (Exception sqlEx) {

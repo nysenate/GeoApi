@@ -20,7 +20,7 @@ public class CountyDao extends BaseDao {
 
     @PostConstruct
     private void init() {
-        this.counties = geoApiNamedJbdcTemplate.query(
+        this.counties = namedJdbcTemplate.query(
                 CountyQuery.GET_ALL_COUNTIES.getSql(getPublicSchema()), new CountyHandler());
     }
 
@@ -36,7 +36,7 @@ public class CountyDao extends BaseDao {
     public County getCountyBySenateCode(int code) {
         try {
             var params = new MapSqlParameterSource("senateCode", code);
-            List<County> countyList = geoApiNamedJbdcTemplate
+            List<County> countyList = namedJdbcTemplate
                     .query(CountyQuery.GET_COUNTY_BY_ID.getSql(getPublicSchema()), params, new CountyHandler());
             if (countyList.get(0) != null) {
                 return countyList.get(0);

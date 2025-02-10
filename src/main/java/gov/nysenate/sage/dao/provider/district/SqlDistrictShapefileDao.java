@@ -72,7 +72,7 @@ public class SqlDistrictShapefileDao extends BaseDao implements DistrictShapeFil
         String sqlQuery = StringUtils.join(queryList, " UNION ALL ");
 
         try {
-            return geoApiJbdcTemplate.query(sqlQuery, new DistrictInfoHandler());
+            return jdbcTemplate.query(sqlQuery, new DistrictInfoHandler());
         } catch (Exception ex) {
             logger.error("{}", String.valueOf(ex));
         }
@@ -87,7 +87,7 @@ public class SqlDistrictShapefileDao extends BaseDao implements DistrictShapeFil
                 .addValue("nameField", intersectType.nameColumn())
                 .addValue("codeField", intersectType.codeColumn());
 
-        return geoApiNamedJbdcTemplate.query(ShapefileQueries.GET_INTERSECTION.getSql("districts"),
+        return namedJdbcTemplate.query(ShapefileQueries.GET_INTERSECTION.getSql("districts"),
                 params, new DistrictOverlapHandler());
     }
 
@@ -113,7 +113,7 @@ public class SqlDistrictShapefileDao extends BaseDao implements DistrictShapeFil
             String codeColumn = districtType.codeColumn();
             String currSql = String.format(baseSql, nameColumn, codeColumn, districtType,
                                                            nameColumn, codeColumn);
-            List<DistrictMap> maps = geoApiNamedJbdcTemplate.query(currSql, new DistrictCacheMapper(districtType));
+            List<DistrictMap> maps = namedJdbcTemplate.query(currSql, new DistrictCacheMapper(districtType));
             tempMultimap.putAll(districtType, maps);
         }
         this.districtMapCache = ImmutableMultimap.copyOf(tempMultimap);

@@ -22,12 +22,12 @@ public class SqlPostOfficeDao extends BaseDao implements PostOfficeDao {
     public List<BuildingAddress> getPostOffices(int deliveryZip) {
         String sql = PostOfficeQuery.GET_ADDRESSES_BY_DELIVERY_ZIP.getSql(getPublicSchema());
         var params = new MapSqlParameterSource("deliveryZip", deliveryZip);
-        return geoApiNamedJbdcTemplate.query(sql, params, new PostOfficeHandler());
+        return namedJdbcTemplate.query(sql, params, new PostOfficeHandler());
     }
 
     @Override
     public synchronized void replaceData(Multimap<Zip5, BuildingAddress> postOfficeMap) {
-        geoApiNamedJbdcTemplate.update(PostOfficeQuery.CLEAR_TABLE.getSql(getPublicSchema()), Map.of());
+        namedJdbcTemplate.update(PostOfficeQuery.CLEAR_TABLE.getSql(getPublicSchema()), Map.of());
         for (var postalAddress : postOfficeMap.entries()) {
             Address address = postalAddress.getValue();
             var params = new MapSqlParameterSource("deliveryZip", postalAddress.getKey())
@@ -36,7 +36,7 @@ public class SqlPostOfficeDao extends BaseDao implements PostOfficeDao {
                     .addValue("zip5", address.getZip5())
                     .addValue("zip4", address.getZip4());
             String sql = PostOfficeQuery.ADD_ADDRESS.getSql(getPublicSchema());
-            geoApiNamedJbdcTemplate.update(sql, params);
+            namedJdbcTemplate.update(sql, params);
         }
     }
 

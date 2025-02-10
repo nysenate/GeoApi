@@ -30,16 +30,7 @@ public enum SqlTable {
     SENATOR ("senator"),
     // TODO: use
     STREETFILE ("streetfile"),
-
-    /**
-     * Geocoder Database table names
-     * Home of the geocache, and Tiger
-     */
-    //Cache Schema
-    GEOCACHE ("geocache"),
-    //Public Schema
-    ADDRESS_POINTS_SAM ("addresspoints_sam");
-    // TODO: cleanup tiger tables
+    GEOCACHE ("geocache");
 
     private final String tableName;
 

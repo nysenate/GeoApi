@@ -2,7 +2,6 @@ package gov.nysenate.sage.dao.provider;
 
 import gov.nysenate.sage.BaseTests;
 import gov.nysenate.sage.annotation.IntegrationTest;
-import gov.nysenate.sage.config.DatabaseConfig;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Geocode;
@@ -14,7 +13,6 @@ import gov.nysenate.sage.provider.geocache.GeoCache;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 
@@ -24,7 +22,6 @@ public class GeocacheDaoIT extends BaseTests {
     private GeoCache geoCache;
 
     @Test
-    @Transactional(value = DatabaseConfig.geocoderTxManager)
     public void testCacheSave() {
         ArrayList<GeocodeResult> gcs = new ArrayList<>();
         for (int i = 0; i < 100; i++) {

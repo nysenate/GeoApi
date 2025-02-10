@@ -1,6 +1,6 @@
 package gov.nysenate.sage.provider.geocache;
 
-import gov.nysenate.sage.config.DatabaseConfig;
+import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.provider.nysgeo.GeocoderDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.BuildingAddress;
@@ -11,11 +11,9 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.provider.geocode.Geocoder;
 import org.apache.commons.text.WordUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.sql.ResultSet;
@@ -27,17 +25,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 import static gov.nysenate.sage.dao.provider.geocache.SqlGeocacheQuery.*;
 
 @Service
-public class GeoCache implements GeocoderDao {
+public class GeoCache extends BaseDao implements GeocoderDao {
     private final BlockingQueue<GeocodedAddress> cacheBuffer = new LinkedBlockingQueue<>();
-    private final NamedParameterJdbcTemplate jdbcTemplate;
     @Value("${geocache.enabled:true}")
     // TODO
     private boolean cacheEnabled;
-
-    @Autowired
-    public GeoCache(DatabaseConfig config) {
-        this.jdbcTemplate = config.tigerNamedJdbcTemplate();
-    }
 
     @Override
     public Geocoder geocoder() {
@@ -47,7 +39,7 @@ public class GeoCache implements GeocoderDao {
     @Override
     public GeocodedAddress getGeocodedAddress(BuildingAddress address) {
         if (address.isValid()) {
-            List<GeocodedAddress> geoAddrs = jdbcTemplate.query(SELECT_CACHE_ENTRY.getSql(),
+            List<GeocodedAddress> geoAddrs = namedJdbcTemplate.query(SELECT_CACHE_ENTRY.getSql(),
                     getIdParams(address), new GeocodedStreetAddressMapper());
             if (!geoAddrs.isEmpty()) {
                 return geoAddrs.get(0);
@@ -119,8 +111,8 @@ public class GeoCache implements GeocoderDao {
                     .addValue("method", gc.originalGeocoder())
                     .addValue("quality", gc.quality().name());
 
-            if (jdbcTemplate.update(UPDATE_CACHE_ENTRY.getSql(), params) == 0) {
-                jdbcTemplate.update(INSERT_CACHE_ENTRY.getSql(), params);
+            if (namedJdbcTemplate.update(UPDATE_CACHE_ENTRY.getSql(), params) == 0) {
+                namedJdbcTemplate.update(INSERT_CACHE_ENTRY.getSql(), params);
             }
         }
     }

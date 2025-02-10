@@ -13,7 +13,7 @@ import java.util.List;
 public class SqlDeploymentStatsDao extends BaseDao implements DeploymentStatsDao {
     /** {@inheritDoc} */
     public List<Deployment> getDeploymentStats() {
-        return geoApiNamedJbdcTemplate.query(
+        return namedJdbcTemplate.query(
                 DeploymentStatsQuery.SELECT_DEPLOY_STATS.getSql(getLogSchema()), new DeploymentStatsMapper());
     }
 

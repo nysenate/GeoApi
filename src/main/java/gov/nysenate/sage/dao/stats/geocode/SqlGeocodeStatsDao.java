@@ -27,12 +27,12 @@ public class SqlGeocodeStatsDao extends BaseDao {
     public GeocodeStats getGeocodeStats(Timestamp from, Timestamp to) {
         try {
             var params = new MapSqlParameterSource("from", from).addValue("to", to);
-            List<GeocodeStats> gsList = geoApiNamedJbdcTemplate.query(
+            List<GeocodeStats> gsList = namedJdbcTemplate.query(
                     GeocodeStatsQuery.GET_TOTAL_COUNT.getSql(getLogSchema()), params, new TotalCountsHandler());
             if (gsList.get(0) != null) {
                 GeocodeStats gs =  gsList.get(0);
                 List<GeocodeStats> geocodeStats =
-                        geoApiNamedJbdcTemplate.query(
+                        namedJdbcTemplate.query(
                                 GeocodeStatsQuery.GET_GEOCODER_USAGE.getSql(getLogSchema()),
                                 params, new GeocoderUsageHandler(gs));
                 return geocodeStats.get(0);

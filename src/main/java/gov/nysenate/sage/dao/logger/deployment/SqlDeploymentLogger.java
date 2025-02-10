@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class SqlDeploymentLogger extends BaseDao implements DeploymentLogger {
     public void logDeploymentStatus() {
-        geoApiNamedJbdcTemplate.update(
+        namedJdbcTemplate.update(
                 DeploymentQuery.INSERT_DEPLOYMENT.getSql(getLogSchema()), new MapSqlParameterSource());
     }
 }

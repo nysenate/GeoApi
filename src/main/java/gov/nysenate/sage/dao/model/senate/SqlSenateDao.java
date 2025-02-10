@@ -46,7 +46,7 @@ public class SqlSenateDao extends BaseDao implements SenateDao {
             params.addValue("name", senatorName);
             params.addValue("data", json);
 
-            int numRows = geoApiNamedJbdcTemplate.update(
+            int numRows = namedJdbcTemplate.update(
                     SenateQuery.INSERT_SENATOR.getSql(getPublicSchema()), params);
             if (numRows > 0) {
                 logger.info("Added data for Senator {}", senatorName);
@@ -64,7 +64,7 @@ public class SqlSenateDao extends BaseDao implements SenateDao {
         try {
             var params = new MapSqlParameterSource("district", senateCode)
                     .addValue("url", url);
-            int numRows = geoApiNamedJbdcTemplate.update(
+            int numRows = namedJdbcTemplate.update(
                     SenateQuery.INSERT_SENATE.getSql(getPublicSchema()), params);
             if (numRows > 0) {
                 logger.info("Added data for senate district {}", senateCode);
@@ -77,7 +77,7 @@ public class SqlSenateDao extends BaseDao implements SenateDao {
     /** {@inheritDoc} */
     public void deleteSenators() {
         try {
-            geoApiJbdcTemplate.update(SenateQuery.CLEAR_SENATORS.getSql(getPublicSchema()));
+            jdbcTemplate.update(SenateQuery.CLEAR_SENATORS.getSql(getPublicSchema()));
         } catch (Exception ex) {
             logger.error("Failed to delete senators {}", ex.getMessage());
         }
@@ -87,7 +87,7 @@ public class SqlSenateDao extends BaseDao implements SenateDao {
     public void deleteSenator(int district) {
         try {
             var params = new MapSqlParameterSource("district", district);
-            geoApiNamedJbdcTemplate.update(
+            namedJdbcTemplate.update(
                     SenateQuery.DELETE_SENATOR_BY_DISTRICT.getSql(getPublicSchema()), params);
         } catch (Exception ex) {
             logger.error("Failed to delete senator in district {}", district);
@@ -104,7 +104,7 @@ public class SqlSenateDao extends BaseDao implements SenateDao {
         Map<Integer, Senator> senatorMap = new HashMap<>();
         try {
             List<Map<Integer, Senator>> uncompiledSenatorMap =
-                    geoApiNamedJbdcTemplate.query(
+                    namedJdbcTemplate.query(
                             SenateQuery.GET_ALL_SENATORS.getSql(getPublicSchema()), new SenatorMapHandler());
 
             senatorMap = compileSenateMap(uncompiledSenatorMap);

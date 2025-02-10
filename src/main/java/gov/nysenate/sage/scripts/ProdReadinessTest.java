@@ -348,13 +348,6 @@ public class ProdReadinessTest {
         assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
 
 
-        HttpURLConnection geoProviderTigerDistAssignValidate = prodReadinessTest.createHttpRequest(
-                baseUrl,
-                "/api/v2/district/assign?addr1=280 Madison Ave&city=New York&state=NY&geoProvider=nysgeo");
-        jsonResponse = prodReadinessTest.getResponseAndCloseStream(geoProviderTigerDistAssignValidate);
-        assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
-
-
         HttpURLConnection providerStreetfileDistAssignValidate = prodReadinessTest.createHttpRequest(
                 baseUrl,
                 "/api/v2/district/assign?addr=200%20State%20Street,%20Albany,%20NY,%20USA&provider=streetfile&uspsValidate=true&showMaps=true&showMembers=true&showMultiMatch=true" );

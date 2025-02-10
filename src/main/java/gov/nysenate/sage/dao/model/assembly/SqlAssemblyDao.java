@@ -19,7 +19,7 @@ public class SqlAssemblyDao extends BaseDao implements AssemblyDao {
     /** {@inheritDoc} */
     public List<Assembly> getAssemblies() {
         try {
-            return geoApiNamedJbdcTemplate.query(
+            return namedJdbcTemplate.query(
                     AssemblyQuery.GET_ALL_ASSEMBLY_MEMBERS.getSql(getPublicSchema()), new AssemblyHandler());
         }
         catch (Exception ex){
@@ -32,7 +32,7 @@ public class SqlAssemblyDao extends BaseDao implements AssemblyDao {
     public Assembly getAssemblyByDistrict(int district) {
         try {
             var params = new MapSqlParameterSource("district", district);
-            List<Assembly> assemblyList = geoApiNamedJbdcTemplate.query(
+            List<Assembly> assemblyList = namedJdbcTemplate.query(
                     AssemblyQuery.GET_ASSMEBLY_MEMBER_BY_DISTRICT.getSql(getPublicSchema()),
                     params, new AssemblyHandler());
 
@@ -55,7 +55,7 @@ public class SqlAssemblyDao extends BaseDao implements AssemblyDao {
                     .addValue("memberName", assembly.getMemberName())
                     .addValue("memberUrl", assembly.getMemberUrl());
 
-            int numRows = geoApiNamedJbdcTemplate.update(
+            int numRows = namedJdbcTemplate.update(
                     AssemblyQuery.INSERT_ASSEMBLY_MEMBER.getSql(getPublicSchema()), params);
             if (numRows > 0) { logger.info("Added Assembly member " + assembly.getMemberName()); }
         }
@@ -69,7 +69,7 @@ public class SqlAssemblyDao extends BaseDao implements AssemblyDao {
         try {
             var params = new MapSqlParameterSource("district", district);
 
-            geoApiNamedJbdcTemplate.update(
+            namedJdbcTemplate.update(
                     AssemblyQuery.DELETE_ASSEMBLY_DISTRICT.getSql(getPublicSchema()), params);
         }
         catch (Exception ex) {

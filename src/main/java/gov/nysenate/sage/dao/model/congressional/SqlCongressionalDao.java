@@ -19,7 +19,7 @@ public class SqlCongressionalDao extends BaseDao implements CongressionalDao {
     /** {@inheritDoc} */
     public List<Congressional> getCongressionals() {
         try {
-            return geoApiNamedJbdcTemplate.query(
+            return namedJdbcTemplate.query(
                     CongressionalQuery.GET_ALL_CONGRESSIONAL_MEMBERS
                             .getSql(getPublicSchema()), new CongressionalHandler());
         }
@@ -33,7 +33,7 @@ public class SqlCongressionalDao extends BaseDao implements CongressionalDao {
     public Congressional getCongressionalByDistrict(int district) {
         try {
             var params = new MapSqlParameterSource("district", district);
-            List<Congressional> congressionalList = geoApiNamedJbdcTemplate.query(
+            List<Congressional> congressionalList = namedJdbcTemplate.query(
                     CongressionalQuery.GET_CONGRESSIONAL_MEMBER_BY_DISTRICT.getSql(getPublicSchema()),
                     params, new CongressionalHandler());
 
@@ -56,7 +56,7 @@ public class SqlCongressionalDao extends BaseDao implements CongressionalDao {
                     .addValue("memberName", congressional.getMemberName())
                     .addValue("memberUrl", congressional.getMemberUrl());
 
-            int numRows = geoApiNamedJbdcTemplate.update(
+            int numRows = namedJdbcTemplate.update(
                     CongressionalQuery.INSERT_CONGRESSIONAL_MEMBER.getSql(getPublicSchema()), params);
             if (numRows > 0) {
                 logger.info("Added Congressional member {}", congressional.getMemberName());
@@ -71,7 +71,7 @@ public class SqlCongressionalDao extends BaseDao implements CongressionalDao {
     public void deleteCongressional(int district) {
         try {
             var params = new MapSqlParameterSource("district", district);
-            geoApiNamedJbdcTemplate.update(
+            namedJdbcTemplate.update(
                     CongressionalQuery.DELETE_CONGRESSIONAL_DISTRICT.getSql(getPublicSchema()), params);
         }
         catch (Exception ex) {

@@ -33,10 +33,10 @@ public class SqlApiUserStatsDao extends BaseDao implements ApiUserStatsDao {
         try {
             var params = new MapSqlParameterSource("from", from)
                     .addValue("to", to);
-            List<Map<Integer, ApiUserStats>> apiUserStatsMapList = geoApiNamedJbdcTemplate.query(
+            List<Map<Integer, ApiUserStats>> apiUserStatsMapList = namedJdbcTemplate.query(
                     ApiUserStatsQuery.GET_REQUEST_COUNTS.getSql(getLogSchema()), params, new RequestCountHandler(sqlApiUserDao));
             Map<Integer, ApiUserStats> apiUserStatsMap = collapseListIntoMap(apiUserStatsMapList);
-            geoApiNamedJbdcTemplate.query(
+            namedJdbcTemplate.query(
                     ApiUserStatsQuery.GET_METHOD_COUNTS.getSql(getLogSchema()),
                     params, new MethodRequestCountHandler(apiUserStatsMap));
             return apiUserStatsMap;

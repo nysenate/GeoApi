@@ -19,13 +19,13 @@ import static gov.nysenate.sage.dao.provider.district.MunicipalityType.TOWN;
 public class TownCityDao extends BaseDao {
     public Map<String, String> getAbbrevToNameMap() {
         var rch = new SimpleMapCallbackHandler();
-        geoApiNamedJbdcTemplate.query(TownCityQuery.SELECT_ALL.getSql(), Map.of(), rch);
+        namedJdbcTemplate.query(TownCityQuery.SELECT_ALL.getSql(), Map.of(), rch);
         return rch.abbrevToNameMap;
     }
 
     public Map<MunicipalityType, Map<String, String>> getTypeAndNameToAbbrevMap() {
         var rch = new NestedMapCallbackHandler();
-        geoApiJbdcTemplate.query(TownCityQuery.SELECT_ALL.getSql(), rch);
+        jdbcTemplate.query(TownCityQuery.SELECT_ALL.getSql(), rch);
         return rch.results;
     }
 

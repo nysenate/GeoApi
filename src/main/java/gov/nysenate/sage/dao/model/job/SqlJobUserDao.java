@@ -21,7 +21,7 @@ public class SqlJobUserDao extends BaseDao {
 
     public List<JobUser> getJobUsers() {
         try {
-            return geoApiNamedJbdcTemplate.query(
+            return namedJdbcTemplate.query(
                     JobUserQuery.GET_ALL_JOB_USERS.getSql(getJobSchema()), new JobUserHandler());
         }
         catch (Exception sqlEx) {
@@ -40,7 +40,7 @@ public class SqlJobUserDao extends BaseDao {
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue("id", id);
 
-            List<JobUser> jobUserList = geoApiNamedJbdcTemplate.query(
+            List<JobUser> jobUserList = namedJdbcTemplate.query(
                     JobUserQuery.GET_JOB_USER_BY_ID.getSql(getJobSchema()),
                     params, new JobUserHandler());
 
@@ -58,7 +58,7 @@ public class SqlJobUserDao extends BaseDao {
     public JobUser getJobUserByEmail(String email) {
         try {
             var params = new MapSqlParameterSource("email", email);
-            List<JobUser> jobUserList = geoApiNamedJbdcTemplate.query(
+            List<JobUser> jobUserList = namedJdbcTemplate.query(
                     JobUserQuery.GET_JOB_USER_BY_EMAIL.getSql(getJobSchema()),
                     params, new JobUserHandler());
 
@@ -84,7 +84,7 @@ public class SqlJobUserDao extends BaseDao {
                     .addValue("lastname", jobUser.getLastname())
                     .addValue("active", jobUser.isActive())
                     .addValue("admin", jobUser.isAdmin());
-            return geoApiNamedJbdcTemplate.update(JobUserQuery.INSERT_JOB_USER.getSql(getJobSchema()), params);
+            return namedJdbcTemplate.update(JobUserQuery.INSERT_JOB_USER.getSql(getJobSchema()), params);
         }
         catch (Exception sqlEx) {
             logger.error("Failed to add JobUser in JobUserDao!");
@@ -96,7 +96,7 @@ public class SqlJobUserDao extends BaseDao {
     public int removeJobUser(JobUser jobUser) {
         try {
             var params = new MapSqlParameterSource("id", jobUser.getId());
-            return geoApiNamedJbdcTemplate.update(JobUserQuery.REMOVE_JOB_USER.getSql(getJobSchema()), params);
+            return namedJdbcTemplate.update(JobUserQuery.REMOVE_JOB_USER.getSql(getJobSchema()), params);
         }
         catch (Exception sqlEx) {
             logger.error("Failed to remove JobUser in JobUserDao!");

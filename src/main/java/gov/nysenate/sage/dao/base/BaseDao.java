@@ -31,13 +31,13 @@ public abstract class BaseDao {
     @Autowired
     private DatabaseConfig databaseConfig;
 
-    protected JdbcTemplate geoApiJbdcTemplate;
-    protected NamedParameterJdbcTemplate geoApiNamedJbdcTemplate;
+    protected JdbcTemplate jdbcTemplate;
+    protected NamedParameterJdbcTemplate namedJdbcTemplate;
 
     @PostConstruct
     private void init() {
-        this.geoApiJbdcTemplate = databaseConfig.geoApiJdbcTemplate();
-        this.geoApiNamedJbdcTemplate = databaseConfig.geoApiNamedJdbcTemplate();
+        this.jdbcTemplate = databaseConfig.jdbcTemplate();
+        this.namedJdbcTemplate = databaseConfig.namedJdbcTemplate();
     }
 
     /**

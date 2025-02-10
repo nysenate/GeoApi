@@ -91,7 +91,7 @@ public class SqlStreetfileDao extends BaseDao implements StreetfileDao {
     public void replaceStreetfile(Path streetfilePath) throws SQLException, IOException {
         checkLock();
         locked = true;
-        geoApiJbdcTemplate.execute("TRUNCATE streetfile RESTART IDENTITY");
+        jdbcTemplate.execute("TRUNCATE streetfile RESTART IDENTITY");
         var copyManager = new CopyManager((BaseConnection) connection);
         copyManager.copyIn(copySqlTemplate.formatted(columnOrder, nullString()), new FileReader(streetfilePath.toFile()));
         locked = false;
@@ -122,7 +122,7 @@ public class SqlStreetfileDao extends BaseDao implements StreetfileDao {
         }
 
         checkLock();
-        List<DistrictedStreetRange> ranges = geoApiNamedJbdcTemplate.query(sqlBuilder.toString(),
+        List<DistrictedStreetRange> ranges = namedJdbcTemplate.query(sqlBuilder.toString(),
                 new DistrictStreetRangeMapper());
         if (ranges.isEmpty()) {
             return getDistrictInfo(addr, matchLevel.getNextHighestLevel());
@@ -140,7 +140,7 @@ public class SqlStreetfileDao extends BaseDao implements StreetfileDao {
         }
 
         checkLock();
-        return geoApiNamedJbdcTemplate.query(StreetfileQuery.SELECT_BY_ZIP.getSql(),
+        return namedJdbcTemplate.query(StreetfileQuery.SELECT_BY_ZIP.getSql(),
                         new MapSqlParameterSource("zip5", zip5), new DistrictStreetRangeMapper());
     }
 

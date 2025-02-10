@@ -16,12 +16,9 @@ import java.beans.PropertyVetoException;
 
 @EnableTransactionManagement
 @Configuration
-public class DatabaseConfig
-{
+public class DatabaseConfig {
     private static final Logger logger = LoggerFactory.getLogger(DatabaseConfig.class);
-
     public static final String geoApiTxManager = "geoApiTxManager";
-    public static final String geocoderTxManager = "geocoderTxManager";
 
     /** PostgreSQL Database Configuration */
     @Value("${db.driver:org.postgresql.Driver}") private String dbDriver;
@@ -31,27 +28,14 @@ public class DatabaseConfig
     @Value("${db.user}")  private String dbUser;
     @Value("${db.pass}")  private String dbPass;
 
-    /** PostgreSQL Database Configuration */
-    @Value("${tiger.db.driver:org.postgresql.Driver}") private String tigerDbDriver;
-    @Value("${tiger.db.type}")  private String tigerDbType;
-    @Value("${tiger.db.host}")  private String tigerDbHost;
-    @Value("${tiger.db.name}")  private String tigerDbName;
-    @Value("${tiger.db.user}")  private String tigerDbUser;
-    @Value("${tiger.db.pass}")  private String tigerDbPass;
-
     @Bean
-    public JdbcTemplate geoApiJdbcTemplate() {
-        return new JdbcTemplate(geoApiPostgresDataSource());
+    public JdbcTemplate jdbcTemplate() {
+        return new JdbcTemplate(postgresDataSource());
     }
 
     @Bean
-    public NamedParameterJdbcTemplate geoApiNamedJdbcTemplate() {
-        return new NamedParameterJdbcTemplate(geoApiPostgresDataSource());
-    }
-
-    @Bean
-    public NamedParameterJdbcTemplate tigerNamedJdbcTemplate() {
-        return new NamedParameterJdbcTemplate(tigerPostgresDataSource());
+    public NamedParameterJdbcTemplate namedJdbcTemplate() {
+        return new NamedParameterJdbcTemplate(postgresDataSource());
     }
 
     /**
@@ -59,21 +43,9 @@ public class DatabaseConfig
      * @return DataSource
      */
     @Bean(destroyMethod = "close")
-    public ComboPooledDataSource geoApiPostgresDataSource() {
+    public ComboPooledDataSource postgresDataSource() {
         ComboPooledDataSource pool = getComboPooledDataSource(dbType,dbHost,dbName,dbDriver,dbUser, dbPass);
-        logger.info("Connecting to Postgres: " + pool.getJdbcUrl());
-        return pool;
-    }
-
-    /**
-     * Configures the sql data source using a connection pool.
-     * @return DataSource
-     */
-    @Bean(destroyMethod = "close")
-    public ComboPooledDataSource tigerPostgresDataSource() {
-        ComboPooledDataSource pool = getComboPooledDataSource(tigerDbType, tigerDbHost, tigerDbName, tigerDbDriver,
-                tigerDbUser, tigerDbPass);
-        logger.info("Connecting to Postgres: " + pool.getJdbcUrl());
+        logger.info("Connecting to Postgres: {}", pool.getJdbcUrl());
         return pool;
     }
 
@@ -122,21 +94,8 @@ public class DatabaseConfig
      * Configures a Spring transaction manager for the postgres data source.
      * @return PlatformTransactionManager
      */
-    @Bean(name = "geoApiTxManager")
-    public PlatformTransactionManager geoApiTransactionManager() {
-        return new DataSourceTransactionManager(geoApiPostgresDataSource());
+    @Bean(name = "txManager")
+    public PlatformTransactionManager transactionManager() {
+        return new DataSourceTransactionManager(postgresDataSource());
     }
-
-    /**
-     * Configures a Spring transaction manager for the postgres data source.
-     * @return PlatformTransactionManager
-     */
-    @Bean(name = "geocoderTxManager")
-    public PlatformTransactionManager tigerTransactionManager() {
-        return new DataSourceTransactionManager(tigerPostgresDataSource());
-    }
-
-
-
-
 }

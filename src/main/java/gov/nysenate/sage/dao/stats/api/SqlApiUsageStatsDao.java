@@ -38,7 +38,7 @@ public class SqlApiUsageStatsDao extends BaseDao implements ApiUsageStatsDao {
             var params = new MapSqlParameterSource("from", from)
                     .addValue("to", to)
                     .addValue("requestInterval", requestInterval.field);
-            List<IntervalUsage> intervalUsageCounts = geoApiNamedJbdcTemplate.query(
+            List<IntervalUsage> intervalUsageCounts = namedJdbcTemplate.query(
                     ApiUsageStatsQuery.GET_USAGE_STATS.getSql(getLogSchema()),
                     params, new ApiIntervalUsageHandler());
 

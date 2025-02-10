@@ -30,7 +30,7 @@ public class SqlApiRequestLogger extends BaseDao implements ApiRequestLogger {
                         .addValue("requestTypeName",apiRequest.getRequest())
                         .addValue("serviceName", apiRequest.getService());
 
-                List<Integer> idList = geoApiNamedJbdcTemplate.query(
+                List<Integer> idList = namedJdbcTemplate.query(
                         ApiRequestQuery.INSERT_API_REQUEST.getSql(getLogSchema()), params, new ApiRequestIdHandler());
                 return idList.get(0);
             }

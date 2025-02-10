@@ -37,7 +37,7 @@ public class SqlAdminUserDao extends BaseDao implements AdminUserDao {
         AdminUser adminUser = null;
         try {
             var params = new MapSqlParameterSource("username", username);
-            List<AdminUser> adminUserList = geoApiNamedJbdcTemplate.query(
+            List<AdminUser> adminUserList = namedJdbcTemplate.query(
                     AdminUserQuery.GET_ADMIN.getSql(getPublicSchema()), params, new AdminUserHandler());
             if (!adminUserList.isEmpty() && adminUserList.get(0) != null) {
                 adminUser = adminUserList.get(0);
@@ -59,7 +59,7 @@ public class SqlAdminUserDao extends BaseDao implements AdminUserDao {
         try {
             var params = new MapSqlParameterSource("username", username)
                     .addValue("password", password);
-            geoApiNamedJbdcTemplate.update(AdminUserQuery.INSERT_ADMIN.getSql(getPublicSchema()), params);
+            namedJdbcTemplate.update(AdminUserQuery.INSERT_ADMIN.getSql(getPublicSchema()), params);
         }
         catch (Exception e) {
             logger.error("Failed to insert admin user!", e);
