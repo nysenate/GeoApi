@@ -53,8 +53,8 @@ public class AddressService {
         return addressResult;
     }
 
-    public Address validateOrDefault(Address address, AddressSource source, boolean usePunct) {
-        return getOrDefault(validate(address, source, usePunct), address);
+    public Address validateOrDefault(Address address, boolean usePunct) {
+        return getOrDefault(validate(address, defaultProvider, usePunct), address);
     }
 
     private AddressResult internalValidate(Address address, AddressSource source) {
@@ -108,9 +108,9 @@ public class AddressService {
         return addressResults;
     }
 
-    public List<Address> validateOrDefault(List<Address> addresses, AddressSource source, boolean usePunct) {
+    public List<Address> validateOrDefault(List<Address> addresses, boolean usePunct) {
         List<Address> finalAddresses = new ArrayList<>();
-        List<AddressResult> results = validate(addresses, source, usePunct);
+        List<AddressResult> results = validate(addresses, defaultProvider, usePunct);
         for (int i = 0; i < addresses.size(); i++) {
             finalAddresses.add(getOrDefault(results.get(i), addresses.get(i)));
         }

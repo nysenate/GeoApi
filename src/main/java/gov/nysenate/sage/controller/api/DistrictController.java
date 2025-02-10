@@ -13,7 +13,6 @@ import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.IntersectResult;
-import gov.nysenate.sage.provider.address.AddressSource;
 import gov.nysenate.sage.provider.district.DistrictService;
 import gov.nysenate.sage.provider.district.DistrictSource;
 import gov.nysenate.sage.provider.geocode.GeocodeService;
@@ -107,7 +106,7 @@ public class DistrictController {
 
         Address address = getAddressFromParams(addr, addr1, addr2, city, state, zip5, zip4);
         if (uspsValidate) {
-            address = addressService.validateOrDefault(address, AddressSource.AMS, usePunct);
+            address = addressService.validateOrDefault(address, usePunct);
         }
         Point point = getPointFromParams(lat, lon);
 
@@ -157,7 +156,7 @@ public class DistrictController {
         String batchJsonPayload = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
         List<Address> addresses = getAddressesFromJsonBody(batchJsonPayload);
         if (uspsValidate) {
-            addresses = addressService.validateOrDefault(addresses, AddressSource.AMS, usePunct);
+            addresses = addressService.validateOrDefault(addresses, usePunct);
         }
         List<Point> points = List.of();
         if (addresses.isEmpty()) {

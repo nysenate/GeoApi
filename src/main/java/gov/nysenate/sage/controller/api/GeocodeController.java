@@ -8,7 +8,6 @@ import gov.nysenate.sage.client.response.geo.RevGeocodeResponse;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
-import gov.nysenate.sage.provider.address.AddressSource;
 import gov.nysenate.sage.provider.geocode.GeocodeService;
 import gov.nysenate.sage.provider.geocode.Geocoder;
 import gov.nysenate.sage.service.address.AddressService;
@@ -71,7 +70,7 @@ public class GeocodeController {
         Address address = getAddressFromParams(addr, addr1, addr2, city, state, zip5, zip4);
         List<Geocoder> geocoders = Geocoder.getGeocoders(geocoder, true, useFallback);
         if (uspsValidate) {
-            address = addressService.validateOrDefault(address, AddressSource.AMS, false);
+            address = addressService.validateOrDefault(address, false);
         }
 
         if (address == null || !address.isValid()) {
@@ -105,7 +104,7 @@ public class GeocodeController {
         GeocodeResult result = geocodeService.reverseGeocode(
                 Geocoder.getGeocoders(geocoder, false, useFallback), point);
         if (uspsValidate) {
-            result.setAddress(addressService.validateOrDefault(result.getAddress(), AddressSource.AMS,  false));
+            result.setAddress(addressService.validateOrDefault(result.getAddress(), false));
         }
         return new RevGeocodeResponse(result);
     }
@@ -132,7 +131,7 @@ public class GeocodeController {
         String batchJsonPayload = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
         List<Address> addresses = getAddressesFromJsonBody(batchJsonPayload);
         if (uspsValidate) {
-            addresses = addressService.validateOrDefault(addresses, AddressSource.AMS, false);
+            addresses = addressService.validateOrDefault(addresses, false);
         }
         if (addresses.isEmpty()) {
             return new ApiError(this.getClass(), INVALID_BATCH_ADDRESSES);
@@ -171,7 +170,7 @@ public class GeocodeController {
         List<GeocodeResult> revGeocodeResults = geocodeService.reverseGeocode(geocoders, points);
         if (uspsValidate) {
             List<Address> addresses = revGeocodeResults.stream().map(GeocodeResult::getAddress).toList();
-            addresses = addressService.validateOrDefault(addresses, AddressSource.AMS, false);
+            addresses = addressService.validateOrDefault(addresses, false);
             for (int i = 0; i < addresses.size(); i++) {
                 revGeocodeResults.get(i).setAddress(addresses.get(i));
             }
