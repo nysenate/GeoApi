@@ -21,8 +21,8 @@ public class AddressView {
         this.addr2 = address.getAddr2();
         this.city = address.getPostalCity();
         this.state = address.getState();
-        this.zip5 = address.getZip5();
-        this.zip4 = address.getZip4();
+        this.zip5 = address.getZip5().zip();
+        this.zip4 = address.getZip4().zip();
         // TODO: add back?
         this.id = -1;
     }

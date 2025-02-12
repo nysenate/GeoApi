@@ -63,8 +63,7 @@ public class DistrictService {
 
         Address address = geocodedAddress.getAddress();
         if (address != null && address.isPoBox()) {
-            var zip5 = new Zip5(address.getZip5());
-            var cacheKey = new Tuple<>(zip5, providers);
+            var cacheKey = new Tuple<>(address.getZip5(), providers);
             if (!poBoxCache.containsKey(cacheKey)) {
                 List<DistrictResult> postOfficeResults = postOfficeDao.getPostOffices(address.getZip5())
                         .stream().map(addr -> assignDistricts(providers, geocodedAddress, requiredTypes)).toList();

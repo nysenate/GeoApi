@@ -15,7 +15,7 @@ public record AddressWithoutNum(String street, String postalCity, int zip5) {
         if (addr.isPoBox()) {
             throw new IllegalArgumentException("Address is a PO Box address");
         }
-        return new AddressWithoutNum(((BuildingAddress) addr).getStreet(), addr.getPostalCity(), addr.getZip5());
+        return new AddressWithoutNum(((BuildingAddress) addr).getStreet(), addr.getPostalCity(), addr.getZip5().zip());
     }
 
     public Address toAddress(int num) {

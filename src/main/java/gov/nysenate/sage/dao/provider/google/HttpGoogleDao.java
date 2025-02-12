@@ -51,7 +51,7 @@ public class HttpGoogleDao implements GeocoderDao {
      */
     @Override
     public GeocodedAddress getGeocodedAddress(BuildingAddress address) {
-        if (address.getZip5() == null) {
+        if (address.getZip5().isMissing()) {
             return new GeocodedAddress(address, null);
         }
         String url = baseUrl + String.format(GEOCODE_QUERY,

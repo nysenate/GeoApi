@@ -56,8 +56,8 @@ public class JobRecord {
             this.dataMap.put(Column.uspsStreet, this.correctedAddress.getAddr1());
             this.dataMap.put(Column.uspsCity, this.correctedAddress.getPostalCity());
             this.dataMap.put(Column.uspsState, this.correctedAddress.getState());
-            this.dataMap.put(Column.uspsZip5, this.correctedAddress.getZip5());
-            this.dataMap.put(Column.uspsZip4, this.correctedAddress.getZip4());
+            this.dataMap.put(Column.uspsZip5, this.correctedAddress.getZip5().toString());
+            this.dataMap.put(Column.uspsZip4, this.correctedAddress.getZip4().toString());
         }
     }
 

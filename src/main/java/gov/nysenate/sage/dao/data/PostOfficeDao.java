@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface PostOfficeDao {
     @Nonnull
-    List<BuildingAddress> getPostOffices(int deliveryZip);
+    List<BuildingAddress> getPostOffices(Zip5 deliveryZip);
 
     /**
      * Clears the database table, and adds the given data.

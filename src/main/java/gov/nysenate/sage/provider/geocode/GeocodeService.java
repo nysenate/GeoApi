@@ -65,8 +65,7 @@ public class GeocodeService {
         }
 
         if (address.isPoBox()) {
-            var zip5 = new Zip5(address.getZip5());
-            var cacheKey = new Tuple<>(zip5, geocoders);
+            var cacheKey = new Tuple<>(address.getZip5(), geocoders);
             if (!poBoxCache.containsKey(cacheKey)) {
                 List<GeocodeResult> postOfficeResults = postOfficeDao.getPostOffices(address.getZip5())
                         .stream().map(addr -> geocode(geocoders, addr)).toList();

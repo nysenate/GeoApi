@@ -52,18 +52,12 @@ public abstract sealed class Address permits BuildingAddress, PostOfficeBox {
         return postalCity;
     }
 
-    // TODO: should return Zip5
-    public Integer getZip5() {
-        return zip5.zip();
+    public Zip5 getZip5() {
+        return zip5;
     }
 
-    public void setZip5(String zip5) {
-        this.zip5 = new Zip5(Integer.parseInt(zip5.trim()));
-    }
-
-    // TODO: should return Zip4
-    public Integer getZip4() {
-        return zip4.zip();
+    public Zip4 getZip4() {
+        return zip4;
     }
 
     public void setZip4(String zip4) {

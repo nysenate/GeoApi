@@ -106,7 +106,7 @@ public class GeoCache extends BaseDao implements GeocoderDao {
             Address address = geocodedAddress.getAddress();
             Geocode gc = geocodedAddress.getGeocode();
             var params = getIdParams(((BuildingAddress) address))
-                    .addValue("zip4", address.getZip4() == null ? null : address.getZip4().toString())
+                    .addValue("zip4", address.getZip4().toString())
                     .addValue("latlon", "POINT(" + gc.lon() + " " + gc.lat() + ")")
                     .addValue("method", gc.originalGeocoder())
                     .addValue("quality", gc.quality().name());
