@@ -133,7 +133,6 @@ public class HttpGoogleDao implements GeocoderDao {
                 String lat = location.get("lat").asText("0");
                 String lon = location.get("lng").asText("0");
                 String geocodeType = result.get("types").get(0).asText();
-                // TODO: add name()
                 var geocode = new Geocode(
                         new Point(lat, lon), resolveGeocodeQuality(geocodeType), Geocoder.GOOGLE, false);
                 return new GeocodedAddress(address, geocode);

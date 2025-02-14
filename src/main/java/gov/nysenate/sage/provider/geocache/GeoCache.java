@@ -11,7 +11,6 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.provider.geocode.Geocoder;
 import org.apache.commons.text.WordUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Service;
@@ -27,9 +26,6 @@ import static gov.nysenate.sage.dao.provider.geocache.SqlGeocacheQuery.*;
 @Service
 public class GeoCache extends BaseDao implements GeocoderDao {
     private final BlockingQueue<GeocodedAddress> cacheBuffer = new LinkedBlockingQueue<>();
-    @Value("${geocache.enabled:true}")
-    // TODO
-    private boolean cacheEnabled;
 
     @Override
     public Geocoder geocoder() {

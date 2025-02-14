@@ -184,7 +184,7 @@
                                         <select id="dataSourceMenu" style="width: 100%;" ng-model="provider">
                                             <option value="default">Default</option>
                                             <option value="streetfile">Board of Elections</option>
-                                            <option value="shapefile">Census TIGER/LINE</option>
+                                            <option value="shapefile">LATFOR/GIS Geometry</option>
                                         </select>
                                     </td>
                                 </tr>

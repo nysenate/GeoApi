@@ -14,6 +14,7 @@ import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,22 +24,28 @@ import org.springframework.web.bind.annotation.RequestParam;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 
 /**
- * Handles Geo Api requests
+ * Handles Geocode Api requests
  */
 @Controller
 @RequestMapping(value = ConstantUtil.REST_PATH + "geo")
 public class GeocodeController {
+    private final List<Geocoder> geocoderRanking = new ArrayList<>();
     private final AddressService addressService;
     private final GeocodeService geocodeService;
 
     @Autowired
-    public GeocodeController(AddressService addressService, GeocodeService geocodeService) {
+    public GeocodeController(@Value("${geocoder.ranking}") String geocoderRankingStr,
+                             AddressService addressService, GeocodeService geocodeService) {
+        for (String geocoder : geocoderRankingStr.split(", *")) {
+            geocoderRanking.add(Geocoder.valueOf(geocoder.toUpperCase()));
+        }
         this.addressService = addressService;
         this.geocodeService = geocodeService;
     }
@@ -51,33 +58,21 @@ public class GeocodeController {
      * (GET)    /api/v2/geo/geocode
      */
     @GetMapping(value = "/geocode")
-    public BaseResponse geocode(@RequestParam(required = false) String provider,
-                                @RequestParam(required = false) String addr,
+    public BaseResponse geocode(@RequestParam(required = false) String addr,
                                 @RequestParam(required = false) String addr1,
                                 @RequestParam(required = false) String addr2,
                                 @RequestParam(required = false) String city,
                                 @RequestParam(required = false) String state,
                                 @RequestParam(required = false) String zip5,
-                                @RequestParam(required = false) String zip4,
-                                @RequestParam(required = false, defaultValue = "true") boolean useFallback,
-                                @RequestParam(required = false,  defaultValue = "true") boolean uspsValidate) {
-
-        Geocoder geocoder = Geocoder.getGeocoder(provider);
-        if (geocoder == null) {
-            return new ApiError(this.getClass(), PROVIDER_NOT_SUPPORTED);
-        }
-
+                                @RequestParam(required = false) String zip4) {
         Address address = getAddressFromParams(addr, addr1, addr2, city, state, zip5, zip4);
-        List<Geocoder> geocoders = Geocoder.getGeocoders(geocoder, true, useFallback);
-        if (uspsValidate) {
-            address = addressService.validateOrDefault(address, false);
-        }
+        address = addressService.validateOrDefault(address, false);
 
         if (address == null || !address.isValid()) {
             return new ApiError(this.getClass(), MISSING_ADDRESS);
 
         }
-        return new GeocodeResponse(geocodeService.geocode(geocoders, address));
+        return new GeocodeResponse(geocodeService.geocode(geocoderRanking, address));
     }
 
     /**
@@ -88,24 +83,24 @@ public class GeocodeController {
      * (GET)    /api/v2/geo/revgeocode
      */
     @GetMapping(value = "/revgeocode")
-    public BaseResponse revGeocode(@RequestParam(required = false) String provider,
-                                   @RequestParam String lat, @RequestParam String lon,
-                                   @RequestParam(required = false, defaultValue = "true") boolean useFallback,
-                                   @RequestParam(required = false,  defaultValue = "true") boolean uspsValidate) {
-        Geocoder geocoder = Geocoder.getGeocoder(provider);
-        if (geocoder == null) {
-            return new ApiError(this.getClass(), PROVIDER_NOT_SUPPORTED);
+    public BaseResponse revGeocode(@RequestParam(required = false) String geocoder,
+                                   @RequestParam String lat, @RequestParam String lon) {
+        List<Geocoder> currGeocoders = geocoderRanking;
+        if (geocoder != null) {
+            try {
+                currGeocoders = List.of(Geocoder.valueOf(geocoder.trim().toUpperCase()));
+            }
+            catch (IllegalArgumentException e) {
+                return new ApiError(DistrictController.class, PROVIDER_NOT_SUPPORTED);
+            }
         }
 
         Point point = getPointFromParams(lat, lon);
         if (point == null) {
             return new ApiError(this.getClass(), MISSING_POINT);
         }
-        GeocodeResult result = geocodeService.reverseGeocode(
-                Geocoder.getGeocoders(geocoder, false, useFallback), point);
-        if (uspsValidate) {
-            result.setAddress(addressService.validateOrDefault(result.getAddress(), false));
-        }
+        GeocodeResult result = geocodeService.reverseGeocode(currGeocoders, point);
+        result.setAddress(addressService.validateOrDefault(result.getAddress(), false));
         return new RevGeocodeResponse(result);
     }
 
@@ -117,27 +112,14 @@ public class GeocodeController {
      * (POST)    /api/v2/geo/geocode/batch
      */
     @PostMapping(value = "/geocode/batch")
-    public BaseResponse batchGeocode(HttpServletRequest request,
-                                     @RequestParam(required = false) String provider,
-                                     @RequestParam(required = false, defaultValue = "true") boolean useFallback,
-                                     @RequestParam(required = false,  defaultValue = "true") boolean uspsValidate)
-            throws IOException {
-
-        Geocoder geocoder = Geocoder.getGeocoder(provider);
-        if (geocoder == null) {
-            return new ApiError(this.getClass(), PROVIDER_NOT_SUPPORTED);
-        }
-
+    public BaseResponse batchGeocode(HttpServletRequest request) throws IOException {
         String batchJsonPayload = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
-        List<Address> addresses = getAddressesFromJsonBody(batchJsonPayload);
-        if (uspsValidate) {
-            addresses = addressService.validateOrDefault(addresses, false);
-        }
+        List<Address> addresses = addressService.validateOrDefault(getAddressesFromJsonBody(batchJsonPayload), false);
         if (addresses.isEmpty()) {
             return new ApiError(this.getClass(), INVALID_BATCH_ADDRESSES);
         }
 
-        List<GeocodeResult> geocodeResults = geocodeService.geocode(Geocoder.getGeocoders(geocoder, true, useFallback), addresses);
+        List<GeocodeResult> geocodeResults = geocodeService.geocode(geocoderRanking, addresses);
         return new BatchGeocodeResponse(geocodeResults);
     }
 
@@ -149,31 +131,18 @@ public class GeocodeController {
      * (POST)    /api/v2/geo/revgeocode/batch
      */
     @PostMapping(value = "/revgeocode/batch")
-    public BaseResponse batchRevGeocode(HttpServletRequest request,
-                                @RequestParam(required = false) String provider,
-                                @RequestParam(required = false, defaultValue = "true") boolean useFallback,
-                                @RequestParam(required = false,  defaultValue = "true") boolean uspsValidate)
-            throws IOException {
-
-        Geocoder geocoder = Geocoder.getGeocoder(provider);
-        if (geocoder == null) {
-            return new ApiError(this.getClass(), PROVIDER_NOT_SUPPORTED);
-        }
-
+    public BaseResponse batchRevGeocode(HttpServletRequest request) throws IOException {
         String batchJsonPayload = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
         List<Point> points = getPointsFromJsonBody(batchJsonPayload);
         if (points.isEmpty()) {
             return new ApiError(this.getClass(), INVALID_BATCH_POINTS);
         }
 
-        List<Geocoder> geocoders = Geocoder.getGeocoders(geocoder, false, useFallback);
-        List<GeocodeResult> revGeocodeResults = geocodeService.reverseGeocode(geocoders, points);
-        if (uspsValidate) {
-            List<Address> addresses = revGeocodeResults.stream().map(GeocodeResult::getAddress).toList();
-            addresses = addressService.validateOrDefault(addresses, false);
-            for (int i = 0; i < addresses.size(); i++) {
-                revGeocodeResults.get(i).setAddress(addresses.get(i));
-            }
+        List<GeocodeResult> revGeocodeResults = geocodeService.reverseGeocode(geocoderRanking, points);
+        List<Address> addresses = revGeocodeResults.stream().map(GeocodeResult::getAddress).toList();
+        addresses = addressService.validateOrDefault(addresses, false);
+        for (int i = 0; i < addresses.size(); i++) {
+            revGeocodeResults.get(i).setAddress(addresses.get(i));
         }
         return new BatchGeocodeResponse(revGeocodeResults);
     }

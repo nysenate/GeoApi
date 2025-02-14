@@ -218,7 +218,7 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
                 }
             })
             .error(function(data){
-                console.log("Failed to geocache submitted address - check Input / Tiger DB / Server Status ");
+                console.log("Failed to geocache submitted address - check Input / Server Status ");
             });
 
     };

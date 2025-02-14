@@ -98,7 +98,7 @@ public class SqlStreetfileDao extends BaseDao implements StreetfileDao {
     }
 
     public DistrictInfo getDistrictInfo(BuildingAddress addr, @Nonnull DistrictMatchLevel matchLevel) {
-        if (matchLevel == DistrictMatchLevel.STATE || matchLevel == DistrictMatchLevel.NOMATCH) {
+        if (matchLevel == DistrictMatchLevel.NOMATCH) {
             return new DistrictInfo();
         }
         var sqlBuilder = new StringBuilder("SELECT * FROM streetfile WHERE postal_city = '%s'\n".formatted(addr.getPostalCity().toUpperCase()));

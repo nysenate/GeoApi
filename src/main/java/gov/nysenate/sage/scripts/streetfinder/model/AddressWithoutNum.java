@@ -4,6 +4,8 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.Intern;
 
+import javax.annotation.Nonnull;
+
 public record AddressWithoutNum(String street, String postalCity, int zip5) {
     private static final Intern<AddressWithoutNum> interned = new Intern<>();
 
@@ -26,6 +28,7 @@ public record AddressWithoutNum(String street, String postalCity, int zip5) {
         return interned.get(this);
     }
 
+    @Nonnull
     @Override
     public String toString() {
         final String strZip = Integer.toString(zip5);

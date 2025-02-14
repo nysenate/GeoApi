@@ -126,27 +126,11 @@ job.threads.geocode = 2
 job.threads.distassign = 2
 
 #####################################
-## District Assignment Configuration
-#####################################
-# District strategy sets up the default logic for district assignment.
-# Note: The strategy may be overwritten by application logic depending on input.
-# The names of the available options are:
-# streetFallback  : Perform shape and street lookup, preferring street data on mismatches.
-# shapeFallback   : Perform shape and street lookup, preferring shape data on mismatches.
-# streetOnly      : Perform street lookup only.
-# shapeOnly       : Perform shape lookup only.
-
-district.strategy.single = streetFallback
-district.strategy.bluebird = streetFallback
-district.strategy.batch = shapeFallback
-district.strategy.job = shapeFallback
-
-#####################################
-## Geocode Cache Configuration
+## Assignment Configuration
 #####################################
 
-# Enable/Disable use of geocode cache (true/false)
-geocache.enabled = true
+geocoder.ranking = geocache, nysgeo, google
+district.ranking = streetfile, shapefile
 
 #####################################
 ## Cron Configuration

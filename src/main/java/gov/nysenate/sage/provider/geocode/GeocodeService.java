@@ -138,7 +138,7 @@ public class GeocodeService {
             if (revGeocodedAddress == null) {
                 status = RESPONSE_PARSE_ERROR;
             }
-            else if (revGeocodedAddress.isReverseGeocoded()) {
+            else if (!revGeocodedAddress.isReverseGeocoded()) {
                 status = NO_REVERSE_GEOCODE_RESULT;
             }
             else {
