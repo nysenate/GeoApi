@@ -59,7 +59,7 @@ public class AddressService {
 
     private AddressResult internalValidate(Address address, AddressSource source) {
         if (address == null) {
-            return new AddressResult(null, ResultStatus.MISSING_ADDRESS);
+            return new AddressResult(null, ResultStatus.INVALID_ADDRESS);
         }
         if (!address.isValid()) {
             return new AddressResult(null, ResultStatus.INSUFFICIENT_ADDRESS);
@@ -120,7 +120,7 @@ public class AddressService {
     @Nonnull
     public CityStateResult lookupCityState(Zip5 zip5, AddressSource source) {
         if (zip5 == null || zip5.isMissing()) {
-            return new CityStateResult(null, ResultStatus.MISSING_ADDRESS);
+            return new CityStateResult(null, ResultStatus.INVALID_ADDRESS);
         }
         CityStateResult result = providerMap.get(source).lookupCityState(zip5);
         if (result == null) {

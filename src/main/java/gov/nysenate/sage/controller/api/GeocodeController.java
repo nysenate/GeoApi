@@ -69,7 +69,7 @@ public class GeocodeController {
         address = addressService.validateOrDefault(address, false);
 
         if (address == null || !address.isValid()) {
-            return new ApiError(this.getClass(), MISSING_ADDRESS);
+            return new ApiError(this.getClass(), INVALID_ADDRESS);
 
         }
         return new GeocodeResponse(geocodeService.geocode(geocoderRanking, address));

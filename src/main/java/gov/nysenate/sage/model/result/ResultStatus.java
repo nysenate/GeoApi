@@ -3,7 +3,6 @@ package gov.nysenate.sage.model.result;
 public enum ResultStatus {
     SUCCESS(0, "Success."),
 
-    SERVICE_NOT_SUPPORTED(1, "The requested service is unsupported."),
     PROVIDER_NOT_SUPPORTED(3, "The requested provider is unsupported."),
     ADDRESS_PROVIDER_NOT_SUPPORTED(4, "The requested address provider is unsupported."),
     GEOCODE_PROVIDER_NOT_SUPPORTED(5, "The requested geocoding provider is unsupported."),
@@ -18,9 +17,7 @@ public enum ResultStatus {
 
     RESPONSE_PARSE_ERROR(31, "Error parsing response from service provider."),
 
-    MISSING_INPUT_PARAMS(40, "One or more parameters are missing."),
-    MISSING_ADDRESS(41, "An address is required."),
-    MISSING_GEOCODE(42, "A valid geocoded coordinate pair is required."),
+    INVALID_ADDRESS(41, "A valid address is required."),
     MISSING_POINT(45, "A coordinate pair is required."),
     MISSING_GEOCODED_ADDRESS(46, "The address was unable to be matched using the geocoding service. Please ensure that the address is valid " +
                                   "or try using a different geocoder."),

@@ -104,7 +104,7 @@ public class DistrictController {
                 currGeocoders = List.of(Geocoder.valueOf(geocoder.trim().toUpperCase()));
             }
             catch (IllegalArgumentException e) {
-                return new ApiError(DistrictController.class, DISTRICT_PROVIDER_NOT_SUPPORTED);
+                return new ApiError(DistrictController.class, GEOCODE_PROVIDER_NOT_SUPPORTED);
             }
         }
         // TODO: only geocode if shapefile used?

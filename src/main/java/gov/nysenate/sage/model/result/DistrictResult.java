@@ -94,11 +94,11 @@ public class DistrictResult extends BaseResult<DistrictSource> {
             return MISSING_GEOCODED_ADDRESS;
         }
         if (!geoAddress.isValidAddress() && source == DistrictSource.STREETFILE) {
-            return MISSING_ADDRESS;
+            return INVALID_ADDRESS;
         }
         else if (source == DistrictSource.SHAPEFILE) {
             if (!geoAddress.isValidGeocode()) {
-                return MISSING_GEOCODE;
+                return INVALID_GEOCODE;
             }
             if (!DISTRICT_ASSIGNABLE_GEOCODE_QUALITIES.contains(geoAddress.getGeocode().quality())) {
                 return INSUFFICIENT_GEOCODE;
