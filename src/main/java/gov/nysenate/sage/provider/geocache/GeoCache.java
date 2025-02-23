@@ -86,11 +86,12 @@ public class GeoCache extends BaseDao implements GeocoderDao {
         return new Geocode(point, quality, rs.getString("method"), true);
     }
 
+    // TODO: only use zip4 if necessary
     private static MapSqlParameterSource getIdParams(BuildingAddress address) {
-        return new MapSqlParameterSource("bldgId", address.getBldgId())
-                .addValue("street", address.getStreet())
-                .addValue("postalCity", address.getPostalCity())
-                .addValue("zip5", address.getZip5().toString());
+        return new MapSqlParameterSource("bldgId", address.getBldgId().toUpperCase())
+                .addValue("street", address.getStreet().toUpperCase())
+                .addValue("postalCity", address.getPostalCity().toUpperCase())
+                .addValue("zip5", address.getZip5().toString().toUpperCase());
     }
 
     /**
@@ -104,7 +105,7 @@ public class GeoCache extends BaseDao implements GeocoderDao {
             var params = getIdParams(((BuildingAddress) address))
                     .addValue("zip4", address.getZip4().toString())
                     .addValue("latlon", "POINT(" + gc.lon() + " " + gc.lat() + ")")
-                    .addValue("method", gc.originalGeocoder())
+                    .addValue("method", gc.originalGeocoder().name())
                     .addValue("quality", gc.quality().name());
 
             if (namedJdbcTemplate.update(UPDATE_CACHE_ENTRY.getSql(), params) == 0) {

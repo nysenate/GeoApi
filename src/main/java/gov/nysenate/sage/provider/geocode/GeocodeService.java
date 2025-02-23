@@ -79,7 +79,7 @@ public class GeocodeService {
         for (Geocoder newGeocoder : geocoders) {
             geocoder = newGeocoder;
             geocodedAddress = geocoderDaoMap.get(geocoder).getGeocodedAddress(((BuildingAddress) address));
-            if (!geocodedAddress.isValidGeocode()) {
+            if (geocodedAddress == null || !geocodedAddress.isValidGeocode()) {
                 status = NO_GEOCODE_RESULT;
             } else {
                 status = SUCCESS;

@@ -31,13 +31,18 @@ public final class BuildingAddress extends Address {
         return internal;
     }
 
-    public BuildingAddress(String addr1, String postalCity, String state, String postal) {
-        super(postalCity, state, postal);
+    public BuildingAddress(String addr1, String postalCity, String state, String zip5) {
+        this(addr1, postalCity, state, zip5, null);
+    }
+
+    public BuildingAddress(String addr1, String postalCity, String state, String zip5, String zip4) {
+        super(postalCity, state, zip5, zip4);
         setStreetWithNum(addr1);
     }
 
     public BuildingAddress(String bldgId, String street, String postalCity, String state, String zip5, String zip4) {
-        this(street, postalCity, zip5, zip4);
+        super(postalCity, state, zip5, zip4);
+        this.street = street;
         this.bldgId = bldgId;
     }
 
@@ -73,7 +78,7 @@ public final class BuildingAddress extends Address {
 
     @Override
     public boolean isValid() {
-        return super.isValid() && !StringUtils.isBlank(bldgId) && !street.isEmpty();
+        return super.isValid() && !StringUtils.isBlank(bldgId) && !StringUtils.isBlank(street);
     }
 
     @Override

@@ -57,10 +57,11 @@ public class HttpUSPSAMSDao implements AddressDao {
     public AddressResult validate(Address address) {
         var urlParams = new StringBuilder();
         try {
+            // TODO: need changes in USPS application so that we don't need to pass in every parameter
             urlParams.append("?addr1=").append(encode(address.getAddr1()))
                     .append("&city=").append(encode(address.getPostalCity()))
                     .append("&state=").append(encode(address.getState()))
-                    .append("&zip5=").append(address.getZip5())
+                    .append("&zip5=").append(encode(address.getZip5().toString()))
                     .append("&initCaps=true");
             if (address.getAddr2() != null) {
                 urlParams.append("&addr2=").append(encode(address.getAddr2()));
@@ -244,6 +245,9 @@ public class HttpUSPSAMSDao implements AddressDao {
     }
 
     private static String encode(String input) {
+        if (input == null) {
+            return "";
+        }
         return URLEncoder.encode(input, StandardCharsets.UTF_8);
     }
 }

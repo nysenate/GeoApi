@@ -87,13 +87,14 @@ public class SqlDistrictShapefileDao extends BaseDao implements DistrictShapeFil
     /** {@inheritDoc} */
     public DistrictOverlap getDistrictOverlap(DistrictType baseType, DistrictType intersectType, String refCode) {
         var params = new MapSqlParameterSource("districtCode", refCode)
-                .addValue("baseType", baseType.name())
-                .addValue("intersectType", intersectType.name())
                 .addValue("nameField", intersectType.nameColumn())
                 .addValue("codeField", intersectType.codeColumn());
+        // Replacing parameters doesn't play nice when they are followed by a period.
+        String sql = ShapefileQueries.GET_INTERSECTION.getSql("districts")
+                .replaceAll(":baseType", baseType.name())
+                .replaceAll(":intersectType", intersectType.name());
 
-        return namedJdbcTemplate.query(ShapefileQueries.GET_INTERSECTION.getSql("districts"),
-                params, new DistrictOverlapHandler());
+        return namedJdbcTemplate.query(sql, params, new DistrictOverlapHandler());
     }
 
     /** {@inheritDoc} */

@@ -36,16 +36,10 @@ public class HttpNYSGeoDao implements GeocoderDao {
 
     /** {@inheritDoc} */
     public GeocodedAddress getGeocodedAddress(BuildingAddress address) {
-        try {
-            String formattedQuery = String.format("?SingleLine=%s",address.getStreetWithNum() + " " + address.getInternal() + " "
-                    + address.getPostalCity() + "," + address.getZip5());
-            String url = DEFAULT_BASE_URL + GEOCODE_EXTENSION + formattedQuery + COMMON_PARAMS;
-            return getGeocodedAddress(url, false);
-        }
-        catch (NullPointerException ex) {
-            logger.error("Null pointer while performing NYSGeo geocode!", ex);
-        }
-        return null;
+        String formattedQuery = String.format("?SingleLine=%s", address.getStreetWithNum() + " " + address.getInternal() + " "
+                + address.getPostalCity() + "," + address.getZip5());
+        String url = DEFAULT_BASE_URL + GEOCODE_EXTENSION + formattedQuery + COMMON_PARAMS;
+        return getGeocodedAddress(url, false);
     }
 
     /** {@inheritDoc} */

@@ -2,8 +2,8 @@ package gov.nysenate.sage.model.address;
 
 import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
 import gov.nysenate.sage.util.FormatUtil;
+import org.apache.commons.lang3.StringUtils;
 
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -11,15 +11,29 @@ public abstract sealed class Address permits BuildingAddress, PostOfficeBox {
     private static final Pattern poBoxPattern = Pattern.compile("(?i)PO Box (\\d+)");
     private String postalCity;
     private String state = "NY";
-    private Zip5 zip5;
+    private final Zip5 zip5;
     private Zip4 zip4 = new Zip4(null);
 
     /** Verification info */
     private boolean uspsValidated = false;
 
     public static Address getAddress(String addr) {
-        // TODO: complete. Perhaps get a full list of street, town, zip5, zip4?
-        return null;
+        String[] csv = addr.split(" *, *");
+        String zip4 = null;
+        if (csv.length == 5) {
+            zip4 = csv[4];
+        }
+        else if (csv.length == 4) {
+            String[] splitZip = csv[3].split("-");
+            if (splitZip.length > 1) {
+                csv[3] = splitZip[0];
+                zip4 = splitZip[1];
+            }
+        }
+        else {
+            throw new IllegalArgumentException("Invalid address: " + addr);
+        }
+        return getAddress(csv[0], "", csv[1], csv[2], csv[3], zip4);
     }
 
     public static Address getAddress(String addr1, String addr2, String city, String state, String zip5, String zip4) {
@@ -28,7 +42,9 @@ public abstract sealed class Address permits BuildingAddress, PostOfficeBox {
             int boxNumber = Integer.parseInt(poBoxMatcher.group(1));
             return new PostOfficeBox(boxNumber, addr2, city, state, zip5, zip4);
         }
-        return new BuildingAddress(addr1, addr2, city, state, zip5, zip4);
+        var tempBldgAddr = new BuildingAddress(addr1, city, state, zip5, zip4);
+        tempBldgAddr.setInternal(addr2);
+        return tempBldgAddr;
     }
 
     public Address(AddressWithoutNum awn) {
@@ -36,10 +52,11 @@ public abstract sealed class Address permits BuildingAddress, PostOfficeBox {
         this.zip5 = new Zip5(awn.zip5());
     }
 
-    public Address(String postalCity, String state, String postal) {
+    public Address(String postalCity, String state, String zip5, String zip4) {
         setPostalCity(postalCity);
         this.state = state;
-        setZip9(postal);
+        this.zip5 = new Zip5(Integer.parseInt(zip5.trim()));
+        this.zip4 = new Zip4(zip4 == null ? null : Integer.parseInt(zip4.trim()));
     }
 
     public abstract String getAddr1();
@@ -83,19 +100,6 @@ public abstract sealed class Address permits BuildingAddress, PostOfficeBox {
         return state;
     }
 
-    /** Stores 12345-1234 style postal codes into zip5 and zip4 parts */
-    public void setZip9(String postal) {
-        if (postal != null) {
-            List<String> zipParts = List.of(postal.split("-"));
-            if (!zipParts.isEmpty()) {
-                this.zip5 = new Zip5(Integer.parseInt(zipParts.get(0).trim()));
-            }
-            if (zipParts.size() > 1) {
-                this.zip5 = new Zip5(Integer.parseInt(zipParts.get(1).trim()));
-            }
-        }
-    }
-
     /** Indicates if address has been marked USPS validated. */
     public boolean isUspsValidated() {
         return uspsValidated;
@@ -107,7 +111,7 @@ public abstract sealed class Address permits BuildingAddress, PostOfficeBox {
     }
 
     public boolean isValid() {
-        return !postalCity.isEmpty() || !zip5.isMissing();
+        return !StringUtils.isBlank(postalCity) || !zip5.isMissing();
     }
 
     public static boolean validState(String state) {

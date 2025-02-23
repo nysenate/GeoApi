@@ -17,7 +17,10 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 import static gov.nysenate.sage.util.controller.ConstantUtil.ADMIN_USERNAME_ATTR;
 
@@ -40,7 +43,9 @@ public final class ApiControllerUtil {
             return Address.getAddress(addr);
         }
         else {
-            return new BuildingAddress(addr1, addr2, city, state, zip5, zip4);
+            var tempBldgAddr = new BuildingAddress(addr1, city, state, zip5, zip4);
+            tempBldgAddr.setInternal(addr2);
+            return tempBldgAddr;
         }
     }
 
@@ -80,7 +85,7 @@ public final class ApiControllerUtil {
         try {
             logger.trace("Batch address json body: {}", json);
             ObjectMapper mapper = new ObjectMapper();
-            return new ArrayList<>(Arrays.asList(mapper.readValue(json, Address[].class)));
+            return List.of(mapper.readValue(json, Address[].class));
         }
         catch(Exception ex) {
             logger.debug("No valid batch address payload detected.");

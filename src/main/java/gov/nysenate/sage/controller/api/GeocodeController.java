@@ -58,14 +58,13 @@ public class GeocodeController {
      * (GET)    /api/v2/geo/geocode
      */
     @GetMapping(value = "/geocode")
-    public BaseResponse geocode(@RequestParam(required = false) String addr,
-                                @RequestParam(required = false) String addr1,
+    public BaseResponse geocode(@RequestParam(required = false) String addr1,
                                 @RequestParam(required = false) String addr2,
                                 @RequestParam(required = false) String city,
                                 @RequestParam(required = false) String state,
                                 @RequestParam(required = false) String zip5,
                                 @RequestParam(required = false) String zip4) {
-        Address address = getAddressFromParams(addr, addr1, addr2, city, state, zip5, zip4);
+        Address address = getAddressFromParams(null, addr1, addr2, city, state, zip5, zip4);
         address = addressService.validateOrDefault(address, false);
 
         if (address == null || !address.isValid()) {
