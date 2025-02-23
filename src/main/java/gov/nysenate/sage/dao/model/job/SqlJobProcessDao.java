@@ -19,7 +19,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -31,13 +31,11 @@ import static gov.nysenate.sage.model.job.JobProcessStatus.Condition;
 @Repository
 public class SqlJobProcessDao extends BaseDao implements JobProcessDao {
     private static final Logger logger = LoggerFactory.getLogger(SqlJobProcessDao.class);
-    private final RowMapper<JobProcessStatus> statusHandler;
-    private final RowMapper<JobProcessStatus> statusListHandler;
+    private final SqlJobUserDao jobUserDao;
 
     @Autowired
     public SqlJobProcessDao(SqlJobUserDao sqlJobUserDao) {
-        this.statusHandler = new JobStatusHandler(sqlJobUserDao);
-        this.statusListHandler = new JobProcessStatusListHandler(sqlJobUserDao);
+        this.jobUserDao = sqlJobUserDao;
     }
 
     /** {@inheritDoc} */
@@ -100,11 +98,9 @@ public class SqlJobProcessDao extends BaseDao implements JobProcessDao {
     /** {@inheritDoc} */
     public JobProcessStatus getJobProcessStatus(int processId) {
         try {
-            MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue("processId", processId);
-
+            var params = new MapSqlParameterSource("processId", processId);
             List<JobProcessStatus> jobProcessStatusList = namedJdbcTemplate.query(
-                    JobProcessQuery.GET_JOB_PROCESS_STATUS.getSql(getJobSchema()), params, statusHandler);
+                    JobProcessQuery.GET_JOB_PROCESS_STATUS.getSql(getJobSchema()), params, new JobStatusHandler());
 
             if (jobProcessStatusList.get(0) != null) {
                 return jobProcessStatusList.get(0);
@@ -113,16 +109,6 @@ public class SqlJobProcessDao extends BaseDao implements JobProcessDao {
             logger.error("Failed to retrieve job process status for process {}", processId, ex);
         }
         return null;
-    }
-
-    /** {@inheritDoc} */
-    public List<JobProcessStatus> getJobStatusesByCondition(Condition condition, JobUser jobUser) {
-        return getJobStatusesByCondition(condition, jobUser, null, null);
-    }
-
-    /** {@inheritDoc} */
-    public List<JobProcessStatus> getJobStatusesByCondition(Condition condition, JobUser jobUser, Timestamp start, Timestamp end) {
-        return getJobStatusesByConditions(List.of(condition), jobUser, start, end);
     }
 
     /** {@inheritDoc} */
@@ -142,7 +128,7 @@ public class SqlJobProcessDao extends BaseDao implements JobProcessDao {
         String restOfQuery = conditionFilter + " " + jobUserFilter + " " + requestTimeFilter + " ORDER BY processId DESC";
         try {
             return namedJdbcTemplate.query(
-                    JobProcessQuery.GET_JOB_PROCESS_STATUS_BY_CONDITIONS.getSql(getJobSchema()) + restOfQuery, statusListHandler);
+                    JobProcessQuery.GET_JOB_PROCESS_STATUS_BY_CONDITIONS.getSql(getJobSchema()) + restOfQuery, new JobStatusHandler());
         } catch (Exception ex) {
             logger.error("Failed to retrieve statuses by conditions!", ex);
         }
@@ -150,7 +136,10 @@ public class SqlJobProcessDao extends BaseDao implements JobProcessDao {
     }
 
     /** {@inheritDoc} */
-    public List<JobProcessStatus> getRecentlyCompletedJobStatuses(Condition condition, JobUser jobUser, Timestamp afterThis) {
+    public List<JobProcessStatus> getRecentlyCompletedJobStatuses(Condition condition, JobUser jobUser) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DATE, -1);
+        Timestamp afterThis = new Timestamp(calendar.getTimeInMillis());
         String conditionFilter = (condition != null) ? " AND status.condition = '" + condition.name() + "' ": " ";
         String jobUserFilter = (jobUser != null && !jobUser.isAdmin()) ? " AND userId = " + jobUser.getId() + " ": " ";
 
@@ -160,55 +149,38 @@ public class SqlJobProcessDao extends BaseDao implements JobProcessDao {
             var params = new MapSqlParameterSource("afterThis", afterThis);
             return namedJdbcTemplate.query(
                     JobProcessQuery.GET_RECENTLY_COMPLETED_JOB_PROCESSES.getSql(getJobSchema()) + restOfQuery,
-                    params, statusListHandler);
+                    params, new JobStatusHandler());
         } catch (Exception ex) {
             logger.error("Failed to retrieve recent job statuses!", ex);
         }
         return null;
     }
 
-    /** {@inheritDoc} */
-    public List<JobProcessStatus> getActiveJobStatuses(JobUser jobUser) {
-        return getJobStatusesByConditions(Condition.getActiveConditions(), jobUser, null, null);
-    }
-
-    /** {@inheritDoc} */
-    public List<JobProcessStatus> getInactiveJobStatuses(JobUser jobUser) {
-        return getJobStatusesByConditions(Condition.getInactiveConditions(), jobUser, null, null);
-    }
-
-    private static class JobStatusHandler implements RowMapper<JobProcessStatus> {
-        protected static Logger logger = LoggerFactory.getLogger(JobStatusHandler.class);
-        protected SqlJobUserDao sqlJobUserDao;
-
-        protected JobStatusHandler(SqlJobUserDao sqlJobUserDao) {
-            this.sqlJobUserDao = sqlJobUserDao;
-        }
-
+    private class JobStatusHandler implements RowMapper<JobProcessStatus> {
         @Override
         public JobProcessStatus mapRow(@Nonnull ResultSet rs, int rowNum) throws SQLException {
-            return getJobProcessStatusFromResultSet(rs, sqlJobUserDao, logger);
+            var jsonMapper = new ObjectMapper();
+            JobProcessStatus jps = new JobProcessStatus();
+            jps.setProcessId(rs.getInt("processId"));
+            jps.setJobProcess(getJobProcessFromResultSet(rs));
+            jps.setStartTime(rs.getTimestamp("startTime"));
+            jps.setCompleteTime(rs.getTimestamp("completeTime"));
+            jps.setCondition(Condition.valueOf(rs.getString("condition")));
+            jps.setCompleted(rs.getBoolean("completed"));
+            jps.setCompletedRecords(rs.getInt("completedRecords"));
+            try {
+                jps.setMessages(List.of(jsonMapper.readValue(rs.getString("messages"), String[].class)));
+            } catch (Exception ex) {
+                logger.error("Failed to retrieve job status messages list!", ex);
+            }
+            return jps;
         }
     }
 
-    private static class JobProcessStatusListHandler implements RowMapper<JobProcessStatus> {
-        protected static Logger logger = LoggerFactory.getLogger(JobProcessStatusListHandler.class);
-        protected SqlJobUserDao sqlJobUserDao;
-
-        protected JobProcessStatusListHandler(SqlJobUserDao sqlJobUserDao) {
-            this.sqlJobUserDao = sqlJobUserDao;
-        }
-
-        @Override
-        public JobProcessStatus mapRow(@Nonnull ResultSet rs, int rowNum) throws SQLException {
-            return getJobProcessStatusFromResultSet(rs, sqlJobUserDao, logger);
-        }
-    }
-
-    protected static JobProcess getJobProcessFromResultSet(ResultSet rs, SqlJobUserDao juDao) throws SQLException {
+    private JobProcess getJobProcessFromResultSet(ResultSet rs) throws SQLException {
         var jobProcess = new JobProcess();
         jobProcess.setId(rs.getInt("id"));
-        jobProcess.setRequestor(juDao.getJobUserById(rs.getInt("userId")));
+        jobProcess.setRequestor(jobUserDao.getJobUserById(rs.getInt("userId")));
         jobProcess.setFileName(rs.getString("fileName"));
         jobProcess.setFileType(rs.getString("fileType"));
         jobProcess.setSourceFileName(rs.getString("sourceFileName"));
@@ -218,24 +190,6 @@ public class SqlJobProcessDao extends BaseDao implements JobProcessDao {
         jobProcess.setGeocodeRequired(rs.getBoolean("geocodeReq"));
         jobProcess.setDistrictRequired(rs.getBoolean("districtReq"));
         return jobProcess;
-    }
-
-    protected static JobProcessStatus getJobProcessStatusFromResultSet(ResultSet rs, SqlJobUserDao jud, Logger logger) throws SQLException {
-        var jsonMapper = new ObjectMapper();
-        JobProcessStatus jps = new JobProcessStatus();
-        jps.setProcessId(rs.getInt("processId"));
-        jps.setJobProcess(getJobProcessFromResultSet(rs, jud));
-        jps.setStartTime(rs.getTimestamp("startTime"));
-        jps.setCompleteTime(rs.getTimestamp("completeTime"));
-        jps.setCondition(Condition.valueOf(rs.getString("condition")));
-        jps.setCompleted(rs.getBoolean("completed"));
-        jps.setCompletedRecords(rs.getInt("completedRecords"));
-        try {
-            jps.setMessages(Arrays.asList(jsonMapper.readValue(rs.getString("messages"), String[].class)));
-        } catch (Exception ex) {
-            logger.error("Failed to retrieve job status messages list!", ex);
-        }
-        return jps;
     }
 
     private static class JobProcessIdHandler implements RowMapper<Integer> {

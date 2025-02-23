@@ -2,7 +2,6 @@ package gov.nysenate.sage.dao.base;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nysenate.sage.config.DatabaseConfig;
 import gov.nysenate.sage.model.geo.GeometryTypes;
 import gov.nysenate.sage.model.geo.Line;
 import gov.nysenate.sage.model.geo.Point;
@@ -12,14 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.stereotype.Repository;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-@Repository
 public abstract class BaseDao {
     private static final Logger logger = LoggerFactory.getLogger(BaseDao.class);
     @Value("${env.log.schema:log}")
@@ -29,16 +25,9 @@ public abstract class BaseDao {
     @Value("${env.job.schema:job}")
     private String jobSchema;
     @Autowired
-    private DatabaseConfig databaseConfig;
-
     protected JdbcTemplate jdbcTemplate;
+    @Autowired
     protected NamedParameterJdbcTemplate namedJdbcTemplate;
-
-    @PostConstruct
-    private void init() {
-        this.jdbcTemplate = databaseConfig.jdbcTemplate();
-        this.namedJdbcTemplate = databaseConfig.namedJdbcTemplate();
-    }
 
     /**
      * Retrieve polylines from a GeoJson result

@@ -22,6 +22,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Nonnull;
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -46,6 +47,10 @@ public class SqlDistrictShapefileDao extends BaseDao implements DistrictShapeFil
     @Autowired
     public SqlDistrictShapefileDao(CountyDao countyDao) {
         this.countyDao = countyDao;
+    }
+
+    @PostConstruct
+    private void init() {
         if (!cacheDistrictMaps()) {
             throw new RuntimeException("Failed to initialize district map cache");
         }

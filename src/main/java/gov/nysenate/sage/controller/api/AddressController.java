@@ -42,9 +42,9 @@ public final class AddressController {
     private final AddressSource defaultSource;
 
     @Autowired
-    public AddressController(AddressService addressService, @Value("${usps.default:usps}") String defaultSource) {
+    public AddressController(AddressService addressService, @Value("${usps.default:ams}") String defaultSource) {
         this.addressService = addressService;
-        this.defaultSource = AddressSource.valueOf(defaultSource);
+        this.defaultSource = AddressSource.valueOf(defaultSource.toUpperCase());
     }
 
     /**

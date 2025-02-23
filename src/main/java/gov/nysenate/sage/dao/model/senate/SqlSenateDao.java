@@ -1,6 +1,7 @@
 package gov.nysenate.sage.dao.model.senate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.services.model.District;
@@ -12,23 +13,18 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Repository
 public class SqlSenateDao extends BaseDao implements SenateDao {
     private static final Logger logger = LoggerFactory.getLogger(SqlSenateDao.class);
     private static final ObjectMapper mapper = new ObjectMapper();
-    private Map<Integer, Senator> codeToSenatorMap;
-
-    @PostConstruct
-    private void init() {
-        this.codeToSenatorMap = queryForSenatorCache();
-    }
+    private ImmutableMap<Integer, Senator> codeToSenatorMap;
 
     /** {@inheritDoc} */
     public Senator getSenatorByDistrict(int senateCode) {
@@ -42,9 +38,9 @@ public class SqlSenateDao extends BaseDao implements SenateDao {
         String json = FormatUtil.toJsonString(senator);
 
         try {
-            var params = new MapSqlParameterSource("district", senateCode);
-            params.addValue("name", senatorName);
-            params.addValue("data", json);
+            var params = new MapSqlParameterSource("district", senateCode)
+                    .addValue("name", senatorName)
+                    .addValue("data", json);
 
             int numRows = namedJdbcTemplate.update(
                     SenateQuery.INSERT_SENATOR.getSql(getPublicSchema()), params);
@@ -95,33 +91,20 @@ public class SqlSenateDao extends BaseDao implements SenateDao {
     }
 
     /** {@inheritDoc} */
+    @PostConstruct
     @Scheduled(cron = "${senator.refresh.cron:0 0 0/12 * * *}")
     public void updateSenatorCache() {
-        codeToSenatorMap = queryForSenatorCache();
+        recreateSenatorCache();
     }
 
-    private Map<Integer, Senator> queryForSenatorCache() {
-        Map<Integer, Senator> senatorMap = new HashMap<>();
-        try {
-            List<Map<Integer, Senator>> uncompiledSenatorMap =
-                    namedJdbcTemplate.query(
-                            SenateQuery.GET_ALL_SENATORS.getSql(getPublicSchema()), new SenatorMapHandler());
-
-            senatorMap = compileSenateMap(uncompiledSenatorMap);
-
-        } catch (Exception ex) {
-            logger.error(ex.getMessage());
+    private void recreateSenatorCache() {
+        var tempMap = new HashMap<Integer, Senator>();
+        List<Senator> uncompiledSenatorMap = namedJdbcTemplate.query(
+                SenateQuery.GET_ALL_SENATORS.getSql(getPublicSchema()), new SenatorHandler());
+        for (Senator senator : uncompiledSenatorMap) {
+            tempMap.put(senator.getDistrict().getNumber(), senator);
         }
-        return senatorMap;
-    }
-
-    private Map<Integer, Senator> compileSenateMap(List<Map<Integer, Senator>> uncompiledSenatorMap) {
-        Map<Integer, Senator> compiledSenatorMap = new HashMap<>();
-        for (Map<Integer, Senator> integerSenatorMap : uncompiledSenatorMap) {
-            compiledSenatorMap.putAll(integerSenatorMap);
-        }
-        logger.info("Cached {} senators.", codeToSenatorMap.size());
-        return compiledSenatorMap;
+        codeToSenatorMap = ImmutableMap.copyOf(tempMap);
     }
 
     /**
@@ -129,20 +112,15 @@ public class SqlSenateDao extends BaseDao implements SenateDao {
      * The senator data is deserialized from the JSON representation of the Senator object
      * that is stored in the database.
      */
-    private class SenatorMapHandler implements RowMapper<Map<Integer, Senator>> {
+    private static class SenatorHandler implements RowMapper<Senator> {
         @Override
-        public Map<Integer, Senator> mapRow(ResultSet rs, int rowNum) throws SQLException {
-            Integer senateCode = rs.getInt("district");
-            String name = rs.getString("name");
-            String json = rs.getString("data");
-
+        public Senator mapRow(@Nonnull ResultSet rs, int rowNum) throws SQLException {
             try {
-                Senator senator = mapper.readValue(json, Senator.class);
-                codeToSenatorMap.put(senateCode, senator);
-            } catch (Exception ex) {
-                logger.error("Failed to get senator data for {}", name, ex);
+                return mapper.readValue(rs.getString("data"), Senator.class);
             }
-            return codeToSenatorMap;
+            catch (Exception ex) {
+                throw new SQLException(ex.getMessage());
+            }
         }
     }
 }
