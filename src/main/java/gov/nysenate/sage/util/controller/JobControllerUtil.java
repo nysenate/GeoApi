@@ -1,21 +1,16 @@
 package gov.nysenate.sage.util.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.model.job.JobRequest;
 import gov.nysenate.sage.model.job.JobUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.io.IOException;
 
 public final class JobControllerUtil {
     private static final Logger logger = LoggerFactory.getLogger(JobControllerUtil.class);
-    private static final ObjectMapper jsonMapper = new ObjectMapper();
-    private static final String JOB_USER_ATTR = "jobuser", JOB_REQUEST_ATTR = "jobrequest";
+    private static final String JOB_REQUEST_ATTR = "jobrequest", JOB_USER_ATTR = "jobuser";
 
     private JobControllerUtil() {}
 
@@ -50,20 +45,5 @@ public final class JobControllerUtil {
         HttpSession session = request.getSession();
         session.setMaxInactiveInterval(3600);
         session.setAttribute(JOB_USER_ATTR, user);
-    }
-
-    public static void setJobResponse(Object responseObj, HttpServletResponse response) {
-        try {
-            String json = jsonMapper.writeValueAsString(responseObj);
-            response.setContentType("text/plain");
-            response.setContentLength(json.length());
-            response.getWriter().write(json);
-        }
-        catch(JsonProcessingException ex) {
-            logger.error("Failed to parse job response!", ex);
-        }
-        catch(IOException ex) {
-            logger.error("Failed to write job response", ex);
-        }
     }
 }

@@ -93,47 +93,21 @@ public class JobBatchProcessor implements JobProcessor {
         this.districtExecutor = applicationConfig.getJobDistrictAssignExecutor();
     }
 
-
     @Scheduled(cron = "${job.process.cron}")
-    public void jobCron() throws Exception {
-        String[] args = new String[1];
-        args[0] = "process";
-        logger.info("Starting Job Processor");
-        run(args);
-    }
-
     /** Entry point for cron job */
-    public synchronized void run(String[] args) throws Exception {
-        if (args.length == 0) {
-            logger.error("Usage: jobBatchProcessor [process | clean]");
-            logger.error("Process: Iterates through all pending jobs and completes them.");
-            logger.error("Clean:   Cancels all running jobs.");
-            return;
+    public synchronized void run() throws Exception {
+        List<JobProcessStatus> runningJobs = sqlJobProcessDao.getJobStatusesByCondition(RUNNING, null);
+        logger.info("Resuming {} jobs.", runningJobs.size());
+        for (JobProcessStatus runningJob : runningJobs) {
+            logger.info("Processing job process id {}", runningJob.getProcessId());
+            processJob(runningJob);
         }
-        switch (args[0]) {
-            case "clean": {
-                cancelRunningJobs();
-                break;
-            }
-            case "process": {
-                List<JobProcessStatus> runningJobs = sqlJobProcessDao.getJobStatusesByCondition(RUNNING, null);
-                logger.info("Resuming {} jobs.", runningJobs.size());
-                for (JobProcessStatus runningJob : runningJobs) {
-                    logger.info("Processing job process id {}", runningJob.getProcessId());
-                    processJob(runningJob);
-                }
 
-                List<JobProcessStatus> waitingJobs = sqlJobProcessDao.getJobStatusesByCondition(WAITING_FOR_CRON, null);
-                logger.info("{} batch jobs have been queued for processing.", waitingJobs.size());
-                for (JobProcessStatus waitingJob : waitingJobs) {
-                    logger.info("Processing job process id {}", waitingJob.getProcessId());
-                    processJob(waitingJob);
-                }
-                break;
-            }
-            default: {
-                logger.error("Unsupported argument. {} Exiting..", args[0]);
-            }
+        List<JobProcessStatus> waitingJobs = sqlJobProcessDao.getJobStatusesByCondition(WAITING_FOR_CRON, null);
+        logger.info("{} batch jobs have been queued for processing.", waitingJobs.size());
+        for (JobProcessStatus waitingJob : waitingJobs) {
+            logger.info("Processing job process id {}", waitingJob.getProcessId());
+            processJob(waitingJob);
         }
         logger.info("Finishing processing, Exiting Data Processor");
     }
@@ -470,6 +444,7 @@ public class JobBatchProcessor implements JobProcessor {
             JobBatch jobBatch = futureJobBatch.get();
             logger.info("District assignment for records {}-{}", jobBatch.fromRecord(), jobBatch.toRecord());
 
+            // TODO: use ranking, probably by just using Controller directly
             List<DistrictResult> districtResults = districtService.assignDistricts(
                     List.of(STREETFILE, SHAPEFILE), jobBatch.getGeocodedAddresses(), districtTypes
             );
@@ -497,7 +472,7 @@ public class JobBatchProcessor implements JobProcessor {
                         "<br/>This is an automated message.", jobUser.getEmail(),
                 jobProcess.getRequestTime().toString(), downloadUrl + jobProcess.getFileName());
 
-        logger.info("Sending email to {}", jobUser.getEmail());
+        logger.info("Sending email to job user {}", jobUser.getEmail());
         mailer.sendMail(jobUser.getEmail(), subject, message);
         logger.info("Sending email to {}", mailer.getAdminEmail());
         mailer.sendMail(mailer.getAdminEmail(), subject, adminMessage);

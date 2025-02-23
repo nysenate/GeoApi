@@ -1,7 +1,6 @@
 package gov.nysenate.sage.model.result;
 
-public class JobErrorResult
-{
+public class JobErrorResult {
     protected boolean success = false;
     protected String message;
 

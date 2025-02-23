@@ -6,22 +6,18 @@ import gov.nysenate.sage.model.job.JobProcessStatus;
 import gov.nysenate.sage.model.job.JobUser;
 import gov.nysenate.sage.model.result.JobErrorResult;
 import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.File;
-import java.sql.Timestamp;
-import java.util.Calendar;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static gov.nysenate.sage.util.controller.JobControllerUtil.getJobUser;
-import static gov.nysenate.sage.util.controller.JobControllerUtil.setJobResponse;
 
 /**
  * This controller provides an API for accessing the status of a batch job request.
@@ -39,25 +35,6 @@ public class JobStatusController {
     }
 
     /**
-     * Get Job Process Api
-     * ---------------------
-     * Get process information for a given process
-     * Usage:
-     * (GET)    /job/status/process/{Process Id}
-     *
-     */
-    @GetMapping(value = "/process/{processId}")
-    public void jobProcess(HttpServletResponse response, @PathVariable int processId) {
-        Object statusResponse = new JobErrorResult("Failed to process request!");
-        Subject subject = SecurityUtils.getSubject();
-        if (subject.hasRole("JOB_USER")) {
-            boolean running = isProcessorRunning();
-            statusResponse = new JobStatusResponse(sqlJobProcessDao.getJobProcessStatus(processId), running);
-        }
-        setJobResponse(statusResponse, response);
-    }
-
-    /**
      * Running Job Processes Api
      * ---------------------
      * Get all running jobs
@@ -66,16 +43,9 @@ public class JobStatusController {
      *
      */
     @GetMapping(value = "/running")
-    public void jobRunning(HttpServletRequest request, HttpServletResponse response) {
-        Object statusResponse = new JobErrorResult("Failed to process request!");
-        Subject subject = SecurityUtils.getSubject();
-        if (subject.hasRole("JOB_USER")) {
-            JobUser jobUser = getJobUser(request);
-            statusResponse = new JobStatusResponse(
-                    sqlJobProcessDao.getJobStatusesByCondition(JobProcessStatus.Condition.RUNNING, jobUser),
-                    isProcessorRunning());
-        }
-        setJobResponse(statusResponse, response);
+    public Object jobRunning(HttpServletRequest request) {
+        return getResponse(request, jobUser ->
+                sqlJobProcessDao.getJobStatusesByCondition(JobProcessStatus.Condition.RUNNING, jobUser));
     }
 
     /**
@@ -87,35 +57,8 @@ public class JobStatusController {
      *
      */
     @GetMapping(value = "/active")
-    public void jobActive(HttpServletRequest request, HttpServletResponse response) {
-        Object statusResponse = new JobErrorResult("Failed to process request!");
-        Subject subject = SecurityUtils.getSubject();
-        if (subject.hasRole("JOB_USER")) {
-            JobUser jobUser = getJobUser(request);
-            boolean running = isProcessorRunning();
-            statusResponse = new JobStatusResponse(sqlJobProcessDao.getActiveJobStatuses(jobUser), running);
-        }
-        setJobResponse(statusResponse, response);
-    }
-
-    /**
-     * Inactive Job Processes Api
-     * ---------------------
-     * Get all inactive jobs
-     * Usage:
-     * (GET)    /job/status/inactive
-     *
-     */
-    @GetMapping(value = "/inactive")
-    public void jobInactive(HttpServletRequest request, HttpServletResponse response) {
-        Object statusResponse = new JobErrorResult("Failed to process request!");
-        Subject subject = SecurityUtils.getSubject();
-        if (subject.hasRole("JOB_USER")) {
-            JobUser jobUser = getJobUser(request);
-            boolean running = isProcessorRunning();
-            statusResponse = new JobStatusResponse(sqlJobProcessDao.getInactiveJobStatuses(jobUser), running);
-        }
-        setJobResponse(statusResponse, response);
+    public Object jobActive(HttpServletRequest request) {
+        return getResponse(request, sqlJobProcessDao::getActiveJobStatuses);
     }
 
     /**
@@ -127,15 +70,9 @@ public class JobStatusController {
      *
      */
     @GetMapping(value = "/completed")
-    public void jobCompleted(HttpServletRequest request, HttpServletResponse response) {
-        Object statusResponse = new JobErrorResult("Failed to process request!");
-        Subject subject = SecurityUtils.getSubject();
-        if (subject.hasRole("JOB_USER")) {
-            JobUser jobUser = getJobUser(request);
-            boolean running = isProcessorRunning();
-            statusResponse = new JobStatusResponse(getRecentlyCompletedJobProcesses(jobUser), running);
-        }
-        setJobResponse(statusResponse, response);
+    public Object jobCompleted(HttpServletRequest request) {
+        return getResponse(request, jobUser ->
+                sqlJobProcessDao.getRecentlyCompletedJobStatuses(JobProcessStatus.Condition.COMPLETED, jobUser));
     }
 
     /**
@@ -147,13 +84,8 @@ public class JobStatusController {
      *
      */
     @GetMapping(value = "/processor")
-    public void jobProcessor(HttpServletResponse response) {
-        Object statusResponse = new JobErrorResult("Failed to process request!");
-        Subject subject = SecurityUtils.getSubject();
-        if (subject.hasRole("JOB_USER")) {
-            statusResponse = isProcessorRunning();
-        }
-        setJobResponse(statusResponse, response);
+    public Object jobProcessor() {
+        return getResponse(this::isProcessorRunning);
     }
 
     /**
@@ -164,30 +96,27 @@ public class JobStatusController {
      * (GET)    /job/status/all
      *
      * @param request HttpServletRequest
-     * @param response HttpServletResponse
      *
      */
     @GetMapping(value = "/all")
-    public void jobAll(HttpServletRequest request, HttpServletResponse response) {
-        Object statusResponse = new JobErrorResult("Failed to process request!");
-        Subject subject = SecurityUtils.getSubject();
-        if (subject.hasRole("JOB_USER")) {
-            JobUser jobUser = getJobUser(request);
-            boolean running = isProcessorRunning();
-            List<JobProcessStatus> statuses = sqlJobProcessDao.getJobStatusesByConditions(
-                    List.of(JobProcessStatus.Condition.values()),
-                    jobUser, null, null);
-            statusResponse = new JobStatusResponse(statuses, running);
-        }
-        setJobResponse(statusResponse, response);
+    public Object jobAll(HttpServletRequest request) {
+        return getResponse(request, jobUser -> sqlJobProcessDao.getJobStatusesByConditions(
+                List.of(JobProcessStatus.Condition.values()), jobUser
+        ));
     }
 
-    private List<JobProcessStatus> getRecentlyCompletedJobProcesses(JobUser jobUser) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.DATE, -1);
-        Timestamp yesterday = new Timestamp(calendar.getTimeInMillis());
+    private static Object getResponse(Supplier<Object> responseGetter) {
+        if (!SecurityUtils.getSubject().hasRole("JOB_USER")) {
+            return new JobErrorResult("Failed to process request!");
+        }
+        return responseGetter.get();
+    }
 
-        return sqlJobProcessDao.getRecentlyCompletedJobStatuses(JobProcessStatus.Condition.COMPLETED, jobUser, yesterday);
+    private Object getResponse(HttpServletRequest request, Function<JobUser, List<JobProcessStatus>> jpsSupplier) {
+        return getResponse(() -> {
+            JobUser jobUser = getJobUser(request);
+            return new JobStatusResponse(jpsSupplier.apply(jobUser), isProcessorRunning());
+        });
     }
 
     private boolean isProcessorRunning() {

@@ -7,24 +7,13 @@ import gov.nysenate.sage.model.result.JobErrorResult;
 import java.util.ArrayList;
 import java.util.List;
 
-public class JobStatusResponse
-{
+public class JobStatusResponse {
     protected boolean success = false;
     protected boolean processorRunning = false;
     protected List<JobProcessStatusView> statuses = new ArrayList<>();
     protected String message = "";
 
-    public JobStatusResponse(JobProcessStatus jobProcessStatus, boolean processorRunning)
-    {
-        if (jobProcessStatus != null) {
-            this.success = true;
-            this.statuses.add(new JobProcessStatusView(jobProcessStatus));
-        }
-        this.processorRunning = processorRunning;
-    }
-
-    public JobStatusResponse(List<JobProcessStatus> jobProcessStatuses, boolean processorRunning)
-    {
+    public JobStatusResponse(List<JobProcessStatus> jobProcessStatuses, boolean processorRunning) {
         if (jobProcessStatuses != null) {
             this.success = true;
             for (JobProcessStatus jps: jobProcessStatuses) {
@@ -34,8 +23,7 @@ public class JobStatusResponse
         this.processorRunning = processorRunning;
     }
 
-    public JobStatusResponse(JobErrorResult jobErrorResult)
-    {
+    public JobStatusResponse(JobErrorResult jobErrorResult) {
         this.success = false;
         this.message = jobErrorResult.getMessage();
     }

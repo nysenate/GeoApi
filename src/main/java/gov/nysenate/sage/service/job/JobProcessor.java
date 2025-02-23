@@ -5,10 +5,9 @@ import gov.nysenate.sage.model.job.JobProcessStatus;
 public interface JobProcessor {
     /**
      * Processing the actual job process
-     * @param args
      * @throws Exception
      */
-    void run(String[] args) throws Exception;
+    void run() throws Exception;
 
     /**
      * Main routine for processing a JobProcess.
@@ -34,8 +33,4 @@ public interface JobProcessor {
      * Marks all running jobs as cancelled effectively removing them from the queue.
      */
     void cancelRunningJobs();
-
-
-
-
 }

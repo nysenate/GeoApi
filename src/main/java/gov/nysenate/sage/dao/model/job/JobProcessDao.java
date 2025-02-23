@@ -35,14 +35,14 @@ public interface JobProcessDao {
      * Delegates to getJobStatusesByConditions(), see method for details.
      * @return List<JobProcessStatus>
      */
-    List<JobProcessStatus> getJobStatusesByCondition(JobProcessStatus.Condition condition, JobUser jobUser);
+    default List<JobProcessStatus> getJobStatusesByCondition(JobProcessStatus.Condition condition, JobUser jobUser) {
+        return getJobStatusesByConditions(List.of(condition), jobUser, null, null);
+    }
 
-    /**
-     * Retrieves a List of JobProcessStatus matching the given Condition.
-     * Delegates to getJobStatusesByConditions(), see method for details.
-     * @return List<JobProcessStatus>
-     */
-    List<JobProcessStatus> getJobStatusesByCondition(JobProcessStatus.Condition condition, JobUser jobUser, Timestamp start, Timestamp end);
+    default List<JobProcessStatus> getJobStatusesByConditions(List<JobProcessStatus.Condition> conditions, JobUser jobUser) {
+        return getJobStatusesByConditions(conditions, jobUser, null, null);
+    }
+
 
     /**
      * Retrieves a List of JobProcessStatus matching the given Condition types.
@@ -60,22 +60,16 @@ public interface JobProcessDao {
      * as opposed to the requestTime.
      * @param condition Condition to filter by. If null, no filtering will occur on condition.
      * @param jobUser JobUser to retrieve results for. If null or admin user, all results returned.
-     * @param afterThis Filter results where completeTime is on or after the 'afterThis' timestamp.
      * @return List<JobProcessStatus>
      */
-    List<JobProcessStatus> getRecentlyCompletedJobStatuses(JobProcessStatus.Condition condition, JobUser jobUser, Timestamp afterThis);
+    List<JobProcessStatus> getRecentlyCompletedJobStatuses(JobProcessStatus.Condition condition, JobUser jobUser);
 
     /**
      *  Gets a list of active job processes for a given job user
      * @param jobUser
      * @return
      */
-    List<JobProcessStatus> getActiveJobStatuses(JobUser jobUser);
-
-    /**
-     * Gets a list of inactive job statuses for a given job user
-     * @param jobUser
-     * @return
-     */
-    List<JobProcessStatus> getInactiveJobStatuses(JobUser jobUser);
+    default List<JobProcessStatus> getActiveJobStatuses(JobUser jobUser) {
+        return getJobStatusesByConditions(JobProcessStatus.Condition.getActiveConditions(), jobUser, null, null);
+    }
 }

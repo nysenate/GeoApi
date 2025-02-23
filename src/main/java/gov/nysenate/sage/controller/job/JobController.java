@@ -115,9 +115,8 @@ public class JobController {
      *
      */
     @PostMapping(value = "/upload")
-    public void jobUpload(HttpServletRequest request, HttpServletResponse response,
-                          @RequestParam String qqfile) throws Exception {
-        doUpload(request, response, qqfile);
+    public Object jobUpload(HttpServletRequest request, @RequestParam String qqfile) throws Exception {
+        return doUpload(request, qqfile);
     }
 
     /**
@@ -129,7 +128,7 @@ public class JobController {
      *
      */
     @PostMapping(value = "/submit")
-    public void jobSubmit(HttpServletRequest request, HttpServletResponse response) {
+    public Object jobSubmit(HttpServletRequest request) {
         logger.info("Processing Job Request Submission.");
         JobRequest jobRequest = getJobRequest(request);
 
@@ -140,17 +139,17 @@ public class JobController {
                 if (processId > -1) {
                     JobProcessStatus status = new JobProcessStatus(processId);
                     sqlJobProcessDao.setJobProcessStatus(status);
-                    logger.info("Added job process and status for file " + jobProcess.getFileName());
+                    logger.info("Added job process and status for file {}", jobProcess.getFileName());
                 } else {
-                    logger.error("Failed to add job process for file " + jobProcess.getFileName());
+                    logger.error("Failed to add job process for file {}", jobProcess.getFileName());
                 }
             }
-            setJobResponse(new JobActionResponse(true, null), response);
+            getJobRequest(request).clear();
+            return new JobActionResponse(true, null);
         } else {
-            setJobResponse(new JobActionResponse(false, "You must upload a file before submitting."), response);
+            getJobRequest(request).clear();
+            return new JobActionResponse(false, "You must upload a file before submitting.");
         }
-        /* The request should be cleared out */
-        getJobRequest(request).clear();
     }
 
     /**
@@ -162,8 +161,19 @@ public class JobController {
      *
      */
     @PostMapping(value = "/remove")
-    public void jobRemove(HttpServletRequest request, HttpServletResponse response, @RequestParam String fileName) {
-        doRemove(request, response, fileName);
+    public Object jobRemove(HttpServletRequest request, @RequestParam String fileName) {
+        logger.info("User requested job file removal prior to submission");
+        JobRequest jobRequest = getJobRequest(request);
+        if (fileName != null && jobRequest.getProcesses() != null && !jobRequest.getProcesses().isEmpty()) {
+            Iterator<JobProcess> itr = jobRequest.getProcesses().iterator();
+            while (itr.hasNext()) {
+                if (itr.next().getFileName().equalsIgnoreCase(fileName)) {
+                    itr.remove();
+                    return new JobActionResponse(true, "Removed " + fileName);
+                }
+            }
+        }
+        return new JobActionResponse(false, "The removal request was unsuccessful.");
     }
 
     /**
@@ -175,7 +185,7 @@ public class JobController {
      *
      */
     @PostMapping(value = "/cancel")
-    public void jobCancel(HttpServletResponse response, @RequestParam int id) {
+    public Object jobCancel(@RequestParam int id) {
         logger.info("Cancelling job process");
         try {
             JobProcessStatus jps = sqlJobProcessDao.getJobProcessStatus(id);
@@ -184,13 +194,12 @@ public class JobController {
             jps.setMessages(Arrays.asList("Cancelled by user", ""));
             int update = sqlJobProcessDao.setJobProcessStatus(jps);
             if (update > 0) {
-                setJobResponse(new JobActionResponse(true, "Job " + id + " has been cancelled."), response);
-                return;
+                return new JobActionResponse(true, "Job " + id + " has been cancelled.");
             }
         } catch (NumberFormatException ex) {
             logger.warn("Failed to parse job process id for cancellation!");
         }
-        setJobResponse(new JobActionResponse(false, "Failed to cancel job process!"), response);
+        return new JobActionResponse(false, "Failed to cancel job process!");
     }
 
     /**
@@ -202,11 +211,8 @@ public class JobController {
      *
      */
     @PostMapping(value = "/cancel/running")
-    public void jobCancelRunning(HttpServletRequest request) throws Exception {
-        JobRequest jobRequest = getJobRequest(request);
-        String[] args = new String[1];
-        args[0] = "clean";
-        jobBatchProcessor.run(args);
+    public void jobCancelRunning() {
+        jobBatchProcessor.cancelRunningJobs();
     }
 
     /**
@@ -219,20 +225,17 @@ public class JobController {
      */
     @PostMapping(value = "/run")
     public void jobRun(HttpServletRequest request) throws Exception {
-        JobRequest jobRequest = getJobRequest(request);
-        String[] args = new String[1];
-        args[0] = "process";
-        jobBatchProcessor.run(args);
+        getJobRequest(request);
+        jobBatchProcessor.run();
     }
 
     /**
      * Uploads the job file and verifies that it meets the criteria. If it does the file is copied
-     * to the upload dir and a success response is sent. Otherwise an error response is sent.
+     * to the upload dir and a success response is sent. Otherwise, an error response is sent.
      *
      * @param request  http request from client
-     * @param response http response from sage
      */
-    public void doUpload(HttpServletRequest request, HttpServletResponse response, String qqfile) throws Exception {
+    public Object doUpload(HttpServletRequest request, String qqfile) throws Exception {
         String uploadDir = env.getJobUploadDir();
 
         JobRequest jobRequest = getJobRequest(request);
@@ -338,24 +341,6 @@ public class JobController {
                 sourceReader.close();
             }
         }
-        setJobResponse(uploadResponse, response);
-    }
-
-    private void doRemove(HttpServletRequest request, HttpServletResponse response, String fileName) {
-        logger.info("User requested job file removal prior to submission");
-        JobRequest jobRequest = getJobRequest(request);
-        if (fileName != null && jobRequest != null) {
-            if (jobRequest.getProcesses() != null && !jobRequest.getProcesses().isEmpty()) {
-                Iterator<JobProcess> itr = jobRequest.getProcesses().iterator();
-                while (itr.hasNext()) {
-                    if (itr.next().getFileName().equalsIgnoreCase(fileName)) {
-                        itr.remove();
-                        setJobResponse(new JobActionResponse(true, "Removed " + fileName), response);
-                        return;
-                    }
-                }
-            }
-        }
-        setJobResponse(new JobActionResponse(false, "The removal request was unsuccessful."), response);
+        return uploadResponse;
     }
 }
