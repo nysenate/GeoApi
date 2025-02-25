@@ -1,9 +1,5 @@
 package gov.nysenate.sage.controller.api.filter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.logger.apirequest.SqlApiRequestLogger;
@@ -12,8 +8,6 @@ import gov.nysenate.sage.model.api.ApiUser;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Marker;
-import org.slf4j.MarkerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -23,7 +17,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,21 +36,12 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 @Component
 public class ApiFilter implements Filter {
     private static final Logger logger = LoggerFactory.getLogger(ApiFilter.class);
-    private static final Marker fatal = MarkerFactory.getMarker("FATAL");
-    /** Api services for which requests will be logged if logging is enabled. */
-    private static final String loggedServices = "(address|district|geo|map|street|data)";
 
     /** String keys used for setting key value attributes in the request object */
     private static final String RESPONSE_OBJECT_KEY = "responseObject";
-    private static final String FORMATTED_RESPONSE_KEY = "formattedResponse";
     private static final String API_REQUEST_KEY = "apiRequest";
     /** The valid format of an api request */
-    private static final String validFormat = "((?<context>.*)/)?api/v\\d+/(?<service>(address|district|geo|map|street|meta|data))/" +
-            "(?<request>\\w+)(/(?<batch>batch))?";
-
-    /** Serializers */
-    private static final ObjectMapper jsonMapper = new ObjectMapper();
-    private static final XmlMapper xmlMapper = new XmlMapper();
+    private static final String validFormat = "api/v\\d+/(?<service>\\w+)/(?<request>\\w+)";
 
     private final SqlApiRequestLogger sqlApiRequestLogger;
     private final ApiUserAuth apiUserAuth;
@@ -81,9 +65,6 @@ public class ApiFilter implements Filter {
         this.apiUserAuth = apiUserAuth;
         ipFilter = env.getUserIpFilter();
         defaultKey = env.getUserDefaultKey();
-        jsonMapper.enable(SerializationFeature.INDENT_OUTPUT);
-        xmlMapper.enable(SerializationFeature.INDENT_OUTPUT);
-        logger.info("Configured default access on {} via key {}", ipFilter, defaultKey);
     }
 
     @Override
@@ -142,7 +123,7 @@ public class ApiFilter implements Filter {
 
                 // Log Api Request into the database
                 int id = -1;
-                if (apiLoggingEnabled && service.matches(loggedServices)) {
+                if (apiLoggingEnabled) {
                     id = sqlApiRequestLogger.logApiRequest(apiRequest);
                     apiRequest.setId(id);
                 }
@@ -176,7 +157,7 @@ public class ApiFilter implements Filter {
 
         // Validate the output format only if it is set. It is okay if the format is not specified.
         String outputFormat = request.getParameter("format");
-        if (outputFormat != null){
+        if (outputFormat != null) {
             boolean validOutputFormat = false;
             for (FormatType formatType : FormatType.values()) {
                 if (outputFormat.equalsIgnoreCase(formatType.name())) {
@@ -198,8 +179,7 @@ public class ApiFilter implements Filter {
         // attribute with the key 'apiRequest'.
         if (matcher.find()) {
             String service = matcher.group("service");
-            String req = matcher.group("request");
-            boolean batch = (matcher.group("batch") != null);
+            String requestStr = matcher.group("request");
 
             // Resolve IP address into InetAddress
             InetAddress remoteInetAddress = null;
@@ -211,7 +191,7 @@ public class ApiFilter implements Filter {
                 logger.warn("Unknown remote ip host!", ex);
             }
 
-            ApiRequest apiRequest = new ApiRequest(service, req, batch, remoteInetAddress);
+            ApiRequest apiRequest = new ApiRequest(service, requestStr, remoteInetAddress);
             apiRequest.setProvider(request.getParameter("provider"));
 
             request.setAttribute(API_REQUEST_KEY, apiRequest);
@@ -231,74 +211,5 @@ public class ApiFilter implements Filter {
      */
     public static void setApiResponse(Object response, ServletRequest request) {
         request.setAttribute(RESPONSE_OBJECT_KEY, response);
-    }
-
-    /** Obtains the response object and serializes it using the format specified in the request parameters.
-     *  The default output format is JSON. The default format will be used in the following cases:
-     *  - No format specified in the parameters.
-     *  - Invalid format specified in the parameters.
-     * @param request   ServletRequest
-     */
-    private void formatResponse(ServletRequest request, ServletResponse response) {
-        String format = request.getParameter("format");
-        if (format == null) {
-            format = FormatType.JSON.name();
-        }
-
-        logger.trace("Serializing response as {}", format);
-
-        Object responseObj = request.getAttribute(RESPONSE_OBJECT_KEY);
-
-        if (responseObj == null) {
-            responseObj = new ApiError(RESPONSE_ERROR);
-        }
-
-        try {
-            String responseStr;
-            if (format.equalsIgnoreCase(FormatType.XML.name())) {
-                responseStr = xmlMapper.writeValueAsString(responseObj);
-                response.setContentType("application/xml");
-            }
-            else if (format.equalsIgnoreCase(FormatType.JSONP.name())) {
-                String callback = request.getParameter("callback");
-                String json = jsonMapper.writeValueAsString(responseObj);
-                responseStr = String.format("%s(%s);", callback, json);
-                response.setContentType("application/javascript");
-            }
-            else {
-                responseStr = jsonMapper.writeValueAsString(responseObj);
-                response.setContentType("application/json");
-            }
-            request.setAttribute(FORMATTED_RESPONSE_KEY, responseStr);
-            response.setCharacterEncoding("UTF-8");
-            response.setContentLength(responseStr.getBytes(StandardCharsets.UTF_8).length);
-            logger.trace("Completed serialization");
-        }
-        catch (JsonProcessingException ex) {
-            logger.error(fatal, "Failed to serialize response!", ex);
-            request.setAttribute(FORMATTED_RESPONSE_KEY, RESPONSE_SERIALIZATION_ERROR);
-        }
-    }
-
-    /**
-     * Writes the formatted response to the output stream.
-     * @param request   ServletRequest
-     * @param response  ServletResponse
-     */
-    private void sendResponse(ServletRequest request, ServletResponse response) {
-        Object formattedResponse = request.getAttribute(FORMATTED_RESPONSE_KEY);
-        logger.trace("Writing Api response...");
-        try {
-            if (formattedResponse != null) {
-                response.getWriter().write(formattedResponse.toString());
-            }
-            else {
-                logger.error("No formatted response set!");
-                response.getWriter().write(RESPONSE_ERROR.getDesc());
-            }
-        }
-        catch (IOException ex){
-            logger.error("Failed to write to output stream!", ex);
-        }
     }
 }

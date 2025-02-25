@@ -97,19 +97,25 @@ public class JobBatchProcessor implements JobProcessor {
     /** Entry point for cron job */
     public synchronized void run() throws Exception {
         List<JobProcessStatus> runningJobs = sqlJobProcessDao.getJobStatusesByCondition(RUNNING, null);
-        logger.info("Resuming {} jobs.", runningJobs.size());
+        if (!runningJobs.isEmpty()) {
+            logger.info("Resuming {} jobs.", runningJobs.size());
+        }
         for (JobProcessStatus runningJob : runningJobs) {
             logger.info("Processing job process id {}", runningJob.getProcessId());
             processJob(runningJob);
         }
 
         List<JobProcessStatus> waitingJobs = sqlJobProcessDao.getJobStatusesByCondition(WAITING_FOR_CRON, null);
-        logger.info("{} batch jobs have been queued for processing.", waitingJobs.size());
+        if (!waitingJobs.isEmpty()) {
+            logger.info("{} batch jobs have been queued for processing.", waitingJobs.size());
+        }
         for (JobProcessStatus waitingJob : waitingJobs) {
             logger.info("Processing job process id {}", waitingJob.getProcessId());
             processJob(waitingJob);
         }
-        logger.info("Finishing processing, Exiting Data Processor");
+        if (!runningJobs.isEmpty() || !waitingJobs.isEmpty()) {
+            logger.info("Finishing processing, Exiting Data Processor");
+        }
     }
 
     /**

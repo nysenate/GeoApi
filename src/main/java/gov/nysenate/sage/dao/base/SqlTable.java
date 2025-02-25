@@ -14,7 +14,7 @@ public enum SqlTable {
     USER ("user"),
 
     //Log Schema
-    API_REQUEST ("apirequest"),
+    API_REQUEST ("api_request"),
     DEPLOYMENT ("deployment"),
     REQUESTTYPES ("requesttypes"),
     SERVICES ("services"),

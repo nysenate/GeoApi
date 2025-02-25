@@ -3,8 +3,6 @@ package gov.nysenate.sage.model.api;
 import gov.nysenate.sage.util.FormatUtil;
 
 import java.net.InetAddress;
-import java.sql.Timestamp;
-import java.util.Date;
 
 /**
  * Represents the uri information that is provided to request a service from the API. This object is
@@ -20,19 +18,14 @@ public class ApiRequest {
     /** Uri attributes */
     private String service;
     private String request;
-    private final boolean isBatch;
 
     /** Query string attributes */
     private String provider;
 
-    /** Timing information */
-    private final Timestamp apiRequestTime = new Timestamp(new Date().getTime());
-
-    public ApiRequest(String service, String request, boolean batch, InetAddress ipAddress) {
+    public ApiRequest(String service, String request, InetAddress ipAddress) {
         if (service != null) {
             this.service = FormatUtil.cleanString(service);
         }
-        this.isBatch = batch;
         if (request != null) {
             this.request = FormatUtil.cleanString(request.toLowerCase().trim());
         }
@@ -67,10 +60,6 @@ public class ApiRequest {
         return request;
     }
 
-    public boolean isBatch() {
-        return isBatch;
-    }
-
     // TODO: use
     public String getProvider() {
         return provider;
@@ -80,10 +69,5 @@ public class ApiRequest {
         if (provider != null) {
             this.provider = FormatUtil.cleanString( provider );
         }
-    }
-
-    public Timestamp getApiRequestTime()
-    {
-        return this.apiRequestTime;
     }
 }

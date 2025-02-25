@@ -31,6 +31,14 @@ CREATE TABLE districts.election (
     county_fips SMALLINT,
     congressional_district SMALLINT,
     geom geometry
-)
+);
 
--- TODO: more
+DROP TABLE log.apirequest;
+CREATE TABLE log.api_request (
+    id SERIAL PRIMARY KEY,
+    ip_address inet,
+    api_user_id INT,
+    service VARCHAR,
+    request VARCHAR,
+    request_time TIMESTAMP DEFAULT now()
+);

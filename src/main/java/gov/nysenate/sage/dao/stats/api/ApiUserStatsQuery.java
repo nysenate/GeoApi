@@ -22,7 +22,7 @@ public enum ApiUserStatsQuery implements BasicSqlQuery {
 
     ;
 
-    private String sql;
+    private final String sql;
 
     ApiUserStatsQuery(String sql) {
         this.sql = sql;

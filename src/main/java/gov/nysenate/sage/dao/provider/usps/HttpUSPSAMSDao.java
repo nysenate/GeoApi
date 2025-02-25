@@ -165,8 +165,8 @@ public class HttpUSPSAMSDao implements AddressDao {
                 var validatedAddress = Address.getAddress(addr1, addr2, city, state, zip5, zip4);
                 validatedAddress.setUspsValidated(true);
                 addressResult.setAddress(validatedAddress);
-            } catch (NullPointerException ex) {
-                logger.error("Bad root: {}", root);
+            } catch (Exception ex) {
+                logger.error("Bad address node: {}", addressNode);
                 addressResult.setStatusCode(NO_ADDRESS_VALIDATE_RESULT);
             }
         }
