@@ -46,7 +46,7 @@ public final class StreetfileAddressCorrectionService {
             for (int addrIndex = 0; addrIndex < validationResults.size(); addrIndex++) {
                 AddressResult result = validationResults.get(addrIndex);
                 AddressWithoutNum uncorrectedAwn = awns.get(addrIndex);
-                if (!result.isValidated()) {
+                if (!result.isValidated() || result.getAddress().isPoBox()) {
                     continue;
                 }
                 // We want to first try a correction without changing components.
@@ -64,7 +64,7 @@ public final class StreetfileAddressCorrectionService {
                     toCorrectMap.remove(uncorrectedAwn);
                 }
                 else if (!currCorrectedAwn.equals(mapCorrectedAwn)) {
-                    logger.error("Conflict between corrections: " + mapCorrectedAwn + " and " + currCorrectedAwn);
+                    logger.error("Conflict between corrections: {} and {}", mapCorrectedAwn, currCorrectedAwn);
                 }
             }
             // Removes AddressWithoutNums without any building numbers remaining to test.

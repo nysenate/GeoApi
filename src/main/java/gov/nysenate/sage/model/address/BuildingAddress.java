@@ -21,16 +21,6 @@ public final class BuildingAddress extends Address {
         this(streetWithNum, postalCity, "NY", zip5);
     }
 
-    @Override
-    public String getAddr1() {
-        return bldgId + " " + street;
-    }
-
-    @Override
-    public String getAddr2() {
-        return internal;
-    }
-
     public BuildingAddress(String addr1, String postalCity, String state, String zip5) {
         this(addr1, postalCity, state, zip5, null);
     }
@@ -44,6 +34,16 @@ public final class BuildingAddress extends Address {
         super(postalCity, state, zip5, zip4);
         this.street = street;
         this.bldgId = bldgId;
+    }
+
+    @Override
+    public String getAddr1() {
+        return bldgId + " " + street;
+    }
+
+    @Override
+    public String getAddr2() {
+        return internal;
     }
 
     public void setStreetWithNum(String streetWithNum) {

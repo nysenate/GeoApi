@@ -37,7 +37,7 @@ public abstract sealed class Address permits BuildingAddress, PostOfficeBox {
     }
 
     public static Address getAddress(String addr1, String addr2, String city, String state, String zip5, String zip4) {
-        Matcher poBoxMatcher =  poBoxPattern.matcher(addr1);
+        Matcher poBoxMatcher = poBoxPattern.matcher(addr1);
         if (poBoxMatcher.matches()) {
             int boxNumber = Integer.parseInt(poBoxMatcher.group(1));
             return new PostOfficeBox(boxNumber, addr2, city, state, zip5, zip4);
@@ -55,8 +55,8 @@ public abstract sealed class Address permits BuildingAddress, PostOfficeBox {
     public Address(String postalCity, String state, String zip5, String zip4) {
         setPostalCity(postalCity);
         this.state = state;
-        this.zip5 = new Zip5(Integer.parseInt(zip5.trim()));
-        this.zip4 = new Zip4(zip4 == null ? null : Integer.parseInt(zip4.trim()));
+        this.zip5 = new Zip5(zip5.trim());
+        this.zip4 = new Zip4(zip4.trim());
     }
 
     public abstract String getAddr1();
@@ -78,7 +78,7 @@ public abstract sealed class Address permits BuildingAddress, PostOfficeBox {
     }
 
     public void setZip4(String zip4) {
-        this.zip4 = new Zip4(zip4 == null ? null : Integer.parseInt(zip4.trim()));
+        this.zip4 = new Zip4(zip4.trim());
     }
 
     @Override

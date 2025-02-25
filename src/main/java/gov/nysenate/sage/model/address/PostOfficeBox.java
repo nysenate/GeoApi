@@ -3,8 +3,7 @@ package gov.nysenate.sage.model.address;
 public final class PostOfficeBox extends Address {
     private final int boxNumber;
 
-    // TODO: what is "street" here?
-    public PostOfficeBox(int boxNumber, String street, String postalCity, String state, String zip5, String zip4) {
+    public PostOfficeBox(int boxNumber, String addr2, String postalCity, String state, String zip5, String zip4) {
         super(postalCity, "", zip5, zip4);
         this.boxNumber = boxNumber;
     }
