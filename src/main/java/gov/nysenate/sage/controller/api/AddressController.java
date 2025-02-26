@@ -82,7 +82,7 @@ public final class AddressController {
      */
     @GetMapping(value = "/citystate")
     public BaseResponse addressCityState(@RequestParam String zip5, @RequestParam(required = false) String provider) {
-        var validZip5 = new Zip5(Integer.parseInt(zip5));
+        var validZip5 = new Zip5(zip5);
         AddressSource source = AddressSource.fromString(provider, defaultSource);
         if (source == null) {
             return new ApiError(AddressController.class, ResultStatus.ADDRESS_PROVIDER_NOT_SUPPORTED);

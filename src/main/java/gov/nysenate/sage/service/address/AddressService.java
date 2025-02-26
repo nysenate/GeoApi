@@ -119,7 +119,7 @@ public class AddressService {
 
     @Nonnull
     public CityStateResult lookupCityState(Zip5 zip5, AddressSource source) {
-        if (zip5 == null || zip5.isMissing()) {
+        if (zip5 == null) {
             return new CityStateResult(null, ResultStatus.INVALID_ADDRESS);
         }
         CityStateResult result = providerMap.get(source).lookupCityState(zip5);

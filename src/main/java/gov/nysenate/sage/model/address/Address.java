@@ -12,7 +12,7 @@ public abstract sealed class Address permits BuildingAddress, PostOfficeBox {
     private String postalCity;
     private String state = "NY";
     private final Zip5 zip5;
-    private Zip4 zip4 = new Zip4(null);
+    private Zip4 zip4;
 
     /** Verification info */
     private boolean uspsValidated = false;
@@ -55,8 +55,10 @@ public abstract sealed class Address permits BuildingAddress, PostOfficeBox {
     public Address(String postalCity, String state, String zip5, String zip4) {
         setPostalCity(postalCity);
         this.state = state;
-        this.zip5 = new Zip5(zip5.trim());
-        this.zip4 = new Zip4(zip4.trim());
+        this.zip5 = new Zip5(zip5);
+        if (!StringUtils.isBlank(zip4)) {
+            this.zip4 = new Zip4(zip4);
+        }
     }
 
     public abstract String getAddr1();
@@ -77,14 +79,10 @@ public abstract sealed class Address permits BuildingAddress, PostOfficeBox {
         return zip4;
     }
 
-    public void setZip4(String zip4) {
-        this.zip4 = new Zip4(zip4.trim());
-    }
-
     @Override
     public String toString() {
         return (!postalCity.isEmpty() ? " " + postalCity + "," : "")
-                + (!zip5.isMissing() ? " " + zip5 : "") + (!zip4.isMissing() ? "-" + zip4 : "");
+                + (zip5 == null ? "" : " " + zip5) + (zip4 == null ? "" : "-" + zip4);
     }
 
     public void setPostalCity(String postalCity) {
@@ -111,7 +109,7 @@ public abstract sealed class Address permits BuildingAddress, PostOfficeBox {
     }
 
     public boolean isValid() {
-        return !StringUtils.isBlank(postalCity) || !zip5.isMissing();
+        return !StringUtils.isBlank(postalCity) || zip5 == null;
     }
 
     public static boolean validState(String state) {

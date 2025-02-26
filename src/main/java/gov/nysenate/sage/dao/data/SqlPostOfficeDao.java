@@ -43,10 +43,8 @@ public class SqlPostOfficeDao extends BaseDao implements PostOfficeDao {
     private static class PostOfficeHandler implements RowMapper<BuildingAddress> {
         @Override
         public BuildingAddress mapRow(ResultSet rs, int rowNum) throws SQLException {
-            var address = new BuildingAddress(rs.getString("street_with_num"), rs.getString("city"),
-                    rs.getString("zip5"));
-            address.setZip4(rs.getString("zip4"));
-            return address;
+            return new BuildingAddress(rs.getString("street_with_num"), rs.getString("city"),
+                    "NY", rs.getString("zip5"), rs.getString("zip4"));
         }
     }
 }

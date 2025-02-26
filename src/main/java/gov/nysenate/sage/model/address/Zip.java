@@ -1,30 +1,24 @@
 package gov.nysenate.sage.model.address;
 
-import org.apache.commons.lang3.StringUtils;
-
 public abstract class Zip {
-    private final Integer zip;
+    private final int zip;
 
-    public Zip(Integer zip) {
-        if (zip != null && (zip <= 0 || zip >= Math.pow(10, numDigits()))) {
+    public Zip(int zip) {
+        if (zip <= 0 || zip >= Math.pow(10, numDigits())) {
             throw new IllegalArgumentException("Zip number must be positive with at most " + numDigits() + " digits");
         }
         this.zip = zip;
     }
 
     public Zip(String zip) {
-        this(StringUtils.isBlank(zip) ? null : Integer.parseInt(zip.trim()));
+        this(Integer.parseInt(zip.trim()));
     }
 
-    public Integer zip() {
+    public int zip() {
         return zip;
     }
 
     protected abstract int numDigits();
-
-    public boolean isMissing() {
-        return zip == null;
-    }
 
     @Override
     public String toString() {

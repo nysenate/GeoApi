@@ -51,7 +51,7 @@ public class HttpGoogleDao implements GeocoderDao {
      */
     @Override
     public GeocodedAddress getGeocodedAddress(BuildingAddress address) {
-        if (address.getZip5().isMissing()) {
+        if (address.getZip5() == null) {
             return new GeocodedAddress(address, null);
         }
         String url = baseUrl + String.format(GEOCODE_QUERY,
@@ -85,7 +85,7 @@ public class HttpGoogleDao implements GeocoderDao {
      * @param url String
      * @return GeocodedAddress, or null if no match
      */
-    private static GeocodedAddress getGeocodedAddress(String url) {
+    private GeocodedAddress getGeocodedAddress(String url) {
         try {
             String response = UrlRequest.getResponseFromUrl(url);
             if (response == null) {
@@ -134,7 +134,7 @@ public class HttpGoogleDao implements GeocoderDao {
                 String lon = location.get("lng").asText("0");
                 String geocodeType = result.get("types").get(0).asText();
                 var geocode = new Geocode(
-                        new Point(lat, lon), resolveGeocodeQuality(geocodeType), Geocoder.GOOGLE, false);
+                        new Point(lat, lon), resolveGeocodeQuality(geocodeType), geocoder(), false);
                 return new GeocodedAddress(address, geocode);
             }
             else if (node.has("status") && node.get("status").asText().equals("OVER_QUERY_LIMIT")) {

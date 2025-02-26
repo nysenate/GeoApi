@@ -46,7 +46,7 @@ public final class PostOfficeParser {
             }
             var currAddr = new BuildingAddress(lineData[numParts - 5], lineData[numParts - 4], "NY",
                     lineData[numParts - 2] + "-" + lineData[numParts - 1]);
-            dataMap.put(new Zip5(Integer.parseInt(lineData[zipIndex])), currAddr);
+            dataMap.put(new Zip5(lineData[zipIndex]), currAddr);
         }
         return dataMap;
     }
