@@ -418,6 +418,7 @@ public class JobBatchProcessor implements JobProcessor {
             logger.info("Geocoding for records {}-{}", jobBatch.fromRecord(), jobBatch.toRecord());
 
 
+            // TODO: update
             List<Geocoder> geocoders = Geocoder.getGeocoders(Geocoder.NYSGEO, true, true);
             List<GeocodeResult> geocodeResults = geocodeService.geocode(geocoders, jobBatch.getAddresses(true));
             if (geocodeResults.size() == jobBatch.jobRecords().size()) {

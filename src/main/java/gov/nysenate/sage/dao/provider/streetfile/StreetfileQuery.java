@@ -3,7 +3,7 @@ package gov.nysenate.sage.dao.provider.streetfile;
 import gov.nysenate.sage.dao.base.BasicSqlQuery;
 
 public enum StreetfileQuery implements BasicSqlQuery {
-    SELECT_BY_ZIP("SELECT * FROM public.streetfile WHERE zip = :zip5 ORDER BY street, bldg_low");
+    SELECT_BY_ZIP("SELECT * FROM public.streetfile WHERE zip5 = :zip5 ORDER BY street, bldg_low");
 
     private final String sql;
 
@@ -13,6 +13,6 @@ public enum StreetfileQuery implements BasicSqlQuery {
 
     @Override
     public String getSql() {
-        return "";
+        return sql;
     }
 }

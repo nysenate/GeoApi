@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @Controller
@@ -41,12 +40,6 @@ public class StreetController {
         logger.info("Getting street data for zip5 {}", zip5);
         List<DistrictedStreetRange> streets = streetfile.streetLookup(zip5);
         var streetResult = new StreetResult(streetfile.source(), streets);
-        if (streets != null) {
-            logger.info("Street file look up for zip 5: {} was successful", zip5);
-        }
-        else {
-            logger.warn("No street lookup result was found from the request zip 5: {}", zip5);
-        }
         return new StreetResponse(streetResult);
     }
 }

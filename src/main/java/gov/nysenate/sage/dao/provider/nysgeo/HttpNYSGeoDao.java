@@ -99,7 +99,7 @@ public class HttpNYSGeoDao implements GeocoderDao {
             String lon = location.get("x").asText();
             String lat = location.get("y").asText();
             var geocode = new Geocode(new Point(lat, lon),
-                    resolveGeocodeQuality(score, isRevGeocode), Geocoder.GOOGLE.name());
+                    resolveGeocodeQuality(score, isRevGeocode), geocoder().name());
             return new GeocodedAddress(address, geocode);
         }
         catch (IOException ex) {

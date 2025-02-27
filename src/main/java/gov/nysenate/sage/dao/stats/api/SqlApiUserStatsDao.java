@@ -29,6 +29,7 @@ public class SqlApiUserStatsDao extends BaseDao implements ApiUserStatsDao {
     }
 
     /** {@inheritDoc} */
+    // TODO: change for new tables
     public Map<Integer, ApiUserStats> getRequestCounts(Timestamp from, Timestamp to) {
         try {
             var params = new MapSqlParameterSource("from", from)

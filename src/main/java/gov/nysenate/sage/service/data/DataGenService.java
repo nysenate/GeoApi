@@ -255,6 +255,7 @@ public class DataGenService implements SageDataGenService {
         var officeAddress = new BuildingAddress(street, senatorOffice.getCity(), senatorOffice.getPostalCode());
         //Ensure Mixed Case
         AddressUtil.performInitCapsOnAddress(officeAddress);
+        // TODO: update
         GeocodeResult result = geocodeService.geocode(List.of(Geocoder.NYSGEO, Geocoder.GOOGLE), officeAddress);
 
         if (result.isSuccess()) {

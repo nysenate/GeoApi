@@ -18,6 +18,7 @@ public abstract sealed class Address permits BuildingAddress, PostOfficeBox {
     private boolean uspsValidated = false;
 
     public static Address getAddress(String addr) {
+        addr = addr.replaceAll(",?USA$", "");
         String[] csv = addr.split(" *, *");
         String zip4 = null;
         if (csv.length == 5) {

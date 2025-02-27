@@ -42,8 +42,8 @@ SET zip4 = NULL WHERE zip4 = '';
 ALTER TABLE geocoder.cache.geocache
     ADD CONSTRAINT validBldgId CHECK (bldg_id IS NOT NULL AND bldg_id SIMILAR TO '[0-9]+%'),
     ADD CONSTRAINT validZips CHECK (
-        (zip5 IS NOT NULL AND geocache.zip5 != '00000' AND zip5 SIMILAR TO '[0-9]{5}') AND
-        (zip4 IS NULL OR (geocache.zip4 != '0000' AND zip4 SIMILAR TO '[0-9]{4}'))
+        (zip5 IS NOT NULL AND zip5 != '00000' AND zip5 SIMILAR TO '[0-9]{5}') AND
+        (zip4 IS NULL OR (zip4 != '0000' AND zip4 SIMILAR TO '[0-9]{4}'))
     ), ALTER COLUMN street SET NOT NULL;
 
 ALTER TABLE geocoder.cache.geocache RENAME COLUMN location TO postal_city;

@@ -20,8 +20,8 @@ public class SqlApiUsageStatsDao extends BaseDao implements ApiUsageStatsDao {
     private static final Logger logger = LoggerFactory.getLogger(SqlApiUsageStatsDao.class);
 
     public enum RequestInterval {
-        MINUTE("minute", 1), HOUR("hour", 60), DAY("day", 1440),
-        WEEK("week", 10080), MONTH("month", 43829), QUARTER("quarter", 131487);
+        MINUTE("minute", 1), HOUR("hour", 60), DAY("day", 24*60),
+        WEEK("week", 7*24*60), MONTH("month", 43829), QUARTER("quarter", 131487);
         private final String field;
         private final int minutes;
 

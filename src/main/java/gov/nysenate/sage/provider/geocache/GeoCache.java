@@ -10,6 +10,7 @@ import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.provider.geocode.Geocoder;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.WordUtils;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -88,10 +89,10 @@ public class GeoCache extends BaseDao implements GeocoderDao {
 
     // TODO: only use zip4 if necessary
     private static MapSqlParameterSource getIdParams(BuildingAddress address) {
-        return new MapSqlParameterSource("bldgId", address.getBldgId().toUpperCase())
-                .addValue("street", address.getStreet().toUpperCase())
-                .addValue("postalCity", address.getPostalCity().toUpperCase())
-                .addValue("zip5", address.getZip5().toString().toUpperCase());
+        return new MapSqlParameterSource("bldgId", StringUtils.upperCase(address.getBldgId()))
+                .addValue("street", StringUtils.upperCase(address.getStreet()))
+                .addValue("postalCity", StringUtils.upperCase(address.getPostalCity()))
+                .addValue("zip5", address.getZip5());
     }
 
     /**
@@ -103,7 +104,7 @@ public class GeoCache extends BaseDao implements GeocoderDao {
             Address address = geocodedAddress.getAddress();
             Geocode gc = geocodedAddress.getGeocode();
             var params = getIdParams(((BuildingAddress) address))
-                    .addValue("zip4", address.getZip4().toString())
+                    .addValue("zip4", address.getZip4())
                     .addValue("latlon", "POINT(" + gc.lon() + " " + gc.lat() + ")")
                     .addValue("method", gc.originalGeocoder().name())
                     .addValue("quality", gc.quality().name());
