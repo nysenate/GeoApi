@@ -141,7 +141,7 @@
                                         </div>
                                     </div>
                                     <pre ng-show="toggleStackTrace" style="color:teal;font-size:12px;text-align:left;"
-                                         ng-bind-html-unsafe="exception.stackTrace | code">
+                                         ng-bind-html="exception.stackTrace | code | to_trusted">
                                 </pre>
                                 </div>
                             </div>
