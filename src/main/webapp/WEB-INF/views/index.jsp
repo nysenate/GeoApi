@@ -372,7 +372,7 @@
                                     <div class="icon-location icon-teal"></div>
                                 </td>
                                 <td><p style="font-size: 16px;color:#111;"
-                                       ng-bind-html-unsafe="address | addressLevel:matchLevel | addressFormat"></p></td>
+                                       ng-bind-html="address | addressLevel:matchLevel | addressFormat | to_trusted"></p></td>
                                 <td style="text-align:right;"><small ng-show="uspsValidated"
                                                                      style="color:teal;">USPS</small></td>
                             </tr>
@@ -799,7 +799,7 @@
                                             <div class="icon-location icon-teal"></div>
                                         </td>
                                         <td><p style="font-size: 16px;color:#111;"
-                                               ng-bind-html-unsafe="address | addressFormat"></p>
+                                               ng-bind-html="address | addressFormat | to_trusted"></p>
                                         </td>
                                     </tr>
                                 </table>
