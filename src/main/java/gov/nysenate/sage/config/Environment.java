@@ -9,10 +9,6 @@ public class Environment {
 
     @Value("${user.ip.filter:(127.0.0.1)}") private String userIpFilter;
 
-    @Value("${user.default.key}") private String userDefaultKey;
-
-    @Value("${usps.ams.api.url:http://localhost:8081/USPS-AMS/api/}") private String uspsAmsApiUrl;
-
     @Value("${usps.ams.ui.url:http://localhost:8081/USPS-AMS/}") private String uspsAmsUiUrl;
 
     @Value("${google.maps.url:https://maps.google.com/maps/api/js?v=3&libraries=places}") private String googleMapsUrl;
@@ -31,14 +27,6 @@ public class Environment {
 
     public String getUserIpFilter() {
         return userIpFilter.trim();
-    }
-
-    public String getUserDefaultKey() {
-        return userDefaultKey.trim();
-    }
-
-    public String getUspsAmsApiUrl() {
-        return uspsAmsApiUrl.trim();
     }
 
     public String getUspsAmsUiUrl() {

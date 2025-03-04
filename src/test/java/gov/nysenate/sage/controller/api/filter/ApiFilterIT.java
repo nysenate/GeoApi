@@ -66,7 +66,6 @@ public class ApiFilterIT extends BaseTests {
         /* Set remote ip to something that's not loopback.
          *  Set the key to the default key in the request */
         when(mf.getMockServletRequest().getRemoteAddr()).thenReturn("192.168.0.1");
-        when(mf.getMockServletRequest().getParameter("key")).thenReturn(env.getUserDefaultKey());
 
         apiFilter.doFilter(mf.getMockServletRequest(), mf.getMockServletResponse(), mf.getMockFilterChain());
 

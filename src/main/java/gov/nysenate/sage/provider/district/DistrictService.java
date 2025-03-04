@@ -72,18 +72,12 @@ public class DistrictService {
             return poBoxCache.get(cacheKey).getData(address.getPostalCity());
         }
 
-        ResultStatus currStatusCode = null;
+        ResultStatus errorStatusCode = null;
         List<DistrictInfo> validInfos = new ArrayList<>();
         for (DistrictSource provider : providers) {
             var result = new DistrictResult(provider, geocodedAddress);
             if (!result.isSuccess()) {
-                if (currStatusCode == null) {
-                    currStatusCode = result.getStatusCode();
-                }
-                // Using this to cover when there are multiple problems
-                else if (currStatusCode != ResultStatus.SUCCESS) {
-                    currStatusCode = ResultStatus.MULTIPLE_DISTRICT_ASSIGNMENT_PROBLEMS;
-                }
+                errorStatusCode = result.getStatusCode();
             }
             else if (provider == STREETFILE) {
                 validInfos.add(streetfileDao.getDistrictInfo((BuildingAddress) address, DistrictMatchLevel.HOUSE));
@@ -93,7 +87,8 @@ public class DistrictService {
             }
         }
         var finalResult = new DistrictResult(providers.size() == 1 ? providers.get(0) : STREETFILE_AND_SHAPEFILE,
-                geocodedAddress, currStatusCode);
+                geocodedAddress, validInfos.isEmpty() ? errorStatusCode : ResultStatus.SUCCESS);
+        // TODO: should check here if both are used
         finalResult.setDistrictInfo(DistrictUtil.consolidateDistrictInfo(validInfos));
         finalResult.setResultTime();
         return finalResult;

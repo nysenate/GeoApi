@@ -4,6 +4,7 @@ import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.function.BiConsumer;
 
+@SuppressWarnings("unchecked")
 public class CompactMap<K, V> implements Map<K, V> {
     private static final Object[] emptyArray = new Object[]{};
     private K[] keys = (K[]) emptyArray;

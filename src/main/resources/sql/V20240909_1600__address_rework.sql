@@ -26,7 +26,6 @@ DROP FUNCTION orderParts(street text, streettype text);
 
 ALTER TABLE geocoder.cache.geocache
 DROP COLUMN bldgNum,
-DROP COLUMN IF EXISTS state,
 DROP COLUMN predir,
 DROP COLUMN streettype,
 DROP COLUMN postdir;
@@ -39,12 +38,25 @@ WHERE method = 'YahooDao' OR street = '' OR
 UPDATE geocoder.cache.geocache
 SET zip4 = NULL WHERE zip4 = '';
 
+DELETE FROM geocoder.cache.geocache
+WHERE state NOT IN('AL', 'AK', 'AS', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'DC', 'FM', 'FL', 'GA', 'GU',
+    'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MH', 'MD', 'MA', 'MI', 'MN',
+    'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'MP', 'OH', 'OK',
+    'OR', 'PW', 'PA', 'PR', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VI', 'VA', 'WA', 'WV',
+    'WI', 'WY');
+
 ALTER TABLE geocoder.cache.geocache
-    ADD CONSTRAINT validBldgId CHECK (bldg_id IS NOT NULL AND bldg_id SIMILAR TO '[0-9]+%'),
-    ADD CONSTRAINT validZips CHECK (
+    ADD CONSTRAINT valid_bldg_id CHECK (bldg_id IS NOT NULL AND bldg_id SIMILAR TO '[0-9]+%'),
+    ADD CONSTRAINT valid_zips CHECK (
         (zip5 IS NOT NULL AND zip5 != '00000' AND zip5 SIMILAR TO '[0-9]{5}') AND
         (zip4 IS NULL OR (zip4 != '0000' AND zip4 SIMILAR TO '[0-9]{4}'))
-    ), ALTER COLUMN street SET NOT NULL;
+    ), ALTER COLUMN street SET NOT NULL,
+    ADD CONSTRAINT valid_state CHECK (state IN
+        ('AL', 'AK', 'AS', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'DC', 'FM', 'FL', 'GA', 'GU',
+        'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MH', 'MD', 'MA', 'MI', 'MN',
+        'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'MP', 'OH', 'OK',
+        'OR', 'PW', 'PA', 'PR', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VI', 'VA', 'WA', 'WV',
+        'WI', 'WY'));
 
 ALTER TABLE geocoder.cache.geocache RENAME COLUMN location TO postal_city;
 

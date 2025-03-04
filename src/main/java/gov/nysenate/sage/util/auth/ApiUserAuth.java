@@ -7,8 +7,6 @@ import gov.nysenate.sage.util.controller.ApiControllerUtil;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.subject.Subject;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -19,15 +17,12 @@ import javax.servlet.http.HttpServletRequest;
  * Provides basic key-based api authentication.
  */
 @Component
-public class ApiUserAuth
-{
-    private Logger logger = LoggerFactory.getLogger(ApiUserAuth.class);
-    private SqlApiUserDao sqlApiUserDao;
+public class ApiUserAuth {
+    private final SqlApiUserDao sqlApiUserDao;
     @Value("${user.ip.filter:(127.0.0.1)}") private String userIpFilter;
 
     @Autowired
-    public ApiUserAuth(SqlApiUserDao sqlApiUserDao)
-    {
+    public ApiUserAuth(SqlApiUserDao sqlApiUserDao) {
         this.sqlApiUserDao = sqlApiUserDao;
     }
 
@@ -36,8 +31,7 @@ public class ApiUserAuth
      * @param apiKey
      * @return  ApiUser if found, null otherwise
      */
-    public ApiUser getApiUser(String apiKey)
-    {
+    public ApiUser getApiUser(String apiKey) {
         return sqlApiUserDao.getApiUserByKey(apiKey);
     }
 
@@ -48,19 +42,16 @@ public class ApiUserAuth
      * @return ApiUser      If success returns a new ApiUser with id and apikey.
      *                      Upon failure, null is returned.
      */
-    public ApiUser addApiUser(String name, String description, boolean admin)
-    {
-        ApiUser apiUser = new ApiUser();
+    public ApiUser addApiUser(String name, String description, boolean admin) {
+        var apiUser = new ApiUser();
         apiUser.setName(name);
         apiUser.setDescription(description);
         apiUser.setApiKey(this.generateRandomKey());
         apiUser.setAdmin(admin);
 
-        if (sqlApiUserDao.addApiUser(apiUser) == 1)
-        {
+        if (sqlApiUserDao.addApiUser(apiUser) == 1) {
             return sqlApiUserDao.getApiUserByKey(apiUser.getApiKey());
         }
-
         return null;
     }
 
@@ -68,8 +59,7 @@ public class ApiUserAuth
      * Generates and returns a random 32 character key.
      * @return String   key
      */
-    private String generateRandomKey()
-    {
+    private String generateRandomKey() {
         return RandomStringUtils.randomAlphanumeric(32);
     }
 

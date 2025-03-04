@@ -16,7 +16,6 @@ import gov.nysenate.sage.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -70,7 +69,7 @@ public class SqlDistrictShapefileDao extends BaseDao implements DistrictShapeFil
             if (nameColumn != null) {
                 String currSql = sqlTmpl.formatted(nameColumn, districtType.codeColumn(),
                         districtType, point.lon(), point.lat()); // (lon, lat) is the correct order
-                Pair<String> result = jdbcTemplate.query(currSql, new NameCodeHandler());
+                Pair<String> result = jdbcTemplate.queryForObject(currSql, new NameCodeHandler());
                 districtInfo.setDistName(districtType, result.first());
                 districtInfo.setDistName(districtType, result.second());
             }
@@ -119,9 +118,9 @@ public class SqlDistrictShapefileDao extends BaseDao implements DistrictShapeFil
         return true;
     }
 
-    private static class NameCodeHandler implements ResultSetExtractor<Pair<String>> {
+    private static class NameCodeHandler implements RowMapper<Pair<String>> {
         @Override
-        public Pair<String> extractData(@Nonnull ResultSet rs) throws SQLException, DataAccessException {
+        public Pair<String> mapRow(ResultSet rs, int rowNum) throws SQLException {
             return new Pair<>(rs.getString("name"), rs.getString("code"));
         }
     }

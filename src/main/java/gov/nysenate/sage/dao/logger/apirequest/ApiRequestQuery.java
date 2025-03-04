@@ -5,8 +5,8 @@ import gov.nysenate.sage.dao.base.SqlTable;
 
 public enum ApiRequestQuery implements BasicSqlQuery {
     INSERT_API_REQUEST(
-            "INSERT INTO ${schema}." + SqlTable.API_REQUEST + "(ip_address, api_user_id, request, service) \n" +
-            "VALUES (:ipAddress::INET, :apiUserId, :request, :service)\n" +
+            "INSERT INTO ${schema}." + SqlTable.API_REQUEST + "(ip_address, api_user_id, service, request, params)\n" +
+            "VALUES (:ipAddress::INET, :apiUserId, :service, :request, :params)\n" +
             "RETURNING id"
     ),
 

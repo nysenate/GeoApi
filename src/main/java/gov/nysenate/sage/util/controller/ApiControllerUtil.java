@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.client.response.base.GenericResponse;
-import gov.nysenate.sage.controller.api.filter.ApiFilter;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.geo.Point;
@@ -63,11 +62,6 @@ public final class ApiControllerUtil {
             catch (Exception ignored) {}
         }
         return null;
-    }
-
-    /** Delegates response to ApiFilter */
-    public static void setApiResponse(Object response, HttpServletRequest request) {
-        ApiFilter.setApiResponse(response, request);
     }
 
     /**
@@ -213,6 +207,7 @@ public final class ApiControllerUtil {
     /**
      * Retrieves the ip address from HttpServletRequest.
      */
+    // TODO: same logic used in ApiRequest constructor
     public static String getIpAddress(HttpServletRequest request) {
         String forwardedForIp = request.getHeader("x-forwarded-for");
         return forwardedForIp == null ? request.getRemoteAddr() : forwardedForIp;

@@ -25,7 +25,7 @@ public class AngularAppCtrl {
 
     @RequestMapping({"/"})
     public String home(HttpServletRequest request) {
-        String ipAddr= ApiControllerUtil.getIpAddress(request);
+        String ipAddr = ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
         // Senate staff and API users will be routed to the internal dev interface.
         if (subject.isPermitted("ui:view") || ipAddr.matches(ipWhitelist)) {

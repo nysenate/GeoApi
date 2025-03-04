@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.Zip5;
 import gov.nysenate.sage.model.result.AddressResult;
@@ -18,7 +17,7 @@ import gov.nysenate.sage.util.AddressUtil;
 import gov.nysenate.sage.util.UrlRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
@@ -41,12 +40,8 @@ public class HttpUSPSAMSDao implements AddressDao {
     private static final String VALIDATE_METHOD = "validate";
     private static final String CITYSTATE_METHOD = "citystate";
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    private final String base_url;
-
-    @Autowired
-    public HttpUSPSAMSDao(Environment env) {
-        this.base_url = env.getUspsAmsApiUrl();
-    }
+    @Value("${usps.ams.api.url}")
+    private String uspsApiUrl;
 
     @Override
     public AddressSource source() {
@@ -67,7 +62,7 @@ public class HttpUSPSAMSDao implements AddressDao {
                 urlParams.append("&addr2=").append(encode(address.getAddr2()));
             }
 
-            String url = base_url + VALIDATE_METHOD + urlParams;
+            String url = uspsApiUrl + VALIDATE_METHOD + urlParams;
             logger.info("Making a connection to: \n{}", url);
 
             String response = UrlRequest.getResponseFromUrl(url);
@@ -112,7 +107,7 @@ public class HttpUSPSAMSDao implements AddressDao {
             requestRoot.add(addressNode);
         }
         String jsonPayload = requestRoot.toString();
-        String url = base_url + VALIDATE_METHOD + "?batch=true&initCaps=true";
+        String url = uspsApiUrl + VALIDATE_METHOD + "?batch=true&initCaps=true";
         try {
             String json = UrlRequest.getResponseFromUrlUsingPOST(url, jsonPayload);
             var addressResults = new ArrayList<AddressResult>();
@@ -181,7 +176,7 @@ public class HttpUSPSAMSDao implements AddressDao {
         StringBuilder urlParams = new StringBuilder("?initCaps=true");
         try {
             urlParams.append("&zip5=").append(zip5.zip());
-            String url = base_url + CITYSTATE_METHOD + urlParams;
+            String url = uspsApiUrl + CITYSTATE_METHOD + urlParams;
             String response = UrlRequest.getResponseFromUrl(url);
             if (response != null && !response.isEmpty()) {
                 JsonNode root = objectMapper.readTree(response);
@@ -207,7 +202,7 @@ public class HttpUSPSAMSDao implements AddressDao {
         Gson prettyGson = new GsonBuilder().setPrettyPrinting().create();
 
         String jsonPayload = prettyGson.toJson(zip5List);
-        String url = base_url + CITYSTATE_METHOD + "?batch=true&initCaps=true";
+        String url = uspsApiUrl + CITYSTATE_METHOD + "?batch=true&initCaps=true";
         try {
             String json = UrlRequest.getResponseFromUrlUsingPOST(url, jsonPayload);
             if (json != null && !json.isEmpty()) {

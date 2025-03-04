@@ -10,27 +10,24 @@ import org.springframework.stereotype.Repository;
 import javax.annotation.Nonnull;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
 
 @Repository
 public class SqlApiRequestLogger extends BaseDao {
-
     /**
      * Log an Api request to the database.
      * @param apiRequest ApiRequest to log
-     * @return int id of ApiRequest
      */
-    public int logApiRequest(@Nonnull ApiRequest apiRequest) {
+    public void logApiRequest(@Nonnull ApiRequest apiRequest) {
         ApiUser apiUser = apiRequest.getApiUser();
         var params = new MapSqlParameterSource()
                 .addValue("ipAddress", apiRequest.getIpAddress().getHostAddress())
                 .addValue("apiUserId", apiUser.getId())
                 .addValue("request", apiRequest.getRequest())
-                .addValue("service", apiRequest.getService());
+                .addValue("service", apiRequest.getService())
+                .addValue("params", apiRequest.getParams());
 
-        List<Integer> idList = namedJdbcTemplate.query(
-                ApiRequestQuery.INSERT_API_REQUEST.getSql(getLogSchema()), params, new ApiRequestIdHandler());
-        return idList.get(0);
+        namedJdbcTemplate.query(ApiRequestQuery.INSERT_API_REQUEST.getSql(getLogSchema()),
+                params, new ApiRequestIdHandler());
     }
 
     private static class ApiRequestIdHandler implements RowMapper<Integer> {

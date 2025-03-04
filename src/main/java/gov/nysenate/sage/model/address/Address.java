@@ -11,7 +11,7 @@ public abstract sealed class Address permits BuildingAddress, PostOfficeBox {
     private static final Pattern poBoxPattern = Pattern.compile("(?i)PO Box (\\d+)");
     private String postalCity;
     private String state = "NY";
-    private final Zip5 zip5;
+    private Zip5 zip5;
     private Zip4 zip4;
 
     /** Verification info */
@@ -56,7 +56,9 @@ public abstract sealed class Address permits BuildingAddress, PostOfficeBox {
     public Address(String postalCity, String state, String zip5, String zip4) {
         setPostalCity(postalCity);
         this.state = state;
-        this.zip5 = new Zip5(zip5);
+        if (!StringUtils.isBlank(zip5)) {
+            this.zip5 = new Zip5(zip5);
+        }
         if (!StringUtils.isBlank(zip4)) {
             this.zip4 = new Zip4(zip4);
         }
@@ -95,7 +97,6 @@ public abstract sealed class Address permits BuildingAddress, PostOfficeBox {
     }
 
     public String getState() {
-        // TODO: some enforcement of NY only addresses
         return state;
     }
 
@@ -110,7 +111,7 @@ public abstract sealed class Address permits BuildingAddress, PostOfficeBox {
     }
 
     public boolean isValid() {
-        return !StringUtils.isBlank(postalCity) || zip5 == null;
+        return !StringUtils.isBlank(postalCity) || zip5 != null;
     }
 
     public static boolean validState(String state) {
