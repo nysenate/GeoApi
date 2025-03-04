@@ -7,9 +7,9 @@ import gov.nysenate.sage.model.job.JobUser;
 import gov.nysenate.sage.model.result.JobErrorResult;
 import org.apache.shiro.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
@@ -22,7 +22,7 @@ import static gov.nysenate.sage.util.controller.JobControllerUtil.getJobUser;
 /**
  * This controller provides an API for accessing the status of a batch job request.
  */
-@Controller
+@RestController
 @RequestMapping(value = "/job/status")
 public class JobStatusController {
     private static final String TEMP_DIR = "/tmp";

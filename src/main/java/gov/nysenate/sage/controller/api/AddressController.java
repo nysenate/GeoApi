@@ -15,11 +15,7 @@ import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -35,7 +31,7 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.getAddressesFr
  *  - City State Lookup
  *  - ZipCode Lookup
  */
-@Controller
+@RestController
 @RequestMapping(value = ConstantUtil.REST_PATH + "address")
 public final class AddressController {
     private final AddressService addressService;

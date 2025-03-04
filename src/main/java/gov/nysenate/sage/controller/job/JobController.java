@@ -24,11 +24,7 @@ import org.apache.shiro.authc.UsernamePasswordToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.supercsv.io.CsvListReader;
 import org.supercsv.prefs.CsvPreference;
 
@@ -44,7 +40,7 @@ import java.util.List;
 import static gov.nysenate.sage.util.controller.ConstantUtil.DOWNLOAD_BASE_URL;
 import static gov.nysenate.sage.util.controller.JobControllerUtil.*;
 
-@Controller
+@RestController
 @RequestMapping(value = "/job")
 public class JobController {
     private static final Logger logger = LoggerFactory.getLogger(JobController.class);

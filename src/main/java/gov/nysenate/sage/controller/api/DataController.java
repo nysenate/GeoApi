@@ -6,14 +6,14 @@ import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.dao.provider.district.SqlDistrictShapefileDao;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import static gov.nysenate.sage.model.result.ResultStatus.INTERNAL_ERROR;
 import static gov.nysenate.sage.model.result.ResultStatus.SUCCESS;
 
-@Controller
+@RestController
 @RequestMapping(value = ConstantUtil.REST_PATH + "data")
 public class DataController {
     private final SqlDistrictShapefileDao sqlDistrictShapefileDao;

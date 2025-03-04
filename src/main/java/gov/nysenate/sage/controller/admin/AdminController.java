@@ -6,11 +6,7 @@ import gov.nysenate.sage.util.controller.ApiControllerUtil;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -22,7 +18,7 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.setAuthenticat
 import static gov.nysenate.sage.util.controller.ConstantUtil.ADMIN_REST_PATH;
 import static gov.nysenate.sage.util.controller.ConstantUtil.ADMIN_USERNAME_ATTR;
 
-@Controller
+@RestController
 @RequestMapping(value = ADMIN_REST_PATH)
 public class AdminController {
     private static final String ADMIN_LOGIN_JSP = "/WEB-INF/views/adminlogin.jsp", ADMIN_MAIN_PATH = "/admin";
