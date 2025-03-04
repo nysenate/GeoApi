@@ -10,7 +10,7 @@ public enum DistrictType {
     SCHOOL("TFCODE"), TOWN_CITY("ABBREV"),
     COUNTY("fips_code"), ZIP("zip_code", "zip_code"),
     // Available only in street files
-    ELECTION("district", "election_district"), WARD, COUNTY_LEG, FIRE, VILLAGE, MUNICIPAL_COURT, CITY_COUNCIL;
+    ELECTION, WARD, COUNTY_LEG, FIRE, VILLAGE, MUNICIPAL_COURT, CITY_COUNCIL;
 
     /** A Map container is used to associate type names with the enum type */
     private static final Map<String, DistrictType> resolveMap = new HashMap<>();
