@@ -22,7 +22,7 @@ import java.util.List;
 import static org.junit.Assert.assertNotEquals;
 
 @Category(IntegrationTest.class)
-public class DistrictShapefileTest extends BaseTests {
+public class ShapefileServiceTest extends BaseTests {
     @Autowired private DistrictService districtService;
 
     @Ignore

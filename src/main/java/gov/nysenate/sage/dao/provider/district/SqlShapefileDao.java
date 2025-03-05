@@ -27,9 +27,7 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * DistrictShapefileDao utilizes a PostGIS database loaded with Census shapefiles to
@@ -39,13 +37,13 @@ import java.util.Set;
 // TODO: be sure to resolve county stuff correctly
 // TODO: cache schools
 @Repository
-public class SqlDistrictShapefileDao extends BaseDao implements DistrictShapeFileDao {
-    private static final Logger logger = LoggerFactory.getLogger(SqlDistrictShapefileDao.class);
+public class SqlShapefileDao extends BaseDao implements ShapefileDao {
+    private static final Logger logger = LoggerFactory.getLogger(SqlShapefileDao.class);
     private final CountyDao countyDao;
     private ImmutableMultimap<DistrictType, DistrictMap> districtMapCache = ImmutableMultimap.of();
 
     @Autowired
-    public SqlDistrictShapefileDao(CountyDao countyDao) {
+    public SqlShapefileDao(CountyDao countyDao) {
         this.countyDao = countyDao;
     }
 
@@ -65,13 +63,13 @@ public class SqlDistrictShapefileDao extends BaseDao implements DistrictShapeFil
 
         var districtInfo = new DistrictInfo();
         for (DistrictType districtType : districtTypes) {
-            String nameColumn = districtType.nameColumn();
-            if (nameColumn != null) {
-                String currSql = sqlTmpl.formatted(nameColumn, districtType.codeColumn(),
+            if (districtType.hasShapefile()) {
+                String currSql = sqlTmpl.formatted(districtType.nameColumn(), districtType.codeColumn(),
                         districtType, point.lon(), point.lat()); // (lon, lat) is the correct order
                 Pair<String> result = jdbcTemplate.queryForObject(currSql, new NameCodeHandler());
                 districtInfo.setDistName(districtType, result.first());
-                districtInfo.setDistName(districtType, result.second());
+                districtInfo.setDistCode(districtType, result.second());
+
             }
         }
         return districtInfo;
@@ -102,15 +100,14 @@ public class SqlDistrictShapefileDao extends BaseDao implements DistrictShapeFil
                      "FROM districts.%s " +
                      "GROUP BY %s, %s";
 
-        Set<DistrictType> types = new HashSet<>(DistrictType.getStandardTypes());
-        for (DistrictType districtType : types) {
-            if (districtType.nameColumn() == null) {
+        for (DistrictType districtType : DistrictType.values()) {
+            if (!districtType.hasShapefile()) {
                 continue;
             }
             String nameColumn = districtType.nameColumn();
             String codeColumn = districtType.codeColumn();
             String currSql = String.format(baseSql, nameColumn, codeColumn, districtType,
-                                                           nameColumn, codeColumn);
+                    nameColumn, codeColumn);
             List<DistrictMap> maps = namedJdbcTemplate.query(currSql, new DistrictCacheMapper(districtType));
             tempMultimap.putAll(districtType, maps);
         }
@@ -160,7 +157,7 @@ public class SqlDistrictShapefileDao extends BaseDao implements DistrictShapeFil
 
     /**
      * Retrieves the district code from the result set and performs any necessary corrections.
-     * Requires that the result set contain 'type' and 'code' columns.
+     * Requires that the result set contains the 'code' column.
      */
     private String getDistrictCode(ResultSet rs, DistrictType type) throws SQLException {
         if (rs != null) {
@@ -183,13 +180,14 @@ public class SqlDistrictShapefileDao extends BaseDao implements DistrictShapeFil
         return null;
     }
 
+    @Override
     public DistrictMap getDistrictMap(DistrictType type, String district) {
         DistrictMap byName = districtMapCache.get(type).stream()
-                .filter(dMap -> dMap.getDistrictName().equals(district))
+                .filter(dMap -> dMap.getDistrictName().equalsIgnoreCase(district))
                 .findFirst().orElse(null);
         if (byName == null) {
             return districtMapCache.get(type).stream()
-                    .filter(dMap -> dMap.getDistrictCode().equals(district))
+                    .filter(dMap -> dMap.getDistrictCode().equalsIgnoreCase(district))
                     .findFirst().orElse(null);
         }
         return byName;

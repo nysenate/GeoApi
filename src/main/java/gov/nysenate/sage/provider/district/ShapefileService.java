@@ -1,7 +1,7 @@
 package gov.nysenate.sage.provider.district;
 
 import gov.nysenate.sage.dao.model.county.CountyDao;
-import gov.nysenate.sage.dao.provider.district.SqlDistrictShapefileDao;
+import gov.nysenate.sage.dao.provider.district.SqlShapefileDao;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictOverlap;
 import gov.nysenate.sage.model.district.DistrictType;
@@ -15,14 +15,14 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class DistrictShapefile implements MapService {
-    private final SqlDistrictShapefileDao sqlDistrictShapefileDao;
+public class ShapefileService implements MapService {
+    private final SqlShapefileDao sqlShapefileDao;
 
     private final CountyDao countyDao;
 
     @Autowired
-    public DistrictShapefile(SqlDistrictShapefileDao sqlDistrictShapefileDao, CountyDao countyDao) {
-        this.sqlDistrictShapefileDao = sqlDistrictShapefileDao;
+    public ShapefileService(SqlShapefileDao sqlShapefileDao, CountyDao countyDao) {
+        this.sqlShapefileDao = sqlShapefileDao;
         this.countyDao = countyDao;
     }
 
@@ -32,7 +32,7 @@ public class DistrictShapefile implements MapService {
         var mapResult = new MapResult(MapSource.SHAPEFILE);
         if (code != null && !code.isEmpty()) {
             code = FormatUtil.trimLeadingZeroes(code);
-            DistrictMap map = sqlDistrictShapefileDao.getDistrictMap(districtType, code);
+            DistrictMap map = sqlShapefileDao.getDistrictMap(districtType, code);
             if (map != null) {
                 // For COVID links
                 if (districtType.equals(DistrictType.COUNTY)) {
@@ -55,7 +55,7 @@ public class DistrictShapefile implements MapService {
     @Override
     public MapResult getDistrictMaps(DistrictType districtType) {
         MapResult mapResult = new MapResult(MapSource.SHAPEFILE);
-        List<DistrictMap> mapCollection = sqlDistrictShapefileDao.getDistrictMaps(districtType);
+        List<DistrictMap> mapCollection = sqlShapefileDao.getDistrictMaps(districtType);
         if (mapCollection != null) {
             mapResult.setDistrictMaps(mapCollection);
             mapResult.setStatusCode(ResultStatus.SUCCESS);
@@ -79,9 +79,9 @@ public class DistrictShapefile implements MapService {
      * @return DistrictResult with overlaps set.
      */
     public IntersectResult getIntersectionResult(DistrictType districtType, String districtId, DistrictType intersectType) {
-        DistrictMap sourceMap = sqlDistrictShapefileDao.getDistrictMap(districtType, districtId);
+        DistrictMap sourceMap = sqlShapefileDao.getDistrictMap(districtType, districtId);
         // We only need the overlap for the specified intersect type
-        DistrictOverlap overlap = sqlDistrictShapefileDao.getDistrictOverlap(intersectType, districtType, districtId);
+        DistrictOverlap overlap = sqlShapefileDao.getDistrictOverlap(intersectType, districtType, districtId);
         return new IntersectResult(MapSource.SHAPEFILE, sourceMap, overlap);
     }
 }

@@ -8,7 +8,7 @@ import gov.nysenate.sage.model.geo.Point;
 
 import java.util.List;
 
-public interface DistrictShapeFileDao {
+public interface ShapefileDao {
     /**
      * Retrieves a DistrictInfo object based on the districts that intersect the given point.
      * @param point          Point of interest
@@ -41,4 +41,6 @@ public interface DistrictShapeFileDao {
      * a lookup cache for fast retrieval.
      */
     boolean cacheDistrictMaps();
+
+    DistrictMap getDistrictMap(DistrictType type, String district);
 }
