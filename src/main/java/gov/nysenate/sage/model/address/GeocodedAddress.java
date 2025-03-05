@@ -30,6 +30,9 @@ public class GeocodedAddress implements Serializable {
         if (result == null) {
             return new GeocodedAddress(defaultAddress);
         }
+        if (defaultAddress.isUspsValidated()) {
+            result.setAddress(defaultAddress);
+        }
         return result;
     }
 
