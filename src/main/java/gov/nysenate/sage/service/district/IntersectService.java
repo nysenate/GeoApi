@@ -2,16 +2,16 @@ package gov.nysenate.sage.service.district;
 
 import gov.nysenate.sage.model.api.IntersectRequest;
 import gov.nysenate.sage.model.result.IntersectResult;
-import gov.nysenate.sage.provider.district.DistrictShapefile;
+import gov.nysenate.sage.provider.district.ShapefileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class IntersectService {
-    private final DistrictShapefile shapefile;
+    private final ShapefileService shapefile;
 
     @Autowired
-    public IntersectService(DistrictShapefile shapefile) {
+    public IntersectService(ShapefileService shapefile) {
         this.shapefile = shapefile;
     }
 

@@ -6,9 +6,9 @@ import java.util.Map;
 
 public enum DistrictType {
     // Available as shape files
-    ASSEMBLY("district"), CONGRESSIONAL("district"), SENATE("district"),
-    SCHOOL("TFCODE"), TOWN_CITY("ABBREV"),
-    COUNTY("fips_code"), ZIP("zip_code", "zip_code"),
+    ASSEMBLY("district", false), CONGRESSIONAL("district", false), SENATE("district", false),
+    SCHOOL("tfcode", true), TOWN_CITY("abbrev", true),
+    COUNTY("fips_code", true), ZIP("zip_code", false),
     // Available only in street files
     ELECTION, WARD, COUNTY_LEG, FIRE, VILLAGE, MUNICIPAL_COURT, CITY_COUNCIL;
 
@@ -27,8 +27,8 @@ public enum DistrictType {
         this(null, null);
     }
 
-    DistrictType(String code) {
-        this(code.equalsIgnoreCase("district") ? code : "NAME", code);
+    DistrictType(String code, boolean hasName) {
+        this(hasName ? "NAME" : code, code);
     }
 
     DistrictType(String name, String code) {
@@ -38,11 +38,21 @@ public enum DistrictType {
 
     /** Returns the DistrictType that matches the String representation */
     public static DistrictType resolveType(String type) {
-        return (type == null ? null : resolveMap.get(type.toUpperCase()));
+        return type == null ? null : resolveMap.get(type.toUpperCase());
     }
 
     public static List<DistrictType> getStandardTypes() {
         return List.of(ASSEMBLY, CONGRESSIONAL, SENATE, SCHOOL, TOWN_CITY, COUNTY, ZIP);
+    }
+
+    public String getNameFromCode(String code) {
+        return switch (this) {
+            case SENATE -> "NY Senate District " + code;
+            case ASSEMBLY ->  "NY Assembly District " + code;
+            case CONGRESSIONAL ->   "NY Congressional District " + code;
+            case ZIP ->  "Zipcode " + code;
+            default -> null;
+        };
     }
 
     public String nameColumn() {
@@ -51,5 +61,9 @@ public enum DistrictType {
 
     public String codeColumn() {
         return code;
+    }
+
+    public boolean hasShapefile() {
+        return code != null;
     }
 }

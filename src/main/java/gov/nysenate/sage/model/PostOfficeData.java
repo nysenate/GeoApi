@@ -35,9 +35,8 @@ public class PostOfficeData<T> {
             postalCityToResultMultimap.put(result.getDistrictedAddress().getAddress().getPostalCity().toUpperCase(), result);
         }
         for (var entry : postalCityToResultMultimap.asMap().entrySet()) {
-            DistrictInfo consolidatedInfo = DistrictUtil.consolidateDistrictInfo(
-                    entry.getValue().stream().map(result -> result.getDistrictedAddress().getDistrictInfo())
-                            .toList());
+            DistrictInfo consolidatedInfo = DistrictUtil.getDistrictInfoWithoutConflicts(
+                    entry.getValue().stream().map(result -> result.getDistrictedAddress().getDistrictInfo()).toList());
             DistrictMatchLevel consolidatedMatchLevel = DistrictMatchLevel.getMin(
                     entry.getValue().stream().map(result -> result.getDistrictedAddress().getDistrictMatchLevel()).toList()
             );

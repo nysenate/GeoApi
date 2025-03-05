@@ -1,7 +1,6 @@
 package gov.nysenate.sage.model.district;
 
 import gov.nysenate.sage.model.address.DistrictedStreetRange;
-import org.apache.commons.lang.WordUtils;
 
 import java.util.*;
 
@@ -44,7 +43,7 @@ public class DistrictInfo {
         this.matchLevel = matchLevel;
     }
 
-    public String getDistName(DistrictType districtType){
+    public String getDistName(DistrictType districtType) {
         return this.districtNames.get(districtType);
     }
 
@@ -65,10 +64,9 @@ public class DistrictInfo {
         if (isValidDistCode(code)) {
             assignedDistricts.add(districtType);
 
-            // Fill in the names for congressional and assembly districts
-            if (districtType == SENATE || districtType == ASSEMBLY || districtType == CONGRESSIONAL) {
-                String displayStr = WordUtils.capitalizeFully(districtType.name());
-                districtNames.put(districtType, "NY %s District %s".formatted(displayStr, code));
+            String name = districtType.getNameFromCode(code);
+            if (name != null) {
+                districtNames.put(districtType, name);
             }
         }
         else {

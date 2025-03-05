@@ -5,7 +5,7 @@ import gov.nysenate.sage.client.response.map.MapResponse;
 import gov.nysenate.sage.client.response.map.MultipleMapResponse;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.MapResult;
-import gov.nysenate.sage.provider.district.DistrictShapefile;
+import gov.nysenate.sage.provider.district.ShapefileService;
 import gov.nysenate.sage.service.district.DistrictMemberProvider;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
@@ -18,12 +18,12 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping(value = ConstantUtil.REST_PATH + "map")
 public class MapController {
     private static final Logger logger = LoggerFactory.getLogger(MapController.class);
-    private final DistrictShapefile districtShapefile;
+    private final ShapefileService shapefileService;
     private final DistrictMemberProvider districtMemberProvider;
 
     @Autowired
-    public MapController(DistrictShapefile districtShapefile, DistrictMemberProvider districtMemberProvider) {
-        this.districtShapefile = districtShapefile;
+    public MapController(ShapefileService shapefileService, DistrictMemberProvider districtMemberProvider) {
+        this.shapefileService = shapefileService;
         this.districtMemberProvider = districtMemberProvider;
     }
 
@@ -47,14 +47,14 @@ public class MapController {
         if (district != null) {
             district = FormatUtil.cleanString(district);
             logger.info("Retrieving {} district {} map.", districtType.name(), district);
-            mapResult = districtShapefile.getDistrictMap(districtType, district);
+            mapResult = shapefileService.getDistrictMap(districtType, district);
             if (showMembers || meta) {
                 districtMemberProvider.assignDistrictMembers(mapResult);
             }
             return new MapResponse(mapResult, !meta);
         } else {
             logger.info("Retrieving all {} district maps.", districtType.name());
-            mapResult = districtShapefile.getDistrictMaps(districtType);
+            mapResult = shapefileService.getDistrictMaps(districtType);
             if (showMembers || meta) {
                 districtMemberProvider.assignDistrictMembers(mapResult);
             }

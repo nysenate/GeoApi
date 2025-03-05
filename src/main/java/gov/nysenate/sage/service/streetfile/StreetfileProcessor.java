@@ -123,7 +123,7 @@ public class StreetfileProcessor {
         fullParts.addAll(districts);
         // Null strings do not have quotes.
         return ('"' + String.join("\",\"", fullParts) + '"')
-                .replaceAll("\"%s\"".formatted(streetfileDao.nullString()), streetfileDao.nullString());
+                .replaceAll("\"%s\"".formatted(streetfileDao.nullString()), streetfileDao.nullString()).toUpperCase();
     }
 
     private String getString(DistrictType type, short num) {

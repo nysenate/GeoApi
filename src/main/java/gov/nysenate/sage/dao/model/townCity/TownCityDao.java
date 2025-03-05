@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 import javax.annotation.Nonnull;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.Map;
 
 import static gov.nysenate.sage.dao.provider.district.MunicipalityType.CITY;
@@ -17,27 +16,10 @@ import static gov.nysenate.sage.dao.provider.district.MunicipalityType.TOWN;
 
 @Repository
 public class TownCityDao extends BaseDao {
-    public Map<String, String> getAbbrevToNameMap() {
-        var rch = new SimpleMapCallbackHandler();
-        namedJdbcTemplate.query(TownCityQuery.SELECT_ALL.getSql(), Map.of(), rch);
-        return rch.abbrevToNameMap;
-    }
-
     public Map<MunicipalityType, Map<String, String>> getTypeAndNameToAbbrevMap() {
         var rch = new NestedMapCallbackHandler();
         jdbcTemplate.query(TownCityQuery.SELECT_ALL.getSql(), rch);
         return rch.results;
-    }
-
-    private static final class SimpleMapCallbackHandler implements RowCallbackHandler {
-        private final Map<String, String> abbrevToNameMap = new HashMap<>();
-
-        @Override
-        public void processRow(@Nonnull ResultSet rs) throws SQLException {
-            while (rs.next()) {
-                abbrevToNameMap.put(rs.getString("abbrev"), rs.getString("name"));
-            }
-        }
     }
 
     private static class NestedMapCallbackHandler implements RowCallbackHandler {

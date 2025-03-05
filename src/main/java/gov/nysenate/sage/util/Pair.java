@@ -9,9 +9,15 @@ import java.util.List;
  * @param <T>
  */
 public record Pair<T>(T first, T second) implements Iterable<T> {
-    @Override
     @Nonnull
+    @Override
     public Iterator<T> iterator() {
         return List.of(first(), second()).iterator();
+    }
+
+    @Nonnull
+    @Override
+    public String toString() {
+        return "(%s, %s)".formatted(first(), second());
     }
 }

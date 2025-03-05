@@ -103,10 +103,9 @@ public class DistrictController {
                 return new ApiError(DistrictController.class, GEOCODE_PROVIDER_NOT_SUPPORTED);
             }
         }
-        // TODO: only geocode if shapefile used?
+
         GeocodedAddress geocodedAddress = point == null ? geocodeService.getGeocodedAddress(currGeocoders, address) :
                 geocodeService.getRevGeocodedAddress(currGeocoders, point);
-
         List<DistrictSource> currDistrictSources = districtSourceRanking;
         if (districtSource != null) {
             try {

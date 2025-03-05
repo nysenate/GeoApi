@@ -10,9 +10,11 @@ public class ValidateResponse extends BaseResponse {
 
     public ValidateResponse(AddressResult addressResult) {
         super(addressResult);
-        if (addressResult != null && addressResult.getStatusCode() != null) {
+        if (addressResult != null) {
             this.validated = addressResult.isValidated();
-            this.address = new AddressView(addressResult.getAddress());
+            if (addressResult.getAddress() != null) {
+                this.address = new AddressView(addressResult.getAddress());
+            }
         }
     }
 

@@ -3,7 +3,7 @@ package gov.nysenate.sage.provider.district;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.controller.api.DistrictUtil;
 import gov.nysenate.sage.dao.data.PostOfficeDao;
-import gov.nysenate.sage.dao.provider.district.SqlDistrictShapefileDao;
+import gov.nysenate.sage.dao.provider.district.SqlShapefileDao;
 import gov.nysenate.sage.dao.provider.streetfile.StreetfileDao;
 import gov.nysenate.sage.model.PostOfficeData;
 import gov.nysenate.sage.model.address.Address;
@@ -42,15 +42,15 @@ public class DistrictService {
     private final PostOfficeDao postOfficeDao;
     private final Map<Tuple<Zip5, List<DistrictSource>>, PostOfficeData<DistrictResult>> poBoxCache = new HashMap<>();
     private final StreetfileDao streetfileDao;
-    private final SqlDistrictShapefileDao shapefileDao;
+    private final SqlShapefileDao sqlShapefileDao;
     private final ThreadPoolTaskExecutor executor;
 
 
     public DistrictService(PostOfficeDao postOfficeDao, StreetfileDao streetfileDao,
-                           SqlDistrictShapefileDao shapefileDao, Environment env) {
+                           SqlShapefileDao sqlShapefileDao, Environment env) {
         this.postOfficeDao = postOfficeDao;
         this.streetfileDao = streetfileDao;
-        this.shapefileDao = shapefileDao;
+        this.sqlShapefileDao = sqlShapefileDao;
         this.executor = ExecutorUtil.createExecutor("district", env.getValidateThreads());
     }
 
@@ -83,7 +83,7 @@ public class DistrictService {
                 validInfos.add(streetfileDao.getDistrictInfo((BuildingAddress) address, DistrictMatchLevel.HOUSE));
             }
             else if (provider == SHAPEFILE) {
-                validInfos.add(shapefileDao.getDistrictInfo(geocodedAddress.getGeocode().point(), requiredTypes));
+                validInfos.add(sqlShapefileDao.getDistrictInfo(geocodedAddress.getGeocode().point(), requiredTypes));
             }
         }
         var finalResult = new DistrictResult(providers.size() == 1 ? providers.get(0) : STREETFILE_AND_SHAPEFILE,

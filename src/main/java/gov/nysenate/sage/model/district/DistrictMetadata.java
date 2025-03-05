@@ -2,8 +2,6 @@ package gov.nysenate.sage.model.district;
 
 import gov.nysenate.services.model.Senator;
 
-import static gov.nysenate.sage.model.district.DistrictType.*;
-
 /**
  * Hold basic identifying information for a district such as its type, code, and member.
  */
@@ -20,18 +18,10 @@ public class DistrictMetadata {
     public DistrictMetadata(DistrictType type, String name, String code) {
         if (type != null) {
             this.districtType = type;
-            this.districtName = name;
             this.districtCode = code;
-
-            /** Fill in the names for congressional and assembly districts */
-            if (type.equals(SENATE)) {
-                this.districtName = "NY Senate District " + code;
-            }
-            else if (type.equals(CONGRESSIONAL)) {
-                this.districtName = "NY Congressional District " + code;
-            }
-            else if (type.equals(ASSEMBLY)) {
-                this.districtName = "NY Assembly District " + code;
+            this.districtName = type.getNameFromCode(code);
+            if (districtName == null) {
+                this.districtName = name;
             }
         }
     }
