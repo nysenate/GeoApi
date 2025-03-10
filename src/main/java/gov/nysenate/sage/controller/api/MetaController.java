@@ -4,11 +4,11 @@ import gov.nysenate.sage.client.response.meta.MetaProviderResponse;
 import gov.nysenate.sage.service.geo.SageGeocodeServiceProvider;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
+@RestController
 @RequestMapping(value = ConstantUtil.REST_PATH + "meta")
 public class MetaController {
     private final SageGeocodeServiceProvider geocodeServiceProvider;

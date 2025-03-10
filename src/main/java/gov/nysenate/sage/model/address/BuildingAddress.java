@@ -87,8 +87,7 @@ public final class BuildingAddress extends Address {
     }
 
     private static Pair<String> splitBldgId(String toSplit) {
-        // TODO: may need to remove "#"
-        String[] parts = toSplit.trim().split(" ", 2);
+        String[] parts = toSplit.replaceAll("#", "").trim().split(" ", 2);
         if (parts.length != 2 || !parts[0].matches(bldgNumPattern)) {
             throw new IllegalArgumentException("Cannot parse bldg ID from: " + toSplit);
         }

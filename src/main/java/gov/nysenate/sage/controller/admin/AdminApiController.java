@@ -27,7 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +34,7 @@ import java.util.List;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 
 @RestController
+// TODO: change to use common method in DataGenController
 @RequestMapping(value = ConstantUtil.ADMIN_REST_PATH + "/api")
 public class AdminApiController {
     private static final Logger logger = LoggerFactory.getLogger(AdminApiController.class);
@@ -77,23 +77,18 @@ public class AdminApiController {
      *
      */
     @GetMapping(value = "/currentApiUsers")
-    public void currentApiUsers(HttpServletRequest request, HttpServletResponse response,
+    public Object currentApiUsers(HttpServletRequest request,
                                 @RequestParam(required = false, defaultValue = "defaultUser") String username,
                                 @RequestParam(required = false, defaultValue = "defaultPass") String password,
                                 @RequestParam(required = false, defaultValue = "") String key) {
-        Object adminResponse;
         String ipAddr = ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
         if (subject.hasRole("ADMIN") ||
                 adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
                 apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
-            adminResponse = sqlApiUserDao.getApiUsers();
+            return sqlApiUserDao.getApiUsers();
         }
-        else {
-            adminResponse = invalidAuthResponse();
-        }
-        setAdminResponse(adminResponse, response);
-
+        return invalidAuthResponse();
     }
 
     /**
@@ -105,22 +100,18 @@ public class AdminApiController {
      *
      */
     @GetMapping(value = "/currentJobUsers")
-    public void currentJobUsers(HttpServletRequest request, HttpServletResponse response,
+    public Object currentJobUsers(HttpServletRequest request,
                                 @RequestParam(required = false, defaultValue = "defaultUser") String username,
                                 @RequestParam(required = false, defaultValue = "defaultPass") String password,
                                 @RequestParam(required = false, defaultValue = "") String key) {
-        Object adminResponse;
-        String ipAddr= ApiControllerUtil.getIpAddress(request);
+        String ipAddr = ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
         if (subject.hasRole("ADMIN") ||
                 adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
                 apiUserAuth.authenticateAdmin(request, subject, ipAddr, key) ) {
-            adminResponse = sqlJobUserDao.getJobUsers();
+            return sqlJobUserDao.getJobUsers();
         }
-        else {
-            adminResponse = invalidAuthResponse();
-        }
-        setAdminResponse(adminResponse, response);
+        return invalidAuthResponse();
 
     }
 
@@ -133,23 +124,18 @@ public class AdminApiController {
      *
      */
     @GetMapping(value = "/apiUserUsage")
-    public void apiUserUsage(HttpServletRequest request, HttpServletResponse response,
+    public Object apiUserUsage(HttpServletRequest request,
                              @RequestParam(required = false, defaultValue = "defaultUser") String username,
                              @RequestParam(required = false, defaultValue = "defaultPass") String password,
                              @RequestParam(required = false, defaultValue = "") String key) {
-        Object adminResponse;
-        String ipAddr= ApiControllerUtil.getIpAddress(request);
+        String ipAddr = ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
         if (subject.hasRole("ADMIN") ||
                 adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) ||
                 apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
-            adminResponse = sqlApiUserStatsDao.getRequestCounts(getBeginTimestamp(request), getEndTimestamp(request));
+            return sqlApiUserStatsDao.getRequestCounts(getBeginTimestamp(request), getEndTimestamp(request));
         }
-        else {
-            adminResponse = invalidAuthResponse();
-        }
-        setAdminResponse(adminResponse, response);
-
+        return invalidAuthResponse();
     }
 
     /**
@@ -161,22 +147,18 @@ public class AdminApiController {
      *
      */
     @GetMapping(value = "/usage")
-    public void usage(HttpServletRequest request, HttpServletResponse response,
+    public Object usage(HttpServletRequest request,
                       @RequestParam(required = false, defaultValue = "defaultUser") String username,
                       @RequestParam(required = false, defaultValue = "defaultPass") String password,
                       @RequestParam(required = false, defaultValue = "") String key) {
-        Object adminResponse;
         String ipAddr = ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
         if (subject.hasRole("ADMIN") ||
                 adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) ||
                 apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
-            adminResponse = getApiUsageStats(request);
+            return getApiUsageStats(request);
         }
-        else {
-            adminResponse = invalidAuthResponse();
-        }
-        setAdminResponse(adminResponse, response);
+        return invalidAuthResponse();
 
     }
 
@@ -189,22 +171,18 @@ public class AdminApiController {
      *
      */
     @GetMapping(value = "/geocodeUsage")
-    public void geocodeUsage(HttpServletRequest request, HttpServletResponse response,
+    public Object geocodeUsage(HttpServletRequest request,
                              @RequestParam(required = false, defaultValue = "defaultUser") String username,
                              @RequestParam(required = false, defaultValue = "defaultPass") String password,
                              @RequestParam(required = false, defaultValue = "") String key) {
-        Object adminResponse;
         String ipAddr= ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
         if (subject.hasRole("ADMIN") ||
                 adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
                 apiUserAuth.authenticateAdmin(request, subject, ipAddr, key) ) {
-            adminResponse = sqlGeocodeStatsDao.getGeocodeStats(getBeginTimestamp(request), getEndTimestamp(request));
+            return sqlGeocodeStatsDao.getGeocodeStats(getBeginTimestamp(request), getEndTimestamp(request));
         }
-        else {
-            adminResponse = invalidAuthResponse();
-        }
-        setAdminResponse(adminResponse, response);
+        return invalidAuthResponse();
 
     }
 
@@ -217,23 +195,18 @@ public class AdminApiController {
      *
      */
     @GetMapping(value = "/jobStatuses")
-    public void jobStatuses(HttpServletRequest request, HttpServletResponse response,
+    public Object jobStatuses(HttpServletRequest request,
                             @RequestParam(required = false, defaultValue = "defaultUser") String username,
                             @RequestParam(required = false, defaultValue = "defaultPass") String password,
                             @RequestParam(required = false, defaultValue = "") String key) {
-        Object adminResponse;
         String ipAddr= ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
         if (subject.hasRole("ADMIN") ||
                 adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
                 apiUserAuth.authenticateAdmin(request, subject, ipAddr, key) ) {
-            adminResponse = getJobProcessStatusList(request);
+            return getJobProcessStatusList(request);
         }
-        else {
-            adminResponse = invalidAuthResponse();
-        }
-        setAdminResponse(adminResponse, response);
-
+        return invalidAuthResponse();
     }
 
     /**
@@ -245,23 +218,18 @@ public class AdminApiController {
      *
      */
     @GetMapping(value = "/deployment")
-    public void deployment(HttpServletRequest request, HttpServletResponse response,
+    public Object deployment(HttpServletRequest request,
                            @RequestParam(required = false, defaultValue = "defaultUser") String username,
                            @RequestParam(required = false, defaultValue = "defaultPass") String password,
                            @RequestParam(required = false, defaultValue = "") String key) {
-        Object adminResponse;
         String ipAddr= ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
         if (subject.hasRole("ADMIN") ||
                 adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
                 apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
-            adminResponse = new DeploymentStats(sqlDeploymentStatsDao.getDeploymentStats());
+            return new DeploymentStats(sqlDeploymentStatsDao.getDeploymentStats());
         }
-        else {
-            adminResponse = invalidAuthResponse();
-        }
-        setAdminResponse(adminResponse, response);
-
+        return invalidAuthResponse();
     }
 
     /**
@@ -273,24 +241,18 @@ public class AdminApiController {
      *
      */
     @PostMapping(value = "/createApiUser")
-    public void createApiUser(HttpServletRequest request, HttpServletResponse response,
+    public Object createApiUser(HttpServletRequest request,
                               @RequestParam(required = false, defaultValue = "defaultUser") String username,
                               @RequestParam(required = false, defaultValue = "defaultPass") String password,
                               @RequestParam(required = false, defaultValue = "") String key) {
-        Object adminResponse;
         String ipAddr= ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
         if (subject.hasRole("ADMIN") ||
                 adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
                 apiUserAuth.authenticateAdmin(request, subject, ipAddr, key) ) {
-            adminResponse = createApiUser(request);
+            return createApiUser(request);
         }
-        else {
-            adminResponse = invalidAuthResponse();
-        }
-        setAdminResponse(adminResponse, response);
-
-
+        return invalidAuthResponse();
     }
 
     /**
@@ -302,23 +264,18 @@ public class AdminApiController {
      *
      */
     @PostMapping(value = "/deleteApiUser")
-    public void deleteApiUser(HttpServletRequest request, HttpServletResponse response,
+    public Object deleteApiUser(HttpServletRequest request,
                               @RequestParam(required = false, defaultValue = "defaultUser") String username,
                               @RequestParam(required = false, defaultValue = "defaultPass") String password,
                               @RequestParam(required = false, defaultValue = "") String key) {
-        Object adminResponse;
         String ipAddr= ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
         if (subject.hasRole("ADMIN") ||
                 adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
                 apiUserAuth.authenticateAdmin(request, subject, ipAddr, key) ) {
-            adminResponse = deleteApiUser(request);
+            return deleteApiUser(request);
         }
-        else {
-            adminResponse = invalidAuthResponse();
-        }
-        setAdminResponse(adminResponse, response);
-
+        return invalidAuthResponse();
     }
 
     /**
@@ -330,23 +287,18 @@ public class AdminApiController {
      *
      */
     @PostMapping(value = "/createJobUser")
-    public void createJobUser(HttpServletRequest request, HttpServletResponse response,
+    public Object createJobUser(HttpServletRequest request,
                               @RequestParam(required = false, defaultValue = "defaultUser") String username,
                               @RequestParam(required = false, defaultValue = "defaultPass") String password,
                               @RequestParam(required = false, defaultValue = "") String key) {
-        Object adminResponse;
         String ipAddr= ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
         if (subject.hasRole("ADMIN") ||
                 adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
                 apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
-            adminResponse = createJobUser(request);
+            return createJobUser(request);
         }
-        else {
-            adminResponse = invalidAuthResponse();
-        }
-        setAdminResponse(adminResponse, response);
-
+        return invalidAuthResponse();
     }
 
     /**
@@ -358,23 +310,18 @@ public class AdminApiController {
      *
      */
     @PostMapping(value = "/deleteJobUser")
-    public void deleteJobUser(HttpServletRequest request, HttpServletResponse response,
+    public Object deleteJobUser(HttpServletRequest request,
                               @RequestParam(required = false, defaultValue = "defaultUser") String username,
                               @RequestParam(required = false, defaultValue = "defaultPass") String password,
                               @RequestParam(required = false, defaultValue = "") String key) {
-        Object adminResponse;
         String ipAddr = ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
         if (subject.hasRole("ADMIN") ||
                 adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
                 apiUserAuth.authenticateAdmin(request, subject, ipAddr, key) ) {
-            adminResponse = deleteJobUser(request);
+            return deleteJobUser(request);
         }
-        else {
-            adminResponse = invalidAuthResponse();
-        }
-        setAdminResponse(adminResponse, response);
-
+        return invalidAuthResponse();
     }
 
     /**

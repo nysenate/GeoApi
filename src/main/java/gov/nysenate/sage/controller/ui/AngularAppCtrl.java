@@ -5,8 +5,8 @@ import gov.nysenate.sage.util.controller.ApiControllerUtil;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletRequest;
  * Simple entry point to the front-end. Returns the main angular-js driven web page which will handle
  * all the heavy lifting.
  */
-@Controller
+@RestController
 public class AngularAppCtrl {
     private final String ipWhitelist;
 
