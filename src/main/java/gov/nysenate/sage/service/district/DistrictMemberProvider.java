@@ -4,6 +4,7 @@ import gov.nysenate.sage.dao.model.assembly.SqlAssemblyDao;
 import gov.nysenate.sage.dao.model.congressional.SqlCongressionalDao;
 import gov.nysenate.sage.dao.model.senate.SqlSenateDao;
 import gov.nysenate.sage.model.district.DistrictMap;
+import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.MapResult;
 import org.springframework.stereotype.Component;
 
@@ -34,6 +35,9 @@ public class DistrictMemberProvider implements SageDistrictMemberProvider {
             return;
         }
         for (DistrictMap map : mapResult.getDistrictMaps()) {
+            if (map.getDistrictType() == DistrictType.TOWN_CITY) {
+                continue;
+            }
             int code = Integer.parseInt(map.getDistrictCode());
             switch (map.getDistrictType()) {
                 case SENATE -> map.setSenator(sqlSenateDao.getSenatorByDistrict(code));

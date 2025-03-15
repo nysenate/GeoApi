@@ -2,6 +2,7 @@ package gov.nysenate.sage.model.district;
 
 import gov.nysenate.sage.model.geo.Polygon;
 
+import javax.annotation.Nonnull;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +10,7 @@ import java.util.List;
 /**
  * Extends DistrictMetadata with district map geometry information.
  */
-public class DistrictMap extends DistrictMetadata {
+public class DistrictMap extends DistrictMetadata implements Comparable<DistrictMap> {
     private List<Polygon> polygons = new ArrayList<>();
     private String geometryType = "";
     private BigDecimal area;
@@ -60,7 +61,11 @@ public class DistrictMap extends DistrictMetadata {
         return o.toString();
     }
 
-    public void setLink(String link) {
-        super.setLink(link);
+    @Override
+    public int compareTo(@Nonnull DistrictMap o) {
+        if (districtType == DistrictType.TOWN_CITY) {
+            return districtName.compareTo(o.districtName);
+        }
+        return Integer.parseInt(districtCode)- Integer.parseInt(o.districtCode);
     }
 }

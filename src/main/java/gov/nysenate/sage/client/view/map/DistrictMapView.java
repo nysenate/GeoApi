@@ -4,6 +4,8 @@ import gov.nysenate.sage.client.view.district.MemberView;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
 
+import java.math.BigDecimal;
+
 public class DistrictMapView {
     protected String type;
     protected String district;
@@ -11,6 +13,7 @@ public class DistrictMapView {
     protected PolygonMapView map;
     protected Object member;
     protected String link;
+    protected BigDecimal area;
 
     public DistrictMapView(DistrictMap districtMap, boolean showMaps) {
         if (districtMap != null) {
@@ -24,12 +27,13 @@ public class DistrictMapView {
             if (districtType == DistrictType.SENATE) {
                 this.member = districtMap.getSenator();
             }
-            else if (districtType.equals(DistrictType.CONGRESSIONAL) || districtType.equals(DistrictType.ASSEMBLY)) {
+            else if (districtType == DistrictType.CONGRESSIONAL || districtType == DistrictType.ASSEMBLY) {
                 this.member = new MemberView(districtMap.getMember());
             }
-            else if (districtType.equals(DistrictType.COUNTY)) {
+            else if (districtType == DistrictType.COUNTY) {
                 this.link = districtMap.getLink();
             }
+            this.area = districtMap.getArea();
         }
     }
 

@@ -1,14 +1,15 @@
 package gov.nysenate.sage.model.result;
 
 import gov.nysenate.sage.model.district.DistrictMap;
-import gov.nysenate.sage.model.district.DistrictOverlap;
 import gov.nysenate.sage.provider.district.MapSource;
+
+import java.util.List;
 
 public class IntersectResult extends BaseResult<MapSource> {
     private final DistrictMap mainMap;
-    private final DistrictOverlap overlap;
+    private final List<DistrictMap> overlap;
 
-    public IntersectResult(MapSource source, DistrictMap mainMap, DistrictOverlap overlap) {
+    public IntersectResult(MapSource source, DistrictMap mainMap, List<DistrictMap> overlap) {
         super(source);
         this.mainMap = mainMap;
         this.overlap = overlap;
@@ -18,7 +19,7 @@ public class IntersectResult extends BaseResult<MapSource> {
         return mainMap;
     }
 
-    public DistrictOverlap getOverlap() {
+    public List<DistrictMap> getOverlap() {
         return overlap;
     }
 }

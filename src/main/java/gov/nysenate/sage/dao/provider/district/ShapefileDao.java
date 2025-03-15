@@ -2,7 +2,6 @@ package gov.nysenate.sage.dao.provider.district;
 
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMap;
-import gov.nysenate.sage.model.district.DistrictOverlap;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Point;
 
@@ -25,9 +24,8 @@ public interface ShapefileDao {
      * @param targetDistrictType The DistrictType of get overlap info for.
      * @param refDistrictType    The DistrictType to base the intersections of off.
      * @param refCode           The code that represents the base area.
-     * @return DistrictOverlap
      */
-    DistrictOverlap getDistrictOverlap(DistrictType targetDistrictType,
+    List<DistrictMap> getDistrictOverlap(DistrictType targetDistrictType,
                                        DistrictType refDistrictType, String refCode);
 
     /**

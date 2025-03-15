@@ -8,17 +8,16 @@ import gov.nysenate.sage.client.response.district.IntersectResponse;
 import gov.nysenate.sage.client.response.district.MultiDistrictResponse;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
-import gov.nysenate.sage.model.api.IntersectRequest;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.IntersectResult;
 import gov.nysenate.sage.provider.district.DistrictService;
 import gov.nysenate.sage.provider.district.DistrictSource;
+import gov.nysenate.sage.provider.district.ShapefileService;
 import gov.nysenate.sage.provider.geocode.GeocodeService;
 import gov.nysenate.sage.provider.geocode.Geocoder;
 import gov.nysenate.sage.service.address.AddressService;
-import gov.nysenate.sage.service.district.IntersectService;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +41,7 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 public class DistrictController {
     private final List<DistrictSource> districtSourceRanking = new ArrayList<>();
     private final List<Geocoder> geocoderRanking = new ArrayList<>();
-    private final IntersectService intersectService;
+    private final ShapefileService shapefileService;
     private final AddressService addressService;
     private final GeocodeService geocodeService;
     private final DistrictService districtService;
@@ -50,7 +49,7 @@ public class DistrictController {
     @Autowired
     public DistrictController(@Value("${district.ranking}") String districtRanking,
                               @Value("${geocoder.ranking}") String geocoderRankingStr,
-                              IntersectService intersectService, AddressService addressService,
+                              ShapefileService shapefileService, AddressService addressService,
                               GeocodeService geocodeService, DistrictService districtService) {
         for (String districtSource : districtRanking.split(", *")) {
             districtSourceRanking.add(DistrictSource.valueOf(districtSource.toUpperCase()));
@@ -58,10 +57,10 @@ public class DistrictController {
         for (String geocoder : geocoderRankingStr.split(", *")) {
             geocoderRanking.add(Geocoder.valueOf(geocoder.toUpperCase()));
         }
-        this.districtService = districtService;
-        this.intersectService = intersectService;
+        this.shapefileService = shapefileService;
         this.addressService = addressService;
         this.geocodeService = geocodeService;
+        this.districtService = districtService;
     }
 
     /**
@@ -208,9 +207,8 @@ public class DistrictController {
         if (sourceId == null || sourceId.equals("null") || sourceId.isEmpty() || sourceType.equals(intersectType)) {
             return new BaseResponse(BAD_OVERLAY);
         }
-        var intersectRequest = new IntersectRequest(DistrictType.resolveType(sourceType),
-                sourceId, DistrictType.resolveType(intersectType));
-        IntersectResult intersectResult = intersectService.handleIntersectRequest(intersectRequest);
-        return new IntersectResponse(intersectResult, intersectRequest.intersectWith());
+        IntersectResult intersectResult = shapefileService.getIntersectionResult(
+                DistrictType.resolveType(sourceType), sourceId, DistrictType.resolveType(intersectType));
+        return IntersectResponse.from(intersectResult);
     }
 }

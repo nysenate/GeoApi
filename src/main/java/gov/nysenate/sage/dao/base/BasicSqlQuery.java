@@ -1,5 +1,10 @@
 package gov.nysenate.sage.dao.base;
 
+import org.apache.commons.text.StringSubstitutor;
+
+import java.util.HashMap;
+import java.util.Map;
+
 public interface BasicSqlQuery {
     /**
      * Return the sql query as is.
@@ -11,6 +16,16 @@ public interface BasicSqlQuery {
      * applicable. This is needed for allowing configurable schema names.
      */
     default String getSql(String envSchema) {
-        return SqlQueryUtils.getSqlWithSchema(getSql(), envSchema);
+        return getSql(envSchema, Map.of());
+    }
+
+    /**
+     * Replaces the ${schema} placeholder in the given sql String with the given schema name, among other replacements.
+     * This is mainly used for queries where the schema name can be user defined, e.g. the environment schema.
+     */
+    default String getSql(String envSchema, Map<String, String> otherReplacements) {
+        Map<String, String> replacements = new HashMap<>(otherReplacements);
+        replacements.put("schema", envSchema);
+        return new StringSubstitutor(replacements).replace(getSql());
     }
 }
