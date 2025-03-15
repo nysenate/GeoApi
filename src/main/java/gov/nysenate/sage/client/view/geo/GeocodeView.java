@@ -22,7 +22,7 @@ public class GeocodeView {
             this.quality = geocode.quality().name();
             this.method = geocode.originalGeocoder().name();
             this.cached = geocode.isCached();
-            // TODO: change this
+            // Unfortunately, the only constructor uses doubles
             this.openLocCode = OpenLocationCode.encode(geocode.lat().doubleValue(), geocode.lon().doubleValue());
         }
     }

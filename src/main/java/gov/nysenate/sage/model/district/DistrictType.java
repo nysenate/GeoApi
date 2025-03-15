@@ -1,8 +1,6 @@
 package gov.nysenate.sage.model.district;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public enum DistrictType {
     // Available as shape files
@@ -12,13 +10,6 @@ public enum DistrictType {
     // Available only in street files
     ELECTION, WARD, COUNTY_LEG, FIRE, VILLAGE, MUNICIPAL_COURT, CITY_COUNCIL;
 
-    /** A Map container is used to associate type names with the enum type */
-    private static final Map<String, DistrictType> resolveMap = new HashMap<>();
-    static {
-        for (DistrictType dt : values()) {
-            resolveMap.put(dt.name().toUpperCase(), dt);
-        }
-    }
     // Column names in the database
     private final String name, code;
 
@@ -36,15 +27,21 @@ public enum DistrictType {
         this.code = code;
     }
 
+    // TODO: better exception handling instead
     /** Returns the DistrictType that matches the String representation */
     public static DistrictType resolveType(String type) {
-        return type == null ? null : resolveMap.get(type.toUpperCase());
+        try {
+            return valueOf(type.toUpperCase());
+        } catch (IllegalArgumentException | NullPointerException e) {
+            return null;
+        }
     }
 
     public static List<DistrictType> getStandardTypes() {
         return List.of(ASSEMBLY, CONGRESSIONAL, SENATE, SCHOOL, TOWN_CITY, COUNTY, ZIP);
     }
 
+    // TODO: use more consistently
     public String getNameFromCode(String code) {
         return switch (this) {
             case SENATE -> "NY Senate District " + code;

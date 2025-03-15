@@ -4,7 +4,7 @@ import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.geo.Polygon;
 
-import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,8 +22,8 @@ public class PolygonMapView {
                     List<Double[]> geomPoly = new ArrayList<>();
                     for (Point point : polygon.getPoints()) {
                         Double[] p = new Double[2];
-                        p[0] = point.lat().setScale(this.precision, BigDecimal.ROUND_HALF_UP).doubleValue();
-                        p[1] = point.lon().setScale(this.precision, BigDecimal.ROUND_HALF_UP).doubleValue();
+                        p[0] = point.lat().setScale(precision, RoundingMode.HALF_UP).doubleValue();
+                        p[1] = point.lon().setScale(precision, RoundingMode.HALF_UP).doubleValue();
                         geomPoly.add(p);
                     }
                     this.geom.add(geomPoly);
