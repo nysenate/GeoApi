@@ -60,4 +60,8 @@ public class DistrictMapView {
     public String getLink() {
         return link;
     }
+
+    public BigDecimal getArea() {
+        return area;
+    }
 }

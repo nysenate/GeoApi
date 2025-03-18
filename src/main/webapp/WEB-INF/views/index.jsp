@@ -263,7 +263,6 @@
                                     <option value="town_city">Town/City</option>
                                     <option value="school">School</option>
                                     <option value="zip">Zip</option>
-                                    <option value="election">Election</option>
                                 </select>
                             </div>
                             <div>
@@ -350,7 +349,7 @@
                 <div id="district-results" ng-show="visible" ng-controller="DistrictsViewController"
                      class="scrollable-content">
                     <!-- District lookup error message -->
-                    <div id="failed-district-result" ng-hide="districtAssigned || multiMatch">
+                    <div id="failed-district-result" ng-hide="districtAssigned || multiMatch || overlaps">
                         <div class="info-container">
                             <p class="member-name" style="color:orangered;">No District Lookup Result</p>
                             <hr/>
@@ -499,52 +498,13 @@
                                 </div>
                             </div>
                         </div>
-
-                        <div class="info-container slim connected" ng-show="districts.senate.nearBorder">
-                            <table style="width:100%">
-                                <tr>
-                                    <td>
-                                        <a ng-hide="showNeighbors"
-                                           ng-click="showNeighborDistricts('Senate', districts.senate.neighbors)">Neighbor
-                                            Senate Districts</a>
-                                        <a ng-show="showNeighbors" ng-click="hideNeighborDistricts()">Neighbor Senate
-                                            Districts</a>
-                                    </td>
-                                    <td class="right-icon-placeholder">
-                                        <a ng-hide="showNeighbors"
-                                           ng-click="showNeighborDistricts('Senate', districts.senate.neighbors)">
-                                            <div class="icon-arrow-down4 icon-hover-teal"></div>
-                                        </a>
-                                        <a ng-show="showNeighbors" ng-click="hideNeighborDistricts()">
-                                            <div class="icon-arrow-up4 icon-hover-teal"></div>
-                                        </a>
-                                    </td>
-                                </tr>
-                            </table>
-                            <div ng-show="showNeighbors">
-                                <div style="padding:5px;border-top:1px solid #ddd;"
-                                     ng-repeat="neighbor in districts.senate.neighbors">
-                                    <div class="senator">
-                                        <div class="senator-pic-holder" style="width:50px;height:50px;">
-                                            <img ng-src="{{neighbor.member.imageUrl | senatorPic}}" class="senator-pic">
-                                        </div>
-                                        <div>
-                                            <p class="senator member-name">
-                                                <a target="_blank" ng-href="{{neighbor.member.url}}">{{neighbor.member.name}}</a>
-                                            </p>
-                                            <p class="senate district" ng-style="neighbor.style">Senate District
-                                                {{neighbor.district}}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
-                    <div id="multi-senate-results" ng-show="multiMatch && (visible || overlap.senate.length > 1)">
+
+                    <div id="multi-senate-results" ng-show="(multiMatch || overlaps) && (visible || overlaps.length > 1)">
                         <div class="info-container title connected-bottom">
-                            <p class="member-name" ng-click="drawIntersect()">{{overlaps[intersectType].length + " " +
-                                (intersectType.charAt(0).toUpperCase() +
-                                intersectType.slice(1)).replace("Town_city", "Town/City")}} District Matches &nbsp; <a title="Show Map"
+                            <p class="member-name" ng-click="drawIntersect()">{{overlaps.length + " " +
+                                (intersectType.charAt(0) +
+                                intersectType.slice(1).toLowerCase()).replace("Town_city", "Town/City")}} District Matches &nbsp; <a title="Show Map"
                                                                                     class="icon-map"></a></p>
                         </div>
                         <div class="info-container title connected" ng-show="id == 1">
@@ -555,14 +515,14 @@
                         </span>
                         </div>
                         <div class="info-container connected clickable slim2" title="Show full district map"
-                             ng-repeat="(i, d) in overlaps[intersectType]"
-                             ng-click="showFullMapForOverlap(i, d, matchLevel);">
+                             ng-repeat="(i, d) in overlaps"
+                             ng-click="showFullMapForOverlap(i, d);">
                             <table style="width:100%">
                                 <tr>
                                     <td>
                                         <div ng-show="matchLevel != 'STREET'"
                                              style="line-height:42px;height:42px;margin-right:0;" class="small-box"
-                                             ng-style="getBgStyle(i)">{{(d.areaPercentage*100).toFixed(0) || '<1'}}%
+                                             ng-style="getBgStyle(i)">{{(d.areaPercentage).toFixed(0) || '<1'}}%
                                         </div>
                                         <div class="senator" style="height:56px;" ng-show="intersectType == 'senate'">
                                             <div class="senator-pic-holder" style="width:50px;height:50px;">
@@ -582,7 +542,7 @@
                                         <div ng-show="intersectType != 'senate'">
                                             <p style="font-size:16px;padding-left: 10px;" class="senate district"
                                                ng-style="getColorStyle(d.district)">
-                                                {{(intersectType.charAt(0).toUpperCase() + intersectType.slice(1)).replace("Town_city", "Town/City")}}
+                                                {{(intersectType.charAt(0) + intersectType.slice(1).toLowerCase()).replace("Town_city", "Town/City")}}
                                                 District {{d.district}}
                                             </p>
                                         </div>

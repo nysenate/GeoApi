@@ -23,7 +23,7 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
         dataBus.setBroadcast("expandResults", true);
         mapService.toggleMap(true);
 
-        if ($scope.multiMatch) {
+        if ($scope.multiMatch || $scope.overlaps) {
             $scope.drawIntersect();
             /** Display senate street lines if available */
             if ($scope.matchLevel == "STREET") {
@@ -143,25 +143,8 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
         }
     };
 
-    $scope.showFullMapForOverlap = function(index, overlap, matchLevel) {
-        var geom = (matchLevel == "STREET") ? overlap.map.geom : overlap.fullMap.geom;
-        mapService.setOverlay(geom, overlap.name, false, true, null, this.colors[index % this.colors.length]);
-    };
-
-    $scope.showNeighborDistricts = function(type, neighbors) {
-        this.showNeighbors = true;
-        $.each(neighbors, function(i, neighbor){
-            neighbor.style = {'color' : $scope.neighborColors[i % 2] };
-            $scope.neighborPolygons.push(mapService.setOverlay(neighbor.map.geom, formatDistrictName(neighbor, "Senate"),
-                false, false, null, neighbor.style['color']));
-        });
-    };
-
-    $scope.hideNeighborDistricts = function()  {
-        this.showNeighbors = false;
-        $.each($scope.neighborPolygons, function(i, neighborPolygon){
-            mapService.clearPolygon(neighborPolygon);
-        });
+    $scope.showFullMapForOverlap = function(index, overlap) {
+        mapService.setOverlay(overlap.map.geom, overlap.name, false, true, null, this.colors[index % this.colors.length]);
     };
 
     $scope.setOfficeMarker = function(office) {
@@ -184,24 +167,16 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
 
     $scope.drawIntersect = function() {
         mapService.clearPolygons();
-        var fillOpacity = 0.5;
         /** Draw the intersected senate maps */
-        if ($scope.overlaps[$scope.intersectType]) {
-            /** Sort the senate maps by greatest percentage first */
-            $scope.overlaps[$scope.intersectType] = $scope.overlaps[$scope.intersectType].sort(function (a, b) {
-                return b.areaPercentage - a.areaPercentage;
-            });
+        if ($scope.overlaps) {
             /** Assign a unique color to each senate district */
-            $.each($scope.overlaps[$scope.intersectType], function (i, v) {
-                $scope.senateColors[v.district] = $scope.colors[i % $scope.colors.length];
-                if (v.map != null) {
-                    var name = "NY " + $scope.intersectType.charAt(0).toUpperCase() + $scope.intersectType.slice(1) +
-                        ($scope.intersectType == "zip" ? " Code " : " District ") + v.district;
-                    mapService.setOverlay(v.map.geom, name + " Coverage", false, false, null,
-                        $scope.colors[i % $scope.colors.length], {fillOpacity: fillOpacity});
+            $.each($scope.overlaps, function (i, overlap) {
+                $scope.senateColors[overlap.district] = $scope.colors[i % $scope.colors.length];
+                if (overlap.map != null) {
+                    mapService.setOverlay(overlap.map.geom, overlap.name + " Coverage", false, false, null,
+                        $scope.senateColors[overlap.district], {fillOpacity: 0.5});
                 }
             });
         }
     };
-
 });

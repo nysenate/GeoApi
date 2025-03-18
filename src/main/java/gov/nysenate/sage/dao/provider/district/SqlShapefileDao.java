@@ -26,6 +26,7 @@ import org.springframework.stereotype.Repository;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
@@ -93,7 +94,7 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
             intersectMap.setDistrictCode(getDistrictCode(rs, intersectType));
             intersectMap.setArea(rs.getBigDecimal("area"));
             return intersectMap;
-        });
+        }).stream().filter(dm -> !dm.getArea().equals(BigDecimal.ZERO)).toList();
     }
 
     /** {@inheritDoc} */

@@ -14,4 +14,8 @@ public class DistrictOverlapView extends DistrictMapView {
         super(intersectionMap, true);
         this.areaPercentage = new BigDecimal(100).multiply(area).divide(baseArea, 2, RoundingMode.HALF_UP);
     }
+
+    public BigDecimal getAreaPercentage() {
+        return areaPercentage;
+    }
 }
