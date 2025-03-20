@@ -16,8 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static gov.nysenate.sage.provider.district.DistrictSource.SHAPEFILE;
-import static gov.nysenate.sage.provider.district.DistrictSource.STREETFILE;
+import static gov.nysenate.sage.provider.district.LocalSource.SHAPEFILE;
+import static gov.nysenate.sage.provider.district.LocalSource.STREETFILE;
 import static org.junit.Assert.assertNotNull;
 
 @Category(IntegrationTest.class)

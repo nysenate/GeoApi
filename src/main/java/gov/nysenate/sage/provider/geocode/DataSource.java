@@ -1,6 +1,6 @@
 package gov.nysenate.sage.provider.geocode;
 
-public interface DataSource {
-    // TODO: another name?
-    String toString();
-}
+/**
+ * Simply used to mark different groups of data sources.
+ */
+public interface DataSource {}

@@ -11,7 +11,7 @@ import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.IntersectResult;
 import gov.nysenate.sage.provider.district.DistrictService;
-import gov.nysenate.sage.provider.district.DistrictSource;
+import gov.nysenate.sage.provider.district.LocalSource;
 import gov.nysenate.sage.provider.district.ShapefileService;
 import gov.nysenate.sage.provider.geocode.GeocodeService;
 import gov.nysenate.sage.provider.geocode.Geocoder;
@@ -37,7 +37,7 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 @RestController
 @RequestMapping(value = ConstantUtil.REST_PATH + "district")
 public class DistrictController {
-    private final List<DistrictSource> districtSourceRanking = new ArrayList<>();
+    private final List<LocalSource> districtSourceRanking = new ArrayList<>();
     private final List<Geocoder> geocoderRanking = new ArrayList<>();
     private final ShapefileService shapefileService;
     private final AddressService addressService;
@@ -50,7 +50,7 @@ public class DistrictController {
                               ShapefileService shapefileService, AddressService addressService,
                               GeocodeService geocodeService, DistrictService districtService) {
         for (String districtSource : districtRanking.split(", *")) {
-            districtSourceRanking.add(DistrictSource.valueOf(districtSource.toUpperCase()));
+            districtSourceRanking.add(LocalSource.valueOf(districtSource.toUpperCase()));
         }
         for (String geocoder : geocoderRankingStr.split(", *")) {
             geocoderRanking.add(Geocoder.valueOf(geocoder.toUpperCase()));
@@ -103,10 +103,10 @@ public class DistrictController {
 
         GeocodedAddress geocodedAddress = point == null ? geocodeService.getGeocodedAddress(currGeocoders, address) :
                 geocodeService.getRevGeocodedAddress(currGeocoders, point);
-        List<DistrictSource> currDistrictSources = districtSourceRanking;
+        List<LocalSource> currDistrictSources = districtSourceRanking;
         if (districtSource != null) {
             try {
-                currDistrictSources = List.of(DistrictSource.valueOf(districtSource.trim().toUpperCase()));
+                currDistrictSources = List.of(LocalSource.valueOf(districtSource.trim().toUpperCase()));
             }
             catch (IllegalArgumentException e) {
                 return new ApiError(DistrictController.class, DISTRICT_PROVIDER_NOT_SUPPORTED);

@@ -28,7 +28,7 @@ public class ShapefileService implements MapService {
     /** {@inheritDoc} */
     @Override
     public MapResult getDistrictMap(DistrictType districtType, String code) {
-        var mapResult = new MapResult(MapSource.SHAPEFILE);
+        var mapResult = new MapResult();
         if (code != null && !code.isEmpty()) {
             code = FormatUtil.trimLeadingZeroes(code);
             DistrictMap map = sqlShapefileDao.getDistrictMap(districtType, code);
@@ -53,7 +53,7 @@ public class ShapefileService implements MapService {
     /** {@inheritDoc} */
     @Override
     public MapResult getDistrictMaps(DistrictType districtType) {
-        var mapResult = new MapResult(MapSource.SHAPEFILE);
+        var mapResult = new MapResult();
         List<DistrictMap> mapCollection = sqlShapefileDao.getDistrictMaps(districtType);
         if (mapCollection != null) {
             mapResult.setDistrictMaps(mapCollection);
@@ -81,7 +81,7 @@ public class ShapefileService implements MapService {
         DistrictMap sourceMap = sqlShapefileDao.getDistrictMap(sourceType, sourceId);
         // We only need the overlap for the specified intersect type
         List<DistrictMap> overlaps = sqlShapefileDao.getDistrictOverlap(sourceType, intersectWith, sourceId);
-        var result = new IntersectResult(MapSource.SHAPEFILE, sourceMap, intersectWith, overlaps);
+        var result = new IntersectResult(sourceMap, intersectWith, overlaps);
         result.setResultTime();
         return result;
     }

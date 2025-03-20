@@ -44,8 +44,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedTransferQueue;
 
 import static gov.nysenate.sage.model.job.JobProcessStatus.Condition.*;
-import static gov.nysenate.sage.provider.district.DistrictSource.SHAPEFILE;
-import static gov.nysenate.sage.provider.district.DistrictSource.STREETFILE;
+import static gov.nysenate.sage.provider.district.LocalSource.SHAPEFILE;
+import static gov.nysenate.sage.provider.district.LocalSource.STREETFILE;
 import static gov.nysenate.sage.util.controller.ConstantUtil.DOWNLOAD_BASE_URL;
 
 @Service

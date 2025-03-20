@@ -2,7 +2,6 @@ package gov.nysenate.sage.provider.district;
 
 import gov.nysenate.sage.dao.provider.streetfile.StreetfileDao;
 import gov.nysenate.sage.model.address.DistrictedStreetRange;
-import gov.nysenate.sage.service.street.StreetData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,11 +21,6 @@ public class Streetfile implements StreetLookupService {
     @Autowired
     public Streetfile(StreetfileDao streetfileDao) {
         this.streetfileDao = streetfileDao;
-    }
-
-    @Override
-    public StreetData source() {
-        return StreetData.STREETFILE;
     }
 
     /** {@inheritDoc} */

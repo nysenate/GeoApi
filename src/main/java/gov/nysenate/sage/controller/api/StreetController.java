@@ -39,7 +39,7 @@ public class StreetController {
     public BaseResponse addressBatchCityState(@RequestParam int zip5) {
         logger.info("Getting street data for zip5 {}", zip5);
         List<DistrictedStreetRange> streets = streetfile.streetLookup(zip5);
-        var streetResult = new StreetResult(streetfile.source(), streets);
+        var streetResult = new StreetResult(streets);
         return new StreetResponse(streetResult);
     }
 }

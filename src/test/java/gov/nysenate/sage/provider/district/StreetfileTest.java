@@ -37,7 +37,7 @@ public class StreetfileTest extends BaseTests {
         addr.setUspsValidated(false);
         Geocode geo = new Geocode(new Point("42.6220235", "-73.8326232"), GeocodeQuality.CITY, Geocoder.GOOGLE.toString());
         GeocodedAddress geoAddr = new GeocodedAddress(addr, geo);
-        DistrictResult districtResult = districtService.assignDistricts(List.of(DistrictSource.STREETFILE), geoAddr, types);
+        DistrictResult districtResult = districtService.assignDistricts(List.of(LocalSource.STREETFILE), geoAddr, types);
         System.out.println(districtResult);
     }
 }

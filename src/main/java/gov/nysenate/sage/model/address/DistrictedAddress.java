@@ -1,7 +1,6 @@
 package gov.nysenate.sage.model.address;
 
 import gov.nysenate.sage.model.district.DistrictInfo;
-import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.geo.Geocode;
 
 import java.io.Serializable;
@@ -17,16 +16,8 @@ public class DistrictedAddress implements Serializable {
     public DistrictedAddress() {}
 
     public DistrictedAddress(GeocodedAddress geocodedAddress, DistrictInfo districtInfo) {
-        this(geocodedAddress, districtInfo, DistrictMatchLevel.NOMATCH);
-    }
-
-    public DistrictedAddress(GeocodedAddress geocodedAddress, DistrictInfo districtInfo, DistrictMatchLevel districtMatchLevel) {
-        this(geocodedAddress.getAddress(), geocodedAddress.getGeocode(), districtInfo, districtMatchLevel);
-    }
-
-    public DistrictedAddress(Address address, Geocode geocode, DistrictInfo districtInfo, DistrictMatchLevel districtMatchLevel) {
-        this.address = address;
-        this.geocode = geocode;
+        this.address = geocodedAddress.getAddress();
+        this.geocode = geocodedAddress.getGeocode();
         this.districtInfo = districtInfo;
     }
 

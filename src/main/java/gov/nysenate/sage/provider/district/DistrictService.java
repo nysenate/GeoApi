@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import static gov.nysenate.sage.provider.district.DistrictSource.*;
+import static gov.nysenate.sage.provider.district.LocalSource.*;
 
 /**
  * DistrictService is used to assign district information to addresses and may or may not require
@@ -40,7 +40,7 @@ import static gov.nysenate.sage.provider.district.DistrictSource.*;
 public class DistrictService {
     private static final Logger logger = LoggerFactory.getLogger(DistrictService.class);
     private final PostOfficeDao postOfficeDao;
-    private final Map<Tuple<Zip5, List<DistrictSource>>, PostOfficeData<DistrictResult>> poBoxCache = new HashMap<>();
+    private final Map<Tuple<Zip5, List<LocalSource>>, PostOfficeData<DistrictResult>> poBoxCache = new HashMap<>();
     private final StreetfileDao streetfileDao;
     private final SqlShapefileDao sqlShapefileDao;
     private final ThreadPoolTaskExecutor executor;
@@ -54,11 +54,11 @@ public class DistrictService {
         this.executor = ExecutorUtil.createExecutor("district", env.getValidateThreads());
     }
 
-    public DistrictResult assignDistricts(List<DistrictSource> providers, GeocodedAddress geocodedAddress) {
+    public DistrictResult assignDistricts(List<LocalSource> providers, GeocodedAddress geocodedAddress) {
         return assignDistricts(providers, geocodedAddress, List.of(DistrictType.values()));
     }
 
-    public DistrictResult assignDistricts(List<DistrictSource> providers, GeocodedAddress geocodedAddress,
+    public DistrictResult assignDistricts(List<LocalSource> providers, GeocodedAddress geocodedAddress,
                                           List<DistrictType> requiredTypes) {
         Address address = geocodedAddress.getAddress();
         if (address != null && address.isPoBox()) {
@@ -73,7 +73,7 @@ public class DistrictService {
 
         ResultStatus errorStatusCode = null;
         List<DistrictInfo> validInfos = new ArrayList<>();
-        for (DistrictSource provider : providers) {
+        for (LocalSource provider : providers) {
             var result = new DistrictResult(provider, geocodedAddress);
             if (!result.isSuccess()) {
                 errorStatusCode = result.getStatusCode();
@@ -86,7 +86,7 @@ public class DistrictService {
             }
         }
         DistrictInfo finalInfo = DistrictUtil.consolidateDistrictInfo(validInfos);
-        DistrictSource source = providers.get(0);
+        LocalSource source = providers.get(0);
         if (!validInfos.isEmpty() &&
                 validInfos.get(0).getAssignedDistricts().size() != finalInfo.getAssignedDistricts().size()) {
             source = STREETFILE_AND_SHAPEFILE;
@@ -98,12 +98,12 @@ public class DistrictService {
         return finalResult;
     }
 
-    public List<DistrictResult> assignDistricts(List<DistrictSource> providers,
+    public List<DistrictResult> assignDistricts(List<LocalSource> providers,
                                                 List<GeocodedAddress> geocodedAddresses) {
         return assignDistricts(providers, geocodedAddresses, List.of(DistrictType.values()));
     }
 
-    public List<DistrictResult> assignDistricts(List<DistrictSource> providers,
+    public List<DistrictResult> assignDistricts(List<LocalSource> providers,
                                                 List<GeocodedAddress> geocodedAddresses,
                                                 List<DistrictType> requiredTypes) {
         var districtResults = new ArrayList<DistrictResult>();

@@ -33,7 +33,7 @@ public class ShapefileServiceTest extends BaseTests {
         addr.setUspsValidated(false);
         Geocode geo = new Geocode(new Point("42.6220235", "-73.8326232"), GeocodeQuality.CITY, Geocoder.GOOGLE, false);
         GeocodedAddress geoAddr = new GeocodedAddress(addr, geo);
-        DistrictResult res = districtService.assignDistricts(List.of(DistrictSource.SHAPEFILE), geoAddr);
+        DistrictResult res = districtService.assignDistricts(List.of(LocalSource.SHAPEFILE), geoAddr);
         assertNotEquals(ResultStatus.SUCCESS, res.getStatusCode());
     }
 }

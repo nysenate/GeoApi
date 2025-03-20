@@ -8,7 +8,7 @@ import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
-import gov.nysenate.sage.provider.district.DistrictSource;
+import gov.nysenate.sage.provider.district.LocalSource;
 
 import javax.annotation.Nonnull;
 import java.util.HashSet;
@@ -20,7 +20,7 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 /**
  * Represents the result returned by district assignment services.
  */
-public class DistrictResult extends BaseResult<DistrictSource> {
+public class DistrictResult extends BaseResult<LocalSource> {
     /** We should only attempt to assign districts to a geocode if it is accurate enough. */
     private static final List<GeocodeQuality> DISTRICT_ASSIGNABLE_GEOCODE_QUALITIES =
             List.of(GeocodeQuality.HOUSE, GeocodeQuality.POINT);
@@ -29,11 +29,11 @@ public class DistrictResult extends BaseResult<DistrictSource> {
     @Nonnull
     private DistrictedAddress districtedAddress;
 
-    public DistrictResult(DistrictSource source, GeocodedAddress geoAddress) {
+    public DistrictResult(LocalSource source, GeocodedAddress geoAddress) {
         this(source, geoAddress, getStatus(geoAddress, source));
     }
 
-    public DistrictResult(DistrictSource source, GeocodedAddress geoAddress, ResultStatus statusCode) {
+    public DistrictResult(LocalSource source, GeocodedAddress geoAddress, ResultStatus statusCode) {
         super(source);
         this.districtedAddress = new DistrictedAddress(geoAddress, null);
         this.statusCode = statusCode;
@@ -84,14 +84,14 @@ public class DistrictResult extends BaseResult<DistrictSource> {
         return isSuccess() && getDistrictInfo().getMatchLevel().compareTo(DistrictMatchLevel.HOUSE) < 0;
     }
 
-    private static ResultStatus getStatus(final GeocodedAddress geoAddress, DistrictSource source) {
+    private static ResultStatus getStatus(final GeocodedAddress geoAddress, LocalSource source) {
         if (geoAddress == null) {
             return MISSING_GEOCODED_ADDRESS;
         }
-        if (!geoAddress.isValidAddress() && source == DistrictSource.STREETFILE) {
+        if (!geoAddress.isValidAddress() && source == LocalSource.STREETFILE) {
             return INVALID_ADDRESS;
         }
-        else if (source == DistrictSource.SHAPEFILE) {
+        else if (source == LocalSource.SHAPEFILE) {
             if (!geoAddress.isValidGeocode()) {
                 return INVALID_GEOCODE;
             }

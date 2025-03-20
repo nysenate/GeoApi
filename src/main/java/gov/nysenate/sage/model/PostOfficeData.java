@@ -9,7 +9,7 @@ import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
-import gov.nysenate.sage.provider.district.DistrictSource;
+import gov.nysenate.sage.provider.district.LocalSource;
 
 import java.util.HashMap;
 import java.util.List;
@@ -40,10 +40,11 @@ public class PostOfficeData<T> {
             DistrictMatchLevel consolidatedMatchLevel = DistrictMatchLevel.getMin(
                     entry.getValue().stream().map(result -> result.getDistrictInfo().getMatchLevel()).toList()
             );
-            List<DistrictSource> sources  = entry.getValue().stream().map(result -> ((DistrictSource) result.getSource())).toList();
-            DistrictSource source = sources.size() == 1 ? sources.get(0) : DistrictSource.STREETFILE_AND_SHAPEFILE;
+            consolidatedInfo.setMatchLevel(consolidatedMatchLevel);
+            List<LocalSource> sources  = entry.getValue().stream().map(result -> ((LocalSource) result.getSource())).toList();
+            LocalSource source = sources.size() == 1 ? sources.get(0) : LocalSource.STREETFILE_AND_SHAPEFILE;
             DistrictResult result = new DistrictResult(source, null);
-            result.setDistrictedAddress(new DistrictedAddress(null, consolidatedInfo, consolidatedMatchLevel));
+            result.setDistrictedAddress(new DistrictedAddress(null, consolidatedInfo));
             dataMap.put(entry.getKey(), result);
         }
 

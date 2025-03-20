@@ -1,7 +1,7 @@
 package gov.nysenate.sage.model.result;
 
 import gov.nysenate.sage.model.district.DistrictMap;
-import gov.nysenate.sage.provider.district.MapSource;
+import gov.nysenate.sage.provider.district.LocalSource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,11 +9,11 @@ import java.util.List;
 /**
  * Represents resulting district map information from map providers.
  */
-public class MapResult extends BaseResult<MapSource> {
+public class MapResult extends BaseResult<LocalSource> {
     protected List<DistrictMap> districtMaps = new ArrayList<>();
 
-    public MapResult(MapSource source) {
-        super(source);
+    public MapResult() {
+        super(LocalSource.SHAPEFILE);
     }
 
     public DistrictMap getDistrictMap() {
