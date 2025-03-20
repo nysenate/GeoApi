@@ -60,7 +60,6 @@ public class DistrictService {
 
     public DistrictResult assignDistricts(List<DistrictSource> providers, GeocodedAddress geocodedAddress,
                                           List<DistrictType> requiredTypes) {
-
         Address address = geocodedAddress.getAddress();
         if (address != null && address.isPoBox()) {
             var cacheKey = new Tuple<>(address.getZip5(), providers);
@@ -86,10 +85,15 @@ public class DistrictService {
                 validInfos.add(sqlShapefileDao.getDistrictInfo(geocodedAddress.getGeocode(), requiredTypes));
             }
         }
-        var finalResult = new DistrictResult(providers.size() == 1 ? providers.get(0) : STREETFILE_AND_SHAPEFILE,
-                geocodedAddress, validInfos.isEmpty() ? errorStatusCode : ResultStatus.SUCCESS);
-        // TODO: should check here if both are used
-        finalResult.setDistrictInfo(DistrictUtil.consolidateDistrictInfo(validInfos));
+        DistrictInfo finalInfo = DistrictUtil.consolidateDistrictInfo(validInfos);
+        DistrictSource source = providers.get(0);
+        if (!validInfos.isEmpty() &&
+                validInfos.get(0).getAssignedDistricts().size() != finalInfo.getAssignedDistricts().size()) {
+            source = STREETFILE_AND_SHAPEFILE;
+        }
+        var finalResult = new DistrictResult(source, geocodedAddress,
+                validInfos.isEmpty() ? errorStatusCode : ResultStatus.SUCCESS);
+        finalResult.setDistrictInfo(finalInfo);
         finalResult.setResultTime();
         return finalResult;
     }
