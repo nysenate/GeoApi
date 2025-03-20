@@ -26,7 +26,7 @@ public class GeocacheDaoIT extends BaseTests {
         ArrayList<GeocodeResult> gcs = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
             var a = Address.getAddress(i + "BOO" + " ST", "Test", "Test", "NY", "00001", "");
-            Geocode gc = new Geocode(new Point("12", "12"), GeocodeQuality.HOUSE, "Test");
+            Geocode gc = new Geocode(new Point("12", "12"), GeocodeQuality.HOUSE, null, false);
             gcs.add(new GeocodeResult(null, ResultStatus.SUCCESS, new GeocodedAddress(a, gc)));
         }
         geoCache.cache(gcs);

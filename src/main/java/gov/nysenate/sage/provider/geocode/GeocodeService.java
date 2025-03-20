@@ -184,6 +184,6 @@ public class GeocodeService {
 
     private static GeocodedAddress getOrDefault(GeocodeResult baseResult, Point defaultPoint) {
         return baseResult.isSuccess() ? baseResult.getGeocodedAddress() :
-                new GeocodedAddress(new Geocode(defaultPoint, GeocodeQuality.POINT, null));
+                new GeocodedAddress(new Geocode(defaultPoint, GeocodeQuality.POINT, null, false));
     }
 }

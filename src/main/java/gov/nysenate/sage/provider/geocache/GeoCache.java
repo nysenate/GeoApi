@@ -58,7 +58,8 @@ public class GeoCache extends BaseDao implements GeocoderDao {
     private static Geocode getGeocodeFromResultSet(ResultSet rs) throws SQLException {
         var point = new Point(rs.getString("lat"), rs.getString("lon"));
         GeocodeQuality quality = GeocodeQuality.fromString(rs.getString("quality"));
-        return new Geocode(point, quality, rs.getString("method"), true);
+        Geocoder geocoder = Geocoder.getGeocoder(rs.getString("method"));
+        return new Geocode(point, quality, geocoder, true);
     }
 
     private static MapSqlParameterSource getIdParams(BuildingAddress address) {

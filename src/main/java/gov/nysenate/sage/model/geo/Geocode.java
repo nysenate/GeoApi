@@ -10,17 +10,6 @@ import java.math.BigDecimal;
  * metrics describing the accuracy of the geocoding.
  */
 public record Geocode(Point point, GeocodeQuality quality, Geocoder originalGeocoder, boolean isCached) {
-    // TODO: may not need String at all
-    public Geocode(Point point, GeocodeQuality quality, String originalGeocoder) {
-        this(point, quality, originalGeocoder, false);
-    }
-
-    public Geocode(Point point, GeocodeQuality quality, String originalGeocoder, boolean isCached) {
-        this(point, quality,
-                originalGeocoder == null ? null : Geocoder.valueOf(originalGeocoder.toUpperCase().trim()),
-                isCached);
-    }
-
     public BigDecimal lat() {
         return point.lat();
     }

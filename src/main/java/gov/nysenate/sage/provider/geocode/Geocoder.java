@@ -24,13 +24,10 @@ public enum Geocoder implements DataSource {
         return List.copyOf(geocoders);
     }
 
-    public static Geocoder getGeocoder(String providerStr) {
-        if (providerStr == null || providerStr.isBlank()) {
-            return GEOCACHE;
-        }
+    public static Geocoder getGeocoder(String geocoderStr) {
         try {
-            return valueOf(providerStr.trim().toUpperCase());
-        } catch (IllegalArgumentException e) {
+            return valueOf(geocoderStr.trim().toUpperCase());
+        } catch (NullPointerException | IllegalArgumentException e) {
             return null;
         }
     }
