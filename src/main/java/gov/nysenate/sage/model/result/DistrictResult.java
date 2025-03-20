@@ -67,12 +67,7 @@ public class DistrictResult extends BaseResult<DistrictSource> {
         this.districtedAddress = districtedAddress;
         if (getDistrictInfo() == null || getDistrictInfo().getAssignedDistricts().isEmpty()) {
             this.statusCode = ResultStatus.NO_DISTRICT_RESULT;
-            districtedAddress.setDistrictMatchLevel(DistrictMatchLevel.NOMATCH);
         }
-    }
-
-    public DistrictMatchLevel getDistrictMatchLevel() {
-        return districtedAddress.getDistrictMatchLevel();
     }
 
     /** Accessor method to the set of assigned districts stored in DistrictInfo */
@@ -86,7 +81,7 @@ public class DistrictResult extends BaseResult<DistrictSource> {
      * @return true if multi match, false otherwise
      */
     public boolean isMultiMatch() {
-        return isSuccess() && getDistrictMatchLevel().compareTo(DistrictMatchLevel.HOUSE) < 0;
+        return isSuccess() && getDistrictInfo().getMatchLevel().compareTo(DistrictMatchLevel.HOUSE) < 0;
     }
 
     private static ResultStatus getStatus(final GeocodedAddress geoAddress, DistrictSource source) {

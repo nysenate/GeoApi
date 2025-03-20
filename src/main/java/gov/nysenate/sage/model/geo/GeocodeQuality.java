@@ -5,7 +5,7 @@ package gov.nysenate.sage.model.geo;
  * been assigned based on similar quality codes among different geocoders.
  */
 public enum GeocodeQuality {
-    NOMATCH, STATE, COUNTY, CITY, UNKNOWN,
+    NOMATCH, UNKNOWN, STATE, COUNTY, CITY,
     ZIP, STREET, ZIP_EXT, HOUSE, POINT;
 
     public static GeocodeQuality fromString(String quality) {

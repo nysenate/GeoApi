@@ -83,7 +83,7 @@ public class DistrictService {
                 validInfos.add(streetfileDao.getDistrictInfo((BuildingAddress) address, DistrictMatchLevel.HOUSE));
             }
             else if (provider == SHAPEFILE) {
-                validInfos.add(sqlShapefileDao.getDistrictInfo(geocodedAddress.getGeocode().point(), requiredTypes));
+                validInfos.add(sqlShapefileDao.getDistrictInfo(geocodedAddress.getGeocode(), requiredTypes));
             }
         }
         var finalResult = new DistrictResult(providers.size() == 1 ? providers.get(0) : STREETFILE_AND_SHAPEFILE,

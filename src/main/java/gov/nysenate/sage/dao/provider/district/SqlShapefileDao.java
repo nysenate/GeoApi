@@ -6,13 +6,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.model.county.CountyDao;
-import gov.nysenate.sage.model.district.DistrictInfo;
-import gov.nysenate.sage.model.district.DistrictMap;
-import gov.nysenate.sage.model.district.DistrictMetadata;
-import gov.nysenate.sage.model.district.DistrictType;
-import gov.nysenate.sage.model.geo.GeometryTypes;
-import gov.nysenate.sage.model.geo.Point;
-import gov.nysenate.sage.model.geo.Polygon;
+import gov.nysenate.sage.model.district.*;
+import gov.nysenate.sage.model.geo.*;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.Pair;
 import org.slf4j.Logger;
@@ -59,18 +54,19 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
     }
 
     /** {@inheritDoc} */
-    public DistrictInfo getDistrictInfo(Point point, List<DistrictType> districtTypes) {
+    public DistrictInfo getDistrictInfo(Geocode geocode, List<DistrictType> districtTypes) {
         var districtInfo = new DistrictInfo();
+        districtInfo.setMatchLevel(getMatchLevel(geocode.quality()));
         for (DistrictType districtType : districtTypes) {
             if (!districtType.hasShapefile()) {
                 continue;
             }
             String sql = GET_DISTRICT_FROM_POINT.getSql("districts", getReplacements(districtType, "type"));
-            SqlParameterSource params = new MapSqlParameterSource("lat", point.lat())
-                    .addValue("lon", point.lon());
-            Pair<String> result = namedJdbcTemplate.query(sql, params, rs -> {
-                return new Pair<>(rs.getString("name"), rs.getString("code"));
-            });
+            SqlParameterSource params = new MapSqlParameterSource("lat", geocode.point().lat())
+                    .addValue("lon", geocode.point().lon());
+            Pair<String> result = namedJdbcTemplate.queryForObject(sql, params,
+                    (rs, rowNum) -> new Pair<>(rs.getString("name"), rs.getString("code"))
+            );
             districtInfo.setDistName(districtType, result.first());
             districtInfo.setDistCode(districtType, result.second());
         }
@@ -219,5 +215,15 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
             logger.error("{}", String.valueOf(ex));
             return null;
         }
+    }
+
+    private static DistrictMatchLevel getMatchLevel(GeocodeQuality quality) {
+        return switch (quality) {
+            case POINT, HOUSE -> DistrictMatchLevel.HOUSE;
+            case ZIP_EXT, STREET -> DistrictMatchLevel.STREET;
+            case ZIP -> DistrictMatchLevel.ZIP5;
+            case CITY -> DistrictMatchLevel.CITY;
+            default -> DistrictMatchLevel.NOMATCH;
+        };
     }
 }

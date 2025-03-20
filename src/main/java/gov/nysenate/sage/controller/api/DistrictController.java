@@ -5,12 +5,10 @@ import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.client.response.district.BatchDistrictResponse;
 import gov.nysenate.sage.client.response.district.DistrictResponse;
 import gov.nysenate.sage.client.response.district.IntersectResponse;
-import gov.nysenate.sage.client.response.district.MultiDistrictResponse;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Point;
-import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.IntersectResult;
 import gov.nysenate.sage.provider.district.DistrictService;
 import gov.nysenate.sage.provider.district.DistrictSource;
@@ -114,12 +112,7 @@ public class DistrictController {
                 return new ApiError(DistrictController.class, DISTRICT_PROVIDER_NOT_SUPPORTED);
             }
         }
-        DistrictResult districtResult = districtService.assignDistricts(currDistrictSources, geocodedAddress);
-        if (districtResult.isMultiMatch() && showMultiMatch) {
-            return new MultiDistrictResponse(districtResult);
-        } else {
-            return new DistrictResponse(districtResult);
-        }
+        return new DistrictResponse(districtService.assignDistricts(currDistrictSources, geocodedAddress));
     }
 
     /**

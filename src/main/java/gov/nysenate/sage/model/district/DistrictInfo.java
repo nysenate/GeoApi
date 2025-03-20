@@ -1,8 +1,9 @@
 package gov.nysenate.sage.model.district;
 
-import gov.nysenate.sage.model.address.DistrictedStreetRange;
-
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static gov.nysenate.sage.controller.api.DistrictUtil.isValidDistCode;
 import static gov.nysenate.sage.model.district.DistrictType.*;
@@ -18,9 +19,6 @@ public class DistrictInfo {
     /** District names and codes */
     private final Map<DistrictType, String> districtNames = new HashMap<>();
     private final Map<DistrictType, String> districtCodes = new HashMap<>();
-    private final Map<DistrictType, DistrictOverlap> districtOverlaps = new HashMap<>();
-
-    private List<DistrictedStreetRange> streetRanges = new ArrayList<>();
     private DistrictMatchLevel matchLevel = DistrictMatchLevel.NOMATCH;
 
     public DistrictInfo() {}
@@ -76,22 +74,6 @@ public class DistrictInfo {
 
     public Set<DistrictType> getAssignedDistricts() {
         return assignedDistricts;
-    }
-
-    /**
-    * Multi Districts
-    */
-    public Map<DistrictType, DistrictOverlap> getDistrictOverlaps() {
-        return districtOverlaps;
-    }
-
-
-    public List<DistrictedStreetRange> getStreetRanges() {
-        return streetRanges;
-    }
-
-    public void setStreetRanges(List<DistrictedStreetRange> streetRanges) {
-        this.streetRanges = streetRanges;
     }
 
     @Override

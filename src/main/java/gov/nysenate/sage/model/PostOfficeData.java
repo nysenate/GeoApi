@@ -38,7 +38,7 @@ public class PostOfficeData<T> {
             DistrictInfo consolidatedInfo = DistrictUtil.getDistrictInfoWithoutConflicts(
                     entry.getValue().stream().map(result -> result.getDistrictedAddress().getDistrictInfo()).toList());
             DistrictMatchLevel consolidatedMatchLevel = DistrictMatchLevel.getMin(
-                    entry.getValue().stream().map(result -> result.getDistrictedAddress().getDistrictMatchLevel()).toList()
+                    entry.getValue().stream().map(result -> result.getDistrictInfo().getMatchLevel()).toList()
             );
             List<DistrictSource> sources  = entry.getValue().stream().map(result -> ((DistrictSource) result.getSource())).toList();
             DistrictSource source = sources.size() == 1 ? sources.get(0) : DistrictSource.STREETFILE_AND_SHAPEFILE;

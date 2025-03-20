@@ -3,18 +3,18 @@ package gov.nysenate.sage.dao.provider.district;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
-import gov.nysenate.sage.model.geo.Point;
+import gov.nysenate.sage.model.geo.Geocode;
 
 import java.util.List;
 
 public interface ShapefileDao {
     /**
      * Retrieves a DistrictInfo object based on the districts that intersect the given point.
-     * @param point          Point of interest
+     * @param geocode        Geocode of interest
      * @param districtTypes  Collection of district types to resolve
      * @return  DistrictInfo if query was successful, null otherwise
      */
-    DistrictInfo getDistrictInfo(Point point, List<DistrictType> districtTypes);
+    DistrictInfo getDistrictInfo(Geocode geocode, List<DistrictType> districtTypes);
 
     /**
      * Creates and returns a DistrictOverlap object which contains lists of all districts that contained

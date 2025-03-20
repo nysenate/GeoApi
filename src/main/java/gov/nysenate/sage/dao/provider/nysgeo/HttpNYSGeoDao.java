@@ -127,7 +127,7 @@ public class HttpNYSGeoDao implements GeocoderDao {
         else if (quality >= 90) {
             return GeocodeQuality.HOUSE;
         }
-        else if (quality == 0){
+        else if (quality == 0) {
             return GeocodeQuality.NOMATCH;
         }
         else {

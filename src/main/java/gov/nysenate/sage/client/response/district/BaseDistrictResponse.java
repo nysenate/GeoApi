@@ -25,7 +25,7 @@ public abstract class BaseDistrictResponse extends BaseResponse {
         }
         this.districtAssigned = !districtResult.getAssignedDistricts().isEmpty();
         this.senateAssigned = districtResult.getAssignedDistricts().contains(DistrictType.SENATE);
-        this.matchLevel = districtResult.getDistrictMatchLevel().name();
+        this.matchLevel = districtResult.getDistrictInfo().getMatchLevel().name();
         this.isMultiMatch = districtResult.isMultiMatch();
         Address realAddress = districtResult.getAddress();
         if (realAddress != null) {

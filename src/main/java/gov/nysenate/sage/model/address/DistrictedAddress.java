@@ -13,7 +13,6 @@ public class DistrictedAddress implements Serializable {
     private Address address;
     private Geocode geocode;
     private DistrictInfo districtInfo = new DistrictInfo();
-    private DistrictMatchLevel districtMatchLevel = DistrictMatchLevel.NOMATCH;
 
     public DistrictedAddress() {}
 
@@ -29,7 +28,6 @@ public class DistrictedAddress implements Serializable {
         this.address = address;
         this.geocode = geocode;
         this.districtInfo = districtInfo;
-        this.districtMatchLevel = districtMatchLevel;
     }
 
     /** Convenience method to access the underlying Address object */
@@ -58,13 +56,5 @@ public class DistrictedAddress implements Serializable {
 
     public void setDistrictInfo(DistrictInfo districtInfo) {
         this.districtInfo = districtInfo;
-    }
-
-    public DistrictMatchLevel getDistrictMatchLevel() {
-        return districtMatchLevel;
-    }
-
-    public void setDistrictMatchLevel(DistrictMatchLevel districtMatchLevel) {
-        this.districtMatchLevel = districtMatchLevel;
     }
 }
