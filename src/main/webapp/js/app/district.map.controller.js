@@ -77,7 +77,7 @@ sage.controller("DistrictMapController", function($scope, $http, mapService, men
      * Performs request to district map API to retrieve map data and delegates to the `districtMap` handler.
      */
     $scope.lookup = function () {
-        uiBlocker.block("Loading " + this.type + " maps...");
+        uiBlocker.block("Loading " + this.type.replace("_", "/") + " maps...");
         // If there is no intersection type specified, we can just retrieve the map
         if ($scope.intersectType === "none" || $scope.type === $scope.intersectType || $scope.selectedDistrict.district === null) {
             $http.get(this.getDistrictMapUrl(this.type, this.selectedDistrict.district, false))

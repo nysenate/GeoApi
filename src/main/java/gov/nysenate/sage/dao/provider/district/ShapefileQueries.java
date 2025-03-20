@@ -3,11 +3,10 @@ package gov.nysenate.sage.dao.provider.district;
 import gov.nysenate.sage.dao.base.BasicSqlQuery;
 
 public enum ShapefileQueries implements BasicSqlQuery {
-    // TODO: combining town and city maps
     GET_DISTRICT_MAP("""
-            SELECT *, St_Area(map) AS area
+            SELECT *, ST_AsGeoJson(full_geom) AS map, area_in_sq_km(full_geom) AS area
             FROM (
-                SELECT ${nameColumn} AS name, ${codeColumn} AS code, ST_AsGeoJson(ST_Union(geom)) AS map
+                SELECT ${nameColumn} AS name, ${codeColumn} AS code, ST_Union(geom) AS full_geom
                 FROM ${schema}.${type}
                 GROUP BY ${nameColumn}, ${codeColumn}
             ) AS temp"""),
@@ -19,7 +18,8 @@ public enum ShapefileQueries implements BasicSqlQuery {
             """),
 
     GET_INTERSECTION("""
-            SELECT *, ST_AsGeoJson(ST_CollectionExtract(intersection_geom, 3)) AS intersect_geo_json, ST_Area(intersection_geom) AS area
+            SELECT *, ST_AsGeoJson(ST_CollectionExtract(intersection_geom, 3)) AS intersect_geo_json,
+                area_in_sq_km(intersection_geom) AS area
             FROM (
                 SELECT ${intersectType}.${nameColumn} AS name, ${intersectType}.${codeColumn} AS code,
                     ST_Intersection(${baseType}.geom, ${intersectType}.geom) AS intersection_geom

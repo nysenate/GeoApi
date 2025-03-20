@@ -13,7 +13,7 @@ public class DistrictOverlap {
     private final Map<String, DistrictMap> intersectionMaps = new HashMap<>();
 
     public String getAreaUnit() {
-        return "SQ_METERS";
+        return "SQ_KILOMETERS";
     }
 
     public BigDecimal getTotalArea() {

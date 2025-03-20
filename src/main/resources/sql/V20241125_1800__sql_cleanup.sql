@@ -30,3 +30,10 @@ CREATE TABLE log.api_request (
     params TEXT,
     request_time TIMESTAMP DEFAULT now()
 );
+
+CREATE OR REPLACE FUNCTION area_in_sq_km(geom geometry(MULTIPOLYGON, 4326))
+    RETURNS float LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN ST_Area(ST_Transform(geom, utmzone(ST_Centroid(geom))))/(1000*1000);
+END;$$;

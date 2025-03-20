@@ -13,6 +13,7 @@ import java.util.List;
 public class DistrictMap extends DistrictMetadata implements Comparable<DistrictMap> {
     private List<Polygon> polygons = new ArrayList<>();
     private String geometryType = "";
+    // Note that this is only an approximation.
     private BigDecimal area;
 
     public DistrictMap() {}

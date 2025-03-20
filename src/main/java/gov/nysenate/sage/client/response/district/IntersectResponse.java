@@ -15,6 +15,7 @@ public record IntersectResponse(List<DistrictOverlapView> overlaps, DistrictType
         List<DistrictOverlapView> overlaps = intersectResult.getOverlap().stream()
                 .map(dMap -> new DistrictOverlapView(dMap, totalArea)).toList();
         return new IntersectResponse(overlaps, intersectResult.getIntersectType(),
-                new PolygonMapView(intersectResult.getMainMap()), intersectResult.getMainMap().getArea(), "SQ_METERS");
+                new PolygonMapView(intersectResult.getMainMap()), intersectResult.getMainMap().getArea(),
+                "SQ_KILOMETERS");
     }
 }
