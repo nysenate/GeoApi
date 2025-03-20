@@ -65,8 +65,9 @@ public class DistrictMap extends DistrictMetadata implements Comparable<District
     @Override
     public int compareTo(@Nonnull DistrictMap o) {
         if (districtType == DistrictType.TOWN_CITY) {
-            return districtName.compareTo(o.districtName);
+            int result = districtName.compareTo(o.districtName);
+            return result == 0 ? districtCode.compareTo(o.districtCode) : result;
         }
-        return Integer.parseInt(districtCode)- Integer.parseInt(o.districtCode);
+        return Integer.parseInt(districtCode) - Integer.parseInt(o.districtCode);
     }
 }
