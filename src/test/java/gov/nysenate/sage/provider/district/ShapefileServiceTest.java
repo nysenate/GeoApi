@@ -5,6 +5,7 @@ import gov.nysenate.sage.annotation.IntegrationTest;
 import gov.nysenate.sage.config.DatabaseConfig;
 import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
+import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
@@ -33,7 +34,7 @@ public class ShapefileServiceTest extends BaseTests {
         addr.setUspsValidated(false);
         Geocode geo = new Geocode(new Point("42.6220235", "-73.8326232"), GeocodeQuality.CITY, Geocoder.GOOGLE, false);
         GeocodedAddress geoAddr = new GeocodedAddress(addr, geo);
-        DistrictResult res = districtService.assignDistricts(List.of(LocalSource.SHAPEFILE), geoAddr);
+        DistrictResult res = districtService.assignDistricts(List.of(LocalSource.SHAPEFILE), geoAddr, List.of(DistrictType.SENATE));
         assertNotEquals(ResultStatus.SUCCESS, res.getStatusCode());
     }
 }

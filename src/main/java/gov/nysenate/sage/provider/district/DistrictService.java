@@ -10,11 +10,9 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.address.Zip5;
-import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
-import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.util.ExecutorUtil;
 import gov.nysenate.sage.util.Tuple;
 import org.slf4j.Logger;
@@ -30,11 +28,11 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import static gov.nysenate.sage.provider.district.LocalSource.*;
+import static gov.nysenate.sage.provider.district.LocalSource.SHAPEFILE;
+import static gov.nysenate.sage.provider.district.LocalSource.STREETFILE;
 
 /**
- * DistrictService is used to assign district information to addresses and may or may not require
- * geo-coordinate information.
+ * Provides methods for mapping GeocodedAddress to DistrictResult.
  */
 @Service
 public class DistrictService {
@@ -45,17 +43,12 @@ public class DistrictService {
     private final SqlShapefileDao sqlShapefileDao;
     private final ThreadPoolTaskExecutor executor;
 
-
     public DistrictService(PostOfficeDao postOfficeDao, StreetfileDao streetfileDao,
                            SqlShapefileDao sqlShapefileDao, Environment env) {
         this.postOfficeDao = postOfficeDao;
         this.streetfileDao = streetfileDao;
         this.sqlShapefileDao = sqlShapefileDao;
         this.executor = ExecutorUtil.createExecutor("district", env.getValidateThreads());
-    }
-
-    public DistrictResult assignDistricts(List<LocalSource> providers, GeocodedAddress geocodedAddress) {
-        return assignDistricts(providers, geocodedAddress, List.of(DistrictType.values()));
     }
 
     public DistrictResult assignDistricts(List<LocalSource> providers, GeocodedAddress geocodedAddress,
@@ -66,41 +59,27 @@ public class DistrictService {
             if (!poBoxCache.containsKey(cacheKey)) {
                 List<DistrictResult> postOfficeResults = postOfficeDao.getPostOffices(address.getZip5())
                         .stream().map(addr -> assignDistricts(providers, geocodedAddress, requiredTypes)).toList();
-                poBoxCache.put(cacheKey, PostOfficeData.getPostOfficeDistrictData(postOfficeResults));
+                poBoxCache.put(cacheKey, PostOfficeData.getDistrictData(postOfficeResults));
             }
             return poBoxCache.get(cacheKey).getData(address.getPostalCity());
         }
 
-        ResultStatus errorStatusCode = null;
-        List<DistrictInfo> validInfos = new ArrayList<>();
+        var results = new ArrayList<DistrictResult>();
         for (LocalSource provider : providers) {
             var result = new DistrictResult(provider, geocodedAddress);
-            if (!result.isSuccess()) {
-                errorStatusCode = result.getStatusCode();
+            if (result.isSuccess()) {
+                if (provider == STREETFILE) {
+                    result.setDistrictInfo(streetfileDao.getDistrictInfo((BuildingAddress) address, DistrictMatchLevel.HOUSE));
+                }
+                else if (provider == SHAPEFILE) {
+                    result.setDistrictInfo(sqlShapefileDao.getDistrictInfo(geocodedAddress.getGeocode(), requiredTypes));
+                }
             }
-            else if (provider == STREETFILE) {
-                validInfos.add(streetfileDao.getDistrictInfo((BuildingAddress) address, DistrictMatchLevel.HOUSE));
-            }
-            else if (provider == SHAPEFILE) {
-                validInfos.add(sqlShapefileDao.getDistrictInfo(geocodedAddress.getGeocode(), requiredTypes));
-            }
+            result.setResultTime();
+            results.add(result);
         }
-        DistrictInfo finalInfo = DistrictUtil.consolidateDistrictInfo(validInfos);
-        LocalSource source = providers.get(0);
-        if (!validInfos.isEmpty() &&
-                validInfos.get(0).getAssignedDistricts().size() != finalInfo.getAssignedDistricts().size()) {
-            source = STREETFILE_AND_SHAPEFILE;
-        }
-        var finalResult = new DistrictResult(source, geocodedAddress,
-                validInfos.isEmpty() ? errorStatusCode : ResultStatus.SUCCESS);
-        finalResult.setDistrictInfo(finalInfo);
-        finalResult.setResultTime();
-        return finalResult;
-    }
 
-    public List<DistrictResult> assignDistricts(List<LocalSource> providers,
-                                                List<GeocodedAddress> geocodedAddresses) {
-        return assignDistricts(providers, geocodedAddresses, List.of(DistrictType.values()));
+        return DistrictUtil.consolidateResults(results);
     }
 
     public List<DistrictResult> assignDistricts(List<LocalSource> providers,

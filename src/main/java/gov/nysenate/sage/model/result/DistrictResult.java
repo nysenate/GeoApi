@@ -1,79 +1,61 @@
 package gov.nysenate.sage.model.result;
 
 import gov.nysenate.sage.model.address.Address;
-import gov.nysenate.sage.model.address.DistrictedAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
-import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.provider.district.LocalSource;
 
-import javax.annotation.Nonnull;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
+import static gov.nysenate.sage.model.geo.GeocodeQuality.HOUSE;
+import static gov.nysenate.sage.model.geo.GeocodeQuality.POINT;
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 
 /**
- * Represents the result returned by district assignment services.
+ * Represents the result returned by the district assignment service.
  */
 public class DistrictResult extends BaseResult<LocalSource> {
-    /** We should only attempt to assign districts to a geocode if it is accurate enough. */
-    private static final List<GeocodeQuality> DISTRICT_ASSIGNABLE_GEOCODE_QUALITIES =
-            List.of(GeocodeQuality.HOUSE, GeocodeQuality.POINT);
+    private final GeocodedAddress geoAddress;
+    private DistrictInfo districtInfo;
 
-    /** Contains the geocoded address and district information */
-    @Nonnull
-    private DistrictedAddress districtedAddress;
-
-    public DistrictResult(LocalSource source, GeocodedAddress geoAddress) {
-        this(source, geoAddress, getStatus(geoAddress, source));
+    public DistrictResult(LocalSource source, GeocodedAddress geoAddress, DistrictInfo districtInfo) {
+        super(source);
+        this.statusCode = getStatus(geoAddress, source);
+        this.geoAddress = geoAddress;
+        this.districtInfo = districtInfo;
+        setResultTime();
     }
 
-    public DistrictResult(LocalSource source, GeocodedAddress geoAddress, ResultStatus statusCode) {
-        super(source);
-        this.districtedAddress = new DistrictedAddress(geoAddress, null);
-        this.statusCode = statusCode;
+    public DistrictResult(LocalSource source, GeocodedAddress geoAddress) {
+        this(source, geoAddress, new DistrictInfo());
+    }
+
+    public GeocodedAddress getGeoAddress() {
+        return geoAddress;
     }
 
     public DistrictInfo getDistrictInfo() {
-        return districtedAddress.getDistrictInfo();
+        return districtInfo;
     }
 
     public void setDistrictInfo(DistrictInfo districtInfo) {
-        this.districtedAddress.setDistrictInfo(districtInfo);
+        this.districtInfo = districtInfo;
     }
 
     public Geocode getGeocode() {
-        return districtedAddress.getGeocode();
+        return geoAddress == null ? null : geoAddress.getGeocode();
     }
 
     public Address getAddress() {
-        return districtedAddress.getAddress();
-    }
-
-    @Nonnull
-    public DistrictedAddress getDistrictedAddress() {
-        return districtedAddress;
-    }
-
-    public void setDistrictedAddress(DistrictedAddress districtedAddress) {
-        if (districtedAddress == null) {
-            districtedAddress = new DistrictedAddress();
-        }
-        this.districtedAddress = districtedAddress;
-        if (getDistrictInfo() == null || getDistrictInfo().getAssignedDistricts().isEmpty()) {
-            this.statusCode = ResultStatus.NO_DISTRICT_RESULT;
-        }
+        return geoAddress == null ? null : geoAddress.getAddress();
     }
 
     /** Accessor method to the set of assigned districts stored in DistrictInfo */
     public Set<DistrictType> getAssignedDistricts() {
-        return (this.getDistrictInfo() != null) ? this.getDistrictInfo().getAssignedDistricts()
-                                                : new HashSet<>();
+        return getDistrictInfo() == null ? Set.of() : getDistrictInfo().getAssignedDistricts();
     }
 
     /**
@@ -95,7 +77,7 @@ public class DistrictResult extends BaseResult<LocalSource> {
             if (!geoAddress.isValidGeocode()) {
                 return INVALID_GEOCODE;
             }
-            if (!DISTRICT_ASSIGNABLE_GEOCODE_QUALITIES.contains(geoAddress.getGeocode().quality())) {
+            if (geoAddress.getGeocode().quality() != HOUSE && geoAddress.getGeocode().quality() != POINT) {
                 return INSUFFICIENT_GEOCODE;
             }
         }

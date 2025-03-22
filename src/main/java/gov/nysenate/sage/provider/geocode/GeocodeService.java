@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 
 /**
-* Base interface for providers of geocoding services.
+* Provides methods for mapping Address to GeocodedAddress or vice-versa, with or without Result information.
 */
 @Service
 public class GeocodeService {
@@ -69,7 +69,7 @@ public class GeocodeService {
             if (!poBoxCache.containsKey(cacheKey)) {
                 List<GeocodeResult> postOfficeResults = postOfficeDao.getPostOffices(address.getZip5())
                         .stream().map(addr -> geocode(geocoders, addr)).toList();
-                poBoxCache.put(cacheKey, PostOfficeData.getPostOfficeGeocodeData(postOfficeResults));
+                poBoxCache.put(cacheKey, PostOfficeData.getGeocodeData(postOfficeResults));
             }
             return poBoxCache.get(cacheKey).getData(address.getPostalCity());
         }

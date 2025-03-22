@@ -1,19 +1,15 @@
 package gov.nysenate.sage.model;
 
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import gov.nysenate.sage.controller.api.DistrictUtil;
-import gov.nysenate.sage.model.address.DistrictedAddress;
-import gov.nysenate.sage.model.district.DistrictInfo;
-import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
-import gov.nysenate.sage.provider.district.LocalSource;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static gov.nysenate.sage.controller.api.DistrictUtil.consolidateResultsWithoutConflicts;
 
 /**
  * Stores data about Post Office addresses in a single zipcode.
@@ -27,43 +23,27 @@ public class PostOfficeData<T> {
         this.consolidatedData = consolidatedData;
     }
 
-    public static PostOfficeData<DistrictResult> getPostOfficeDistrictData(List<DistrictResult> possibleResults) {
+    public static PostOfficeData<DistrictResult> getDistrictData(List<DistrictResult> possibleResults) {
         Map<String, DistrictResult> dataMap = new HashMap<>();
         // A town may have multiple Post Offices.
-        Multimap<String, DistrictResult> postalCityToResultMultimap = ArrayListMultimap.create();
+        ArrayListMultimap<String, DistrictResult> postalCityToResultMultimap = ArrayListMultimap.create();
         for (DistrictResult result : possibleResults) {
-            postalCityToResultMultimap.put(result.getDistrictedAddress().getAddress().getPostalCity().toUpperCase(), result);
+            postalCityToResultMultimap.put(result.getAddress().getPostalCity().toUpperCase(), result);
         }
-        for (var entry : postalCityToResultMultimap.asMap().entrySet()) {
-            DistrictInfo consolidatedInfo = DistrictUtil.getDistrictInfoWithoutConflicts(
-                    entry.getValue().stream().map(result -> result.getDistrictedAddress().getDistrictInfo()).toList());
-            DistrictMatchLevel consolidatedMatchLevel = DistrictMatchLevel.getMin(
-                    entry.getValue().stream().map(result -> result.getDistrictInfo().getMatchLevel()).toList()
-            );
-            consolidatedInfo.setMatchLevel(consolidatedMatchLevel);
-            List<LocalSource> sources  = entry.getValue().stream().map(result -> ((LocalSource) result.getSource())).toList();
-            LocalSource source = sources.size() == 1 ? sources.get(0) : LocalSource.STREETFILE_AND_SHAPEFILE;
-            DistrictResult result = new DistrictResult(source, null);
-            result.setDistrictedAddress(new DistrictedAddress(null, consolidatedInfo));
-            dataMap.put(entry.getKey(), result);
+        for (String postalCity : postalCityToResultMultimap.keySet()) {
+            dataMap.put(postalCity, consolidateResultsWithoutConflicts(postalCityToResultMultimap.get(postalCity)));
         }
 
-        // TODO: full consolidation. Perhaps only valid results?
-        return new PostOfficeData<>(dataMap, null);
+        return new PostOfficeData<>(dataMap, consolidateResultsWithoutConflicts(possibleResults));
     }
 
-    public static PostOfficeData<GeocodeResult> getPostOfficeGeocodeData(List<GeocodeResult> possibleResults) {
-        // There's no real way to consolidate Geocodes
+    public static PostOfficeData<GeocodeResult> getGeocodeData(List<GeocodeResult> possibleResults) {
+        // There's no real way to consolidate Geocodes.
         final var multipleResult = new GeocodeResult(null, ResultStatus.MULTIPLE_POST_OFFICES);
         Map<String, GeocodeResult> dataMap = new HashMap<>();
         for (GeocodeResult result : possibleResults) {
             String postalCity = result.getGeocodedAddress().getAddress().getPostalCity().toUpperCase();
-            if (!dataMap.containsKey(postalCity)) {
-                dataMap.put(postalCity, result);
-            }
-            else {
-                dataMap.put(postalCity, multipleResult);
-            }
+            dataMap.merge(postalCity, result, (oldResult, newResult) -> multipleResult);
         }
 
         return new PostOfficeData<>(dataMap, possibleResults.size() == 1 ? possibleResults.get(0) : multipleResult);

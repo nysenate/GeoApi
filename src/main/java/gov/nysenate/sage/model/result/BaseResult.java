@@ -44,7 +44,7 @@ public abstract class BaseResult<S extends DataSource> {
         this.messages = messages;
     }
 
-    public DataSource getSource() {
+    public S getSource() {
         return source;
     }
 
@@ -57,7 +57,7 @@ public abstract class BaseResult<S extends DataSource> {
     }
 
     public boolean isSuccess() {
-        return this.statusCode != null && this.statusCode.equals(ResultStatus.SUCCESS);
+        return statusCode != null && statusCode.equals(ResultStatus.SUCCESS);
     }
 
     public Timestamp getResultTime() {

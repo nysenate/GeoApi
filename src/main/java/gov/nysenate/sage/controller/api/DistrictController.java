@@ -73,7 +73,6 @@ public class DistrictController {
             @RequestParam(required = false) String districtSource,
             @RequestParam(required = false) String geocoder,
             @RequestParam(required = false, defaultValue = "true") boolean uspsValidate,
-            @RequestParam(required = false) boolean showMultiMatch,
             @RequestParam(required = false) boolean usePunct,
             @RequestParam(required = false) String lat,
             @RequestParam(required = false) String lon,
@@ -112,7 +111,8 @@ public class DistrictController {
                 return new ApiError(DistrictController.class, DISTRICT_PROVIDER_NOT_SUPPORTED);
             }
         }
-        return new DistrictResponse(districtService.assignDistricts(currDistrictSources, geocodedAddress));
+        return new DistrictResponse(districtService.assignDistricts(currDistrictSources, geocodedAddress,
+                List.of(DistrictType.values())));
     }
 
     /**
@@ -147,7 +147,8 @@ public class DistrictController {
                 geocodeService.getGeocodedAddresses(geocoderRanking, addresses) :
                 geocodeService.getRevGeocodedAddresses(geocoderRanking, points);
 
-        return new BatchDistrictResponse(districtService.assignDistricts(districtSourceRanking, geocodedAddresses));
+        return new BatchDistrictResponse(districtService.assignDistricts(districtSourceRanking, geocodedAddresses,
+                List.of(DistrictType.values())));
     }
 
     /**
@@ -169,7 +170,7 @@ public class DistrictController {
             @RequestParam(required = false) String state,
             @RequestParam(required = false) String zip5,
             @RequestParam(required = false) String zip4) {
-        return districtAssign(null, null, true, false,
+        return districtAssign(null, null, true,
                 usePunct, lat, lon, addr, addr1, addr2, city, state, zip5, zip4);
     }
 
