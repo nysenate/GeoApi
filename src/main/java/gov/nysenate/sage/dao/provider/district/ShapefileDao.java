@@ -40,7 +40,7 @@ public interface ShapefileDao {
      */
     void cacheDistrictMaps();
 
-    DistrictMap getDistrictMap(DistrictType type, String district);
+    DistrictMap getDistrictMap(DistrictType type, String code);
 
     String getDistrictName(DistrictType type, String code);
 }

@@ -34,7 +34,7 @@ public final class DistrictUtil {
         Map<DistrictType, SingleDistrict> typeToDistrictMap = new HashMap<>();
         for (DistrictType distType : DistrictType.values()) {
             List<SingleDistrict> singleDistricts = districtInfoList.stream()
-                    .map(info -> info.getDistrict(distType)).distinct().toList();
+                    .map(info -> info.getDistrict(distType)).filter(Objects::nonNull).distinct().toList();
             if (singleDistricts.size() == 1) {
                 typeToDistrictMap.put(distType, singleDistricts.get(0));
             }

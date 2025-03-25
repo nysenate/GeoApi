@@ -65,8 +65,7 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
             SqlParameterSource params = new MapSqlParameterSource("lat", geocode.point().lat())
                     .addValue("lon", geocode.point().lon());
             SingleDistrict result = namedJdbcTemplate.queryForObject(sql, params,
-                    (rs, rowNum) -> new SingleDistrict(rs.getString("code"), rs.getString("name"))
-            );
+                    new SingleDistrictMapper(districtType));
             typeToDistrictMap.put(districtType, result);
         }
         return new DistrictInfo(typeToDistrictMap, getMatchLevel(geocode.quality()));
@@ -85,8 +84,9 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
         return namedJdbcTemplate.query(sql, params, (rs, rowNum) -> {
             DistrictMap intersectMap = getDistrictMapFromJson(rs.getString("intersect_geo_json"));
             intersectMap.setDistrictType(intersectType);
-            intersectMap.setDistrictName(rs.getString("name"));
-            intersectMap.setDistrictCode(getDistrictCode(rs, intersectType));
+            String code = getDistrictCode(rs, intersectType);
+            intersectMap.setDistrictCode(code);
+            intersectMap.setDistrictName(getDistrictName(intersectType, code));
             intersectMap.setArea(rs.getBigDecimal("area"));
             return intersectMap;
         }).stream().filter(dm -> !dm.getArea().equals(BigDecimal.ZERO)).toList();
@@ -129,6 +129,7 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
         @Override
         public DistrictMap mapRow(@Nonnull ResultSet rs, int rowNum) throws SQLException {
             String code = getDistrictCode(rs, type);
+            // This is the place where names are actually assigned: everything else pulls from these cached values.
             String name = switch (type) {
                 case SENATE -> "NY Senate District " + code;
                 case ASSEMBLY -> "NY Assembly District " + code;
@@ -138,11 +139,25 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
                 case COUNTY -> countySenateCodeToNameMap.get(Integer.parseInt(code));
                 default -> rs.getString("name");
             };
-            var metadata = new DistrictMetadata(type, name, getDistrictCode(rs, type));
+            var metadata = new DistrictMetadata(type, name, code);
             DistrictMap map = getDistrictMapFromJson(rs.getString("map"));
             map.setDistrictMetadata(metadata);
             map.setArea(rs.getBigDecimal("area"));
             return map;
+        }
+    }
+
+    private class SingleDistrictMapper implements RowMapper<SingleDistrict> {
+        private final DistrictType type;
+
+        private SingleDistrictMapper(DistrictType type) {
+            this.type = type;
+        }
+
+        @Override
+        public SingleDistrict mapRow(@Nonnull ResultSet rs, int rowNum) throws SQLException {
+            String code = getDistrictCode(rs, type);
+            return new SingleDistrict(code, getDistrictName(type, code));
         }
     }
 
@@ -168,12 +183,12 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
     }
 
     @Override
-    public DistrictMap getDistrictMap(DistrictType type, String district) {
+    public DistrictMap getDistrictMap(DistrictType type, String code) {
         if (!districtMapCache.containsKey(type)) {
             return null;
         }
         return districtMapCache.get(type).stream()
-                .filter(dMap -> dMap.getDistrictCode().equalsIgnoreCase(district))
+                .filter(dMap -> dMap.getDistrictCode().equalsIgnoreCase(code))
                 .findFirst().orElse(null);
     }
 

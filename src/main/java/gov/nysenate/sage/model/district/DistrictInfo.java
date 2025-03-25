@@ -22,7 +22,7 @@ public record DistrictInfo(ImmutableMap<DistrictType, SingleDistrict> typeToDist
 
     public String getDistCode(DistrictType districtType) {
         SingleDistrict singleDistrict = typeToDistrictMap.get(districtType);
-        return singleDistrict == null ? null : singleDistrict.name();
+        return singleDistrict == null ? null : singleDistrict.code();
     }
 
     public SingleDistrict getDistrict(DistrictType districtType) {

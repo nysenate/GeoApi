@@ -11,7 +11,7 @@ import java.util.List;
  * Extends DistrictMetadata with district map geometry information.
  */
 public class DistrictMap extends DistrictMetadata implements Comparable<DistrictMap> {
-    private List<Polygon> polygons = new ArrayList<>();
+    private final List<Polygon> polygons = new ArrayList<>();
     private String geometryType = "";
     // Note that this is only an approximation.
     private BigDecimal area;
@@ -28,12 +28,8 @@ public class DistrictMap extends DistrictMetadata implements Comparable<District
         return polygons;
     }
 
-    public void setPolygons(List<Polygon> polygons) {
-        this.polygons = polygons;
-    }
-
     public void addPolygon(Polygon polygon) {
-        this.polygons.add(polygon);
+        polygons.add(polygon);
     }
 
     public String getGeometryType() {
@@ -54,10 +50,8 @@ public class DistrictMap extends DistrictMetadata implements Comparable<District
 
     public String toString() {
         var o = new StringBuilder();
-        if (polygons != null) {
-            for (Polygon polygon : polygons) {
-                o.append(polygon.toString());
-            }
+        for (Polygon polygon : polygons) {
+            o.append(polygon.toString());
         }
         return o.toString();
     }
