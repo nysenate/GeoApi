@@ -36,7 +36,6 @@ public class MapController extends BaseController {
      * Usage:
      * (GET)    /api/v2/map/{distType}
      */
-    // TODO: weird that this does not necessarily return maps
     @GetMapping(value = "/{distType}")
     public BaseResponse map(@PathVariable String distType,
                             @RequestParam(required = false) String district,

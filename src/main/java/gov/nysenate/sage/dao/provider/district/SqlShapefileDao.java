@@ -129,7 +129,16 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
         @Override
         public DistrictMap mapRow(@Nonnull ResultSet rs, int rowNum) throws SQLException {
             String code = getDistrictCode(rs, type);
-            var metadata = new DistrictMetadata(type, getDistrictName(type, code), code);
+            String name = switch (type) {
+                case SENATE -> "NY Senate District " + code;
+                case ASSEMBLY -> "NY Assembly District " + code;
+                case CONGRESSIONAL -> "NY Congressional District " + code;
+                case TOWN_CITY -> (code.startsWith("-") ? "City" : "Town") + " of " + rs.getString("name");
+                case ZIP -> "Zipcode " + code;
+                case COUNTY -> countySenateCodeToNameMap.get(Integer.parseInt(code));
+                default -> rs.getString("name");
+            };
+            var metadata = new DistrictMetadata(type, name, getDistrictCode(rs, type));
             DistrictMap map = getDistrictMapFromJson(rs.getString("map"));
             map.setDistrictMetadata(metadata);
             map.setArea(rs.getBigDecimal("area"));
@@ -170,22 +179,10 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
 
     @Override
     public String getDistrictName(DistrictType type, String code) {
-        if (StringUtils.isBlank(code)) {
+        if (StringUtils.isBlank(code) || !type.hasShapefile()) {
             return null;
         }
-        return switch (type) {
-            case SENATE -> "NY Senate District " + code;
-            case ASSEMBLY -> "NY Assembly District " + code;
-            case CONGRESSIONAL -> "NY Congressional District " + code;
-            case ZIP -> "Zipcode " + code;
-            case COUNTY -> countySenateCodeToNameMap.get(Integer.parseInt(code));
-            default -> {
-                if (type.hasShapefile()) {
-                    yield getDistrictMap(type, code).getDistrictName();
-                }
-                yield null;
-            }
-        };
+        return getDistrictMap(type, code).getDistrictName();
     }
 
     /**
