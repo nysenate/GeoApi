@@ -30,12 +30,9 @@ public class AddressService {
     private final AddressSource defaultProvider;
 
     @Autowired
-    public AddressService(List<AddressDao> addressDaos, @Value("${usps.default:usps}") String defaultProvider) {
+    public AddressService(List<AddressDao> addressDaos, @Value("${usps.default:AMS}") String defaultProvider) {
         this.providerMap = addressDaos.stream().collect(Collectors.toMap(AddressDao::source, Function.identity()));
-        this.defaultProvider = AddressSource.fromString(defaultProvider, null);
-        if (defaultProvider == null) {
-            throw new IllegalArgumentException("Default provider could not be parsed!");
-        }
+        this.defaultProvider = AddressSource.valueOf(defaultProvider.toUpperCase());
     }
 
     /**

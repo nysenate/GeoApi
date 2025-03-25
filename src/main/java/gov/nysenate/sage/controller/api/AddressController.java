@@ -4,11 +4,9 @@ import gov.nysenate.sage.client.response.address.BatchCityStateResponse;
 import gov.nysenate.sage.client.response.address.BatchValidateResponse;
 import gov.nysenate.sage.client.response.address.CityStateResponse;
 import gov.nysenate.sage.client.response.address.ValidateResponse;
-import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.Zip5;
-import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.address.AddressSource;
 import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.util.controller.ConstantUtil;
@@ -33,7 +31,7 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.getAddressesFr
  */
 @RestController
 @RequestMapping(value = ConstantUtil.REST_PATH + "address")
-public final class AddressController {
+public final class AddressController extends BaseController {
     private final AddressService addressService;
     private final AddressSource defaultSource;
 
@@ -62,10 +60,7 @@ public final class AddressController {
             @RequestParam(required = false) String zip5,
             @RequestParam(required = false) String zip4) {
         Address address = getAddressFromParams(addr, addr1, addr2, city, state, zip5, zip4);
-        AddressSource source = AddressSource.fromString(provider, defaultSource);
-        if (source == null) {
-            return new ApiError(AddressController.class, ResultStatus.ADDRESS_PROVIDER_NOT_SUPPORTED);
-        }
+        AddressSource source = getValueOrDefault(provider, AddressSource.class, defaultSource);
         return new ValidateResponse(addressService.validate(address, source, punct));
     }
 
@@ -79,10 +74,7 @@ public final class AddressController {
     @GetMapping(value = "/citystate")
     public BaseResponse addressCityState(@RequestParam String zip5, @RequestParam(required = false) String provider) {
         var validZip5 = new Zip5(zip5);
-        AddressSource source = AddressSource.fromString(provider, defaultSource);
-        if (source == null) {
-            return new ApiError(AddressController.class, ResultStatus.ADDRESS_PROVIDER_NOT_SUPPORTED);
-        }
+        AddressSource source = getValueOrDefault(provider, AddressSource.class, defaultSource);
         return new CityStateResponse(addressService.lookupCityState(validZip5, source));
     }
 
@@ -97,10 +89,7 @@ public final class AddressController {
     public BaseResponse addressBatchValidate(HttpServletRequest request,
                                      @RequestParam(required = false) String provider,
                                      @RequestParam(required = false) boolean punct) throws IOException {
-        AddressSource source = AddressSource.fromString(provider, defaultSource);
-        if (source == null) {
-            return new ApiError(AddressController.class, ResultStatus.ADDRESS_PROVIDER_NOT_SUPPORTED);
-        }
+        AddressSource source = getValueOrDefault(provider, AddressSource.class, defaultSource);
         String batchJsonPayload = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
         List<Address> addresses = getAddressesFromJsonBody(batchJsonPayload);
         return new BatchValidateResponse(addressService.validate(addresses, source, punct));
@@ -116,10 +105,7 @@ public final class AddressController {
     @PostMapping(value = "/citystate/batch")
     public BaseResponse addressBatchCityState(HttpServletRequest request,
                                               @RequestParam(required = false) String provider) throws IOException {
-        AddressSource source = AddressSource.fromString(provider, defaultSource);
-        if (source == null) {
-            return new ApiError(AddressController.class, ResultStatus.ADDRESS_PROVIDER_NOT_SUPPORTED);
-        }
+        AddressSource source = getValueOrDefault(provider, AddressSource.class, defaultSource);
         String batchJsonPayload = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
         // TODO: parse if needed
         List<Zip5> zips = List.of();

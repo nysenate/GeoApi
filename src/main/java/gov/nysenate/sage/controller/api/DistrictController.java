@@ -28,7 +28,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import static gov.nysenate.sage.model.result.ResultStatus.*;
+import static gov.nysenate.sage.model.result.ResultStatus.BAD_OVERLAY;
+import static gov.nysenate.sage.model.result.ResultStatus.INVALID_BATCH_ADDRESSES;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 
 /**
@@ -36,7 +37,7 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
  */
 @RestController
 @RequestMapping(value = ConstantUtil.REST_PATH + "district")
-public class DistrictController {
+public class DistrictController extends BaseController {
     private final List<LocalSource> districtSourceRanking = new ArrayList<>();
     private final List<Geocoder> geocoderRanking = new ArrayList<>();
     private final ShapefileService shapefileService;
@@ -92,24 +93,14 @@ public class DistrictController {
 
         List<Geocoder> currGeocoders = geocoderRanking;
         if (geocoder != null) {
-            try {
-                currGeocoders = List.of(Geocoder.valueOf(geocoder.trim().toUpperCase()));
-            }
-            catch (IllegalArgumentException e) {
-                return new ApiError(DistrictController.class, GEOCODE_PROVIDER_NOT_SUPPORTED);
-            }
+            currGeocoders = List.of(getValue(geocoder, Geocoder.class));
         }
 
         GeocodedAddress geocodedAddress = point == null ? geocodeService.getGeocodedAddress(currGeocoders, address) :
                 geocodeService.getRevGeocodedAddress(currGeocoders, point);
         List<LocalSource> currDistrictSources = districtSourceRanking;
         if (districtSource != null) {
-            try {
-                currDistrictSources = List.of(LocalSource.valueOf(districtSource.trim().toUpperCase()));
-            }
-            catch (IllegalArgumentException e) {
-                return new ApiError(DistrictController.class, DISTRICT_PROVIDER_NOT_SUPPORTED);
-            }
+            currDistrictSources = List.of(getValue(districtSource, LocalSource.class));
         }
         return new DistrictResponse(districtService.assignDistricts(currDistrictSources, geocodedAddress,
                 List.of(DistrictType.values())));
@@ -202,7 +193,7 @@ public class DistrictController {
             return new BaseResponse(BAD_OVERLAY);
         }
         IntersectResult intersectResult = shapefileService.getIntersectionResult(
-                DistrictType.resolveType(sourceType), sourceId, DistrictType.resolveType(intersectType));
+                getValue(sourceType, DistrictType.class), sourceId, getValue(intersectType, DistrictType.class));
         return IntersectResponse.from(intersectResult);
     }
 }

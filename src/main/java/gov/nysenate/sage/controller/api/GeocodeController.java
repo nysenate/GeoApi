@@ -31,7 +31,7 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
  */
 @RestController
 @RequestMapping(value = ConstantUtil.REST_PATH + "geo")
-public class GeocodeController {
+public class GeocodeController extends BaseController {
     private final List<Geocoder> geocoderRanking = new ArrayList<>();
     private final AddressService addressService;
     private final GeocodeService geocodeService;
@@ -65,7 +65,6 @@ public class GeocodeController {
 
         if (address == null || !address.isValid()) {
             return new ApiError(this.getClass(), INVALID_ADDRESS);
-
         }
         return new GeocodeResponse(geocodeService.geocode(geocoderRanking, address));
     }
@@ -83,7 +82,7 @@ public class GeocodeController {
         List<Geocoder> currGeocoders = geocoderRanking;
         if (geocoder != null) {
             try {
-                currGeocoders = List.of(Geocoder.valueOf(geocoder.trim().toUpperCase()));
+                currGeocoders = List.of(getValue(geocoder, Geocoder.class));
             }
             catch (IllegalArgumentException e) {
                 return new ApiError(DistrictController.class, PROVIDER_NOT_SUPPORTED);

@@ -23,12 +23,4 @@ public enum Geocoder implements DataSource {
         }
         return List.copyOf(geocoders);
     }
-
-    public static Geocoder getGeocoder(String geocoderStr) {
-        try {
-            return valueOf(geocoderStr.trim().toUpperCase());
-        } catch (NullPointerException | IllegalArgumentException e) {
-            return null;
-        }
-    }
 }

@@ -19,7 +19,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value = ConstantUtil.REST_PATH + "street")
-public class StreetController {
+public class StreetController extends BaseController {
     private static final Logger logger = LoggerFactory.getLogger(StreetController.class);
     private final StreetLookupService streetfile;
 
@@ -39,7 +39,6 @@ public class StreetController {
     public BaseResponse addressBatchCityState(@RequestParam int zip5) {
         logger.info("Getting street data for zip5 {}", zip5);
         List<DistrictedStreetRange> streets = streetfile.streetLookup(zip5);
-        var streetResult = new StreetResult(streets);
-        return new StreetResponse(streetResult);
+        return new StreetResponse(new StreetResult(streets));
     }
 }

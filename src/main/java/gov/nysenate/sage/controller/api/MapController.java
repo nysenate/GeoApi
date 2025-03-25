@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(value = ConstantUtil.REST_PATH + "map")
-public class MapController {
+public class MapController extends BaseController {
     private static final Logger logger = LoggerFactory.getLogger(MapController.class);
     private final ShapefileService shapefileService;
     private final DistrictMemberProvider districtMemberProvider;
@@ -43,7 +43,7 @@ public class MapController {
                             @RequestParam(required = false) boolean showMembers,
                             @RequestParam(required = false) boolean meta) {
         MapResult mapResult;
-        DistrictType districtType = DistrictType.resolveType(distType);
+        DistrictType districtType = getValue(distType, DistrictType.class);
         if (district != null) {
             district = FormatUtil.cleanString(district);
             logger.info("Retrieving {} district {} map.", districtType.name(), district);

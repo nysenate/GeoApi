@@ -5,36 +5,17 @@ import gov.nysenate.sage.model.district.DistrictType;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Set;
 
 import static gov.nysenate.sage.model.district.DistrictType.*;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 @Category(UnitTest.class)
 public class DistrictTypeTest {
-
     @Test
-    public void getStandardTypesTest()
-    {
-        List<DistrictType> standardTypes = DistrictType.getStandardTypes();
-        List<DistrictType> expectedTypes = Arrays.asList(SENATE, CONGRESSIONAL,ZIP, ASSEMBLY, SCHOOL, TOWN_CITY, COUNTY);
-        assertEquals(new HashSet<>(expectedTypes), new HashSet<>(standardTypes));
-    }
-
-    @Test
-    public void resolveType()
-    {
-        DistrictType resolvedSenate = DistrictType.resolveType("senate");
-        DistrictType resolvedAssembly = DistrictType.resolveType("AsSemblY");
-        DistrictType resolvedCongressional = DistrictType.resolveType("CONGRESSIONAL");
-        DistrictType resolvedNull = DistrictType.resolveType("Something");
-
-        assertEquals(SENATE,resolvedSenate);
-        assertEquals(ASSEMBLY,resolvedAssembly);
-        assertEquals(CONGRESSIONAL,resolvedCongressional);
-        assertNull(resolvedNull);
+    public void getStandardTypesTest() {
+        assertEquals(Set.of(SENATE, CONGRESSIONAL, ZIP, ASSEMBLY, SCHOOL, TOWN_CITY, COUNTY),
+                new HashSet<>(DistrictType.getStandardTypes()));
     }
 }

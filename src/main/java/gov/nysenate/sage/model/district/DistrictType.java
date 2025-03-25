@@ -27,16 +27,6 @@ public enum DistrictType {
         this.code = code;
     }
 
-    // TODO: better exception handling instead
-    /** Returns the DistrictType that matches the String representation */
-    public static DistrictType resolveType(String type) {
-        try {
-            return valueOf(type.toUpperCase());
-        } catch (IllegalArgumentException | NullPointerException e) {
-            return null;
-        }
-    }
-
     public static List<DistrictType> getStandardTypes() {
         return List.of(ASSEMBLY, CONGRESSIONAL, SENATE, SCHOOL, TOWN_CITY, COUNTY, ZIP);
     }
