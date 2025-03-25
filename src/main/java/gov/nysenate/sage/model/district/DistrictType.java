@@ -31,17 +31,6 @@ public enum DistrictType {
         return List.of(ASSEMBLY, CONGRESSIONAL, SENATE, SCHOOL, TOWN_CITY, COUNTY, ZIP);
     }
 
-    // TODO: use more consistently
-    public String getNameFromCode(String code) {
-        return switch (this) {
-            case SENATE -> "NY Senate District " + code;
-            case ASSEMBLY ->  "NY Assembly District " + code;
-            case CONGRESSIONAL ->   "NY Congressional District " + code;
-            case ZIP ->  "Zipcode " + code;
-            default -> null;
-        };
-    }
-
     public String nameColumn() {
         return name;
     }

@@ -38,7 +38,9 @@ public interface ShapefileDao {
      * Fetches all the district maps from the database and stores them in a collection as well as
      * a lookup cache for fast retrieval.
      */
-    boolean cacheDistrictMaps();
+    void cacheDistrictMaps();
 
     DistrictMap getDistrictMap(DistrictType type, String district);
+
+    String getDistrictName(DistrictType type, String code);
 }

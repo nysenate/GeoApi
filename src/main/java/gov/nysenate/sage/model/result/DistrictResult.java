@@ -30,7 +30,7 @@ public class DistrictResult extends BaseResult<LocalSource> {
     }
 
     public DistrictResult(LocalSource source, GeocodedAddress geoAddress) {
-        this(source, geoAddress, new DistrictInfo());
+        this(source, geoAddress, DistrictInfo.empty);
     }
 
     public GeocodedAddress getGeoAddress() {
@@ -55,7 +55,7 @@ public class DistrictResult extends BaseResult<LocalSource> {
 
     /** Accessor method to the set of assigned districts stored in DistrictInfo */
     public Set<DistrictType> getAssignedDistricts() {
-        return getDistrictInfo() == null ? Set.of() : getDistrictInfo().getAssignedDistricts();
+        return getDistrictInfo() == null ? Set.of() : getDistrictInfo().typeToDistrictMap().keySet();
     }
 
     /**
@@ -63,7 +63,7 @@ public class DistrictResult extends BaseResult<LocalSource> {
      * @return true if multi match, false otherwise
      */
     public boolean isMultiMatch() {
-        return isSuccess() && getDistrictInfo().getMatchLevel().compareTo(DistrictMatchLevel.HOUSE) < 0;
+        return isSuccess() && getDistrictInfo().matchLevel().compareTo(DistrictMatchLevel.HOUSE) < 0;
     }
 
     private static ResultStatus getStatus(final GeocodedAddress geoAddress, LocalSource source) {

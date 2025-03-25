@@ -4,23 +4,22 @@ import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.model.district.SingleDistrict;
 import gov.nysenate.sage.model.result.BaseResult;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.provider.district.LocalSource;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public final class DistrictUtil {
     private DistrictUtil() {}
 
     public static DistrictResult consolidateResultsWithoutConflicts(List<DistrictResult> districtResults) {
-        DistrictInfo consolidatedInfo = DistrictUtil.getDistrictInfoWithoutConflicts(
-                districtResults.stream().map(DistrictResult::getDistrictInfo).toList());
         DistrictMatchLevel consolidatedMatchLevel = DistrictMatchLevel.getMin(
-                districtResults.stream().map(result -> result.getDistrictInfo().getMatchLevel()).toList()
+                districtResults.stream().map(result -> result.getDistrictInfo().matchLevel()).toList()
         );
-        consolidatedInfo.setMatchLevel(consolidatedMatchLevel);
+        DistrictInfo consolidatedInfo = DistrictUtil.getDistrictInfoWithoutConflicts(
+                districtResults.stream().map(DistrictResult::getDistrictInfo).toList(), consolidatedMatchLevel);
         List<LocalSource> sources  = districtResults.stream().map(BaseResult::getSource).toList();
         LocalSource source = sources.size() == 1 ? sources.get(0) : LocalSource.STREETFILE_AND_SHAPEFILE;
         GeocodedAddress geoAddr = districtResults.size() == 1 ? districtResults.get(0).getGeoAddress() : null;
@@ -30,19 +29,17 @@ public final class DistrictUtil {
     /**
      * Returns a DistrictInfo without conflicts between codes.
      */
-    public static DistrictInfo getDistrictInfoWithoutConflicts(List<DistrictInfo> districtInfoList) {
-        if (districtInfoList.isEmpty()) {
-            return new DistrictInfo();
-        }
-        DistrictInfo baseDistInfo = districtInfoList.get(0);
+    public static DistrictInfo getDistrictInfoWithoutConflicts(List<DistrictInfo> districtInfoList,
+                                                               DistrictMatchLevel matchLevel) {
+        Map<DistrictType, SingleDistrict> typeToDistrictMap = new HashMap<>();
         for (DistrictType distType : DistrictType.values()) {
-            String baseCode = baseDistInfo.getDistCode(distType);
-            if (districtInfoList.stream().map(info -> info.getDistCode(distType))
-                    .anyMatch(code -> !isValidDistCode(code) || !baseCode.equals(code))) {
-                baseDistInfo.setDistCode(distType, null);
+            List<SingleDistrict> singleDistricts = districtInfoList.stream()
+                    .map(info -> info.getDistrict(distType)).distinct().toList();
+            if (singleDistricts.size() == 1) {
+                typeToDistrictMap.put(distType, singleDistricts.get(0));
             }
         }
-        return baseDistInfo;
+        return new DistrictInfo(typeToDistrictMap, matchLevel);
     }
 
     /**
@@ -54,33 +51,26 @@ public final class DistrictUtil {
         if (results.stream().noneMatch(BaseResult::isSuccess) || results.size() == 1) {
             return first;
         }
-        DistrictInfo finalDistInfo = first.getDistrictInfo();
+        DistrictInfo firstDistInfo = first.getDistrictInfo();
+        var typeToDistrictMap = new HashMap<DistrictType, SingleDistrict>();
         boolean usedFallback = false;
         for (DistrictType distType : DistrictType.values()) {
-            String baseCode = finalDistInfo.getDistCode(distType);
-            if (baseCode != null) {
+            SingleDistrict singleDistrict = firstDistInfo.getDistrict(distType);
+            if (singleDistrict != null) {
+                typeToDistrictMap.put(distType, singleDistrict);
                 continue;
             }
-            Optional<String> distCode = results.stream().skip(1)
-                    .map(result -> result.getDistrictInfo().getDistCode(distType))
-                    .filter(DistrictUtil::isValidDistCode).findFirst();
-            if (distCode.isPresent()) {
+            Optional<SingleDistrict> distOpt = results.stream().skip(1)
+                    .map(result -> result.getDistrictInfo().getDistrict(distType))
+                    .filter(Objects::nonNull).findFirst();
+            if (distOpt.isPresent()) {
                 usedFallback = true;
-                finalDistInfo.setDistCode(distType, distCode.get());
+                typeToDistrictMap.put(distType, distOpt.get());
             }
         }
 
         LocalSource finalSource = usedFallback ? LocalSource.STREETFILE_AND_SHAPEFILE : first.getSource();
+        DistrictInfo finalDistInfo = new DistrictInfo(typeToDistrictMap, firstDistInfo.matchLevel());
         return new DistrictResult(finalSource, first.getGeoAddress(), finalDistInfo);
-    }
-
-    /**
-     * Determines if code is valid or not by ensuring that the trimmed code does not equal '', 0, or null.
-     */
-    public static boolean isValidDistCode(String code) {
-        if (code == null) {
-            return false;
-        }
-        return !code.trim().matches("(?i)(^$|null|0+)");
     }
 }

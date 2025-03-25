@@ -1,85 +1,39 @@
 package gov.nysenate.sage.model.district;
 
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import com.google.common.collect.ImmutableMap;
 
-import static gov.nysenate.sage.controller.api.DistrictUtil.isValidDistCode;
-import static gov.nysenate.sage.model.district.DistrictType.*;
+import javax.annotation.Nonnull;
+import java.util.Map;
 
 /**
- * DistrictInfo is used as a container for all assigned district names, codes, and district maps.
- * It is designed to allow for quick lookups using maps as opposed to iterating over lists of districts.
+ * A container for all assigned district names and codes.
  */
-public class DistrictInfo {
-    /** A set of DistrictTypes that were actually district assigned. */
-    private final Set<DistrictType> assignedDistricts = new LinkedHashSet<>();
+public record DistrictInfo(ImmutableMap<DistrictType, SingleDistrict> typeToDistrictMap, DistrictMatchLevel matchLevel) {
+    public static final DistrictInfo empty = new DistrictInfo(Map.of(), DistrictMatchLevel.NOMATCH);
 
-    /** District names and codes */
-    private final Map<DistrictType, String> districtNames = new HashMap<>();
-    private final Map<DistrictType, String> districtCodes = new HashMap<>();
-    private DistrictMatchLevel matchLevel = DistrictMatchLevel.NOMATCH;
-
-    public DistrictInfo() {}
-
-    public DistrictInfo(String congressionalCode, String countyCode, String senateCode,
-                        String assemblyCode, String townCode, String schoolCode) {
-        this.setDistCode(CONGRESSIONAL, congressionalCode);
-        this.setDistCode(COUNTY, countyCode);
-        this.setDistCode(SENATE, senateCode);
-        this.setDistCode(ASSEMBLY, assemblyCode);
-        this.setDistCode(TOWN_CITY, townCode);
-        this.setDistCode(SCHOOL, schoolCode);
-    }
-
-    public DistrictMatchLevel getMatchLevel() {
-        return matchLevel;
-    }
-
-    public void setMatchLevel(DistrictMatchLevel matchLevel) {
-        this.matchLevel = matchLevel;
+    public DistrictInfo(Map<DistrictType, SingleDistrict> typeToDistrictMap, DistrictMatchLevel matchLevel) {
+        this(ImmutableMap.copyOf(typeToDistrictMap), matchLevel);
     }
 
     public String getDistName(DistrictType districtType) {
-        return this.districtNames.get(districtType);
-    }
-
-    public void setDistName(DistrictType districtType, String name) {
-        this.districtNames.put(districtType, name);
+        SingleDistrict singleDistrict = typeToDistrictMap.get(districtType);
+        return singleDistrict == null ? null : singleDistrict.name();
     }
 
     public String getDistCode(DistrictType districtType) {
-        return districtCodes.get(districtType);
+        SingleDistrict singleDistrict = typeToDistrictMap.get(districtType);
+        return singleDistrict == null ? null : singleDistrict.name();
     }
 
-    /**
-     * Sets a district code for a given type. A district is marked as assigned if the code is set through
-     * this method. Also, if it's a senate, congressional, or assembly district, a default name is set for it.
-     */
-    public void setDistCode(DistrictType districtType, String code) {
-        districtCodes.put(districtType, code);
-        if (isValidDistCode(code)) {
-            assignedDistricts.add(districtType);
-
-            String name = districtType.getNameFromCode(code);
-            if (name != null) {
-                districtNames.put(districtType, name);
-            }
-        }
-        else {
-            assignedDistricts.remove(districtType);
-        }
+    public SingleDistrict getDistrict(DistrictType districtType) {
+        return typeToDistrictMap.get(districtType);
     }
 
-    public Set<DistrictType> getAssignedDistricts() {
-        return assignedDistricts;
-    }
-
+    @Nonnull
     @Override
     public String toString() {
         var out = new StringBuilder();
-        for (DistrictType t : assignedDistricts) {
+        for (DistrictType t : typeToDistrictMap.keySet()) {
             out.append(t).append(": name = ").append(getDistName(t)).append(" code = ").append(getDistCode(t)).append("\n");
         }
         return out.toString();

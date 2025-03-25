@@ -19,10 +19,7 @@ public class DistrictMetadata {
         if (type != null) {
             this.districtType = type;
             this.districtCode = code;
-            this.districtName = type.getNameFromCode(code);
-            if (districtName == null) {
-                this.districtName = name;
-            }
+            this.districtName = name;
         }
     }
 

@@ -4,15 +4,14 @@ import com.google.common.collect.ImmutableMap;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import gov.nysenate.sage.controller.api.DistrictUtil;
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.dao.model.county.CountyDao;
 import gov.nysenate.sage.dao.provider.district.ShapefileDao;
 import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.address.DistrictedStreetRange;
 import gov.nysenate.sage.model.address.StreetAddressRange;
-import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.model.district.SingleDistrict;
 import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetParity;
 import org.postgresql.copy.CopyManager;
@@ -35,7 +34,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static gov.nysenate.sage.model.district.DistrictType.*;
 import static gov.nysenate.sage.scripts.streetfinder.model.StreetParity.EVENS;
@@ -49,7 +47,6 @@ public class SqlStreetfileDao extends BaseDao implements StreetfileDao {
     private final String columnOrder;
     private final Connection connection;
     private final ShapefileDao shapefileDao;
-    private final Map<Integer, String> countySenateCodeToNameMap;
     private boolean locked = false;
 
     static {
@@ -67,14 +64,12 @@ public class SqlStreetfileDao extends BaseDao implements StreetfileDao {
 
     @Autowired
     public SqlStreetfileDao(ComboPooledDataSource geoApiPostgresDataSource,
-                            ShapefileDao shapefileDao, CountyDao countyDao) throws SQLException {
+                            ShapefileDao shapefileDao) throws SQLException {
         List<String> colList = new ArrayList<>(List.of("bldg_low", "bldg_high", "parity", "street", "postal_city", "zip5"));
         colList.addAll(order().stream().map(distColMap::get).toList());
         this.columnOrder = String.join(", ", colList);
         this.connection = geoApiPostgresDataSource.getConnection().unwrap(BaseConnection.class);
         this.shapefileDao = shapefileDao;
-        this.countySenateCodeToNameMap = countyDao.getCounties().stream()
-                .collect(Collectors.toMap(County::senateCode, County::name));
     }
 
     @Override
@@ -99,7 +94,7 @@ public class SqlStreetfileDao extends BaseDao implements StreetfileDao {
 
     public DistrictInfo getDistrictInfo(BuildingAddress addr, @Nonnull DistrictMatchLevel matchLevel) {
         if (matchLevel == DistrictMatchLevel.NOMATCH) {
-            return new DistrictInfo();
+            return DistrictInfo.empty;
         }
         var sqlBuilder = new StringBuilder("SELECT * FROM streetfile WHERE postal_city = '%s'\n".formatted(addr.getPostalCity().toUpperCase()));
         if (matchLevel.compareTo(DistrictMatchLevel.ZIP5) >= 0) {
@@ -127,10 +122,8 @@ public class SqlStreetfileDao extends BaseDao implements StreetfileDao {
         if (ranges.isEmpty()) {
             return getDistrictInfo(addr, matchLevel.getNextHighestLevel());
         }
-        DistrictInfo consolidatedInfo = DistrictUtil.getDistrictInfoWithoutConflicts(ranges.stream()
-                .map(DistrictedStreetRange::districtInfo).toList());
-        consolidatedInfo.setMatchLevel(matchLevel);
-        return consolidatedInfo;
+        return DistrictUtil.getDistrictInfoWithoutConflicts(ranges.stream()
+                .map(DistrictedStreetRange::districtInfo).toList(), matchLevel);
     }
 
     /** {@inheritDoc} */
@@ -157,20 +150,15 @@ public class SqlStreetfileDao extends BaseDao implements StreetfileDao {
                     rs.getString("postal_city"), rs.getInt("zip5"));
             var sar = new StreetAddressRange(rs.getInt("bldg_low"), rs.getInt("bldg_high"),
                     rs.getString("parity"), awn);
-            var dInfo = new DistrictInfo();
+            var typeToDistrictMap = new HashMap<DistrictType, SingleDistrict>();
             for (DistrictType type : distColMap.keySet()) {
                 String code = rs.getString(distColMap.get(type));
-                dInfo.setDistCode(type, code);
                 if (code != null) {
-                    if (type == COUNTY && code.matches("\\d+")) {
-                        dInfo.setDistName(COUNTY, countySenateCodeToNameMap.get(Integer.parseInt(code)));
-                    }
-                    else if (type.hasShapefile()) {
-                        dInfo.setDistName(type, shapefileDao.getDistrictMap(type, code).getDistrictName());
-                    }
+                    String name = shapefileDao.getDistrictName(type, code);
+                    typeToDistrictMap.put(type, new SingleDistrict(code, name));
                 }
             }
-            return new DistrictedStreetRange(sar, dInfo);
+            return new DistrictedStreetRange(sar, new DistrictInfo(typeToDistrictMap, DistrictMatchLevel.HOUSE));
         }
     }
 }
