@@ -1,11 +1,11 @@
 package gov.nysenate.sage.service.district;
 
-import gov.nysenate.sage.dao.model.assembly.SqlAssemblyDao;
-import gov.nysenate.sage.dao.model.congressional.SqlCongressionalDao;
+import gov.nysenate.sage.dao.model.member.MemberDao;
 import gov.nysenate.sage.dao.model.senate.SqlSenateDao;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.MapResult;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -17,14 +17,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class DistrictMemberProvider implements SageDistrictMemberProvider {
     private final SqlSenateDao sqlSenateDao;
-    private final SqlAssemblyDao sqlAssemblyDao;
-    private final SqlCongressionalDao sqlCongressionalDao;
+    private final MemberDao memberDao;
 
-    public DistrictMemberProvider(SqlSenateDao sqlSenateDao, SqlAssemblyDao sqlAssemblyDao,
-                                  SqlCongressionalDao sqlCongressionalDao) {
+    @Autowired
+    public DistrictMemberProvider(SqlSenateDao sqlSenateDao, MemberDao memberDao) {
         this.sqlSenateDao = sqlSenateDao;
-        this.sqlAssemblyDao = sqlAssemblyDao;
-        this.sqlCongressionalDao = sqlCongressionalDao;
+        this.memberDao = memberDao;
     }
 
     /**
@@ -41,8 +39,7 @@ public class DistrictMemberProvider implements SageDistrictMemberProvider {
             int code = Integer.parseInt(map.getDistrictCode());
             switch (map.getDistrictType()) {
                 case SENATE -> map.setSenator(sqlSenateDao.getSenatorByDistrict(code));
-                case ASSEMBLY -> map.setMember(sqlAssemblyDao.getAssemblyByDistrict(code));
-                case CONGRESSIONAL -> map.setMember(sqlCongressionalDao.getCongressionalByDistrict(code));
+                case ASSEMBLY, CONGRESSIONAL -> map.setMember(memberDao.getMemberByDistrict(map.getDistrictType(), code));
             }
         }
     }

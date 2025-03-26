@@ -28,7 +28,6 @@ public enum SqlTable {
     PUBLIC_COUNTY ("county"),
     PUBLIC_SENATE("senate"),
     SENATOR ("senator"),
-    // TODO: use
     STREETFILE ("streetfile"),
     GEOCACHE ("geocache");
 

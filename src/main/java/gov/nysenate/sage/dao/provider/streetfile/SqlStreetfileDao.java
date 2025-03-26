@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import gov.nysenate.sage.controller.api.DistrictUtil;
 import gov.nysenate.sage.dao.base.BaseDao;
+import gov.nysenate.sage.dao.base.SqlTable;
 import gov.nysenate.sage.dao.provider.district.ShapefileDao;
 import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.address.DistrictedStreetRange;
@@ -96,7 +97,7 @@ public class SqlStreetfileDao extends BaseDao implements StreetfileDao {
         if (matchLevel == DistrictMatchLevel.NOMATCH) {
             return DistrictInfo.empty;
         }
-        var sqlBuilder = new StringBuilder("SELECT * FROM streetfile WHERE postal_city = '%s'\n".formatted(addr.getPostalCity().toUpperCase()));
+        var sqlBuilder = new StringBuilder("SELECT * FROM %s WHERE postal_city = '%s'\n".formatted(SqlTable.STREETFILE, addr.getPostalCity().toUpperCase()));
         if (matchLevel.compareTo(DistrictMatchLevel.ZIP5) >= 0) {
             sqlBuilder.append(" AND zip5 = %d\n".formatted(addr.getZip5().zip()));
         }

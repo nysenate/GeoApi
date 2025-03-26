@@ -10,7 +10,6 @@ public interface GeocoderDao {
 
     GeocodedAddress getGeocodedAddress(BuildingAddress address);
 
-    // TODO: should probably just return an address
     default GeocodedAddress getGeocodedAddress(Point point) {
         return null;
     }

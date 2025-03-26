@@ -1,21 +1,33 @@
 package gov.nysenate.sage.model.district;
 
+import java.util.Objects;
+
 /**
  * Represents a generic member associated with a district number
  */
-public class DistrictMember
-{
+public class DistrictMember {
+    private DistrictType districtType;
     private int district;
     private String memberName;
     private String memberUrl;
 
     public DistrictMember() {}
 
-    public DistrictMember(int district, String memberName, String memberUrl)
-    {
+    public DistrictMember(int district, String memberName, String memberUrl) {
         this.district = district;
         this.memberName = memberName;
         this.memberUrl = memberUrl;
+    }
+
+    public DistrictMember(DistrictType districtType, int district, String memberName, String memberUrl) {
+        this.districtType = districtType;
+        this.district = district;
+        this.memberName = memberName;
+        this.memberUrl = memberUrl;
+    }
+
+    public DistrictType getDistrictType() {
+        return districtType;
     }
 
     public int getDistrict() {
@@ -40,5 +52,13 @@ public class DistrictMember
 
     public void setMemberUrl(String memberUrl) {
         this.memberUrl = memberUrl;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        DistrictMember that = (DistrictMember) o;
+        return district == that.district && districtType == that.districtType &&
+                Objects.equals(memberName, that.memberName) && Objects.equals(memberUrl, that.memberUrl);
     }
 }

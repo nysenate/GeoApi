@@ -2,12 +2,13 @@ package gov.nysenate.sage.service.data;
 
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.base.GenericResponse;
-import gov.nysenate.sage.dao.model.assembly.SqlAssemblyDao;
-import gov.nysenate.sage.dao.model.congressional.SqlCongressionalDao;
+import gov.nysenate.sage.dao.model.member.MemberDao;
 import gov.nysenate.sage.dao.model.senate.SqlSenateDao;
 import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.district.Assembly;
 import gov.nysenate.sage.model.district.Congressional;
+import gov.nysenate.sage.model.district.DistrictMember;
+import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.provider.geocode.GeocodeService;
@@ -35,19 +36,16 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 @Service
 public class DataGenService implements SageDataGenService {
     private static final Logger logger = LoggerFactory.getLogger(DataGenService.class);
-    private final SqlAssemblyDao sqlAssemblyDao;
-    private final SqlCongressionalDao sqlCongressionalDao;
     private final SqlSenateDao sqlSenateDao;
+    private final MemberDao memberDao;
     private final GeocodeService geocodeService;
     @Value("${nysenate.domain:https://www.nysenate.gov}")
     private String nysenateDomain;
 
     @Autowired
-    public DataGenService(SqlSenateDao sqlSenateDao, SqlAssemblyDao sqlAssemblyDao,
-                          SqlCongressionalDao sqlCongressionalDao, GeocodeService geocodeService) {
+    public DataGenService(SqlSenateDao sqlSenateDao, MemberDao memberDao, GeocodeService geocodeService) {
         this.sqlSenateDao = sqlSenateDao;
-        this.sqlAssemblyDao = sqlAssemblyDao;
-        this.sqlCongressionalDao = sqlCongressionalDao;
+        this.memberDao = memberDao;
         this.geocodeService = geocodeService;
     }
 
@@ -148,13 +146,13 @@ public class DataGenService implements SageDataGenService {
         List<Congressional> congressionals = CongressScraper.getCongressionals();
         for (Congressional congressional : congressionals) {
             int district = congressional.getDistrict();
-            Congressional existingCongressional = sqlCongressionalDao.getCongressionalByDistrict(district);
+            DistrictMember existingCongressional = memberDao.getMemberByDistrict(DistrictType.CONGRESSIONAL, district);
 
             if (existingCongressional == null) {
-                sqlCongressionalDao.insertCongressional(congressional);
-            } else if (isCongressionalDataUpdated(existingCongressional, congressional)) {
-                sqlCongressionalDao.deleteCongressional(district);
-                sqlCongressionalDao.insertCongressional(congressional);
+                memberDao.insertDistrictMember(congressional);
+            } else if (isMemberUpdated(existingCongressional, congressional)) {
+                memberDao.deleteDistrictMember(DistrictType.CONGRESSIONAL, district);
+                memberDao.insertDistrictMember(congressional);
             }
         }
         return true;
@@ -170,13 +168,13 @@ public class DataGenService implements SageDataGenService {
         List<Assembly> assemblies = AssemblyScraper.getAssemblies();
         for (Assembly assembly : assemblies) {
             int district = assembly.getDistrict();
-            Assembly existingAssembly = sqlAssemblyDao.getAssemblyByDistrict(district);
+            DistrictMember existingAssembly = memberDao.getMemberByDistrict(DistrictType.ASSEMBLY, district);
 
             if (existingAssembly == null) {
-                sqlAssemblyDao.insertAssembly(assembly);
-            } else if (isAssemblyDataUpdated(existingAssembly, assembly)) {
-                sqlAssemblyDao.deleteAssemblies(district);
-                sqlAssemblyDao.insertAssembly(assembly);
+                memberDao.insertDistrictMember(assembly);
+            } else if (isMemberUpdated(existingAssembly, assembly)) {
+                memberDao.deleteDistrictMember(DistrictType.ASSEMBLY, district);
+                memberDao.insertDistrictMember(assembly);
             }
         }
         return true;
@@ -224,28 +222,14 @@ public class DataGenService implements SageDataGenService {
         return updated;
     }
 
-    private boolean isCongressionalDataUpdated(Congressional c1, Congressional c2) {
-        if (c1 != null && c2 != null) {
-            if (!(c1.getDistrict() == c2.getDistrict() &&
-                    c1.getMemberName().equals(c2.getMemberName()) &&
-                    c1.getMemberUrl().equals(c2.getMemberUrl()))) {
-                logger.info("Congressional District {} [{}] updated", c1.getDistrict(), c1.getMemberName());
-                return true;
-            }
-        } else return c1 == null && c2 != null;
-        return false;
-    }
-
-    private boolean isAssemblyDataUpdated(Assembly a1, Assembly a2) { //Existing is A1, New is A2
-        if (a1 != null && a2 != null) {
-            if (!(a1.getDistrict() == a2.getDistrict() &&
-                    a1.getMemberName().equals(a2.getMemberName()) &&
-                    a1.getMemberUrl().trim().equals(a2.getMemberUrl().trim()))) {
-                logger.info("Assembly District {} [{}] updated", a1.getDistrict(), a1.getMemberName());
-                return true;
-            }
-        } else return a1 == null && a2 != null;
-        return false;
+    private boolean isMemberUpdated(DistrictMember existingMember, DistrictMember newMember) {
+        if (existingMember == null) {
+            return newMember != null;
+        }
+        if (newMember == null) {
+            return false;
+        }
+        return !existingMember.equals(newMember);
     }
 
     private void setUpdatedGeocode(Office senatorOffice) {

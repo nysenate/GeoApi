@@ -4,7 +4,6 @@ import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.services.model.Senator;
 
-// TODO: should extend MemberDistrictView
 public class SenateDistrictView extends DistrictView
 {
     protected Senator senator;

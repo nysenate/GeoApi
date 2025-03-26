@@ -3,8 +3,10 @@ package gov.nysenate.sage.dao.model;
 import gov.nysenate.sage.BaseTests;
 import gov.nysenate.sage.annotation.IntegrationTest;
 import gov.nysenate.sage.config.DatabaseConfig;
-import gov.nysenate.sage.dao.model.congressional.SqlCongressionalDao;
+import gov.nysenate.sage.dao.model.member.MemberDao;
 import gov.nysenate.sage.model.district.Congressional;
+import gov.nysenate.sage.model.district.DistrictMember;
+import gov.nysenate.sage.model.district.DistrictType;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,21 +18,20 @@ import static org.junit.Assert.*;
 
 @Category(IntegrationTest.class)
 public class CongressionalDaoIT extends BaseTests {
+    private static final int TOTAL_CONGRESSIONALS = 27;
 
     @Autowired
-    SqlCongressionalDao sqlCongressionalDao;
-
-    private static int TOTAL_CONGRESSIONALS = 27;
+    private MemberDao memberDao;
 
     @Test
     @Transactional(value = DatabaseConfig.geoApiTxManager)
-    public void getCongressionalsTest()
-    {
-        List<Congressional> congressionalList = sqlCongressionalDao.getCongressionals();
+    public void getCongressionalsTest() {
+        List<DistrictMember> congressionalList = memberDao.getMembers(DistrictType.CONGRESSIONAL);
         assertNotNull(congressionalList);
         assertEquals(TOTAL_CONGRESSIONALS, congressionalList.size());
 
-        Congressional c = congressionalList.get(0);
+        DistrictMember c = congressionalList.get(0);
+        assertEquals(DistrictType.CONGRESSIONAL, c.getDistrictType());
         assertNotNull(c.getMemberName());
         assertNotNull(c.getMemberUrl());
         assertFalse(c.getMemberName().isEmpty());
@@ -40,21 +41,17 @@ public class CongressionalDaoIT extends BaseTests {
 
     @Test
     @Transactional(value = DatabaseConfig.geoApiTxManager)
-    public void insertAndDeleteTest()
-    {
-        Congressional congressional =
-                new Congressional(200,"TEST TEST","NY.GOV.CONGRESS.TEST");
-        sqlCongressionalDao.insertCongressional(congressional);
-        sqlCongressionalDao.deleteCongressional(200);
+    public void insertAndDeleteTest() {
+        var congressional = new Congressional(200,"TEST TEST","NY.GOV.CONGRESS.TEST");
+        memberDao.insertDistrictMember(congressional);
+        memberDao.deleteDistrictMember(DistrictType.CONGRESSIONAL, 200);
     }
 
 
     @Test
     @Transactional(value = DatabaseConfig.geoApiTxManager)
-    public void getAssemblyByInvalidDistrictTest()
-    {
-        Congressional congressional = sqlCongressionalDao.getCongressionalByDistrict(0);
-        assertNull(congressional);
+    public void getMemberByInvalidDistrictTest() {
+        assertNull(memberDao.getMemberByDistrict(DistrictType.CONGRESSIONAL, 0));
     }
 }
 

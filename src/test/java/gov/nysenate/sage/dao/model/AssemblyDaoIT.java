@@ -3,8 +3,10 @@ package gov.nysenate.sage.dao.model;
 import gov.nysenate.sage.BaseTests;
 import gov.nysenate.sage.annotation.IntegrationTest;
 import gov.nysenate.sage.config.DatabaseConfig;
-import gov.nysenate.sage.dao.model.assembly.SqlAssemblyDao;
+import gov.nysenate.sage.dao.model.member.MemberDao;
 import gov.nysenate.sage.model.district.Assembly;
+import gov.nysenate.sage.model.district.DistrictMember;
+import gov.nysenate.sage.model.district.DistrictType;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,19 +18,18 @@ import static org.junit.Assert.*;
 
 @Category(IntegrationTest.class)
 public class AssemblyDaoIT extends BaseTests {
-
     @Autowired
-    SqlAssemblyDao sqlAssemblyDao;
+    private MemberDao memberDao;
 
     @Test
     @Transactional(value = DatabaseConfig.geoApiTxManager)
-    public void getAssembliesTest()
-    {
-        List<Assembly> assemblyList = sqlAssemblyDao.getAssemblies();
+    public void getAssembliesTest() {
+        List<DistrictMember> assemblyList = memberDao.getMembers(DistrictType.ASSEMBLY);
         assertNotNull(assemblyList);
         assertEquals(150, assemblyList.size());
 
-        Assembly a = assemblyList.get(0);
+        DistrictMember a = assemblyList.get(0);
+        assertEquals(DistrictType.ASSEMBLY, a.getDistrictType());
         assertNotNull(a.getMemberName());
         assertNotNull(a.getMemberUrl());
         assertFalse(a.getMemberName().isEmpty());
@@ -38,19 +39,16 @@ public class AssemblyDaoIT extends BaseTests {
 
     @Test
     @Transactional(value = DatabaseConfig.geoApiTxManager)
-    public void insertAndDeleteTest()
-    {
-        Assembly assembly = new Assembly(200,"TEST TEST","NY.GOV.ASSSEMBLY.TEST");
-        sqlAssemblyDao.insertAssembly(assembly);
-        sqlAssemblyDao.deleteAssemblies(200);
+    public void insertAndDeleteTest() {
+        var assembly = new Assembly(200,"TEST TEST","NY.GOV.ASSSEMBLY.TEST");
+        memberDao.insertDistrictMember(assembly);
+        memberDao.deleteDistrictMember(DistrictType.ASSEMBLY, assembly.getDistrict());
     }
 
 
     @Test
     @Transactional(value = DatabaseConfig.geoApiTxManager)
-    public void getAssemblyByInvalidDistrictTest()
-    {
-        Assembly assembly = sqlAssemblyDao.getAssemblyByDistrict(0);
-        assertNull(assembly);
+    public void getAssemblyByInvalidDistrictTest() {
+        assertNull(memberDao.getMemberByDistrict(DistrictType.ASSEMBLY, 0));
     }
 }
