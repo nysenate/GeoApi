@@ -12,7 +12,6 @@ import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -33,12 +32,10 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.getAddressesFr
 @RequestMapping(value = ConstantUtil.REST_PATH + "address")
 public final class AddressController extends BaseController {
     private final AddressService addressService;
-    private final AddressSource defaultSource;
 
     @Autowired
-    public AddressController(AddressService addressService, @Value("${usps.default:ams}") String defaultSource) {
+    public AddressController(AddressService addressService) {
         this.addressService = addressService;
-        this.defaultSource = AddressSource.valueOf(defaultSource.toUpperCase());
     }
 
     /**
@@ -60,7 +57,7 @@ public final class AddressController extends BaseController {
             @RequestParam(required = false) String zip5,
             @RequestParam(required = false) String zip4) {
         Address address = getAddressFromParams(addr, addr1, addr2, city, state, zip5, zip4);
-        AddressSource source = getValueOrDefault(provider, AddressSource.class, defaultSource);
+        AddressSource source = getValueOrNull(provider, AddressSource.class);
         return new ValidateResponse(addressService.validate(address, source, punct));
     }
 
@@ -74,7 +71,7 @@ public final class AddressController extends BaseController {
     @GetMapping(value = "/citystate")
     public BaseResponse addressCityState(@RequestParam String zip5, @RequestParam(required = false) String provider) {
         var validZip5 = new Zip5(zip5);
-        AddressSource source = getValueOrDefault(provider, AddressSource.class, defaultSource);
+        AddressSource source = getValueOrNull(provider, AddressSource.class);
         return new CityStateResponse(addressService.lookupCityState(validZip5, source));
     }
 
@@ -89,7 +86,7 @@ public final class AddressController extends BaseController {
     public BaseResponse addressBatchValidate(HttpServletRequest request,
                                      @RequestParam(required = false) String provider,
                                      @RequestParam(required = false) boolean punct) throws IOException {
-        AddressSource source = getValueOrDefault(provider, AddressSource.class, defaultSource);
+        AddressSource source = getValueOrNull(provider, AddressSource.class);
         String batchJsonPayload = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
         List<Address> addresses = getAddressesFromJsonBody(batchJsonPayload);
         return new BatchValidateResponse(addressService.validate(addresses, source, punct));
@@ -105,7 +102,7 @@ public final class AddressController extends BaseController {
     @PostMapping(value = "/citystate/batch")
     public BaseResponse addressBatchCityState(HttpServletRequest request,
                                               @RequestParam(required = false) String provider) throws IOException {
-        AddressSource source = getValueOrDefault(provider, AddressSource.class, defaultSource);
+        AddressSource source = getValueOrNull(provider, AddressSource.class);
         String batchJsonPayload = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
         // TODO: parse if needed
         List<Zip5> zips = List.of();

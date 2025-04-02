@@ -20,9 +20,9 @@ public abstract class BaseController {
         }
     }
 
-    public <T extends Enum<T>> T getValueOrDefault(String strValue,  Class<T> enumClass, T defaultValue) {
+    public <T extends Enum<T>> T getValueOrNull(String strValue, Class<T> enumClass) {
         if (strValue == null || strValue.isBlank()) {
-            return defaultValue;
+            return null;
         }
         return getValue(strValue, enumClass);
     }

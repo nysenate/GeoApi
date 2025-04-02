@@ -18,21 +18,22 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Nonnull;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 public class AddressService {
     private static final Logger logger = LoggerFactory.getLogger(AddressService.class);
-    private final Map<AddressSource, AddressDao> providerMap;
-    private final AddressSource defaultProvider;
+    private final Map<AddressSource, AddressDao> providerMap = new HashMap<>();
 
     @Autowired
     public AddressService(List<AddressDao> addressDaos, @Value("${usps.default:AMS}") String defaultProvider) {
-        this.providerMap = addressDaos.stream().collect(Collectors.toMap(AddressDao::source, Function.identity()));
-        this.defaultProvider = AddressSource.valueOf(defaultProvider.toUpperCase());
+        for (AddressDao addressDao : addressDaos) {
+            providerMap.put(addressDao.source(), addressDao);
+        }
+        AddressSource defaultSource = AddressSource.valueOf(defaultProvider.toUpperCase());
+        providerMap.put(null, providerMap.get(defaultSource));
     }
 
     /**
@@ -51,7 +52,7 @@ public class AddressService {
     }
 
     public Address validateOrDefault(Address address, boolean usePunct) {
-        return getOrDefault(validate(address, defaultProvider, usePunct), address);
+        return getOrDefault(validate(address, null, usePunct), address);
     }
 
     private AddressResult internalValidate(Address address, AddressSource source) {
@@ -60,9 +61,6 @@ public class AddressService {
         }
         if (!address.isValid()) {
             return new AddressResult(null, ResultStatus.INSUFFICIENT_ADDRESS);
-        }
-        if (source == null) {
-            return new AddressResult(null, ResultStatus.ADDRESS_PROVIDER_NOT_SUPPORTED);
         }
         AddressResult result = providerMap.get(source).validate(address);
         if (result == null) {
@@ -107,7 +105,7 @@ public class AddressService {
 
     public List<Address> validateOrDefault(List<Address> addresses, boolean usePunct) {
         List<Address> finalAddresses = new ArrayList<>();
-        List<AddressResult> results = validate(addresses, defaultProvider, usePunct);
+        List<AddressResult> results = validate(addresses, null, usePunct);
         for (int i = 0; i < addresses.size(); i++) {
             finalAddresses.add(getOrDefault(results.get(i), addresses.get(i)));
         }

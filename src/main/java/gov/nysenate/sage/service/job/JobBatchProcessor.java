@@ -8,7 +8,6 @@ import gov.nysenate.sage.model.job.*;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
-import gov.nysenate.sage.provider.address.AddressSource;
 import gov.nysenate.sage.provider.district.DistrictService;
 import gov.nysenate.sage.provider.geocode.GeocodeService;
 import gov.nysenate.sage.service.address.AddressService;
@@ -374,7 +373,7 @@ public class JobBatchProcessor implements JobProcessor {
 
         @Override
         public JobBatch call() throws Exception {
-            List<AddressResult> addressResults = addressService.validate(jobBatch.getAddresses(), AddressSource.AMS, false);
+            List<AddressResult> addressResults = addressService.validate(jobBatch.getAddresses(), null, false);
             if (addressResults.size() == jobBatch.getAddresses().size()) {
                 for (int i = 0; i < addressResults.size(); i++) {
                     jobBatch.setAddressResult(i, addressResults.get(i));
