@@ -14,13 +14,11 @@ import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
@@ -32,16 +30,11 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 @RestController
 @RequestMapping(value = ConstantUtil.REST_PATH + "geo")
 public class GeocodeController extends BaseController {
-    private final List<Geocoder> geocoderRanking = new ArrayList<>();
     private final AddressService addressService;
     private final GeocodeService geocodeService;
 
     @Autowired
-    public GeocodeController(@Value("${geocoder.ranking}") String geocoderRankingStr,
-                             AddressService addressService, GeocodeService geocodeService) {
-        for (String geocoder : geocoderRankingStr.split(", *")) {
-            geocoderRanking.add(Geocoder.valueOf(geocoder.toUpperCase()));
-        }
+    public GeocodeController(AddressService addressService, GeocodeService geocodeService) {
         this.addressService = addressService;
         this.geocodeService = geocodeService;
     }
@@ -66,7 +59,7 @@ public class GeocodeController extends BaseController {
         if (address == null || !address.isValid()) {
             return new ApiError(this.getClass(), INVALID_ADDRESS);
         }
-        return new GeocodeResponse(geocodeService.geocode(geocoderRanking, address));
+        return new GeocodeResponse(geocodeService.geocode(null, address));
     }
 
     /**
@@ -79,7 +72,7 @@ public class GeocodeController extends BaseController {
     @GetMapping(value = "/revgeocode")
     public BaseResponse revGeocode(@RequestParam(required = false) String geocoder,
                                    @RequestParam String lat, @RequestParam String lon) {
-        List<Geocoder> currGeocoders = geocoderRanking;
+        List<Geocoder> currGeocoders = null;
         if (geocoder != null) {
             try {
                 currGeocoders = List.of(getValue(geocoder, Geocoder.class));
@@ -113,7 +106,7 @@ public class GeocodeController extends BaseController {
             return new ApiError(this.getClass(), INVALID_BATCH_ADDRESSES);
         }
 
-        List<GeocodeResult> geocodeResults = geocodeService.geocode(geocoderRanking, addresses);
+        List<GeocodeResult> geocodeResults = geocodeService.geocode(addresses);
         return new BatchGeocodeResponse(geocodeResults);
     }
 
@@ -132,7 +125,7 @@ public class GeocodeController extends BaseController {
             return new ApiError(this.getClass(), INVALID_BATCH_POINTS);
         }
 
-        List<GeocodeResult> revGeocodeResults = geocodeService.reverseGeocode(geocoderRanking, points);
+        List<GeocodeResult> revGeocodeResults = geocodeService.reverseGeocode(points);
         List<Address> addresses = revGeocodeResults.stream().map(GeocodeResult::getAddress).toList();
         addresses = addressService.validateOrDefault(addresses, false);
         for (int i = 0; i < addresses.size(); i++) {

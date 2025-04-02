@@ -19,13 +19,11 @@ import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 
 import static gov.nysenate.sage.model.result.ResultStatus.BAD_OVERLAY;
@@ -38,24 +36,14 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 @RestController
 @RequestMapping(value = ConstantUtil.REST_PATH + "district")
 public class DistrictController extends BaseController {
-    private final List<LocalSource> districtSourceRanking = new ArrayList<>();
-    private final List<Geocoder> geocoderRanking = new ArrayList<>();
     private final ShapefileService shapefileService;
     private final AddressService addressService;
     private final GeocodeService geocodeService;
     private final DistrictService districtService;
 
     @Autowired
-    public DistrictController(@Value("${district.ranking}") String districtRanking,
-                              @Value("${geocoder.ranking}") String geocoderRankingStr,
-                              ShapefileService shapefileService, AddressService addressService,
+    public DistrictController(ShapefileService shapefileService, AddressService addressService,
                               GeocodeService geocodeService, DistrictService districtService) {
-        for (String districtSource : districtRanking.split(", *")) {
-            districtSourceRanking.add(LocalSource.valueOf(districtSource.toUpperCase()));
-        }
-        for (String geocoder : geocoderRankingStr.split(", *")) {
-            geocoderRanking.add(Geocoder.valueOf(geocoder.toUpperCase()));
-        }
         this.shapefileService = shapefileService;
         this.addressService = addressService;
         this.geocodeService = geocodeService;
@@ -91,14 +79,14 @@ public class DistrictController extends BaseController {
         }
         Point point = getPointFromParams(lat, lon);
 
-        List<Geocoder> currGeocoders = geocoderRanking;
+        List<Geocoder> currGeocoders = null;
         if (geocoder != null) {
             currGeocoders = List.of(getValue(geocoder, Geocoder.class));
         }
 
         GeocodedAddress geocodedAddress = point == null ? geocodeService.getGeocodedAddress(currGeocoders, address) :
                 geocodeService.getRevGeocodedAddress(currGeocoders, point);
-        List<LocalSource> currDistrictSources = districtSourceRanking;
+        List<LocalSource> currDistrictSources = null;
         if (districtSource != null) {
             currDistrictSources = List.of(getValue(districtSource, LocalSource.class));
         }
@@ -135,10 +123,10 @@ public class DistrictController extends BaseController {
 
         // TODO: only geocode if shapefile used?
         List<GeocodedAddress> geocodedAddresses = points.isEmpty() ?
-                geocodeService.getGeocodedAddresses(geocoderRanking, addresses) :
-                geocodeService.getRevGeocodedAddresses(geocoderRanking, points);
+                geocodeService.getGeocodedAddresses(addresses) :
+                geocodeService.getRevGeocodedAddresses(points);
 
-        return new BatchDistrictResponse(districtService.assignDistricts(districtSourceRanking, geocodedAddresses,
+        return new BatchDistrictResponse(districtService.assignDistricts(geocodedAddresses,
                 List.of(DistrictType.values())));
     }
 

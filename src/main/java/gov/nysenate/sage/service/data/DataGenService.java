@@ -8,13 +8,11 @@ import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.district.DistrictMember;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
+import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.provider.geocode.GeocodeService;
-import gov.nysenate.sage.provider.geocode.Geocoder;
-import gov.nysenate.sage.util.AddressUtil;
 import gov.nysenate.sage.util.AssemblyScraper;
 import gov.nysenate.sage.util.CongressScraper;
-import gov.nysenate.services.NYSenateClientService;
 import gov.nysenate.services.NYSenateJSONClient;
 import gov.nysenate.services.model.District;
 import gov.nysenate.services.model.Office;
@@ -169,33 +167,33 @@ public class DataGenService implements SageDataGenService {
      */
     private boolean generateSenateData() throws IOException {
         boolean updated = false;
-        NYSenateClientService senateClient;
         logger.info("Generating senate data from NY Senate client services");
-        senateClient = new NYSenateJSONClient(nysenateDomain);
-        List<Senator> senators = senateClient.getSenators();
+        List<Senator> senators = new NYSenateJSONClient(nysenateDomain).getSenators();
 
         for (Senator senator : senators) {
             int district = senator.getDistrict().getNumber();
-            if (district > 0) {
-                for (Office office : senator.getOffices()) {
-                    setUpdatedGeocode(office);
-                }
-                if (verifyOfficeGeocode(senator)) {
-                    Senator existingSenator = sqlSenateDao.getSenatorByDistrict(district);
-                    if (existingSenator == null) {
-                        sqlSenateDao.insertSenate(senator.getDistrict());
-                        sqlSenateDao.insertSenator(senator);
-                    }
-                    else {
-                        sqlSenateDao.deleteSenator(district);
-                        sqlSenateDao.insertSenator(senator);
-                    }
-                }
-                else {
-                    logger.info("Could not update Senator {} District: {}", senator.getName(), district);
-                }
-                updated = true;
+            if (district <= 0) {
+                continue;
             }
+            for (Office office : senator.getOffices()) {
+                String street = office.getStreet().replaceAll("(?i)Avesuite", "Ave Suite")
+                        .replaceAll("(?i)avenuesuite", "Avenue Suite");
+                var officeAddress = new BuildingAddress(street, office.getCity(), office.getPostalCode());
+                Point point = setUpdatedGeocode(officeAddress);
+                if (point != null && point.isValid()) {
+                    office.setLatitude(point.lat().doubleValue());
+                    office.setLongitude(point.lon().doubleValue());
+                }
+            }
+            Senator existingSenator = sqlSenateDao.getSenatorByDistrict(district);
+            if (existingSenator == null) {
+                sqlSenateDao.insertSenate(senator.getDistrict());
+            }
+            else {
+                sqlSenateDao.deleteSenator(district);
+            }
+            sqlSenateDao.insertSenator(senator);
+            updated = true;
         }
 
         if (updated) {
@@ -214,24 +212,15 @@ public class DataGenService implements SageDataGenService {
         return !existingMember.equals(newMember);
     }
 
-    private void setUpdatedGeocode(Office senatorOffice) {
-        // Convert Senator Object info into an address
-        String street = senatorOffice.getStreet().replaceAll("(?i)Avesuite", "Ave Suite")
-                .replaceAll("(?i)avenuesuite", "Avenue Suite");
-        var officeAddress = new BuildingAddress(street, senatorOffice.getCity(), senatorOffice.getPostalCode());
-        //Ensure Mixed Case
-        AddressUtil.performInitCapsOnAddress(officeAddress);
-        // TODO: update
-        GeocodeResult result = geocodeService.geocode(List.of(Geocoder.NYSGEO, Geocoder.GOOGLE), officeAddress);
-
+    private Point setUpdatedGeocode(BuildingAddress officeAddress) {
+        GeocodeResult result = geocodeService.geocode(null, officeAddress);
         if (result.isSuccess()) {
             Geocode geocodedOffice = result.getGeocode();
-            // TODO: change Office
-            senatorOffice.setLatitude(geocodedOffice.lat().doubleValue());
-            senatorOffice.setLongitude(geocodedOffice.lon().doubleValue());
+            return geocodedOffice.point();
         }
         else {
             logger.error("SAGE was unable to geocode this office address: {}", officeAddress);
+            return null;
         }
     }
 }

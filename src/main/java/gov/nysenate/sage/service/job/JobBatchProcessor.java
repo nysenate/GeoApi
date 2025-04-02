@@ -11,7 +11,6 @@ import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.provider.address.AddressSource;
 import gov.nysenate.sage.provider.district.DistrictService;
 import gov.nysenate.sage.provider.geocode.GeocodeService;
-import gov.nysenate.sage.provider.geocode.Geocoder;
 import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.util.FileUtil;
 import gov.nysenate.sage.util.FormatUtil;
@@ -44,8 +43,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedTransferQueue;
 
 import static gov.nysenate.sage.model.job.JobProcessStatus.Condition.*;
-import static gov.nysenate.sage.provider.district.LocalSource.SHAPEFILE;
-import static gov.nysenate.sage.provider.district.LocalSource.STREETFILE;
 import static gov.nysenate.sage.util.controller.ConstantUtil.DOWNLOAD_BASE_URL;
 
 @Service
@@ -417,10 +414,7 @@ public class JobBatchProcessor implements JobProcessor {
             }
             logger.info("Geocoding for records {}-{}", jobBatch.fromRecord(), jobBatch.toRecord());
 
-
-            // TODO: update
-            List<Geocoder> geocoders = Geocoder.getGeocoders(Geocoder.NYSGEO, true, true);
-            List<GeocodeResult> geocodeResults = geocodeService.geocode(geocoders, jobBatch.getAddresses(true));
+            List<GeocodeResult> geocodeResults = geocodeService.geocode(jobBatch.getAddresses(true));
             if (geocodeResults.size() == jobBatch.jobRecords().size()) {
                 for (int i = 0; i < geocodeResults.size(); i++) {
                     jobBatch.setGeocodeResult(i, geocodeResults.get(i));
@@ -451,9 +445,8 @@ public class JobBatchProcessor implements JobProcessor {
             JobBatch jobBatch = futureJobBatch.get();
             logger.info("District assignment for records {}-{}", jobBatch.fromRecord(), jobBatch.toRecord());
 
-            // TODO: use ranking, probably by just using Controller directly
             List<DistrictResult> districtResults = districtService.assignDistricts(
-                    List.of(STREETFILE, SHAPEFILE), jobBatch.getGeocodedAddresses(), districtTypes
+                    jobBatch.getGeocodedAddresses(), districtTypes
             );
             for (int i = 0; i < districtResults.size(); i++) {
                 jobBatch.setDistrictResult(i, districtResults.get(i));

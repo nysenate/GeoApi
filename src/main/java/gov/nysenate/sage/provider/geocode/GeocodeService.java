@@ -1,5 +1,6 @@
 package gov.nysenate.sage.provider.geocode;
 
+import com.google.common.collect.ImmutableList;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.data.PostOfficeDao;
 import gov.nysenate.sage.dao.provider.nysgeo.GeocoderDao;
@@ -20,6 +21,7 @@ import gov.nysenate.sage.util.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
@@ -42,14 +44,22 @@ public class GeocodeService {
     private static final Logger logger = LoggerFactory.getLogger(GeocodeService.class);
     private final Map<Geocoder, GeocoderDao> geocoderDaoMap;
     private final GeoCache geoCache;
+    private final ImmutableList<Geocoder> defaultRanking;
     private final ThreadPoolTaskExecutor executor;
     private final PostOfficeDao postOfficeDao;
     private final Map<Tuple<Zip5, List<Geocoder>>, PostOfficeData<GeocodeResult>> poBoxCache = new HashMap<>();
 
     @Autowired
-    public GeocodeService(List<GeocoderDao> geocoderDaos, GeoCache geoCache, PostOfficeDao postOfficeDao, Environment env) {
+    public GeocodeService(List<GeocoderDao> geocoderDaos, GeoCache geoCache,
+                          @Value("${geocoder.ranking}") String geocoderRankingStr,
+                          PostOfficeDao postOfficeDao, Environment env) {
         this.geocoderDaoMap = geocoderDaos.stream().collect(Collectors.toMap(GeocoderDao::geocoder, Function.identity()));
         this.geoCache = geoCache;
+        List<Geocoder> tempRanking = new ArrayList<>();
+        for (String geocoder : geocoderRankingStr.split(", *")) {
+            tempRanking.add(Geocoder.valueOf(geocoder.toUpperCase()));
+        }
+        this.defaultRanking = ImmutableList.copyOf(tempRanking);
         this.postOfficeDao = postOfficeDao;
         this.executor = ExecutorUtil.createExecutor("geocode", env.getValidateThreads());
     }
@@ -64,11 +74,14 @@ public class GeocodeService {
             return new GeocodeResult(null, INSUFFICIENT_ADDRESS, geocodedAddress);
         }
 
+        if (geocoders == null) {
+            geocoders = defaultRanking;
+        }
         if (address.isPoBox()) {
             var cacheKey = new Tuple<>(address.getZip5(), geocoders);
             if (!poBoxCache.containsKey(cacheKey)) {
                 List<GeocodeResult> postOfficeResults = postOfficeDao.getPostOffices(address.getZip5())
-                        .stream().map(addr -> geocode(geocoders, addr)).toList();
+                        .stream().map(addr -> geocode(null, addr)).toList();
                 poBoxCache.put(cacheKey, PostOfficeData.getGeocodeData(postOfficeResults));
             }
             return poBoxCache.get(cacheKey).getData(address.getPostalCity());
@@ -91,8 +104,8 @@ public class GeocodeService {
         return result;
     }
 
-    public List<GeocodedAddress> getGeocodedAddresses(List<Geocoder> geocoders, List<Address> addresses) {
-        List<GeocodeResult> results = geocode(geocoders, addresses);
+    public List<GeocodedAddress> getGeocodedAddresses(List<Address> addresses) {
+        List<GeocodeResult> results = geocode(addresses);
         List<GeocodedAddress> finalResults = new ArrayList<>();
         for (int i = 0; i < addresses.size(); i++) {
             finalResults.add(getOrDefault(results.get(i), addresses.get(i)));
@@ -100,12 +113,12 @@ public class GeocodeService {
         return finalResults;
     }
 
-    public List<GeocodeResult> geocode(List<Geocoder> geocoders, List<Address> addresses) {
+    public List<GeocodeResult> geocode(List<Address> addresses) {
         List<GeocodeResult> geocodeResults = new ArrayList<>();
         List<Future<GeocodeResult>> futureGeocodeResults = new ArrayList<>();
 
         for (Address address : addresses) {
-            futureGeocodeResults.add(executor.submit(() -> geocode(geocoders, address)));
+            futureGeocodeResults.add(executor.submit(() -> geocode(null, address)));
         }
 
         for (Future<GeocodeResult> geocodeResult : futureGeocodeResults) {
@@ -129,6 +142,9 @@ public class GeocodeService {
         if (!RevGeocodeServiceValidator.validateRevGeocodeInput(point)) {
             return new GeocodeResult(null, MISSING_POINT);
         }
+        if (geocoders == null) {
+            geocoders = defaultRanking;
+        }
         ResultStatus status = MISSING_GEOCODER;
         Geocoder revGeocoder = null;
         GeocodedAddress revGeocodedAddress = null;
@@ -149,8 +165,8 @@ public class GeocodeService {
         return new GeocodeResult(revGeocoder, status, revGeocodedAddress);
     }
 
-    public List<GeocodedAddress> getRevGeocodedAddresses(List<Geocoder> geocoders, List<Point> points) {
-        List<GeocodeResult> results = reverseGeocode(geocoders, points);
+    public List<GeocodedAddress> getRevGeocodedAddresses(List<Point> points) {
+        List<GeocodeResult> results = reverseGeocode(points);
         List<GeocodedAddress> finalResults = new ArrayList<>();
         for (int i = 0; i < points.size(); i++) {
             finalResults.add(getOrDefault(results.get(i), points.get(i)));
@@ -158,12 +174,12 @@ public class GeocodeService {
         return finalResults;
     }
 
-    public List<GeocodeResult> reverseGeocode(List<Geocoder> geocoders, List<Point> points) {
+    public List<GeocodeResult> reverseGeocode(List<Point> points) {
         List<GeocodeResult> geocodeResults = new ArrayList<>();
         List<Future<GeocodeResult>> futureGeocodeResults = new ArrayList<>();
 
         for (Point point : points) {
-            futureGeocodeResults.add(executor.submit(() -> reverseGeocode(geocoders, point)));
+            futureGeocodeResults.add(executor.submit(() -> reverseGeocode(null, point)));
         }
 
         for (Future<GeocodeResult> geocodeResult : futureGeocodeResults) {

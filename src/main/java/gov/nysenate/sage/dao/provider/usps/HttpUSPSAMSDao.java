@@ -13,7 +13,6 @@ import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.CityStateResult;
 import gov.nysenate.sage.provider.address.AddressDao;
 import gov.nysenate.sage.provider.address.AddressSource;
-import gov.nysenate.sage.util.AddressUtil;
 import gov.nysenate.sage.util.UrlRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,13 +67,7 @@ public class HttpUSPSAMSDao implements AddressDao {
             String response = UrlRequest.getResponseFromUrl(url);
             if (response != null && !response.isEmpty()) {
                 JsonNode root = objectMapper.readTree(response);
-                AddressResult addressResult = getAddressResultFromJsonValidate(root);
-                if (addressResult.getAddress() != null) {
-                    addressResult.setAddress(
-                            AddressUtil.performInitCapsOnAddress(addressResult.getAddress())
-                    );
-                }
-                return addressResult;
+                return getAddressResultFromJsonValidate(root);
             }
             else {
                 logger.error("Failed to obtain a valid response from USPS AMS!");

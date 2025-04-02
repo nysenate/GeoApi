@@ -1,5 +1,6 @@
 package gov.nysenate.sage.provider.district;
 
+import com.google.common.collect.ImmutableList;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.controller.api.DistrictUtil;
 import gov.nysenate.sage.dao.data.PostOfficeDao;
@@ -17,6 +18,7 @@ import gov.nysenate.sage.util.ExecutorUtil;
 import gov.nysenate.sage.util.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
@@ -38,27 +40,37 @@ import static gov.nysenate.sage.provider.district.LocalSource.STREETFILE;
 public class DistrictService {
     private static final Logger logger = LoggerFactory.getLogger(DistrictService.class);
     private final PostOfficeDao postOfficeDao;
-    private final Map<Tuple<Zip5, List<LocalSource>>, PostOfficeData<DistrictResult>> poBoxCache = new HashMap<>();
     private final StreetfileDao streetfileDao;
     private final SqlShapefileDao sqlShapefileDao;
+    private final ImmutableList<LocalSource> defaultRanking;
     private final ThreadPoolTaskExecutor executor;
+    private final Map<Tuple<Zip5, List<LocalSource>>, PostOfficeData<DistrictResult>> poBoxCache = new HashMap<>();
 
-    public DistrictService(PostOfficeDao postOfficeDao, StreetfileDao streetfileDao,
-                           SqlShapefileDao sqlShapefileDao, Environment env) {
+    public DistrictService(PostOfficeDao postOfficeDao, StreetfileDao streetfileDao, SqlShapefileDao sqlShapefileDao,
+                           @Value("${district.ranking}") String districtRankingStr, Environment env) {
         this.postOfficeDao = postOfficeDao;
         this.streetfileDao = streetfileDao;
         this.sqlShapefileDao = sqlShapefileDao;
+
+        List<LocalSource> tempRanking = new ArrayList<>();
+        for (String geocoder : districtRankingStr.split(", *")) {
+            tempRanking.add(LocalSource.valueOf(geocoder.toUpperCase()));
+        }
+        this.defaultRanking = ImmutableList.copyOf(tempRanking);
         this.executor = ExecutorUtil.createExecutor("district", env.getValidateThreads());
     }
 
     public DistrictResult assignDistricts(List<LocalSource> providers, GeocodedAddress geocodedAddress,
                                           List<DistrictType> requiredTypes) {
         Address address = geocodedAddress.getAddress();
+        if (providers == null) {
+            providers = defaultRanking;
+        }
         if (address != null && address.isPoBox()) {
             var cacheKey = new Tuple<>(address.getZip5(), providers);
             if (!poBoxCache.containsKey(cacheKey)) {
                 List<DistrictResult> postOfficeResults = postOfficeDao.getPostOffices(address.getZip5())
-                        .stream().map(addr -> assignDistricts(providers, geocodedAddress, requiredTypes)).toList();
+                        .stream().map(addr -> assignDistricts(null, geocodedAddress, requiredTypes)).toList();
                 poBoxCache.put(cacheKey, PostOfficeData.getDistrictData(postOfficeResults));
             }
             return poBoxCache.get(cacheKey).getData(address.getPostalCity());
@@ -82,14 +94,13 @@ public class DistrictService {
         return DistrictUtil.consolidateResults(results);
     }
 
-    public List<DistrictResult> assignDistricts(List<LocalSource> providers,
-                                                List<GeocodedAddress> geocodedAddresses,
+    public List<DistrictResult> assignDistricts(List<GeocodedAddress> geocodedAddresses,
                                                 List<DistrictType> requiredTypes) {
         var districtResults = new ArrayList<DistrictResult>();
         var futureDistrictResults = new ArrayList<Future<DistrictResult>>();
 
         for (GeocodedAddress geocodedAddress : geocodedAddresses) {
-            futureDistrictResults.add(executor.submit(() -> assignDistricts(providers, geocodedAddress, requiredTypes)));
+            futureDistrictResults.add(executor.submit(() -> assignDistricts(null, geocodedAddress, requiredTypes)));
         }
 
         for (Future<DistrictResult> districtResult : futureDistrictResults) {
