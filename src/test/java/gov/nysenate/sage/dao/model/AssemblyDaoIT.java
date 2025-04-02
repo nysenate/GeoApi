@@ -4,7 +4,6 @@ import gov.nysenate.sage.BaseTests;
 import gov.nysenate.sage.annotation.IntegrationTest;
 import gov.nysenate.sage.config.DatabaseConfig;
 import gov.nysenate.sage.dao.model.member.MemberDao;
-import gov.nysenate.sage.model.district.Assembly;
 import gov.nysenate.sage.model.district.DistrictMember;
 import gov.nysenate.sage.model.district.DistrictType;
 import org.junit.Test;
@@ -29,20 +28,20 @@ public class AssemblyDaoIT extends BaseTests {
         assertEquals(150, assemblyList.size());
 
         DistrictMember a = assemblyList.get(0);
-        assertEquals(DistrictType.ASSEMBLY, a.getDistrictType());
-        assertNotNull(a.getMemberName());
-        assertNotNull(a.getMemberUrl());
-        assertFalse(a.getMemberName().isEmpty());
-        assertFalse(a.getMemberUrl().isEmpty());
-        assertTrue(a.getDistrict() > 0);
+        assertEquals(DistrictType.ASSEMBLY, a.districtType());
+        assertNotNull(a.memberName());
+        assertNotNull(a.memberUrl());
+        assertFalse(a.memberName().isEmpty());
+        assertFalse(a.memberUrl().isEmpty());
+        assertTrue(a.district() > 0);
     }
 
     @Test
     @Transactional(value = DatabaseConfig.geoApiTxManager)
     public void insertAndDeleteTest() {
-        var assembly = new Assembly(200,"TEST TEST","NY.GOV.ASSSEMBLY.TEST");
+        var assembly = new DistrictMember(DistrictType.ASSEMBLY, 200,"TEST TEST","NY.GOV.ASSSEMBLY.TEST");
         memberDao.insertDistrictMember(assembly);
-        memberDao.deleteDistrictMember(DistrictType.ASSEMBLY, assembly.getDistrict());
+        memberDao.deleteDistrictMember(DistrictType.ASSEMBLY, assembly.district());
     }
 
 

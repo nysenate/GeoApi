@@ -1,6 +1,7 @@
 package gov.nysenate.sage.util;
 
-import gov.nysenate.sage.model.district.Congressional;
+import gov.nysenate.sage.model.district.DistrictMember;
+import gov.nysenate.sage.model.district.DistrictType;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -16,14 +17,12 @@ import java.util.List;
 /**
  * Scrapes congressional member data from the house website.
  */
-public class CongressScraper
-{
+public class CongressScraper {
     private static final Logger logger = LoggerFactory.getLogger(CongressScraper.class);
     private static final String HOUSE_MEM_URL = "https://www.house.gov/representatives";
 
-    public static List<Congressional> getCongressionals()
-    {
-        List<Congressional> ret = new ArrayList<>();
+    public static List<DistrictMember> getCongressionals() {
+        List<DistrictMember> ret = new ArrayList<>();
 
         try {
             // Each state's representatives are in a separate HTML table.
@@ -58,8 +57,7 @@ public class CongressScraper
                 }
 
                 logger.info("Retrieved member [{}], CD={}", memberName, distNum);
-                Congressional c = new Congressional(distNum, memberName, memberUrl);
-                ret.add(c);
+                ret.add(new DistrictMember(DistrictType.CONGRESSIONAL, distNum, memberName, memberUrl));
             }
 
             return ret;

@@ -39,13 +39,13 @@ public class MemberDao extends BaseDao {
     }
 
     public void insertDistrictMember(DistrictMember member) {
-        SqlTable currTable = getTable(member.getDistrictType());
+        SqlTable currTable = getTable(member.districtType());
         if (currTable == null) {
-            throw new RuntimeException(member.getDistrictType() + " does not have district members.");
+            throw new RuntimeException(member.districtType() + " does not have district members.");
         }
-        var params = new MapSqlParameterSource("district", member.getDistrict())
-                .addValue("memberName", member.getMemberName())
-                .addValue("memberUrl", member.getMemberUrl());
+        var params = new MapSqlParameterSource("district", member.district())
+                .addValue("memberName", member.memberName())
+                .addValue("memberUrl", member.memberUrl());
         String sql = MemberQuery.INSERT_MEMBER.getSql(getPublicSchema(), Map.of("memberTable", currTable.name()));
         namedJdbcTemplate.update(sql, params);
     }

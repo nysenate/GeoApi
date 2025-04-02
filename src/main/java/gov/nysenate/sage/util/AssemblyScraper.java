@@ -1,6 +1,7 @@
 package gov.nysenate.sage.util;
 
-import gov.nysenate.sage.model.district.Assembly;
+import gov.nysenate.sage.model.district.DistrictMember;
+import gov.nysenate.sage.model.district.DistrictType;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -12,20 +13,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
  * Scrapes assembly member data from the assembly website
  */
-public class AssemblyScraper
-{
+public class AssemblyScraper {
     private static final Logger logger = LoggerFactory.getLogger(AssemblyScraper.class);
+    private static final String ASSEMBLY_MEM_URL = "https://www.nyassembly.gov/mem/email/";
 
-    private static final String ASSEMBLY_BASE_URL = "https://www.nyassembly.gov";
-    private static final String ASSEMBLY_MEM_URL = ASSEMBLY_BASE_URL+"/mem/email/";
-
-    public static List<Assembly> getAssemblies()
-    {
-        List<Assembly> ret = new ArrayList<>();
+    public static List<DistrictMember> getAssemblies() {
+        List<DistrictMember> ret = new ArrayList<>();
 
         try {
             //<li
@@ -44,7 +40,6 @@ public class AssemblyScraper
             Document doc = Jsoup.connect(ASSEMBLY_MEM_URL).get();
             Elements memberList = doc.select("#mem-email-list li"); //#mem-email-list
             for (Element member : memberList) {
-
                 try {
                     Elements memberInfo = member.children();
                     String memberName = memberInfo.get(0).text();
@@ -54,9 +49,8 @@ public class AssemblyScraper
                             .replace("rd","").replace("th","") );
 //                String memberEmail = memberInfo.get(2).text().trim();
 
-                    logger.info("Retrieved member [" + memberName + "], AD=" + distNum);
-                    Assembly a = new Assembly(distNum, memberName, memberUrl);
-                    ret.add(a);
+                    logger.info("Retrieved member [{}], AD={}", memberName, distNum);
+                    ret.add(new DistrictMember(DistrictType.ASSEMBLY, distNum, memberName, memberUrl));
                 }
                 catch (Exception e) {
                     logger.warn(e.getMessage());
@@ -67,7 +61,7 @@ public class AssemblyScraper
             return ret;
         }
         catch (IOException ioe) {
-            logger.error("" + ioe);
+            logger.error("{}", String.valueOf(ioe));
         }
         return ret;
     }

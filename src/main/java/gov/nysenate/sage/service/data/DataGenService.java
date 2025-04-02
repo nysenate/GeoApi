@@ -5,8 +5,6 @@ import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.dao.model.member.MemberDao;
 import gov.nysenate.sage.dao.model.senate.SqlSenateDao;
 import gov.nysenate.sage.model.address.BuildingAddress;
-import gov.nysenate.sage.model.district.Assembly;
-import gov.nysenate.sage.model.district.Congressional;
 import gov.nysenate.sage.model.district.DistrictMember;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
@@ -51,12 +49,12 @@ public class DataGenService implements SageDataGenService {
 
     public Object vacantizeSenateData() {
         boolean updated = false;
-        Object apiResponse = new ApiError(this.getClass(), API_REQUEST_INVALID );
+        Object apiResponse = new ApiError(this.getClass(), API_REQUEST_INVALID);
 
         ArrayList<Senator> vacantSenatorsList = new ArrayList<>();
         //handle the empty ones
-        for (int i=0; i < 64; i++) {
-            Senator vacantSenator = new Senator();
+        for (int i = 0; i < 64; i++) {
+            var vacantSenator = new Senator();
             vacantSenator.setDistrict(new District(i,"https://www.nysenate.gov/district/" + i));
             vacantSenator.setShortName("Vacant");
             vacantSenator.setName("Vacant District " + i);
@@ -90,7 +88,6 @@ public class DataGenService implements SageDataGenService {
         }
     }
 
-
     public Object generateMetaData(String option) throws IOException {
         boolean updated = false;
         boolean processAssembly = false;
@@ -113,11 +110,11 @@ public class DataGenService implements SageDataGenService {
         }
 
         if (processAssembly) {
-            updated = generateAssemblyData();
+            updated = updateDistrictMembers(DistrictType.ASSEMBLY, AssemblyScraper.getAssemblies());
         }
 
         if (processCongress) {
-            updated = generateCongressionalData();
+            updated = updateDistrictMembers(DistrictType.CONGRESSIONAL, CongressScraper.getCongressionals());
         }
 
         if (processSenate) {
@@ -136,45 +133,30 @@ public class DataGenService implements SageDataGenService {
         sqlSenateDao.updateSenatorCache();
     }
 
-    /**
-     * Retrieves Congressional member data from an external source and updates the
-     * relevant data in the database.
-     */
-    private boolean generateCongressionalData() {
-        logger.info("Indexing NY Congress by scraping its website...");
+    private static boolean verifyOfficeGeocode(Senator senator) {
+        List<Office> offices = senator.getOffices();
 
-        List<Congressional> congressionals = CongressScraper.getCongressionals();
-        for (Congressional congressional : congressionals) {
-            int district = congressional.getDistrict();
-            DistrictMember existingCongressional = memberDao.getMemberByDistrict(DistrictType.CONGRESSIONAL, district);
+        for (Office office : offices) {
+            double latitude = office.getLatitude();
+            double longitude = office.getLongitude();
 
-            if (existingCongressional == null) {
-                memberDao.insertDistrictMember(congressional);
-            } else if (isMemberUpdated(existingCongressional, congressional)) {
-                memberDao.deleteDistrictMember(DistrictType.CONGRESSIONAL, district);
-                memberDao.insertDistrictMember(congressional);
+            if (latitude == 0.0 || longitude == 0.0 || Double.isNaN(latitude) || Double.isNaN(longitude)) {
+                return false;
             }
         }
         return true;
     }
 
-    /**
-     * Retrieves Assembly member data from an external source and updates the
-     * relevant data in the database.
-     */
-    private boolean generateAssemblyData() {
-        logger.info("Indexing NY Assembly by scraping its website...");
+    private boolean updateDistrictMembers(DistrictType districtType, List<DistrictMember> newMembers) {
+        logger.info("Indexing NY {} by scraping its website...", districtType);
 
-        List<Assembly> assemblies = AssemblyScraper.getAssemblies();
-        for (Assembly assembly : assemblies) {
-            int district = assembly.getDistrict();
-            DistrictMember existingAssembly = memberDao.getMemberByDistrict(DistrictType.ASSEMBLY, district);
+        for (DistrictMember newMember : newMembers) {
+            int district = newMember.district();
+            DistrictMember existingMember = memberDao.getMemberByDistrict(districtType, district);
 
-            if (existingAssembly == null) {
-                memberDao.insertDistrictMember(assembly);
-            } else if (isMemberUpdated(existingAssembly, assembly)) {
-                memberDao.deleteDistrictMember(DistrictType.ASSEMBLY, district);
-                memberDao.insertDistrictMember(assembly);
+            if (isMemberUpdated(existingMember, newMember)) {
+                memberDao.deleteDistrictMember(districtType, district);
+                memberDao.insertDistrictMember(newMember);
             }
         }
         return true;
@@ -251,19 +233,5 @@ public class DataGenService implements SageDataGenService {
         else {
             logger.error("SAGE was unable to geocode this office address: {}", officeAddress);
         }
-    }
-
-    private boolean verifyOfficeGeocode(Senator senator) {
-        List<Office> offices = senator.getOffices();
-
-        for (Office office : offices) {
-            double latitude = office.getLatitude();
-            double longitude = office.getLongitude();
-
-            if (latitude == 0.0 || longitude == 0.0 || Double.isNaN(latitude) || Double.isNaN(longitude)) {
-                return false;
-            }
-        }
-        return true;
     }
 }

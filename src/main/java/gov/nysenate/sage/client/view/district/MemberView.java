@@ -10,8 +10,8 @@ public class MemberView
     public MemberView(DistrictMember districtMember)
     {
         if (districtMember != null) {
-            this.name = districtMember.getMemberName();
-            this.url = districtMember.getMemberUrl();
+            this.name = districtMember.memberName();
+            this.url = districtMember.memberUrl();
         }
     }
 

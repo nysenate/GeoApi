@@ -3,7 +3,7 @@ package gov.nysenate.sage.dao.model.senate;
 import gov.nysenate.sage.dao.base.BasicSqlQuery;
 import gov.nysenate.sage.dao.base.SqlTable;
 
-public enum SenateQuery implements BasicSqlQuery  {
+public enum SenateQuery implements BasicSqlQuery {
 
     INSERT_SENATOR("INSERT INTO ${schema}." + SqlTable.SENATOR + " (district, name, data) VALUES (:district,:name,:data)"),
 
@@ -15,11 +15,9 @@ public enum SenateQuery implements BasicSqlQuery  {
 
     DELETE_SENATOR_BY_DISTRICT("DELETE FROM ${schema}." + SqlTable.SENATOR + " s WHERE s.district = :district"),
 
-    GET_ALL_SENATORS("SELECT * FROM ${schema}." + SqlTable.SENATOR),
+    GET_ALL_SENATORS("SELECT * FROM ${schema}." + SqlTable.SENATOR);
 
-    ;
-
-    private String sql;
+    private final String sql;
 
     SenateQuery(String sql) {
         this.sql = sql;
