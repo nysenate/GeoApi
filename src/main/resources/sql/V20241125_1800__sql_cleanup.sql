@@ -37,3 +37,18 @@ AS $$
 BEGIN
     RETURN ST_Area(ST_Transform(geom, utmzone(ST_Centroid(geom))))/(1000*1000);
 END;$$;
+
+DROP TABLE public.senate CASCADE;
+
+ALTER TABLE public.senator
+ADD COLUMN url TEXT;
+
+ALTER TABLE public.assembly
+RENAME COLUMN membername TO member_name;
+ALTER TABLE public.assembly
+RENAME COLUMN memberurl TO member_url;
+
+ALTER TABLE public.congressional
+RENAME COLUMN membername TO member_name;
+ALTER TABLE public.congressional
+RENAME COLUMN memberurl TO member_url;

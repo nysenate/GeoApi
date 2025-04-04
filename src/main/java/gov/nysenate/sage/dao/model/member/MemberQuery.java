@@ -3,13 +3,11 @@ package gov.nysenate.sage.dao.model.member;
 import gov.nysenate.sage.dao.base.BasicSqlQuery;
 
 public enum MemberQuery implements BasicSqlQuery {
-    GET_ALL_MEMBERS("SELECT * FROM ${schema}.${memberTable}"),
+    INSERT_MEMBER("INSERT INTO ${schema}.${memberTable} (district, member_name, member_url) VALUES (:district, :memberName, :memberUrl)"),
 
-    GET_MEMBER_BY_DISTRICT("SELECT * FROM ${schema}.${memberTable} WHERE district = :district"),
+    DELETE_MEMBER("DELETE FROM ${schema}.${memberTable} WHERE district = :district"),
 
-    INSERT_MEMBER("INSERT INTO ${schema}.${memberTable} (district, memberName, memberUrl) VALUES (:district,:memberName,:memberUrl)"),
-
-    DELETE_DISTRICT("DELETE FROM ${schema}.${memberTable} WHERE district = :district");
+    GET_ALL_MEMBERS("SELECT * FROM ${schema}.${memberTable}");
 
     private final String sql;
 

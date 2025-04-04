@@ -22,6 +22,7 @@ public enum ResultStatus {
     MISSING_GEOCODED_ADDRESS(46, "The address was unable to be matched using the geocoding service. Please ensure that the address is valid " +
                                   "or try using a different geocoder."),
     MULTIPLE_POST_OFFICES(47, "The PO box could be in multiple post offices."),
+    POST_OFFICE_REFRESH_FAILURE(48, "Failed to refresh post office data."),
 
     INVALID_GEOCODE(52, "The geocoding process did not yield a successful response. Please ensure that you have entered a valid address or try selecting a different geocoding provider."),
     MISSING_GEOCODER(53, "No geocoder provided."),

@@ -30,9 +30,7 @@ public class GenerateMetaDataCLI extends BaseScript {
 
     @Override
     protected void execute(CommandLine opts) throws Exception {
-
         if (!opts.getArgList().isEmpty()) {
-
             for (String opt : opts.getArgs()) {
                 logger.info("Beginning Meta Data Generation for arg: {}", opt);
                 dataGenService.generateMetaData(opt);

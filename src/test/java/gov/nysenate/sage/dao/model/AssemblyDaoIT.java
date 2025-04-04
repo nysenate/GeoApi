@@ -35,19 +35,4 @@ public class AssemblyDaoIT extends BaseTests {
         assertFalse(a.memberUrl().isEmpty());
         assertTrue(a.district() > 0);
     }
-
-    @Test
-    @Transactional(value = DatabaseConfig.geoApiTxManager)
-    public void insertAndDeleteTest() {
-        var assembly = new DistrictMember(DistrictType.ASSEMBLY, 200,"TEST TEST","NY.GOV.ASSSEMBLY.TEST");
-        memberDao.insertDistrictMember(assembly);
-        memberDao.deleteDistrictMember(DistrictType.ASSEMBLY, assembly.district());
-    }
-
-
-    @Test
-    @Transactional(value = DatabaseConfig.geoApiTxManager)
-    public void getAssemblyByInvalidDistrictTest() {
-        assertNull(memberDao.getMemberByDistrict(DistrictType.ASSEMBLY, 0));
-    }
 }

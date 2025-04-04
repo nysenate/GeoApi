@@ -37,20 +37,5 @@ public class CongressionalDaoIT extends BaseTests {
         assertFalse(c.memberUrl().isEmpty());
         assertTrue(c.district() > 0);
     }
-
-    @Test
-    @Transactional(value = DatabaseConfig.geoApiTxManager)
-    public void insertAndDeleteTest() {
-        var congressional = new DistrictMember(DistrictType.CONGRESSIONAL, 200,"TEST TEST","NY.GOV.CONGRESS.TEST");
-        memberDao.insertDistrictMember(congressional);
-        memberDao.deleteDistrictMember(DistrictType.CONGRESSIONAL, 200);
-    }
-
-
-    @Test
-    @Transactional(value = DatabaseConfig.geoApiTxManager)
-    public void getMemberByInvalidDistrictTest() {
-        assertNull(memberDao.getMemberByDistrict(DistrictType.CONGRESSIONAL, 0));
-    }
 }
 

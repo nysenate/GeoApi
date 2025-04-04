@@ -26,7 +26,6 @@ public enum SqlTable {
     POST_OFFICE("post_office"),
     PUBLIC_CONGRESSIONAL ("congressional"),
     PUBLIC_COUNTY ("county"),
-    PUBLIC_SENATE("senate"),
     SENATOR ("senator"),
     STREETFILE ("streetfile"),
     GEOCACHE ("geocache");

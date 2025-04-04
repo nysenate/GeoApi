@@ -1,20 +1,19 @@
 package gov.nysenate.sage.util.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.geo.Point;
+import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -135,25 +134,8 @@ public final class ApiControllerUtil {
         }
     }
 
-    /**
-     * Since Admin requests do not go through the ApiFilter this method is needed to write result
-     * objects as JSON into the servlet response.
-     * @param responseObj Object to serialize.
-     * @param response The HeepServletResponse to write the result to.
-     */
-    public static void setAdminResponse(Object responseObj, HttpServletResponse response) {
-        try {
-            String json = FormatUtil.toJsonString(responseObj);
-            response.setContentType("application/json");
-            response.setContentLength(json.length());
-            response.getWriter().write(json);
-        }
-        catch(JsonProcessingException ex) {
-            logger.error("Failed to json format admin response!", ex);
-        }
-        catch(IOException ex) {
-            logger.error("Failed to write admin response", ex);
-        }
+    public static BaseResponse successResponse() {
+        return new BaseResponse(ResultStatus.SUCCESS);
     }
 
     /**

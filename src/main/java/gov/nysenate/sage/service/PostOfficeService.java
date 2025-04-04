@@ -27,22 +27,20 @@ public class PostOfficeService {
 
     /**
      * Clears out the database table, and replaces it with new data.
-     * @return a message String.
+     * @return if the operation succeeded.
      * @throws IOException if there was a problem processing the file.
      */
-    public String replaceData() throws IOException {
+    public boolean replaceData() throws IOException {
         File[] files = dataDir.listFiles();
-        if (files == null) {
-            return dataDir + " is not a valid directory.";
-        }
-        if (files.length == 0) {
-            return "No files found.";
+        if (files == null || files.length == 0) {
+            return false;
         }
         Multimap<Zip5, BuildingAddress> poAddrs = ArrayListMultimap.create();
         for (File file : files) {
             poAddrs.putAll(PostOfficeParser.getData(file));
         }
         dao.replaceData(poAddrs);
-        return "Success.";
+        // TODO: refresh caches?
+        return true;
     }
 }
