@@ -71,33 +71,33 @@ public class GeoCache extends BaseDao implements GeocoderDao {
                 .addValue("zip4", address.getZip4() == null ? null : address.getZip4().toString());
     }
 
-    public void cache(GeocodeResult result) {
-        cache(List.of(result));
+    public synchronized void cache(GeocodeResult result) {
+        if (result == null || !result.isSuccess() || result.getSource() == Geocoder.GEOCACHE) {
+            return;
+        }
+        GeocodedAddress geoAddr = result.getGeocodedAddress();
+        if (geoAddr == null || !geoAddr.isValidAddress() || !geoAddr.isValidGeocode() ||
+                geoAddr.getGeocode().isCached() || geoAddr.getAddress().isPoBox()) {
+            return;
+        }
+        Address address = geoAddr.getAddress();
+        Geocode gc = geoAddr.getGeocode();
+        var params = getIdParams(((BuildingAddress) address))
+                .addValue("latlon", "POINT(" + gc.lon() + " " + gc.lat() + ")")
+                .addValue("method", gc.originalGeocoder().name())
+                .addValue("quality", gc.quality().name());
+
+        if (namedJdbcTemplate.update(UPDATE_CACHE_ENTRY.getSql(), params) == 0) {
+            namedJdbcTemplate.update(INSERT_CACHE_ENTRY.getSql(), params);
+        }
     }
 
     /**
      * Saves any GeocodedAddress objects stored in the buffer into the database.
      */
-    public synchronized void cache(List<GeocodeResult> geocodeResults) {
+    public void cache(List<GeocodeResult> geocodeResults) {
         for (GeocodeResult result : geocodeResults) {
-            if (result == null || !result.isSuccess() || result.getSource() == Geocoder.GEOCACHE) {
-                continue;
-            }
-            GeocodedAddress geoAddr = result.getGeocodedAddress();
-            if (geoAddr == null || !geoAddr.isValidAddress() || !geoAddr.isValidGeocode() ||
-                    geoAddr.getGeocode().isCached() || geoAddr.getAddress().isPoBox()) {
-                continue;
-            }
-            Address address = geoAddr.getAddress();
-            Geocode gc = geoAddr.getGeocode();
-            var params = getIdParams(((BuildingAddress) address))
-                    .addValue("latlon", "POINT(" + gc.lon() + " " + gc.lat() + ")")
-                    .addValue("method", gc.originalGeocoder().name())
-                    .addValue("quality", gc.quality().name());
-
-            if (namedJdbcTemplate.update(UPDATE_CACHE_ENTRY.getSql(), params) == 0) {
-                namedJdbcTemplate.update(INSERT_CACHE_ENTRY.getSql(), params);
-            }
+            cache(result);
         }
     }
 }
