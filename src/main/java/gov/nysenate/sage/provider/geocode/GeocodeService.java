@@ -1,6 +1,8 @@
 package gov.nysenate.sage.provider.geocode;
 
+import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Table;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.data.PostOfficeDao;
 import gov.nysenate.sage.dao.provider.nysgeo.GeocoderDao;
@@ -13,7 +15,6 @@ import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.geocache.GeoCache;
 import gov.nysenate.sage.util.ExecutorUtil;
-import gov.nysenate.sage.util.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +24,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
@@ -43,7 +43,7 @@ public class GeocodeService {
     private final ImmutableList<Geocoder> defaultRanking;
     private final ThreadPoolTaskExecutor executor;
     private final PostOfficeDao postOfficeDao;
-    private final Map<Tuple<Zip5, List<Geocoder>>, PostOfficeData<List<GeocodedAddress>>> poBoxCache = new HashMap<>();
+    private final Table<Zip5, List<Geocoder>, PostOfficeData<List<GeocodedAddress>>> poBoxCache = HashBasedTable.create();
 
     @Autowired
     public GeocodeService(List<GeocoderDao> geocoderDaos, GeoCache geoCache,
@@ -74,14 +74,15 @@ public class GeocodeService {
             geocoders = defaultRanking;
         }
         if (address.isPoBox()) {
-            var cacheKey = new Tuple<>(address.getZip5(), geocoders);
-            if (!poBoxCache.containsKey(cacheKey)) {
+            var cacheResult = poBoxCache.get(address.getZip5(), geocoders);
+            if (cacheResult == null) {
                 final List<Geocoder> finalGeocoders = geocoders;
                 List<GeocodeResult> postOfficeResults = postOfficeDao.getPostOffices(address.getZip5())
                         .stream().map(addr -> geocode(finalGeocoders, addr)).toList();
-                poBoxCache.put(cacheKey, PostOfficeData.getGeocodeData(postOfficeResults));
+                cacheResult = PostOfficeData.getGeocodeData(postOfficeResults);
+                poBoxCache.put(address.getZip5(), geocoders, cacheResult);
             }
-            return getGeocodeResult(((PostOfficeBox) address), poBoxCache.get(cacheKey).getData(address.getPostalCity()));
+            return getGeocodeResult(((PostOfficeBox) address), cacheResult.getData(address.getPostalCity()));
         }
 
         ResultStatus status = MISSING_GEOCODER;

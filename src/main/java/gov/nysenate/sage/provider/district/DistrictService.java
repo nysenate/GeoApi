@@ -1,6 +1,8 @@
 package gov.nysenate.sage.provider.district;
 
+import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Table;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.controller.api.DistrictUtil;
 import gov.nysenate.sage.dao.provider.district.SqlShapefileDao;
@@ -11,7 +13,6 @@ import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.util.ExecutorUtil;
-import gov.nysenate.sage.util.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,9 +21,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -39,7 +38,7 @@ public class DistrictService {
     private final SqlShapefileDao sqlShapefileDao;
     private final ImmutableList<LocalSource> defaultRanking;
     private final ThreadPoolTaskExecutor executor;
-    private final Map<Tuple<Zip5, List<LocalSource>>, PostOfficeData<DistrictResult>> poBoxCache = new HashMap<>();
+    private final Table<Zip5, List<LocalSource>, PostOfficeData<DistrictResult>> poBoxCache = HashBasedTable.create();
 
     public DistrictService(StreetfileDao streetfileDao, SqlShapefileDao sqlShapefileDao,
                            @Value("${district.ranking}") String districtRankingStr, Environment env) {
@@ -56,19 +55,21 @@ public class DistrictService {
 
     public DistrictResult assignDistricts(List<LocalSource> providers, GeocodedAddress geocodedAddress,
                                           List<DistrictType> requiredTypes) {
-        Address address = geocodedAddress.getAddress();
         if (providers == null) {
             providers = defaultRanking;
         }
+
+        Address address = geocodedAddress.getAddress();
         if (address != null && address.isPoBox()) {
-            var cacheKey = new Tuple<>(address.getZip5(), providers);
-            if (!poBoxCache.containsKey(cacheKey)) {
+            var cacheResult =  poBoxCache.get(address.getZip5(), providers);
+            if (cacheResult == null) {
                 final List<LocalSource> finalProviders = providers;
                 List<DistrictResult> postOfficeResults = ((GeocodedPostOfficeBox) geocodedAddress).getPostOffices().stream()
                         .map(geoAddr -> assignDistricts(finalProviders, geoAddr, requiredTypes)).toList();
-                poBoxCache.put(cacheKey, PostOfficeData.getDistrictData(postOfficeResults));
+                cacheResult = PostOfficeData.getDistrictData(postOfficeResults);
+                poBoxCache.put(address.getZip5(), providers, cacheResult);
             }
-            return poBoxCache.get(cacheKey).getData(address.getPostalCity());
+            return cacheResult.getData(address.getPostalCity());
         }
 
         var results = new ArrayList<DistrictResult>();
