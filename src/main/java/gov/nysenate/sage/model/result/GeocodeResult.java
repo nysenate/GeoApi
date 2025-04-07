@@ -14,9 +14,9 @@ public class GeocodeResult extends BaseResult<Geocoder> {
 
     public GeocodeResult(Geocoder geocoder, ResultStatus resultStatus, GeocodedAddress geocodedAddress) {
         super(geocoder);
-        this.setGeocodedAddress(geocodedAddress);
-        if (resultStatus != null ) {
-            this.setStatusCode(resultStatus);
+        this.geocodedAddress = geocodedAddress;
+        if (resultStatus != null) {
+            setStatusCode(resultStatus);
         }
     }
 
@@ -30,11 +30,7 @@ public class GeocodeResult extends BaseResult<Geocoder> {
     }
 
     public GeocodedAddress getGeocodedAddress() {
-        return this.geocodedAddress;
-    }
-
-    public void setGeocodedAddress(GeocodedAddress geocodedAddress) {
-        this.geocodedAddress = geocodedAddress;
+        return geocodedAddress;
     }
 
     public void setAddress(Address address) {
