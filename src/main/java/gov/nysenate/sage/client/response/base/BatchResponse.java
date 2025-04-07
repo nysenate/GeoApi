@@ -22,6 +22,6 @@ public class BatchResponse<T extends BaseResponse> extends BaseResponse {
     }
 
     public int getTotal() {
-        return this.results.size();
+        return results.size();
     }
 }

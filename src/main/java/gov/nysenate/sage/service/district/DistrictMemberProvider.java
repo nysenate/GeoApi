@@ -6,6 +6,8 @@ import gov.nysenate.sage.dao.model.senate.SqlSenateDao;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictMember;
 import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.model.result.DistrictResult;
+import gov.nysenate.sage.model.result.DistrictResultWithMembers;
 import gov.nysenate.sage.model.result.MapResult;
 import gov.nysenate.services.model.Senator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.function.Function;
 
+import static gov.nysenate.sage.model.district.DistrictType.*;
+
 /**
  * Typically when the district service providers return a DistrictInfo, only the district codes
  * and maps are provided. This class provides methods to populate the remaining data which includes
@@ -23,7 +27,6 @@ import java.util.function.Function;
  */
 @Component
 public class DistrictMemberProvider {
-    // TODO: cache data, similar method to add to DistrictResponse
     private final SqlSenateDao sqlSenateDao;
     private final MemberDao memberDao;
     private ImmutableMap<Integer, Senator> senatorCache;
@@ -51,9 +54,22 @@ public class DistrictMemberProvider {
             switch (map.getDistrictType()) {
                 case SENATE -> map.setSenator(senatorCache.get(code));
                 case ASSEMBLY -> map.setMember(assemblyCache.get(code));
-                case CONGRESSIONAL ->  map.setMember(congressionalCache.get(code));
+                case CONGRESSIONAL -> map.setMember(congressionalCache.get(code));
             }
         }
+    }
+
+    public DistrictResultWithMembers assignMembers(DistrictResult baseResult) {
+        var codeMap = new HashMap<DistrictType, Integer>();
+        for (DistrictType type : List.of(SENATE, ASSEMBLY, CONGRESSIONAL)) {
+            String codeStr = baseResult.getDistrictInfo().getDistCode(type);
+            if (codeStr == null) {
+                continue;
+            }
+            codeMap.put(type, Integer.parseInt(codeStr));
+        }
+        return new DistrictResultWithMembers(baseResult, senatorCache.get(codeMap.get(SENATE)),
+                assemblyCache.get(codeMap.get(ASSEMBLY)), congressionalCache.get(codeMap.get(CONGRESSIONAL)));
     }
 
     public void recreateCaches() {

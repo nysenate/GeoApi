@@ -9,6 +9,7 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Point;
+import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.IntersectResult;
 import gov.nysenate.sage.provider.district.DistrictService;
 import gov.nysenate.sage.provider.district.LocalSource;
@@ -16,6 +17,7 @@ import gov.nysenate.sage.provider.district.ShapefileService;
 import gov.nysenate.sage.provider.geocode.GeocodeService;
 import gov.nysenate.sage.provider.geocode.Geocoder;
 import gov.nysenate.sage.service.address.AddressService;
+import gov.nysenate.sage.service.district.DistrictMemberProvider;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,14 +42,17 @@ public class DistrictController extends BaseController {
     private final AddressService addressService;
     private final GeocodeService geocodeService;
     private final DistrictService districtService;
+    private final DistrictMemberProvider memberProvider;
 
     @Autowired
     public DistrictController(ShapefileService shapefileService, AddressService addressService,
-                              GeocodeService geocodeService, DistrictService districtService) {
+                              GeocodeService geocodeService, DistrictService districtService,
+                              DistrictMemberProvider memberProvider) {
         this.shapefileService = shapefileService;
         this.addressService = addressService;
         this.geocodeService = geocodeService;
         this.districtService = districtService;
+        this.memberProvider = memberProvider;
     }
 
     /**
@@ -90,8 +95,9 @@ public class DistrictController extends BaseController {
         if (districtSource != null) {
             currDistrictSources = List.of(getValue(districtSource, LocalSource.class));
         }
-        return new DistrictResponse(districtService.assignDistricts(currDistrictSources, geocodedAddress,
-                List.of(DistrictType.values())));
+        DistrictResult initialResult = districtService.assignDistricts(currDistrictSources, geocodedAddress,
+                List.of(DistrictType.values()));
+        return new DistrictResponse(memberProvider.assignMembers(initialResult));
     }
 
     /**
@@ -125,9 +131,10 @@ public class DistrictController extends BaseController {
         List<GeocodedAddress> geocodedAddresses = points.isEmpty() ?
                 geocodeService.getGeocodedAddresses(addresses) :
                 geocodeService.getRevGeocodedAddresses(points);
-
-        return new BatchDistrictResponse(districtService.assignDistricts(geocodedAddresses,
-                List.of(DistrictType.values())));
+        return new BatchDistrictResponse(
+                districtService.assignDistricts(geocodedAddresses, List.of(DistrictType.values()))
+                        .stream().map(memberProvider::assignMembers).toList()
+        );
     }
 
     /**

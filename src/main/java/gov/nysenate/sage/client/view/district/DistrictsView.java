@@ -1,6 +1,7 @@
 package gov.nysenate.sage.client.view.district;
 
 import gov.nysenate.sage.model.district.DistrictInfo;
+import gov.nysenate.sage.model.result.DistrictResultWithMembers;
 
 import static gov.nysenate.sage.model.district.DistrictType.*;
 
@@ -21,14 +22,14 @@ public class DistrictsView {
     protected DistrictView village;
     protected DistrictView cityCouncil;
 
-    public DistrictsView(DistrictInfo dInfo) {
-        if (dInfo == null) {
+    public DistrictsView(DistrictResultWithMembers result) {
+        if (result == null) {
             return;
         }
-        // TODO: add member data elsewhere
-        this.senate = new SenateDistrictView(dInfo, null);
-        this.congressional = new MemberDistrictView(CONGRESSIONAL, dInfo, null);
-        this.assembly = new MemberDistrictView(ASSEMBLY, dInfo, null);
+        DistrictInfo dInfo = result.getDistrictInfo();
+        this.senate = new SenateDistrictView(dInfo, result.getSenator());
+        this.congressional = new MemberDistrictView(CONGRESSIONAL, dInfo, result.getCongressionalMember());
+        this.assembly = new MemberDistrictView(ASSEMBLY, dInfo, result.getAssemblyMember());
         this.county = new DistrictView(COUNTY, dInfo);
         this.election = new DistrictView(ELECTION, dInfo);
         this.school = new DistrictView(SCHOOL, dInfo);
