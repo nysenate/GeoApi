@@ -5,17 +5,13 @@ import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.data.PostOfficeDao;
 import gov.nysenate.sage.dao.provider.nysgeo.GeocoderDao;
 import gov.nysenate.sage.model.PostOfficeData;
-import gov.nysenate.sage.model.address.Address;
-import gov.nysenate.sage.model.address.BuildingAddress;
-import gov.nysenate.sage.model.address.GeocodedAddress;
-import gov.nysenate.sage.model.address.Zip5;
+import gov.nysenate.sage.model.address.*;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.geocache.GeoCache;
-import gov.nysenate.sage.service.geo.RevGeocodeServiceValidator;
 import gov.nysenate.sage.util.ExecutorUtil;
 import gov.nysenate.sage.util.Tuple;
 import org.slf4j.Logger;
@@ -47,7 +43,7 @@ public class GeocodeService {
     private final ImmutableList<Geocoder> defaultRanking;
     private final ThreadPoolTaskExecutor executor;
     private final PostOfficeDao postOfficeDao;
-    private final Map<Tuple<Zip5, List<Geocoder>>, PostOfficeData<GeocodeResult>> poBoxCache = new HashMap<>();
+    private final Map<Tuple<Zip5, List<Geocoder>>, PostOfficeData<List<GeocodedAddress>>> poBoxCache = new HashMap<>();
 
     @Autowired
     public GeocodeService(List<GeocoderDao> geocoderDaos, GeoCache geoCache,
@@ -80,11 +76,12 @@ public class GeocodeService {
         if (address.isPoBox()) {
             var cacheKey = new Tuple<>(address.getZip5(), geocoders);
             if (!poBoxCache.containsKey(cacheKey)) {
+                final List<Geocoder> finalGeocoders = geocoders;
                 List<GeocodeResult> postOfficeResults = postOfficeDao.getPostOffices(address.getZip5())
-                        .stream().map(addr -> geocode(null, addr)).toList();
+                        .stream().map(addr -> geocode(finalGeocoders, addr)).toList();
                 poBoxCache.put(cacheKey, PostOfficeData.getGeocodeData(postOfficeResults));
             }
-            return poBoxCache.get(cacheKey).getData(address.getPostalCity());
+            return getGeocodeResult(((PostOfficeBox) address), poBoxCache.get(cacheKey).getData(address.getPostalCity()));
         }
 
         ResultStatus status = MISSING_GEOCODER;
@@ -139,7 +136,7 @@ public class GeocodeService {
     }
 
     public GeocodeResult reverseGeocode(List<Geocoder> geocoders, Point point) {
-        if (!RevGeocodeServiceValidator.validateRevGeocodeInput(point)) {
+        if (point == null) {
             return new GeocodeResult(null, MISSING_POINT);
         }
         if (geocoders == null) {
@@ -154,7 +151,7 @@ public class GeocodeService {
             if (revGeocodedAddress == null) {
                 status = RESPONSE_PARSE_ERROR;
             }
-            else if (!revGeocodedAddress.isReverseGeocoded()) {
+            else if (!revGeocodedAddress.isValidAddress()) {
                 status = NO_REVERSE_GEOCODE_RESULT;
             }
             else {
@@ -201,5 +198,16 @@ public class GeocodeService {
     private static GeocodedAddress getOrDefault(GeocodeResult baseResult, Point defaultPoint) {
         return baseResult.isSuccess() ? baseResult.getGeocodedAddress() :
                 new GeocodedAddress(new Geocode(defaultPoint, GeocodeQuality.POINT, null, false));
+    }
+
+    private static GeocodeResult getGeocodeResult(PostOfficeBox poBox, List<GeocodedAddress> postOffices) {
+        if (postOffices.isEmpty()) {
+            return new GeocodeResult(null, MISSING_GEOCODED_ADDRESS, new GeocodedAddress(poBox));
+        }
+        final Geocoder firstGeocoder = postOffices.get(0).getGeocode().originalGeocoder();
+        boolean hasCommonGeocoder = postOffices.stream().map(geoAddr -> geoAddr.getGeocode().originalGeocoder())
+                .allMatch(firstGeocoder::equals);
+        var postalGeoAddr = new GeocodedPostOfficeBox(poBox, postOffices);
+        return new GeocodeResult(hasCommonGeocoder ? firstGeocoder : null, SUCCESS, postalGeoAddr);
     }
 }

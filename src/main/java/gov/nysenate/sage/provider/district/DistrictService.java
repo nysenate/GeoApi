@@ -3,14 +3,10 @@ package gov.nysenate.sage.provider.district;
 import com.google.common.collect.ImmutableList;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.controller.api.DistrictUtil;
-import gov.nysenate.sage.dao.data.PostOfficeDao;
 import gov.nysenate.sage.dao.provider.district.SqlShapefileDao;
 import gov.nysenate.sage.dao.provider.streetfile.StreetfileDao;
 import gov.nysenate.sage.model.PostOfficeData;
-import gov.nysenate.sage.model.address.Address;
-import gov.nysenate.sage.model.address.BuildingAddress;
-import gov.nysenate.sage.model.address.GeocodedAddress;
-import gov.nysenate.sage.model.address.Zip5;
+import gov.nysenate.sage.model.address.*;
 import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
@@ -39,16 +35,14 @@ import static gov.nysenate.sage.provider.district.LocalSource.STREETFILE;
 @Service
 public class DistrictService {
     private static final Logger logger = LoggerFactory.getLogger(DistrictService.class);
-    private final PostOfficeDao postOfficeDao;
     private final StreetfileDao streetfileDao;
     private final SqlShapefileDao sqlShapefileDao;
     private final ImmutableList<LocalSource> defaultRanking;
     private final ThreadPoolTaskExecutor executor;
     private final Map<Tuple<Zip5, List<LocalSource>>, PostOfficeData<DistrictResult>> poBoxCache = new HashMap<>();
 
-    public DistrictService(PostOfficeDao postOfficeDao, StreetfileDao streetfileDao, SqlShapefileDao sqlShapefileDao,
+    public DistrictService(StreetfileDao streetfileDao, SqlShapefileDao sqlShapefileDao,
                            @Value("${district.ranking}") String districtRankingStr, Environment env) {
-        this.postOfficeDao = postOfficeDao;
         this.streetfileDao = streetfileDao;
         this.sqlShapefileDao = sqlShapefileDao;
 
@@ -69,8 +63,9 @@ public class DistrictService {
         if (address != null && address.isPoBox()) {
             var cacheKey = new Tuple<>(address.getZip5(), providers);
             if (!poBoxCache.containsKey(cacheKey)) {
-                List<DistrictResult> postOfficeResults = postOfficeDao.getPostOffices(address.getZip5())
-                        .stream().map(addr -> assignDistricts(null, geocodedAddress, requiredTypes)).toList();
+                final List<LocalSource> finalProviders = providers;
+                List<DistrictResult> postOfficeResults = ((GeocodedPostOfficeBox) geocodedAddress).getPostOffices().stream()
+                        .map(geoAddr -> assignDistricts(finalProviders, geoAddr, requiredTypes)).toList();
                 poBoxCache.put(cacheKey, PostOfficeData.getDistrictData(postOfficeResults));
             }
             return poBoxCache.get(cacheKey).getData(address.getPostalCity());

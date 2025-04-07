@@ -49,19 +49,14 @@ public class GeocodedAddress implements Serializable {
     }
 
     public Geocode getGeocode() {
-        return this.geocode;
+        return geocode;
     }
 
-    /** Basic check on the address */
     public boolean isValidAddress() {
-        return isReverseGeocoded();
+        return address != null && address.isValid();
     }
 
     public boolean isValidGeocode() {
         return geocode != null && geocode.isValidGeocode();
-    }
-
-    public boolean isReverseGeocoded() {
-        return address != null && address.isValid();
     }
 }
