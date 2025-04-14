@@ -53,13 +53,11 @@ public class HttpUSPSAMSDao implements AddressDao {
         try {
             // TODO: need changes in USPS application so that we don't need to pass in every parameter
             urlParams.append("?addr1=").append(encode(address.getAddr1()))
+                    .append("&addr2=").append(encode(address.getAddr2()))
                     .append("&city=").append(encode(address.getPostalCity()))
                     .append("&state=").append(encode(address.getState()))
-                    .append("&zip5=").append(encode(address.getZip5().toString()))
+                    .append("&zip5=").append(encode(address.getZip5()))
                     .append("&initCaps=true");
-            if (address.getAddr2() != null) {
-                urlParams.append("&addr2=").append(encode(address.getAddr2()));
-            }
 
             String url = uspsApiUrl + VALIDATE_METHOD + urlParams;
             logger.info("Making a connection to: \n{}", url);
@@ -232,10 +230,10 @@ public class HttpUSPSAMSDao implements AddressDao {
         return cityStateResult;
     }
 
-    private static String encode(String input) {
+    private static String encode(Object input) {
         if (input == null) {
             return "";
         }
-        return URLEncoder.encode(input, StandardCharsets.UTF_8);
+        return URLEncoder.encode(input.toString(), StandardCharsets.UTF_8);
     }
 }
