@@ -1,7 +1,6 @@
 package gov.nysenate.sage.dao.model.member;
 
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.dao.base.SqlTable;
 import gov.nysenate.sage.model.district.DistrictMember;
 import gov.nysenate.sage.model.district.DistrictType;
 import org.springframework.jdbc.core.RowMapper;
@@ -16,25 +15,25 @@ import java.util.Map;
 @Repository
 public class MemberDao extends BaseDao {
     public List<DistrictMember> getMembers(DistrictType districtType) {
-        SqlTable currTable = getTable(districtType);
+        String currTable = getTable(districtType);
         if (currTable == null) {
             return List.of();
         }
-        String sql = MemberQuery.GET_ALL_MEMBERS.getSql(getPublicSchema(), Map.of("memberTable", currTable.name()));
+        String sql = MemberQuery.GET_ALL_MEMBERS.getSql(getPublicSchema(), Map.of("memberTable", currTable));
         return namedJdbcTemplate.query(sql, new MemberHandler(districtType));
     }
 
     public void insertOrReplaceDistrictMember(DistrictMember member) {
-        SqlTable currTable = getTable(member.districtType());
+        String currTable = getTable(member.districtType());
         if (currTable == null) {
             throw new RuntimeException(member.districtType() + " does not have district members.");
         }
         var params = new MapSqlParameterSource("district", member.district())
                 .addValue("memberName", member.memberName())
                 .addValue("memberUrl", member.memberUrl());
-        String sql = MemberQuery.DELETE_MEMBER.getSql(getPublicSchema(), Map.of("memberTable", currTable.name()));
+        String sql = MemberQuery.DELETE_MEMBER.getSql(getPublicSchema(), Map.of("memberTable", currTable));
         namedJdbcTemplate.update(sql, params);
-        sql = MemberQuery.INSERT_MEMBER.getSql(getPublicSchema(), Map.of("memberTable", currTable.name()));
+        sql = MemberQuery.INSERT_MEMBER.getSql(getPublicSchema(), Map.of("memberTable", currTable));
         namedJdbcTemplate.update(sql, params);
     }
 
@@ -46,10 +45,9 @@ public class MemberDao extends BaseDao {
         }
     }
 
-    private static SqlTable getTable(DistrictType districtType) {
+    private static String getTable(DistrictType districtType) {
         return switch (districtType) {
-            case ASSEMBLY -> SqlTable.PUBLIC_ASSEMBLY;
-            case CONGRESSIONAL -> SqlTable.PUBLIC_CONGRESSIONAL;
+            case ASSEMBLY, CONGRESSIONAL -> districtType.name().toLowerCase();
             default -> null;
         };
     }

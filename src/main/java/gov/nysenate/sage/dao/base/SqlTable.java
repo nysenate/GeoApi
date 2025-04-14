@@ -16,15 +16,12 @@ public enum SqlTable {
     //Log Schema
     API_REQUEST ("api_request"),
     DEPLOYMENT ("deployment"),
-    REQUESTTYPES ("requesttypes"),
-    SERVICES ("services"),
+    GEOCODE_STATS("geocode_stats"),
 
     //Public Schema
     ADMIN ("admin"),
     API_USER ("apiuser"),
-    PUBLIC_ASSEMBLY("assembly"),
     POST_OFFICE("post_office"),
-    PUBLIC_CONGRESSIONAL ("congressional"),
     PUBLIC_COUNTY ("county"),
     SENATOR ("senator"),
     STREETFILE ("streetfile"),
