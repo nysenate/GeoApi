@@ -60,7 +60,10 @@ public class DistrictService {
         }
 
         Address address = geocodedAddress.getAddress();
-        if (address != null && address.isPoBox()) {
+        if (address != null) {
+            if (address.isOutOfState()) {
+                return new DistrictResult(null, geocodedAddress);
+            }
             var cacheResult =  poBoxCache.get(address.getZip5(), providers);
             if (cacheResult == null) {
                 final List<LocalSource> finalProviders = providers;

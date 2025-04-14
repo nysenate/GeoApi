@@ -12,6 +12,14 @@ import static org.junit.Assert.*;
 public class AddressTest {
 
     @Test
+    public void testParser() {
+        Address result = Address.getAddress("529 Columbia Turnpike, Rensselaer, NY, USA");
+        assertEquals("529 COLUMBIA TURNPIKE", result.getAddr1());
+        assertEquals("Rensselaer", result.getPostalCity());
+        assertEquals("NY", result.getState());
+    }
+
+    @Test
     public void toStringTest() {
         var address = new BuildingAddress("1234 Testing Ln", "Test Valley", "T", "12345");
         assertEquals("1234 Testing Ln, Test Valley, T 12345", address.toString());

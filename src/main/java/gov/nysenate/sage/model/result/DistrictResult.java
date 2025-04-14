@@ -82,8 +82,7 @@ public class DistrictResult extends BaseResult<LocalSource> {
             }
         }
         else if (geoAddress.isValidAddress()) {
-            String state = geoAddress.getAddress().getState();
-            if (state != null && !state.isEmpty() && !state.matches("(?i)(NY|NEW YORK)")) {
+            if (geoAddress.getAddress().isOutOfState()) {
                 return NON_NY_STATE;
             }
         }

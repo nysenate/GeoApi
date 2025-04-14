@@ -69,6 +69,9 @@ public class GeocodeService {
         if (!address.isValid()) {
             return new GeocodeResult(null, INSUFFICIENT_ADDRESS, geocodedAddress);
         }
+        if (address.isOutOfState()) {
+            return new GeocodeResult(null, NON_NY_STATE, geocodedAddress);
+        }
 
         if (geocoders == null) {
             geocoders = defaultRanking;

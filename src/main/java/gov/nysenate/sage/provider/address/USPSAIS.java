@@ -260,9 +260,6 @@ public class USPSAIS implements AddressDao {
                 }
 
                 String state = xpath.evaluate("State", addressResponse);
-                if (!Address.validState(state)) {
-                    return null;
-                }
                 String city = xpath.evaluate("City", addressResponse);
                 city = (city != null) ? WordUtils.capitalizeFully(city) : city;
                 String zip5 = xpath.evaluate("Zip5", addressResponse);

@@ -8,7 +8,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public abstract sealed class Address permits BuildingAddress, PostOfficeBox {
-    private static final Pattern poBoxPattern = Pattern.compile("(?i)PO Box (\\d+)");
+    private static final Pattern poBoxPattern = Pattern.compile("(?i)PO Box (\\d+)"),
+            zipPattern = Pattern.compile("(\\d{5})(-\\d{4})?");
     private String postalCity;
     private String state = "NY";
     private Zip5 zip5;
@@ -18,23 +19,19 @@ public abstract sealed class Address permits BuildingAddress, PostOfficeBox {
     private boolean uspsValidated = false;
 
     public static Address getAddress(String addr) {
-        addr = addr.replaceAll(",?USA$", "");
         String[] csv = addr.split(" *, *");
-        String zip4 = null;
-        if (csv.length == 5) {
-            zip4 = csv[4];
-        }
-        else if (csv.length == 4) {
-            String[] splitZip = csv[3].split("-");
-            if (splitZip.length > 1) {
-                csv[3] = splitZip[0];
-                zip4 = splitZip[1];
-            }
-        }
-        else {
+        if (csv.length != 3 && csv.length != 4) {
             throw new IllegalArgumentException("Invalid address: " + addr);
         }
-        return getAddress(csv[0], "", csv[1], csv[2], csv[3], zip4);
+        String state = csv[2];
+        String zip5 = null, zip4 = null;
+        Matcher zipMatcher = zipPattern.matcher(csv[2]);
+        if (zipMatcher.find()) {
+            zip5 = zipMatcher.group(1);
+            zip4 = zipMatcher.group(2);
+            state = state.replaceFirst(zipMatcher.group(), "").trim();
+        }
+        return getAddress(csv[0], "", csv[1], state, zip5, zip4);
     }
 
     public static Address getAddress(String addr1, String addr2, String city, String state, String zip5, String zip4) {
@@ -84,8 +81,8 @@ public abstract sealed class Address permits BuildingAddress, PostOfficeBox {
 
     @Override
     public String toString() {
-        return (!postalCity.isEmpty() ? " " + postalCity + "," : "")
-                + (zip5 == null ? "" : " " + zip5) + (zip4 == null ? "" : "-" + zip4);
+        return (postalCity.isEmpty() ? "" : " " + postalCity) + (state.isEmpty() ? "" : ", " + state)
+                + (zip5 == null ? "" : ", " + zip5) + (zip4 == null ? "" : "-" + zip4);
     }
 
     public void setPostalCity(String postalCity) {
@@ -114,8 +111,8 @@ public abstract sealed class Address permits BuildingAddress, PostOfficeBox {
         return !StringUtils.isBlank(postalCity) || zip5 != null;
     }
 
-    public static boolean validState(String state) {
-        return state.replaceAll("[.]", "").toUpperCase().trim().matches("^$|NY|NEW YORK");
+    public boolean isOutOfState() {
+        return state != null && state.replaceAll("[.]", "").toUpperCase().trim().matches("^$|NY|NEW YORK");
     }
 
     // TODO: can switch on sealed classes in Java 21
