@@ -9,55 +9,41 @@ import java.util.Map;
  * Model class for representing usage counts for a specific ApiUser.
  */
 public class ApiUserStats {
-    private ApiUser apiUser;
-    private int apiRequests;
-    private int geoRequests;
-    private int distRequests;
-    /**             (Service -> Method) -> RequestCount  */
-    private Map<String, Map<String, Integer>> requestsByMethod = new HashMap<>();
+    private final ApiUser apiUser;
+
+    // (Service -> Method) -> RequestCount
+    private final Map<String, Map<String, Integer>> requestsByMethod = new HashMap<>();
+
+    public ApiUserStats(ApiUser apiUser) {
+        this.apiUser = apiUser;
+    }
 
     public ApiUser getApiUser() {
         return apiUser;
     }
 
-    public void setApiUser(ApiUser apiUser) {
-        this.apiUser = apiUser;
-    }
-
     public int getApiRequests() {
-        return apiRequests;
-    }
-
-    public void setApiRequests(int apiRequests) {
-        this.apiRequests = apiRequests;
+        int count = 0;
+        for (var entry : requestsByMethod.entrySet()) {
+            count += entry.getValue().size();
+        }
+        return count;
     }
 
     public int getGeoRequests() {
-        return geoRequests;
-    }
-
-    public void setGeoRequests(int geoRequests) {
-        this.geoRequests = geoRequests;
+        return requestsByMethod.getOrDefault("geo", Map.of()).getOrDefault("geocode", 0);
     }
 
     public int getDistRequests() {
-        return distRequests;
-    }
-
-    public void setDistRequests(int distRequests) {
-        this.distRequests = distRequests;
+        return requestsByMethod.getOrDefault("district", Map.of()).getOrDefault("assign", 0);
     }
 
     public Map<String, Map<String, Integer>> getRequestsByMethod() {
         return requestsByMethod;
     }
 
-    public void setRequestsByMethod(Map<String, Map<String, Integer>> requestsByMethod) {
-        this.requestsByMethod = requestsByMethod;
-    }
-
-    public void addMethodRequestCount(String service, String method, Integer requests) {
+    public void addMethodRequestCount(String service, String method) {
         this.requestsByMethod.computeIfAbsent(service, k -> new HashMap<>());
-        this.requestsByMethod.get(service).put(method, requests);
+        this.requestsByMethod.get(service).merge(method, 1, Integer::sum);
     }
 }

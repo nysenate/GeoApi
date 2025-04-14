@@ -20,28 +20,27 @@ public class SqlApiUsageStatsDao extends BaseDao implements ApiUsageStatsDao {
     private static final Logger logger = LoggerFactory.getLogger(SqlApiUsageStatsDao.class);
 
     public enum RequestInterval {
-        MINUTE("minute", 1), HOUR("hour", 60), DAY("day", 24*60),
-        WEEK("week", 7*24*60), MONTH("month", 43829), QUARTER("quarter", 131487);
-        private final String field;
+        MINUTE(1), HOUR(60), DAY(24*60),
+        WEEK(7*24*60), MONTH(43829), QUARTER(131487);
         private final int minutes;
 
-        RequestInterval(String field, int minutes) {
-            this.field = field;
+        RequestInterval(int minutes) {
             this.minutes = minutes;
         }
     }
 
     /** {@inheritDoc} */
-    public ApiUsageStats getApiUsageStats(Timestamp from, Timestamp to, RequestInterval requestInterval) {
-        ApiUsageStats apiUsageStats = new ApiUsageStats();
+    public ApiUsageStats getApiUsageStats(Timestamp from, Timestamp to, String intervalStr) {
+        RequestInterval requestInterval = RequestInterval.valueOf(intervalStr.toUpperCase());
         try {
             var params = new MapSqlParameterSource("from", from)
                     .addValue("to", to)
-                    .addValue("requestInterval", requestInterval.field);
+                    .addValue("requestInterval", requestInterval.name().toLowerCase());
             List<IntervalUsage> intervalUsageCounts = namedJdbcTemplate.query(
                     ApiUsageStatsQuery.GET_USAGE_STATS.getSql(getLogSchema()),
                     params, new ApiIntervalUsageHandler());
 
+            var apiUsageStats = new ApiUsageStats();
             apiUsageStats.setIntervalSizeInMinutes(requestInterval.minutes);
             apiUsageStats.setIntervalFrom(from);
             apiUsageStats.setIntervalTo(to);
@@ -57,7 +56,7 @@ public class SqlApiUsageStatsDao extends BaseDao implements ApiUsageStatsDao {
     private static class ApiIntervalUsageHandler implements RowMapper<IntervalUsage> {
         @Override
         public IntervalUsage mapRow(ResultSet rs, int rowNum) throws SQLException {
-            return new IntervalUsage(rs.getTimestamp("requestInterval"), rs.getInt("requests"));
+            return new IntervalUsage(rs.getTimestamp("request_interval"), rs.getInt("requests"));
         }
     }
 }

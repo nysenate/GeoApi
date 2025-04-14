@@ -12,7 +12,6 @@ import gov.nysenate.sage.dao.stats.geocode.SqlGeocodeStatsDao;
 import gov.nysenate.sage.model.api.ApiUser;
 import gov.nysenate.sage.model.job.JobProcessStatus;
 import gov.nysenate.sage.model.job.JobUser;
-import gov.nysenate.sage.model.stats.ApiUsageStats;
 import gov.nysenate.sage.model.stats.DeploymentStats;
 import gov.nysenate.sage.util.auth.AdminUserAuth;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
@@ -156,7 +155,8 @@ public class AdminApiController {
         if (subject.hasRole("ADMIN") ||
                 adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) ||
                 apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
-            return getApiUsageStats(request);
+            return sqlApiUsageStatsDao.getApiUsageStats(getBeginTimestamp(request), getEndTimestamp(request),
+                    request.getParameter("interval"));
         }
         return invalidAuthResponse();
 
@@ -422,27 +422,6 @@ public class AdminApiController {
             return new GenericResponse(true, "Deleted Job User");
         }
         return new GenericResponse(false, "Failed to delete Job User");
-    }
-
-    /**
-     * Retrieves interval-based api usage stats within a specified time frame or per hour by default.
-     * @see ApiUsageStats
-     * @see SqlApiUsageStatsDao.RequestInterval
-     * @param request HttpServletRequest with optional query parameter 'interval' which should be a
-     *                string representation of a RequestInterval value (e.g 'HOUR').
-     * @return ApiUsageStats
-     */
-    private ApiUsageStats getApiUsageStats(HttpServletRequest request) {
-        SqlApiUsageStatsDao.RequestInterval requestInterval;
-        try {
-            requestInterval = SqlApiUsageStatsDao.RequestInterval.valueOf(request.getParameter("interval"));
-        }
-        catch (Exception ex) {
-            logger.warn("Invalid interval parameter; defaulting to HOUR.");
-            requestInterval = SqlApiUsageStatsDao.RequestInterval.HOUR;
-        }
-
-        return sqlApiUsageStatsDao.getApiUsageStats(getBeginTimestamp(request), getEndTimestamp(request), requestInterval);
     }
 
     /**

@@ -52,3 +52,6 @@ ALTER TABLE public.congressional
 RENAME COLUMN membername TO member_name;
 ALTER TABLE public.congressional
 RENAME COLUMN memberurl TO member_url;
+
+DROP TABLE log.requesttypes;
+DROP TABLE log.services;

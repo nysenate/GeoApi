@@ -8,15 +8,7 @@ public enum ApiRequestQuery implements BasicSqlQuery {
             "INSERT INTO ${schema}." + SqlTable.API_REQUEST + "(ip_address, api_user_id, service, request, params)\n" +
             "VALUES (:ipAddress::INET, :apiUserId, :service, :request, :params)\n" +
             "RETURNING id"
-    ),
-
-    GET_API_REQUEST("SELECT ${schema}."+ SqlTable.API_REQUEST + ".id AS requestId, ipAddress, serv.name AS service, rt.name AS request, isBatch, requestTime, \n" +
-            "au.id AS apiUserId, au.name AS apiUserName, au.apiKey AS apiKey, au.description AS apiUserDesc, au.admin " +
-            "FROM ${schema}." + SqlTable.API_REQUEST + "\n" +
-            "LEFT JOIN " + "public.apiUser au ON apiUserId = au.id \n" +
-            "LEFT JOIN ${schema}."  + "requestTypes rt ON requestTypeId = rt.id \n" +
-            "LEFT JOIN ${schema}." + "services serv ON rt.serviceId = serv.id \n" +
-            "WHERE ${schema}." + SqlTable.API_REQUEST + ".id = :apiRequestId"),;
+    );
 
     private final String sql;
 

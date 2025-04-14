@@ -9,5 +9,5 @@ public interface ApiUsageStatsDao {
      * Retrieve Api Usage Stats within a specified time frame.
      * @return ApiUsageStats
      */
-    ApiUsageStats getApiUsageStats(Timestamp from, Timestamp to, SqlApiUsageStatsDao.RequestInterval requestInterval);
+    ApiUsageStats getApiUsageStats(Timestamp from, Timestamp to, String requestInterval);
 }

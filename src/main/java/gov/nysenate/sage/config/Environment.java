@@ -5,8 +5,6 @@ import org.springframework.stereotype.Component;
 
 @Component("environment")
 public class Environment {
-    @Value("${base.url:http://localhost:8080}") private String baseUrl;
-
     @Value("${user.ip.filter:(127.0.0.1)}") private String userIpFilter;
 
     @Value("${usps.ams.ui.url:http://localhost:8081/USPS-AMS/}") private String uspsAmsUiUrl;
@@ -20,10 +18,6 @@ public class Environment {
     @Value("${job.upload.dir:/data/geoapi_data/uploads/}") private String jobUploadDir;
 
     @Value("${job.download.dir:/data/geoapi_data/downloads/}") private String jobDownloadDir;
-
-    public String getBaseUrl() {
-        return baseUrl.trim();
-    }
 
     public String getUserIpFilter() {
         return userIpFilter.trim();

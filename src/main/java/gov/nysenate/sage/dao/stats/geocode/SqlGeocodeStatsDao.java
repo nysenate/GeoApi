@@ -1,69 +1,48 @@
 package gov.nysenate.sage.dao.stats.geocode;
 
 import gov.nysenate.sage.dao.base.BaseDao;
+import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.stats.GeocodeStats;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.core.RowMapper;
+import gov.nysenate.sage.provider.geocode.Geocoder;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.List;
 
 /**
  * Retrieves stats pertaining to geocoder usage.
  */
 @Repository
 public class SqlGeocodeStatsDao extends BaseDao {
-    private static final Logger logger = LoggerFactory.getLogger(SqlGeocodeStatsDao.class);
+    public void putGeocodedAddress(Geocoder currGeocoder, GeocodedAddress result) {
+        var params = new MapSqlParameterSource("geocoder", currGeocoder)
+                .addValue("success", result != null && result.getGeocode().isValidGeocode());
+        namedJdbcTemplate.update(GeocodeStatsQuery.INSERT_GEOCODE_STATS.getSql(getLogSchema()), params);
+    }
 
     /**
      * Retrieve geocode stats within a specified time frame.
      * @return GeocodeStats
      */
     public GeocodeStats getGeocodeStats(Timestamp from, Timestamp to) {
-        try {
-            var params = new MapSqlParameterSource("from", from).addValue("to", to);
-            List<GeocodeStats> gsList = namedJdbcTemplate.query(
-                    GeocodeStatsQuery.GET_TOTAL_COUNT.getSql(getLogSchema()), params, new TotalCountsHandler());
-            if (gsList.get(0) != null) {
-                GeocodeStats gs =  gsList.get(0);
-                List<GeocodeStats> geocodeStats =
-                        namedJdbcTemplate.query(
-                                GeocodeStatsQuery.GET_GEOCODER_USAGE.getSql(getLogSchema()),
-                                params, new GeocoderUsageHandler(gs));
-                return geocodeStats.get(0);
-            }
-        }
-        catch (Exception ex) {
-            logger.error("Failed to get geocode stats!", ex);
-        }
-        return null;
+        var params = new MapSqlParameterSource("from", from).addValue("to", to);
+        return namedJdbcTemplate.query(GeocodeStatsQuery.GET_TOTAL_STATS.getSql(getLogSchema()), params, new TotalCountsHandler());
     }
 
     /** Handler for result set of totalCountsSql */
-    private static class TotalCountsHandler implements RowMapper<GeocodeStats> {
+    private static class TotalCountsHandler implements ResultSetExtractor<GeocodeStats> {
         @Override
-        public GeocodeStats mapRow(ResultSet rs, int rowNum) throws SQLException {
+        public GeocodeStats extractData(ResultSet rs) throws SQLException, DataAccessException {
             var gs = new GeocodeStats();
             if (rs.next()) {
-                gs.setTotalGeocodes(rs.getInt("totalGeocodes"));
-                gs.setTotalRequests(rs.getInt("totalRequests"));
-                gs.setTotalCacheHits(rs.getInt("cacheHits"));
-                return gs;
-            }
-            return null;
-        }
-    }
-
-    private record GeocoderUsageHandler(GeocodeStats gs) implements RowMapper<GeocodeStats> {
-        @Override
-        public GeocodeStats mapRow(ResultSet rs, int rowNum) throws SQLException {
-            while (rs.next()) {
-                gs.addGeocoderUsage(rs.getString("method"), rs.getInt("requests"));
+                gs.addGeocoderUsage(Geocoder.valueOf(rs.getString("geocoder")), rs.getInt("count"));
+                if (!rs.getBoolean("success")) {
+                    gs.addFailures(rs.getInt("count"));
+                }
             }
             return gs;
         }

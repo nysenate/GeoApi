@@ -4,12 +4,11 @@ import gov.nysenate.sage.dao.base.BasicSqlQuery;
 import gov.nysenate.sage.dao.base.SqlTable;
 
 public enum ApiUsageStatsQuery implements BasicSqlQuery {
-
-    GET_USAGE_STATS("SELECT date_trunc(:requestInterval, requestTime) AS requestInterval, COUNT(*) AS requests \n" +
-            "FROM ${schema}."+ SqlTable.API_REQUEST + " AS ar \n" +
-            "WHERE ar.requestTime >= :from AND ar.requestTime <= :to \n" +
-            "GROUP BY date_trunc(:requestInterval, requestTime), ar.requestTime\n" +
-            "ORDER BY requestInterval");
+    GET_USAGE_STATS("SELECT date_trunc(:requestInterval, request_time) AS request_interval, COUNT(*) AS requests\n" +
+            "FROM ${schema}."+ SqlTable.API_REQUEST + " AS ar\n" +
+            "WHERE :from <= ar.request_time AND ar.request_time <= :to\n" +
+            "GROUP BY request_interval, ar.request_time\n" +
+            "ORDER BY request_interval");
 
     private final String sql;
 
