@@ -12,8 +12,8 @@ public class AddressView {
     protected String addr2;
     protected String city;
     protected String state;
-    protected Integer zip5 = null;
-    protected Integer zip4 = null;
+    protected String zip5 = null;
+    protected String zip4 = null;
     protected Integer id;
 
     public AddressView(Address address) {
@@ -22,10 +22,10 @@ public class AddressView {
         this.city = address.getPostalCity();
         this.state = address.getState();
         if (address.getZip5() != null) {
-            this.zip5 = address.getZip5().zip();
+            this.zip5 = address.getZip5().toString();
         }
         if (address.getZip4() != null) {
-            this.zip4 = address.getZip4().zip();
+            this.zip4 = address.getZip4().toString();
         }
         // TODO: add back?
         this.id = -1;
@@ -47,11 +47,11 @@ public class AddressView {
         return state;
     }
 
-    public Integer getZip5() {
+    public String getZip5() {
         return zip5;
     }
 
-    public Integer getZip4() {
+    public String getZip4() {
         return zip4;
     }
 

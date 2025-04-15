@@ -166,7 +166,7 @@ public class HttpUSPSAMSDao implements AddressDao {
     public CityStateResult lookupCityState(Zip5 zip5) {
         StringBuilder urlParams = new StringBuilder("?initCaps=true");
         try {
-            urlParams.append("&zip5=").append(zip5.zip());
+            urlParams.append("&zip5=").append(zip5.toString());
             String url = uspsApiUrl + CITYSTATE_METHOD + urlParams;
             String response = UrlRequest.getResponseFromUrl(url);
             if (response != null && !response.isEmpty()) {

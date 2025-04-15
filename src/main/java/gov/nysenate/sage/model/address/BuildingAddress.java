@@ -83,7 +83,7 @@ public final class BuildingAddress extends Address {
 
     @Override
     public String toString() {
-        return bldgId + " " + street + "," + (internal.isEmpty() ? "" : " " + internal) + super.toString();
+        return bldgId + " " + street + "," + (internal.isEmpty() ? "" : " " + internal) + " " + super.toString();
     }
 
     private static Pair<String> splitBldgId(String toSplit) {

@@ -227,7 +227,7 @@ public class USPSAIS implements AddressDao {
         StringBuilder xmlRequest = new StringBuilder(xmlStartTag);
 
         for (int i = 0; i < zips.size(); i++) {
-            xmlRequest.append(String.format("<ZipCode ID=\"%s\"><Zip5>%s</Zip5></ZipCode>", i, zips.get(i).zip()));
+            xmlRequest.append(String.format("<ZipCode ID=\"%s\"><Zip5>%s</Zip5></ZipCode>", i, zips.get(i).toString()));
         }
 
         try {

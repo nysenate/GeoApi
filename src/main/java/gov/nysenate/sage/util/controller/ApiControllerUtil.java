@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.model.address.Address;
-import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.util.FormatUtil;
@@ -33,17 +32,14 @@ public final class ApiControllerUtil {
      * address from the api.
      * @param addr  complete address in 1 param
      * @return      new Address instance if r was valid
-     *              null if r was null
      */
-    public static Address getAddressFromParams(String addr, String addr1, String addr2 , String city,
+    public static Address getAddressFromParams(String addr, String addr1, String addr2, String postalCity,
                                                String state, String zip5, String zip4) {
         if (addr != null) {
             return Address.getAddress(addr);
         }
         else {
-            var tempBldgAddr = new BuildingAddress(addr1, city, state, zip5, zip4);
-            tempBldgAddr.setInternal(addr2);
-            return tempBldgAddr;
+            return Address.getAddress(addr1, addr2, postalCity, state, zip5, zip4);
         }
     }
 

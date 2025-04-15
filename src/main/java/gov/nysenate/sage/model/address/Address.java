@@ -19,33 +19,42 @@ public abstract sealed class Address permits BuildingAddress, PostOfficeBox, Unp
     private boolean uspsValidated = false;
 
     public static Address getAddress(String addr) {
+        String postalCity = null, state = null, zip5 = null, zip4 = null;
         String[] csv = addr.split(" *, *");
-        if (csv.length != 3 && csv.length != 4) {
-            throw new IllegalArgumentException("Invalid address: " + addr);
+        for (int i = 1; i < csv.length; i++) {
+            String part = csv[i].trim();
+            if (part.length() == 2) {
+                state = part;
+            }
+            else {
+                Matcher zipMatcher = zipPattern.matcher(part);
+                if (zipMatcher.matches()) {
+                    String[] zips = part.split("-");
+                    zip5 = zips[0];
+                    if (zips.length == 2) {
+                        zip4 = zips[1];
+                    }
+                }
+                else {
+                    postalCity = part;
+                }
+            }
         }
-        String state = csv[2];
-        String zip5 = null, zip4 = null;
-        Matcher zipMatcher = zipPattern.matcher(csv[2]);
-        if (zipMatcher.find()) {
-            zip5 = zipMatcher.group(1);
-            zip4 = zipMatcher.group(2);
-            state = state.replaceFirst(zipMatcher.group(), "").trim();
-        }
-        return getAddress(csv[0], "", csv[1], state, zip5, zip4);
+        return getAddress(csv[0], "", postalCity, state, zip5, zip4);
     }
 
-    public static Address getAddress(String addr1, String addr2, String city, String state, String zip5, String zip4) {
+    public static Address getAddress(String addr1, String addr2, String postalCity, String state, String zip5, String zip4) {
         try {
             Matcher poBoxMatcher = poBoxPattern.matcher(addr1);
             if (poBoxMatcher.matches()) {
                 int boxNumber = Integer.parseInt(poBoxMatcher.group(1));
-                return new PostOfficeBox(boxNumber, addr2, city, state, zip5, zip4);
+                return new PostOfficeBox(boxNumber, addr2, postalCity, state, zip5, zip4);
             }
-            var tempBldgAddr = new BuildingAddress(addr1, city, state, zip5, zip4);
+            var tempBldgAddr = new BuildingAddress(addr1, postalCity, state, zip5, zip4);
             tempBldgAddr.setInternal(addr2);
             return tempBldgAddr;
         } catch (Exception ex) {
-            return new UnparsedAddress(addr1, city, state, zip5, zip4);
+            return new UnparsedAddress(addr1, postalCity, state, zip5, zip4);
         }
     }
 
@@ -85,7 +94,7 @@ public abstract sealed class Address permits BuildingAddress, PostOfficeBox, Unp
 
     @Override
     public String toString() {
-        return (postalCity.isEmpty() ? "" : " " + postalCity) + (state.isEmpty() ? "" : ", " + state)
+        return (StringUtils.isBlank(postalCity) ? "" : postalCity) + (StringUtils.isBlank(state) ? "" : ", " + state)
                 + (zip5 == null ? "" : ", " + zip5) + (zip4 == null ? "" : "-" + zip4);
     }
 

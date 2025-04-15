@@ -14,10 +14,6 @@ public abstract class Zip {
         this(Integer.parseInt(zip.trim()));
     }
 
-    public int zip() {
-        return zip;
-    }
-
     protected abstract int numDigits();
 
     @Override
