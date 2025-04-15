@@ -49,7 +49,7 @@ public class StreetAddress {
         String addr1 = "";
         if (bldgNum != null) addr1 += getBldgNum() + " ";
         if (!getStreet().isEmpty()) addr1 += getStreet() + " ";
-        if (isPoBoxAddress()) addr1 += "PO Box: " + getPoBox();
+        if (isPoBoxAddress()) addr1 += "PO Box " + getPoBox();
 
         String addr2 = getInternal().isEmpty() ? getBldgChar() : getInternal();
         return new Address(addr1.trim(), addr2.trim(), getLocation().trim(), getState().trim(),
