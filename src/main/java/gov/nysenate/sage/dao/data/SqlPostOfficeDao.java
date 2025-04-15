@@ -30,7 +30,7 @@ public class SqlPostOfficeDao extends BaseDao implements PostOfficeDao {
         namedJdbcTemplate.update(PostOfficeQuery.CLEAR_TABLE.getSql(getPublicSchema()), Map.of());
         for (var postalAddress : postOfficeMap.entries()) {
             Address address = postalAddress.getValue();
-            var params = new MapSqlParameterSource("deliveryZip", postalAddress.getKey())
+            var params = new MapSqlParameterSource("deliveryZip", postalAddress.getKey().toString())
                     .addValue("streetWithNum", address.getAddr1())
                     .addValue("city", address.getPostalCity())
                     .addValue("zip5", address.getZip5().toString())

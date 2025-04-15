@@ -83,8 +83,14 @@ ALTER COLUMN zip5 TYPE varchar(5),
 ADD CONSTRAINT valid_zip CHECK ( zip5 IS NOT NULL AND isZip(zip5, 5) );
 
 ALTER TABLE public.post_office
+ALTER COLUMN delivery_zip DROP NOT NULL,
+ALTER COLUMN delivery_zip TYPE varchar(5),
 ALTER COLUMN zip5 DROP NOT NULL,
+ALTER COLUMN zip5 TYPE varchar(5),
 ALTER COLUMN zip4 DROP NOT NULL,
+ALTER COLUMN zip4 TYPE varchar(4),
 ADD CONSTRAINT valid_zips CHECK (
-    (zip5 IS NOT NULL AND isZip(zip5, 5)) AND (zip4 IS NOT NULL AND isZip(zip4, 4))
+    (delivery_zip IS NOT NULL AND isZip(delivery_zip, 5)) AND
+    (zip5 IS NOT NULL AND isZip(zip5, 5)) AND
+    (zip4 IS NOT NULL AND isZip(zip4, 4))
 );
