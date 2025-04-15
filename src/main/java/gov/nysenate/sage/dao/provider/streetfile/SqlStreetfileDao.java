@@ -75,7 +75,7 @@ public class SqlStreetfileDao extends BaseDao implements StreetfileDao {
 
     @Override
     public String nullString() {
-        return "null";
+        return "NULL";
     }
 
     @Override
@@ -148,7 +148,7 @@ public class SqlStreetfileDao extends BaseDao implements StreetfileDao {
         @Override
         public DistrictedStreetRange mapRow(@Nonnull ResultSet rs, int rowNum) throws SQLException {
             var awn = new AddressWithoutNum(rs.getString("street"),
-                    rs.getString("postal_city"), rs.getInt("zip5"));
+                    rs.getString("postal_city"), rs.getString("zip5"));
             var sar = new StreetAddressRange(rs.getInt("bldg_low"), rs.getInt("bldg_high"),
                     rs.getString("parity"), awn);
             var typeToDistrictMap = new HashMap<DistrictType, SingleDistrict>();
