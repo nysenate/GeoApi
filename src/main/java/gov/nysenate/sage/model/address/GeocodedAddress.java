@@ -7,6 +7,7 @@ import java.io.Serializable;
 /**
  * GeocodedAddress represents an address that contains geo coordinate information.
  */
+// TODO: better typing for PO boxes?
 public class GeocodedAddress implements Serializable {
     private Address address;
     private Geocode geocode;
@@ -23,7 +24,7 @@ public class GeocodedAddress implements Serializable {
 
     public GeocodedAddress(Address address, Geocode geocode) {
         this.setAddress(address);
-        this.setGeocode(geocode);
+        this.geocode = geocode;
     }
 
     public static GeocodedAddress from(GeocodedAddress result, Address defaultAddress) {
@@ -42,10 +43,6 @@ public class GeocodedAddress implements Serializable {
 
     public void setAddress(Address address) {
         this.address = address;
-    }
-
-    public void setGeocode(Geocode geocode) {
-        this.geocode = geocode;
     }
 
     public Geocode getGeocode() {
