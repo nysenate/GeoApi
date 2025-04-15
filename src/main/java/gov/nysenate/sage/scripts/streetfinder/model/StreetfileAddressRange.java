@@ -47,6 +47,6 @@ public class StreetfileAddressRange {
     public List<String> parts() {
         return new ArrayList<>(List.of(Integer.toString(primaryBuilding.low()), Integer.toString(primaryBuilding.high()),
                 primaryBuilding.parity().name(), addressWithoutNum.street(), addressWithoutNum.postalCity(),
-                Integer.toString(addressWithoutNum.zip5())));
+                addressWithoutNum.zip5().toString()));
     }
 }

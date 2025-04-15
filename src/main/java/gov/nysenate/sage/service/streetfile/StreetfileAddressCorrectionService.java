@@ -2,6 +2,7 @@ package gov.nysenate.sage.service.streetfile;
 
 import gov.nysenate.sage.dao.provider.usps.HttpUSPSAMSDao;
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.DistrictingData;
@@ -46,7 +47,7 @@ public final class StreetfileAddressCorrectionService {
             for (int addrIndex = 0; addrIndex < validationResults.size(); addrIndex++) {
                 AddressResult result = validationResults.get(addrIndex);
                 AddressWithoutNum uncorrectedAwn = awns.get(addrIndex);
-                if (!result.isValidated() || result.getAddress().isPoBox()) {
+                if (!result.isValidated() || !(result.getAddress() instanceof BuildingAddress)) {
                     continue;
                 }
                 // We want to first try a correction without changing components.

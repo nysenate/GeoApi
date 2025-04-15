@@ -93,8 +93,8 @@ public class HttpUSPSAMSDao implements AddressDao {
                     .put("addr2", address.getAddr2())
                     .put("city", address.getPostalCity())
                     .put("state", address.getState())
-                    .put("zip5", address.getZip5().toString())
-                    .put("zip4", address.getZip4().toString());
+                    .put("zip5", encode(address.getZip5()))
+                    .put("zip4", encode(address.getZip4()));
             requestRoot.add(addressNode);
         }
         String jsonPayload = requestRoot.toString();

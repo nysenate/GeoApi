@@ -20,14 +20,14 @@ public class JobRecord {
     private final Map<Column, Integer> indexMap;
     private final Map<Column, Object> dataMap = new HashMap<>();
 
-    private Address address;
+    private final Address address;
     private Address correctedAddress;
     private Geocode geocode;
     private DistrictInfo districtInfo;
 
-    public JobRecord(JobFile parentJobFile, List<Object> row) {
+    public JobRecord(Map<Column, Integer> indexMap, List<Object> row) {
+        this.indexMap = indexMap;
         this.row = row;
-        this.indexMap = parentJobFile.getColumnIndexMap();
         for (Column column : this.indexMap.keySet()) {
             Object value = this.row.get(this.indexMap.get(column));
             dataMap.put(column, value);
@@ -90,10 +90,6 @@ public class JobRecord {
     /** Explicit getters/setters */
     public Address getAddress() {
         return address;
-    }
-
-    public void setAddress(Address address) {
-        this.address = address;
     }
 
     public Address getCorrectedAddress() {

@@ -54,7 +54,6 @@ public class JobBatchProcessor implements JobProcessor {
     private final String downloadDir;
     private final String downloadUrl;
 
-    // TODO: just log ApiRequests
     private final Mailer mailer;
     private final AddressService addressService;
     private final GeocodeService geocodeService;
@@ -73,10 +72,11 @@ public class JobBatchProcessor implements JobProcessor {
     @Autowired
     public JobBatchProcessor(Environment env, Mailer mailer, AddressService addressService,
                              GeocodeService geocodeService, DistrictService districtService,
-                             SqlJobProcessDao sqlJobProcessDao, ApplicationConfig applicationConfig) {
+                             @Value("${base.url:http://localhost:8080}") String baseUrl,
+    SqlJobProcessDao sqlJobProcessDao, ApplicationConfig applicationConfig) {
         this.uploadDir = env.getJobUploadDir();
         this.downloadDir = env.getJobDownloadDir();
-        this.downloadUrl = env.getBaseUrl() + DOWNLOAD_BASE_URL;
+        this.downloadUrl = baseUrl.trim() + DOWNLOAD_BASE_URL;
 
         this.mailer = mailer;
         this.addressService = addressService;
@@ -185,7 +185,7 @@ public class JobBatchProcessor implements JobProcessor {
                 // Read records into a JobFile
                 List<Object> row;
                 while( (row = jobReader.read(processors)) != null ) {
-                    jobFile.addRecord(new JobRecord(jobFile, row));
+                    jobFile.addRecord(new JobRecord(jobFile.getColumnIndexMap(), row));
                 }
                 logger.info("{} records", jobFile.getRecords().size());
                 logger.info("--------------------------------------------------------------------");
@@ -210,12 +210,11 @@ public class JobBatchProcessor implements JobProcessor {
 
                     if (jobFile.requiresGeocode() || jobFile.requiresDistrictAssign()) {
                         Future<JobBatch> futureGeocodedBatch;
-                        // TODO: Future<X> vs. X, can be combined
                         if (jobFile.requiresAddressValidation() && futureValidatedBatch != null) {
-                            futureGeocodedBatch = geocodeExecutor.submit(new JobBatchProcessor.GeocodeJobBatch(futureValidatedBatch, jobProcess, geocodeService));
+                            futureGeocodedBatch = geocodeExecutor.submit(new GeocodeJobBatch(futureValidatedBatch, geocodeService));
                         }
                         else {
-                            futureGeocodedBatch = geocodeExecutor.submit(new JobBatchProcessor.GeocodeJobBatch(jobBatch, jobProcess, geocodeService));
+                            futureGeocodedBatch = geocodeExecutor.submit(new GeocodeJobBatch(jobBatch, geocodeService));
                         }
 
                         if (jobFile.requiresDistrictAssign()) {
@@ -266,20 +265,14 @@ public class JobBatchProcessor implements JobProcessor {
                 }
 
                 if (sendEmails) {
-                    logger.info("--------------------------------------------------------------------");
-                    logger.info("Sending email confirmation                                         |");
-                    logger.info("--------------------------------------------------------------------");
-
+                    logger.info("Sending email confirmation...");
                     try {
                         sendSuccessMail(jobStatus);
                     }
                     catch (Exception ex) {
                         logger.error("Failed to send completion email!", ex);
                     }
-
-                    logger.info("--------------------------------------------------------------------");
-                    logger.info("Completed batch processing for job file!                           |");
-                    logger.info("--------------------------------------------------------------------");
+                    logger.info("Completed batch processing for job file!");
                 }
             }
         }
@@ -386,23 +379,18 @@ public class JobBatchProcessor implements JobProcessor {
     /**
      * A callable for the executor to perform geocoding for a JobBatch.
      */
-    public class GeocodeJobBatch implements Callable<JobBatch> {
-        private final JobProcess jobProcess;
+    public static class GeocodeJobBatch implements Callable<JobBatch> {
         private final GeocodeService geocodeService;
         private JobBatch jobBatch;
         private Future<JobBatch> futureJobBatch;
 
-        public GeocodeJobBatch(JobBatch jobBatch, JobProcess jobProcess,
-                               GeocodeService geocodeService) {
+        public GeocodeJobBatch(JobBatch jobBatch, GeocodeService geocodeService) {
             this.jobBatch = jobBatch;
-            this.jobProcess = jobProcess;
             this.geocodeService = geocodeService;
         }
 
-        public GeocodeJobBatch(Future<JobBatch> futureValidatedJobBatch, JobProcess jobProcess,
-                               GeocodeService geocodeService) {
+        public GeocodeJobBatch(Future<JobBatch> futureValidatedJobBatch, GeocodeService geocodeService) {
             this.futureJobBatch = futureValidatedJobBatch;
-            this.jobProcess = jobProcess;
             this.geocodeService = geocodeService;
         }
 

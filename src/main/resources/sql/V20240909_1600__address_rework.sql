@@ -45,11 +45,17 @@ WHERE state NOT IN('AL', 'AK', 'AS', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'DC', '
     'OR', 'PW', 'PA', 'PR', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VI', 'VA', 'WA', 'WV',
     'WI', 'WY');
 
+CREATE FUNCTION isZip(baseZip text, nums int)
+    RETURNS BOOLEAN AS $$
+BEGIN
+    RETURN baseZip != REPEAT('0', nums) AND baseZip SIMILAR TO REPEAT('[0-9]', nums);
+END;
+$$ LANGUAGE plpgsql;
+
 ALTER TABLE geocoder.cache.geocache
     ADD CONSTRAINT valid_bldg_id CHECK (bldg_id IS NOT NULL AND bldg_id SIMILAR TO '[0-9]+%'),
     ADD CONSTRAINT valid_zips CHECK (
-        (zip5 IS NOT NULL AND zip5 != '00000' AND zip5 SIMILAR TO '[0-9]{5}') AND
-        (zip4 IS NULL OR (zip4 != '0000' AND zip4 SIMILAR TO '[0-9]{4}'))
+        (zip5 IS NOT NULL AND isZip(zip5, 5)) AND (zip4 IS NULL OR isZip(zip4, 4))
     ), ALTER COLUMN street SET NOT NULL,
     ADD CONSTRAINT valid_state CHECK (state IN
         ('AL', 'AK', 'AS', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'DC', 'FM', 'FL', 'GA', 'GU',
@@ -67,3 +73,18 @@ WHERE method = 'HttpNYSGeoDao' OR method = 'NYS Geo DB';
 UPDATE geocoder.cache.geocache
 SET method = 'GOOGLE'
 WHERE method = 'HttpGoogleDao';
+
+TRUNCATE TABLE public.streetfile;
+TRUNCATE TABLE public.post_office;
+
+ALTER TABLE public.streetfile
+ALTER COLUMN zip5 DROP NOT NULL,
+ALTER COLUMN zip5 TYPE varchar(5),
+ADD CONSTRAINT valid_zip CHECK ( zip5 IS NOT NULL AND isZip(zip5, 5) );
+
+ALTER TABLE public.post_office
+ALTER COLUMN zip5 DROP NOT NULL,
+ALTER COLUMN zip4 DROP NOT NULL,
+ADD CONSTRAINT valid_zips CHECK (
+    (zip5 IS NOT NULL AND isZip(zip5, 5)) AND (zip4 IS NOT NULL AND isZip(zip4, 4))
+);

@@ -15,6 +15,8 @@ import gov.nysenate.sage.util.controller.ApiControllerUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -33,6 +35,7 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.invalidAuthRes
 // TODO: label as API
 @RequestMapping(value = ConstantUtil.ADMIN_REST_PATH + "/datagen")
 public class DataGenController {
+    private static final Logger logger = LoggerFactory.getLogger(DataGenController.class);
     private final AdminUserAuth adminUserAuth;
     private final ApiUserAuth apiUserAuth;
     private final DataGenService dataGenService;
@@ -141,7 +144,8 @@ public class DataGenController {
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ApiError handleException(Exception e) {
+    public ApiError handleException(Exception ex) {
+        logger.error("Error during admin API call", ex);
         return new ApiError(getClass(), INTERNAL_ERROR);
     }
 }

@@ -21,6 +21,18 @@ public abstract class Zip {
     protected abstract int numDigits();
 
     @Override
+    public int hashCode() {
+        return zip;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        return zip == ((Zip) obj).zip;
+    }
+
+    @Override
     public String toString() {
         var tempString = new StringBuilder(String.valueOf(zip));
         while (tempString.length() < numDigits()) {
