@@ -18,10 +18,9 @@ public final class AddressUtil {
      * @return Punctuated address
      */
     public static Address addPunctuation(Address address) {
-        if (address == null || !address.isValid() || address.isPoBox()) {
+        if (address == null || !address.isValid() || !(address instanceof BuildingAddress bldgAddr)) {
             return address;
         }
-        var bldgAddr = ((BuildingAddress) address);
         Set<String> streetTypes = new HashSet<>();
         streetTypes.addAll(AddressDictionary.streetTypeMap.values());
         streetTypes.addAll(AddressDictionary.highWayMap.values());

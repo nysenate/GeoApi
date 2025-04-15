@@ -7,7 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public abstract sealed class Address permits BuildingAddress, PostOfficeBox {
+public abstract sealed class Address permits BuildingAddress, PostOfficeBox, UnparsedAddress {
     private static final Pattern poBoxPattern = Pattern.compile("(?i)PO Box (\\d+)"),
             zipPattern = Pattern.compile("(\\d{5})(-\\d{4})?");
     private String postalCity;
@@ -35,22 +35,26 @@ public abstract sealed class Address permits BuildingAddress, PostOfficeBox {
     }
 
     public static Address getAddress(String addr1, String addr2, String city, String state, String zip5, String zip4) {
-        Matcher poBoxMatcher = poBoxPattern.matcher(addr1);
-        if (poBoxMatcher.matches()) {
-            int boxNumber = Integer.parseInt(poBoxMatcher.group(1));
-            return new PostOfficeBox(boxNumber, addr2, city, state, zip5, zip4);
+        try {
+            Matcher poBoxMatcher = poBoxPattern.matcher(addr1);
+            if (poBoxMatcher.matches()) {
+                int boxNumber = Integer.parseInt(poBoxMatcher.group(1));
+                return new PostOfficeBox(boxNumber, addr2, city, state, zip5, zip4);
+            }
+            var tempBldgAddr = new BuildingAddress(addr1, city, state, zip5, zip4);
+            tempBldgAddr.setInternal(addr2);
+            return tempBldgAddr;
+        } catch (Exception ex) {
+            return new UnparsedAddress(addr1, city, state, zip5, zip4);
         }
-        var tempBldgAddr = new BuildingAddress(addr1, city, state, zip5, zip4);
-        tempBldgAddr.setInternal(addr2);
-        return tempBldgAddr;
     }
 
-    public Address(AddressWithoutNum awn) {
+    protected Address(AddressWithoutNum awn) {
         this.postalCity = awn.postalCity();
-        this.zip5 = new Zip5(awn.zip5());
+        this.zip5 = awn.zip5();
     }
 
-    public Address(String postalCity, String state, String zip5, String zip4) {
+    protected Address(String postalCity, String state, String zip5, String zip4) {
         setPostalCity(postalCity);
         this.state = state;
         if (!StringUtils.isBlank(zip5)) {
@@ -112,11 +116,6 @@ public abstract sealed class Address permits BuildingAddress, PostOfficeBox {
     }
 
     public boolean isOutOfState() {
-        return state != null && state.replaceAll("[.]", "").toUpperCase().trim().matches("^$|NY|NEW YORK");
-    }
-
-    // TODO: can switch on sealed classes in Java 21
-    public boolean isPoBox() {
-        return false;
+        return state != null && !state.replaceAll("[.]", "").toUpperCase().trim().matches("^$|NY|NEW YORK");
     }
 }

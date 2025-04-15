@@ -12,9 +12,4 @@ public final class PostOfficeBox extends Address {
     public String getAddr1() {
         return "PO BOX " + boxNumber;
     }
-
-    @Override
-    public boolean isPoBox() {
-        return true;
-    }
 }

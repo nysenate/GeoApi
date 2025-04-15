@@ -5,6 +5,7 @@ import gov.nysenate.sage.dao.provider.nysgeo.GeocoderDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
+import gov.nysenate.sage.model.address.PostOfficeBox;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
@@ -71,13 +72,13 @@ public class GeoCache extends BaseDao implements GeocoderDao {
                 .addValue("zip4", address.getZip4() == null ? null : address.getZip4().toString());
     }
 
-    public synchronized void cache(GeocodeResult result) {
-        if (result == null || !result.isSuccess() || result.getSource() == Geocoder.GEOCACHE) {
+    public void cache(GeocodeResult result) {
+        if (result == null || !result.isSuccess() || result.getGeocode().isCached()) {
             return;
         }
         GeocodedAddress geoAddr = result.getGeocodedAddress();
         if (geoAddr == null || !geoAddr.isValidAddress() || !geoAddr.isValidGeocode() ||
-                geoAddr.getGeocode().isCached() || geoAddr.getAddress().isPoBox()) {
+                geoAddr.getGeocode().isCached() || geoAddr.getAddress() instanceof PostOfficeBox) {
             return;
         }
         Address address = geoAddr.getAddress();

@@ -34,7 +34,6 @@ import static gov.nysenate.sage.dao.provider.district.ShapefileQueries.*;
  * provide fast district resolution given a coordinate pair. It also allows for determining
  * overlaps and intersections between districts.
  */
-// TODO: be sure to resolve county stuff correctly
 @Repository
 public class SqlShapefileDao extends BaseDao implements ShapefileDao {
     private static final Logger logger = LoggerFactory.getLogger(SqlShapefileDao.class);
@@ -172,7 +171,6 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
         String code;
         // County codes need to be mapped from FIPS code
         if (type == DistrictType.COUNTY) {
-            // TODO: new county data
             code = Integer.toString(countyDao.getSenateCode(rs.getInt("code")));
         }
         // Normal district code

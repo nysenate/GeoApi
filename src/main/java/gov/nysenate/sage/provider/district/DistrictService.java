@@ -61,18 +61,20 @@ public class DistrictService {
 
         Address address = geocodedAddress.getAddress();
         if (address != null) {
-            if (address.isOutOfState()) {
+            if (address.isOutOfState() || !address.isValid()) {
                 return new DistrictResult(null, geocodedAddress);
             }
-            var cacheResult =  poBoxCache.get(address.getZip5(), providers);
-            if (cacheResult == null) {
-                final List<LocalSource> finalProviders = providers;
-                List<DistrictResult> postOfficeResults = ((GeocodedPostOfficeBox) geocodedAddress).getPostOffices().stream()
-                        .map(geoAddr -> assignDistricts(finalProviders, geoAddr, requiredTypes)).toList();
-                cacheResult = PostOfficeData.getDistrictData(postOfficeResults);
-                poBoxCache.put(address.getZip5(), providers, cacheResult);
+            if (address instanceof PostOfficeBox) {
+                var cacheResult = poBoxCache.get(address.getZip5(), providers);
+                if (cacheResult == null) {
+                    final List<LocalSource> finalProviders = providers;
+                    List<DistrictResult> postOfficeResults = ((GeocodedPostOfficeBox) geocodedAddress).getPostOffices().stream()
+                            .map(geoAddr -> assignDistricts(finalProviders, geoAddr, requiredTypes)).toList();
+                    cacheResult = PostOfficeData.getDistrictData(postOfficeResults);
+                    poBoxCache.put(address.getZip5(), providers, cacheResult);
+                }
+                return cacheResult.getData(address.getPostalCity());
             }
-            return cacheResult.getData(address.getPostalCity());
         }
 
         var results = new ArrayList<DistrictResult>();

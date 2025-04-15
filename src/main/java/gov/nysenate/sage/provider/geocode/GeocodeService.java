@@ -6,6 +6,7 @@ import com.google.common.collect.Table;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.data.PostOfficeDao;
 import gov.nysenate.sage.dao.provider.nysgeo.GeocoderDao;
+import gov.nysenate.sage.dao.stats.geocode.SqlGeocodeStatsDao;
 import gov.nysenate.sage.model.PostOfficeData;
 import gov.nysenate.sage.model.address.*;
 import gov.nysenate.sage.model.geo.Geocode;
@@ -41,6 +42,7 @@ public class GeocodeService {
     private final Map<Geocoder, GeocoderDao> geocoderDaoMap;
     private final GeoCache geoCache;
     private final ImmutableList<Geocoder> defaultRanking;
+    private final SqlGeocodeStatsDao geocodeStatsDao;
     private final ThreadPoolTaskExecutor executor;
     private final PostOfficeDao postOfficeDao;
     private final Table<Zip5, List<Geocoder>, PostOfficeData<List<GeocodedAddress>>> poBoxCache = HashBasedTable.create();
@@ -48,6 +50,7 @@ public class GeocodeService {
     @Autowired
     public GeocodeService(List<GeocoderDao> geocoderDaos, GeoCache geoCache,
                           @Value("${geocoder.ranking}") String geocoderRankingStr,
+                          SqlGeocodeStatsDao geocodeStatsDao,
                           PostOfficeDao postOfficeDao, Environment env) {
         this.geocoderDaoMap = geocoderDaos.stream().collect(Collectors.toMap(GeocoderDao::geocoder, Function.identity()));
         this.geoCache = geoCache;
@@ -56,7 +59,9 @@ public class GeocodeService {
             tempRanking.add(Geocoder.valueOf(geocoder.toUpperCase()));
         }
         this.defaultRanking = ImmutableList.copyOf(tempRanking);
+        this.geocodeStatsDao = geocodeStatsDao;
         this.postOfficeDao = postOfficeDao;
+        // TODO: validate threads used here?
         this.executor = ExecutorUtil.createExecutor("geocode", env.getValidateThreads());
     }
 
@@ -76,16 +81,16 @@ public class GeocodeService {
         if (geocoders == null) {
             geocoders = defaultRanking;
         }
-        if (address.isPoBox()) {
-            var cacheResult = poBoxCache.get(address.getZip5(), geocoders);
+        if (address instanceof PostOfficeBox poBox) {
+            var cacheResult = poBoxCache.get(poBox.getZip5(), geocoders);
             if (cacheResult == null) {
                 final List<Geocoder> finalGeocoders = geocoders;
-                List<GeocodeResult> postOfficeResults = postOfficeDao.getPostOffices(address.getZip5())
+                List<GeocodeResult> postOfficeResults = postOfficeDao.getPostOffices(poBox.getZip5())
                         .stream().map(addr -> geocode(finalGeocoders, addr)).toList();
                 cacheResult = PostOfficeData.getGeocodeData(postOfficeResults);
-                poBoxCache.put(address.getZip5(), geocoders, cacheResult);
+                poBoxCache.put(poBox.getZip5(), geocoders, cacheResult);
             }
-            return getGeocodeResult(((PostOfficeBox) address), cacheResult.getData(address.getPostalCity()));
+            return getGeocodeResult(poBox, cacheResult.getData(poBox.getPostalCity()));
         }
 
         ResultStatus status = MISSING_GEOCODER;
@@ -93,6 +98,7 @@ public class GeocodeService {
         for (Geocoder newGeocoder : geocoders) {
             geocoder = newGeocoder;
             geocodedAddress = geocoderDaoMap.get(geocoder).getGeocodedAddress(((BuildingAddress) address));
+            geocodeStatsDao.putGeocodedAddress(geocoder, geocodedAddress);
             if (geocodedAddress == null || !geocodedAddress.isValidGeocode()) {
                 status = NO_GEOCODE_RESULT;
             } else {
@@ -131,6 +137,7 @@ public class GeocodeService {
                 logger.error("Error while processing Future", ex);
             }
         }
+        // TODO: redundant
         geoCache.cache(geocodeResults);
         return geocodeResults;
     }
