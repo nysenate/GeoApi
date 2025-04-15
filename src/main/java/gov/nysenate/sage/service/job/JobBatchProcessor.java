@@ -490,7 +490,9 @@ public class JobBatchProcessor implements JobProcessor {
             logger.info("Sending email to {}", mailer.getAdminEmail());
             mailer.sendMail(mailer.getAdminEmail(), subject, adminMessage);
         }
-        catch (Exception ex2) { logger.error(fatal, "Failed to send error email.. sheesh", ex2); }
+        catch (Exception ex2) {
+            logger.error(fatal, "Failed to send error email.", ex2);
+        }
     }
 
     /**

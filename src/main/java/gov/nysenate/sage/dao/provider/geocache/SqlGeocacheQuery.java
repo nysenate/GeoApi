@@ -18,8 +18,8 @@ public enum SqlGeocacheQuery implements BasicSqlQuery {
     UPDATE_CACHE_ENTRY("""
             UPDATE public.geocache
             SET latlon = ST_GeomFromText(:latlon), method = :method, quality = :quality, zip4 = :zip4, updated = NOW()
-            WHERE bldg_id = :bldgId AND street = :street AND postal_city = :postalCity AND zip5 = :zip5 AND
-            (zip4 = :zip4 OR (zip4 IS NULL AND :zip4 IS NULL))""");
+            WHERE bldg_id = :bldgId AND street = :street AND postal_city = :postalCity AND zip5 = :zip5
+            """);
 
     private final String sql;
 

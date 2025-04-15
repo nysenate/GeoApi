@@ -19,7 +19,7 @@ import java.sql.Timestamp;
 @Repository
 public class SqlGeocodeStatsDao extends BaseDao {
     public void putGeocodedAddress(Geocoder currGeocoder, GeocodedAddress result) {
-        var params = new MapSqlParameterSource("geocoder", currGeocoder)
+        var params = new MapSqlParameterSource("geocoder", currGeocoder.toString())
                 .addValue("success", result != null && result.getGeocode().isValidGeocode());
         namedJdbcTemplate.update(GeocodeStatsQuery.INSERT_GEOCODE_STATS.getSql(getLogSchema()), params);
     }

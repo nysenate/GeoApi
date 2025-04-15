@@ -6,7 +6,7 @@ import static gov.nysenate.sage.dao.base.SqlTable.GEOCODE_STATS;
 
 public enum GeocodeStatsQuery implements BasicSqlQuery {
     INSERT_GEOCODE_STATS(
-        "INSERT INTO ${schema}." + GEOCODE_STATS + " (geocoder, success) VALUES (:geocoder, success)"
+        "INSERT INTO ${schema}." + GEOCODE_STATS + " (geocoder, success) VALUES (:geocoder, :success)"
     ),
 
     GET_TOTAL_STATS(
