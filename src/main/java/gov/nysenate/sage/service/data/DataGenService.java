@@ -88,7 +88,7 @@ public class DataGenService implements SageDataGenService {
     }
 
     private void updateDistrictMembers(DistrictType districtType, List<DistrictMember> newMembers) {
-        logger.info("Indexing NY {} by scraping its website...", districtType);
+        logger.info("Saving NY {} members from website scraping...", districtType);
         if (newMembers.isEmpty()) {
             throw new RuntimeException("No %s members found!".formatted(districtType));
         }

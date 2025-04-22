@@ -82,6 +82,9 @@ public class GeocodeService {
             geocoders = defaultRanking;
         }
         if (address instanceof PostOfficeBox poBox) {
+            if (address.getZip5() == null) {
+                return getGeocodeResult(poBox, List.of());
+            }
             var cacheResult = poBoxCache.get(poBox.getZip5(), geocoders);
             if (cacheResult == null) {
                 final List<Geocoder> finalGeocoders = geocoders;
@@ -137,8 +140,6 @@ public class GeocodeService {
                 logger.error("Error while processing Future", ex);
             }
         }
-        // TODO: redundant
-        geoCache.cache(geocodeResults);
         return geocodeResults;
     }
 

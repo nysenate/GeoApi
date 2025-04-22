@@ -7,7 +7,7 @@ public enum SqlGeocacheQuery implements BasicSqlQuery {
             SELECT gc.*, ST_Y(latlon) AS lat, ST_X(latlon) AS lon
             FROM public.geocache AS gc
             WHERE gc.bldg_id = :bldgId AND gc.street = :street AND gc.postal_city = :postalCity AND gc.zip5 = :zip5 AND
-            (zip4 = :zip4 OR (zip4 IS NULL AND :zip4 IS NULL))
+            %s
             LIMIT 1"""
     ),
 

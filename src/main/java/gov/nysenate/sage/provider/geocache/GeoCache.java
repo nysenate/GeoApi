@@ -33,7 +33,14 @@ public class GeoCache extends BaseDao implements GeocoderDao {
     @Override
     public GeocodedAddress getGeocodedAddress(BuildingAddress address) {
         if (address.isValid()) {
-            List<GeocodedAddress> geoAddrs = namedJdbcTemplate.query(SELECT_CACHE_ENTRY.getSql(),
+            String sql = SELECT_CACHE_ENTRY.getSql();
+            if (address.getZip4() == null) {
+                sql = sql.formatted("zip4 IS NULL");
+            }
+            else {
+                sql = sql.formatted("zip4 = :zip4");
+            }
+            List<GeocodedAddress> geoAddrs = namedJdbcTemplate.query(sql,
                     getIdParams(address), new GeocodedStreetAddressMapper());
             if (!geoAddrs.isEmpty()) {
                 return geoAddrs.get(0);
@@ -73,7 +80,7 @@ public class GeoCache extends BaseDao implements GeocoderDao {
     }
 
     public void cache(GeocodeResult result) {
-        if (result == null || !result.isSuccess() || result.getGeocode().isCached()) {
+        if (result == null || !result.isSuccess() || result.getGeocode() == null || result.getGeocode().isCached()) {
             return;
         }
         GeocodedAddress geoAddr = result.getGeocodedAddress();

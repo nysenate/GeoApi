@@ -59,12 +59,18 @@ public class DistrictService {
             providers = defaultRanking;
         }
 
+        if (geocodedAddress == null) {
+            return new DistrictResult(null, null);
+        }
         Address address = geocodedAddress.getAddress();
         if (address != null) {
             if (address.isOutOfState() || !address.isValid()) {
                 return new DistrictResult(null, geocodedAddress);
             }
             if (address instanceof PostOfficeBox) {
+                if (address.getZip5() == null) {
+                    return new DistrictResult(null, geocodedAddress);
+                }
                 var cacheResult = poBoxCache.get(address.getZip5(), providers);
                 if (cacheResult == null) {
                     final List<LocalSource> finalProviders = providers;

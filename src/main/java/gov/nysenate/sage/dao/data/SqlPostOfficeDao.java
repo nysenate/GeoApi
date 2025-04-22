@@ -20,6 +20,9 @@ public class SqlPostOfficeDao extends BaseDao implements PostOfficeDao {
     @Nonnull
     @Override
     public List<BuildingAddress> getPostOffices(Zip5 deliveryZip) {
+        if (deliveryZip == null) {
+            return List.of();
+        }
         String sql = PostOfficeQuery.GET_ADDRESSES_BY_DELIVERY_ZIP.getSql(getPublicSchema());
         var params = new MapSqlParameterSource("deliveryZip", deliveryZip.toString());
         return namedJdbcTemplate.query(sql, params, new PostOfficeHandler());
