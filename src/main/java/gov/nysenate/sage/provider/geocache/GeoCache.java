@@ -2,10 +2,7 @@ package gov.nysenate.sage.provider.geocache;
 
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.provider.nysgeo.GeocoderDao;
-import gov.nysenate.sage.model.address.Address;
-import gov.nysenate.sage.model.address.BuildingAddress;
-import gov.nysenate.sage.model.address.GeocodedAddress;
-import gov.nysenate.sage.model.address.PostOfficeBox;
+import gov.nysenate.sage.model.address.*;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
@@ -33,13 +30,7 @@ public class GeoCache extends BaseDao implements GeocoderDao {
     @Override
     public GeocodedAddress getGeocodedAddress(BuildingAddress address) {
         if (address.isValid()) {
-            String sql = SELECT_CACHE_ENTRY.getSql();
-            if (address.getZip4() == null) {
-                sql = sql.formatted("zip4 IS NULL");
-            }
-            else {
-                sql = sql.formatted("zip4 = :zip4");
-            }
+            String sql = addZip4(SELECT_CACHE_ENTRY.getSql(), address.getZip4());
             List<GeocodedAddress> geoAddrs = namedJdbcTemplate.query(sql,
                     getIdParams(address), new GeocodedStreetAddressMapper());
             if (!geoAddrs.isEmpty()) {
@@ -96,9 +87,18 @@ public class GeoCache extends BaseDao implements GeocoderDao {
                 .addValue("quality", gc.quality().name());
 
         synchronized (this) {
-            if (namedJdbcTemplate.update(UPDATE_CACHE_ENTRY.getSql(), params) == 0) {
+            if (namedJdbcTemplate.update(addZip4(UPDATE_CACHE_ENTRY.getSql(), address.getZip4()), params) == 0) {
                 namedJdbcTemplate.update(INSERT_CACHE_ENTRY.getSql(), params);
             }
+        }
+    }
+
+    private static String addZip4(String baseSql, Zip4 zip4) {
+        if (zip4 == null) {
+            return baseSql.formatted("zip4 IS NULL");
+        }
+        else {
+            return baseSql.formatted("zip4 = :zip4");
         }
     }
 }
