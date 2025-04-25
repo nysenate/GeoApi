@@ -1,17 +1,14 @@
 package gov.nysenate.sage.provider.district;
 
-import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Table;
-import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.controller.api.DistrictUtil;
 import gov.nysenate.sage.dao.provider.district.SqlShapefileDao;
 import gov.nysenate.sage.dao.provider.streetfile.StreetfileDao;
-import gov.nysenate.sage.model.PostOfficeData;
+import gov.nysenate.sage.model.PostOfficeCache;
 import gov.nysenate.sage.model.address.*;
-import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
+import gov.nysenate.sage.provider.PostOfficeCacheManager;
 import gov.nysenate.sage.util.ExecutorUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +16,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Nonnull;
 import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,10 +35,11 @@ public class DistrictService {
     private final SqlShapefileDao sqlShapefileDao;
     private final ImmutableList<LocalSource> defaultRanking;
     private final ThreadPoolTaskExecutor executor;
-    private final Table<Zip5, List<LocalSource>, PostOfficeData<DistrictResult>> poBoxCache = HashBasedTable.create();
+    private final PostOfficeCache<LocalSource, DistrictResult> poBoxCache = PostOfficeCacheManager.getDistrictCache();
 
     public DistrictService(StreetfileDao streetfileDao, SqlShapefileDao sqlShapefileDao,
-                           @Value("${district.ranking}") String districtRankingStr, Environment env) {
+                           @Value("${district.ranking}") String districtRankingStr,
+                           @Value("${num.threads:3}") int numThreads) {
         this.streetfileDao = streetfileDao;
         this.sqlShapefileDao = sqlShapefileDao;
 
@@ -51,7 +48,7 @@ public class DistrictService {
             tempRanking.add(LocalSource.valueOf(geocoder.toUpperCase()));
         }
         this.defaultRanking = ImmutableList.copyOf(tempRanking);
-        this.executor = ExecutorUtil.createExecutor("district", env.getValidateThreads());
+        this.executor = ExecutorUtil.createExecutor("district", numThreads);
     }
 
     public DistrictResult assignDistricts(List<LocalSource> providers, GeocodedAddress geocodedAddress,
@@ -68,8 +65,14 @@ public class DistrictService {
             if (address.isOutOfState() || !address.isValid()) {
                 return new DistrictResult(null, geocodedAddress);
             }
-            if (address instanceof PostOfficeBox) {
-                return getPostOfficeResult(providers, (GeocodedPostOfficeBox) geocodedAddress, requiredTypes);
+            if (address instanceof PostOfficeBox poBox) {
+                if (geocodedAddress instanceof GeocodedPostOfficeBox poBoxGeoAddr) {
+                    return getPostOfficeResult(poBox, providers, poBoxGeoAddr, requiredTypes);
+                }
+                else {
+                    logger.warn("Error handling PO box {}", poBox);
+                    return new DistrictResult(null, geocodedAddress);
+                }
             }
         }
 
@@ -78,7 +81,7 @@ public class DistrictService {
             var result = new DistrictResult(provider, geocodedAddress);
             if (result.isSuccess()) {
                 if (provider == STREETFILE) {
-                    result.setDistrictInfo(streetfileDao.getDistrictInfo((BuildingAddress) address, DistrictMatchLevel.HOUSE));
+                    result.setDistrictInfo(streetfileDao.getDistrictInfo((BuildingAddress) address));
                 }
                 else if (provider == SHAPEFILE) {
                     result.setDistrictInfo(sqlShapefileDao.getDistrictInfo(geocodedAddress.getGeocode(), requiredTypes));
@@ -111,20 +114,16 @@ public class DistrictService {
         return districtResults;
     }
 
-    private synchronized DistrictResult getPostOfficeResult(List<LocalSource> providers, @Nonnull GeocodedPostOfficeBox geoPoBox,
+    private synchronized DistrictResult getPostOfficeResult(PostOfficeBox poBox, List<LocalSource> providers,
+                                                            GeocodedPostOfficeBox geoPoBox,
                                                             List<DistrictType> requiredTypes) {
-        Address address = geoPoBox.getAddress();
-        if (address.getZip5() == null) {
-            return new DistrictResult(null, geoPoBox);
-        }
-        var cacheResult = poBoxCache.get(address.getZip5(), providers);
+        var cacheResult = poBoxCache.get(poBox, providers);
         if (cacheResult == null) {
             List<DistrictResult> postOfficeResults = geoPoBox.getPostOffices().stream()
                     .map(geoAddr -> assignDistricts(providers, geoAddr, requiredTypes)).toList();
-            cacheResult = PostOfficeData.getDistrictData(postOfficeResults);
-            poBoxCache.put(address.getZip5(), providers, cacheResult);
+            cacheResult = poBoxCache.putAndGet(poBox, providers, postOfficeResults);
         }
-        return cacheResult.getData(address.getPostalCity());
+        return cacheResult;
     }
 
     @PreDestroy

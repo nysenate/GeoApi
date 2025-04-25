@@ -2,11 +2,11 @@ package gov.nysenate.sage.service;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import gov.nysenate.sage.controller.admin.DataGenController;
 import gov.nysenate.sage.dao.data.PostOfficeDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.address.Zip5;
+import gov.nysenate.sage.provider.PostOfficeCacheManager;
 import gov.nysenate.sage.service.address.AddressService;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
@@ -21,7 +21,7 @@ import java.util.Scanner;
 
 @Service
 public class PostOfficeService {
-    private static final Logger logger = LoggerFactory.getLogger(DataGenController.class);
+    private static final Logger logger = LoggerFactory.getLogger(PostOfficeService.class);
     private final File dataDir;
     private final AddressService addressService;
     private final PostOfficeDao dao;
@@ -39,7 +39,7 @@ public class PostOfficeService {
      * @return if the operation succeeded.
      * @throws IOException if there was a problem processing the file.
      */
-    public boolean replaceData() throws IOException {
+    public synchronized boolean replaceData() throws IOException {
         File[] files = dataDir.listFiles();
         if (files == null || files.length == 0) {
             return false;
@@ -49,7 +49,7 @@ public class PostOfficeService {
             poAddrs.putAll(getData(file));
         }
         dao.replaceData(poAddrs);
-        // TODO: refresh caches?
+        PostOfficeCacheManager.clearCaches();
         return true;
     }
 

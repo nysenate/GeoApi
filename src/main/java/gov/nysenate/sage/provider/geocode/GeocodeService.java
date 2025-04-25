@@ -1,17 +1,18 @@
 package gov.nysenate.sage.provider.geocode;
 
-import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Table;
-import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.data.PostOfficeDao;
 import gov.nysenate.sage.dao.provider.nysgeo.GeocoderDao;
 import gov.nysenate.sage.dao.stats.geocode.SqlGeocodeStatsDao;
-import gov.nysenate.sage.model.PostOfficeData;
-import gov.nysenate.sage.model.address.*;
+import gov.nysenate.sage.model.PostOfficeCache;
+import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.BuildingAddress;
+import gov.nysenate.sage.model.address.GeocodedAddress;
+import gov.nysenate.sage.model.address.PostOfficeBox;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
+import gov.nysenate.sage.provider.PostOfficeCacheManager;
 import gov.nysenate.sage.provider.geocache.GeoCache;
 import gov.nysenate.sage.util.ExecutorUtil;
 import org.slf4j.Logger;
@@ -44,14 +45,15 @@ public class GeocodeService {
     private final SqlGeocodeStatsDao geocodeStatsDao;
     private final ThreadPoolTaskExecutor executor;
     private final PostOfficeDao postOfficeDao;
-    private final Table<Zip5, List<Geocoder>, PostOfficeData<List<GeocodedAddress>>> poBoxCache = HashBasedTable.create();
+    private final PostOfficeCache<Geocoder, GeocodeResult> poBoxCache = PostOfficeCacheManager.getGeocodeCache();
 
     @Autowired
     public GeocodeService(List<GeocoderDao> geocoderDaos, GeoCache geoCache,
                           @Value("${geocoder.ranking}") String geocoderRankingStr,
                           SqlGeocodeStatsDao geocodeStatsDao,
-                          PostOfficeDao postOfficeDao, Environment env) {
-        this.geocoderDaoMap = geocoderDaos.stream().collect(Collectors.toMap(GeocoderDao::geocoder, Function.identity()));
+                          PostOfficeDao postOfficeDao, @Value("${num.threads:3}") int numThreads) {
+        this.geocoderDaoMap = geocoderDaos.stream()
+                .collect(Collectors.toMap(GeocoderDao::geocoder, Function.identity()));
         this.geoCache = geoCache;
         List<Geocoder> tempRanking = new ArrayList<>();
         for (String geocoder : geocoderRankingStr.split(", *")) {
@@ -60,8 +62,7 @@ public class GeocodeService {
         this.defaultRanking = ImmutableList.copyOf(tempRanking);
         this.geocodeStatsDao = geocodeStatsDao;
         this.postOfficeDao = postOfficeDao;
-        // TODO: validate threads used here?
-        this.executor = ExecutorUtil.createExecutor("geocode", env.getValidateThreads());
+        this.executor = ExecutorUtil.createExecutor("geocode", numThreads);
     }
 
     public GeocodeResult geocode(List<Geocoder> geocoders, @Nonnull Address address) {
@@ -134,25 +135,14 @@ public class GeocodeService {
     }
 
     private synchronized GeocodeResult getPostOfficeResult(PostOfficeBox poBox, @Nonnull List<Geocoder> geocoders) {
-        if (poBox.getZip5() == null) {
-            return new GeocodeResult(null, MISSING_GEOCODED_ADDRESS, new GeocodedAddress(poBox));
-        }
-        var cacheResult = poBoxCache.get(poBox.getZip5(), geocoders);
-        if (cacheResult == null) {
+        GeocodeResult result = poBoxCache.get(poBox, geocoders);
+        if (result == null) {
             List<GeocodeResult> postOfficeResults = postOfficeDao.getPostOffices(poBox.getZip5())
                     .stream().map(addr -> geocode(geocoders, addr)).toList();
-            cacheResult = PostOfficeData.getGeocodeData(postOfficeResults);
-            poBoxCache.put(poBox.getZip5(), geocoders, cacheResult);
+            result = poBoxCache.putAndGet(poBox, geocoders, postOfficeResults);
         }
-        List<GeocodedAddress> postOffices = cacheResult.getData(poBox.getPostalCity());
-        if (postOffices.isEmpty()) {
-            return new GeocodeResult(null, NON_NY_STATE, new GeocodedAddress(poBox));
-        }
-        final Geocoder firstGeocoder = postOffices.get(0).getGeocode().originalGeocoder();
-        boolean hasCommonGeocoder = postOffices.stream().map(geoAddr -> geoAddr.getGeocode().originalGeocoder())
-                .allMatch(firstGeocoder::equals);
-        var postalGeoAddr = new GeocodedPostOfficeBox(poBox, postOffices);
-        return new GeocodeResult(hasCommonGeocoder ? firstGeocoder : null, SUCCESS, postalGeoAddr);
+        result.setAddress(poBox);
+        return result;
     }
 
     private <T> List<GeocodeResult> getBatchResults(List<T> inputs, Function<T, GeocodeResult> resultMapper) {
