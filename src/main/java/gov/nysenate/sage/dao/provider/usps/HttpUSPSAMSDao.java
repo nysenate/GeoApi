@@ -57,6 +57,7 @@ public class HttpUSPSAMSDao implements AddressDao {
                     .append("&city=").append(encode(address.getPostalCity()))
                     .append("&state=").append(encode(address.getState()))
                     .append("&zip5=").append(encode(address.getZip5()))
+                    .append("&zip4=").append(encode(address.getZip4()))
                     .append("&initCaps=true");
 
             String url = uspsApiUrl + VALIDATE_METHOD + urlParams;

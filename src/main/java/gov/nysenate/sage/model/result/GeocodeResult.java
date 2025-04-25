@@ -35,8 +35,10 @@ public class GeocodeResult extends BaseResult<Geocoder> {
 
     public void setAddress(Address address) {
         if (geocodedAddress == null) {
-            this.geocodedAddress = new GeocodedAddress();
+            this.geocodedAddress = new GeocodedAddress(address);
         }
-        geocodedAddress.setAddress(address);
+        else {
+            geocodedAddress.setAddress(address);
+        }
     }
 }

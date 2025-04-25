@@ -46,8 +46,11 @@ public class SqlPostOfficeDao extends BaseDao implements PostOfficeDao {
     private static class PostOfficeHandler implements RowMapper<BuildingAddress> {
         @Override
         public BuildingAddress mapRow(ResultSet rs, int rowNum) throws SQLException {
-            return new BuildingAddress(rs.getString("street_with_num"), rs.getString("city"),
+            var addr = new BuildingAddress(rs.getString("street_with_num"), rs.getString("city"),
                     "NY", rs.getString("zip5"), rs.getString("zip4"));
+            // The addresses were validated before being inserted.
+            addr.setUspsValidated(true);
+            return addr;
         }
     }
 }
