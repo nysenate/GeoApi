@@ -1,6 +1,5 @@
 package gov.nysenate.sage.service.job;
 
-import gov.nysenate.sage.config.ApplicationConfig;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.model.job.SqlJobProcessDao;
 import gov.nysenate.sage.model.district.DistrictType;
@@ -11,10 +10,7 @@ import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.provider.district.DistrictService;
 import gov.nysenate.sage.provider.geocode.GeocodeService;
 import gov.nysenate.sage.service.address.AddressService;
-import gov.nysenate.sage.util.FileUtil;
-import gov.nysenate.sage.util.FormatUtil;
-import gov.nysenate.sage.util.Mailer;
-import gov.nysenate.sage.util.TimeUtil;
+import gov.nysenate.sage.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
@@ -46,7 +42,6 @@ import static gov.nysenate.sage.util.controller.ConstantUtil.DOWNLOAD_BASE_URL;
 
 @Service
 public class JobBatchProcessor implements JobProcessor {
-    // TODO: synchronize with JobStatusController
     private static final Logger logger = LoggerFactory.getLogger(JobBatchProcessor.class);
     private static final Marker fatal = MarkerFactory.getMarker("FATAL");
 
@@ -68,12 +63,13 @@ public class JobBatchProcessor implements JobProcessor {
     private int jobBatchSize;
     @Value("${job.send.email:true}")
     private boolean sendEmails;
+    private boolean isRunning = false;
 
     @Autowired
     public JobBatchProcessor(Environment env, Mailer mailer, AddressService addressService,
                              GeocodeService geocodeService, DistrictService districtService,
                              @Value("${base.url:http://localhost:8080}") String baseUrl,
-    SqlJobProcessDao sqlJobProcessDao, ApplicationConfig applicationConfig) {
+                             SqlJobProcessDao sqlJobProcessDao, @Value("${num.threads:3}") int numThreads) {
         this.uploadDir = env.getJobUploadDir();
         this.downloadDir = env.getJobDownloadDir();
         this.downloadUrl = baseUrl.trim() + DOWNLOAD_BASE_URL;
@@ -84,20 +80,21 @@ public class JobBatchProcessor implements JobProcessor {
         this.districtService = districtService;
         this.sqlJobProcessDao = sqlJobProcessDao;
 
-        this.addressExecutor = applicationConfig.getJobAddressValidationExecutor();
-        this.geocodeExecutor = applicationConfig.getJobGeocodeExecutor();
-        this.districtExecutor = applicationConfig.getJobDistrictAssignExecutor();
+        this.addressExecutor = ExecutorUtil.createExecutor("job-validator", numThreads);
+        this.geocodeExecutor = ExecutorUtil.createExecutor("job-geocoder", numThreads);
+        this.districtExecutor = ExecutorUtil.createExecutor("job-dist-assign", numThreads);
     }
 
     @Scheduled(cron = "${job.process.cron}")
     /** Entry point for cron job */
     public synchronized void run() throws Exception {
+        isRunning = true;
         List<JobProcessStatus> runningJobs = sqlJobProcessDao.getJobStatusesByCondition(RUNNING, null);
         if (!runningJobs.isEmpty()) {
             logger.info("Resuming {} jobs.", runningJobs.size());
         }
         for (JobProcessStatus runningJob : runningJobs) {
-            logger.info("Processing job process id {}", runningJob.getProcessId());
+            logger.info("Processing running job process with ID {}", runningJob.getProcessId());
             processJob(runningJob);
         }
 
@@ -106,18 +103,23 @@ public class JobBatchProcessor implements JobProcessor {
             logger.info("{} batch jobs have been queued for processing.", waitingJobs.size());
         }
         for (JobProcessStatus waitingJob : waitingJobs) {
-            logger.info("Processing job process id {}", waitingJob.getProcessId());
+            logger.info("Processing waiting job process with ID {}", waitingJob.getProcessId());
             processJob(waitingJob);
         }
         if (!runningJobs.isEmpty() || !waitingJobs.isEmpty()) {
             logger.info("Finishing processing, Exiting Data Processor");
         }
+        isRunning = false;
+    }
+
+    public boolean isRunning() {
+        return isRunning;
     }
 
     /**
      * Main routine for processing a JobProcess.
      */
-    public void processJob(JobProcessStatus jobStatus) throws Exception {
+    private void processJob(JobProcessStatus jobStatus) throws Exception {
         JobProcess jobProcess = jobStatus.getJobProcess();
         String fileName = jobProcess.getFileName();
 
@@ -204,7 +206,7 @@ public class JobBatchProcessor implements JobProcessor {
 
                     Future<JobBatch> futureValidatedBatch = null;
                     if (jobFile.requiresAddressValidation()) {
-                        futureValidatedBatch = addressExecutor.submit(new JobBatchProcessor.ValidateJobBatch(jobBatch, addressService));
+                        futureValidatedBatch = addressExecutor.submit(new ValidateJobBatch(jobBatch, addressService));
                     }
 
                     if (jobFile.requiresGeocode() || jobFile.requiresDistrictAssign()) {
@@ -306,7 +308,7 @@ public class JobBatchProcessor implements JobProcessor {
         }
     }
 
-    private void ensureDirectoryExists(String dir)  {
+    private static void ensureDirectoryExists(String dir)  {
         try {
             Path path = Path.of(dir);
             if (Files.notExists(path)) {
@@ -326,11 +328,13 @@ public class JobBatchProcessor implements JobProcessor {
         sqlJobProcessDao.setJobProcessStatus(jobStatus);
     }
 
-    private void handleErrors(String loggerMessage , String jobStatusMessage, Exception ex, JobProcessStatus jobStatus,
+    private void handleErrors(String loggerMessage, String jobStatusMessage, Exception ex, JobProcessStatus jobStatus,
                               JobProcessStatus.Condition condition) {
         logger.error(fatal, loggerMessage, ex);
         setJobStatusError(jobStatus, condition, jobStatusMessage + ex.getMessage());
-        if (sendEmails) sendErrorMail(jobStatus, ex);
+        if (sendEmails) {
+            sendErrorMail(jobStatus, ex);
+        }
     }
 
     private void skipFile(JobProcessStatus jobStatus) {
@@ -354,31 +358,23 @@ public class JobBatchProcessor implements JobProcessor {
         }
     }
 
-    public static class ValidateJobBatch implements Callable<JobBatch> {
-        private final JobBatch jobBatch;
-        private final AddressService addressService;
-
-        public ValidateJobBatch(JobBatch jobBatch, AddressService addressService) {
-            this.jobBatch = jobBatch;
-            this.addressService = addressService;
-        }
-
+    private record ValidateJobBatch(JobBatch jobBatch, AddressService addressService) implements Callable<JobBatch> {
         @Override
-        public JobBatch call() throws Exception {
-            List<AddressResult> addressResults = addressService.validate(jobBatch.getAddresses(), null, false);
-            if (addressResults.size() == jobBatch.getAddresses().size()) {
-                for (int i = 0; i < addressResults.size(); i++) {
-                    jobBatch.setAddressResult(i, addressResults.get(i));
+            public JobBatch call() {
+                List<AddressResult> addressResults = addressService.validate(jobBatch.getAddresses(), null, false);
+                if (addressResults.size() == jobBatch.getAddresses().size()) {
+                    for (int i = 0; i < addressResults.size(); i++) {
+                        jobBatch.setAddressResult(i, addressResults.get(i));
+                    }
                 }
+                return this.jobBatch;
             }
-            return this.jobBatch;
         }
-    }
 
     /**
      * A callable for the executor to perform geocoding for a JobBatch.
      */
-    public static class GeocodeJobBatch implements Callable<JobBatch> {
+    private static class GeocodeJobBatch implements Callable<JobBatch> {
         private final GeocodeService geocodeService;
         private JobBatch jobBatch;
         private Future<JobBatch> futureJobBatch;
@@ -437,7 +433,7 @@ public class JobBatchProcessor implements JobProcessor {
     /**
      * Sends an email to the JobProcess's submitter and the admin indicating that the job has completed successfully.
      */
-    public void sendSuccessMail(JobProcessStatus jobStatus) throws Exception {
+    private void sendSuccessMail(JobProcessStatus jobStatus) throws Exception {
         JobProcess jobProcess = jobStatus.getJobProcess();
         JobUser jobUser = jobProcess.getRequestor();
         String subject = "SAGE Batch Job #" + jobProcess.getId() + " Completed";
@@ -459,7 +455,7 @@ public class JobBatchProcessor implements JobProcessor {
     /**
      * Sends an email to the JobProcess's submitter and the admin indicating that the job has encountered an error.
      */
-    public void sendErrorMail(JobProcessStatus jobStatus, Exception ex) {
+    private void sendErrorMail(JobProcessStatus jobStatus, Exception ex) {
         JobProcess jobProcess = jobStatus.getJobProcess();
         JobUser jobUser = jobProcess.getRequestor();
         String subject = "SAGE Batch Job #" + jobProcess.getId() + " Failed";

@@ -32,8 +32,7 @@ import static gov.nysenate.sage.model.result.ResultStatus.POST_OFFICE_REFRESH_FA
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.invalidAuthResponse;
 
 @RestController
-// TODO: label as API
-@RequestMapping(value = ConstantUtil.ADMIN_REST_PATH + "/datagen")
+@RequestMapping(value = ConstantUtil.ADMIN_REST_PATH + "/api/datagen")
 public class DataGenController {
     private static final Logger logger = LoggerFactory.getLogger(DataGenController.class);
     private final AdminUserAuth adminUserAuth;
@@ -84,7 +83,7 @@ public class DataGenController {
      * Generate metadata related to Assembly, Senators and Congressional members
      * <p>
      * Usage:
-     * (GET)    /admin/datagen/genmetadata/{option}
+     * (GET)    /admin/api/datagen/genmetadata/{option}
      * @param option   String value that can be either all, assembly, congress, senate, a, c, s
      */
     @GetMapping(value = "/genmetadata/{option}")
@@ -106,7 +105,7 @@ public class DataGenController {
      * Generates and replaces the Senator table with vacant senator data
      * <p>
      * Usage:
-     * (GET)    /admin/datagen/vacantize
+     * (GET)    /admin/api/datagen/vacantize
      */
     @GetMapping(value = "/vacantize")
     public BaseResponse vacantizeSenatorData(HttpServletRequest request,

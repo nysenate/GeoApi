@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
 import org.springframework.aop.interceptor.SimpleAsyncUncaughtExceptionHandler;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
@@ -27,14 +26,6 @@ import static gov.nysenate.sage.model.notification.NotificationType.EVENT_BUS_EX
 @Configuration
 public class ApplicationConfig implements SchedulingConfigurer, AsyncConfigurer {
     private static final Logger logger = LoggerFactory.getLogger(ApplicationConfig.class);
-
-    /** --- Eh Cache Spring Configuration --- */
-
-    @Value("${validate.threads:3}") private int validateThreads;
-
-    @Value("${distassign.threads:3}") private int distAssignThreads;
-
-    @Value("${geocode.threads:3}") private int geocodeThreads;
 
     /** --- Guava Event Bus Configuration --- */
 
@@ -52,7 +43,7 @@ public class ApplicationConfig implements SchedulingConfigurer, AsyncConfigurer 
 
     @Bean(name = "taskScheduler", destroyMethod = "shutdown")
     public ThreadPoolTaskScheduler getTaskScheduler() {
-        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        var scheduler = new ThreadPoolTaskScheduler();
         scheduler.setThreadFactory(new SageThreadFactory("scheduler"));
         scheduler.setPoolSize(8);
         scheduler.initialize();
@@ -73,21 +64,6 @@ public class ApplicationConfig implements SchedulingConfigurer, AsyncConfigurer 
     @Override
     public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
         return new SimpleAsyncUncaughtExceptionHandler();
-    }
-
-    @Bean(name = "jobValidator", destroyMethod = "shutdown")
-    public ThreadPoolTaskExecutor getJobAddressValidationExecutor() {
-        return ExecutorUtil.createExecutor("job-validator", validateThreads);
-    }
-
-    @Bean(name = "jobGeocoder", destroyMethod = "shutdown")
-    public ThreadPoolTaskExecutor getJobGeocodeExecutor() {
-        return ExecutorUtil.createExecutor("job-geocoder", geocodeThreads);
-    }
-
-    @Bean(name = "jobDistAssign", destroyMethod = "shutdown")
-    public ThreadPoolTaskExecutor getJobDistrictAssignExecutor() {
-        return ExecutorUtil.createExecutor("job-dist-assign", distAssignThreads);
     }
 
     /**

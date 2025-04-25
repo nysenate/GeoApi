@@ -20,8 +20,6 @@ import gov.nysenate.sage.util.controller.ApiControllerUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,8 +34,6 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 // TODO: change to use common method in DataGenController
 @RequestMapping(value = ConstantUtil.ADMIN_REST_PATH + "/api")
 public class AdminApiController {
-    private static final Logger logger = LoggerFactory.getLogger(AdminApiController.class);
-
     private final SqlApiUserStatsDao sqlApiUserStatsDao;
     private final SqlApiUsageStatsDao sqlApiUsageStatsDao;
     private final SqlDeploymentStatsDao sqlDeploymentStatsDao;

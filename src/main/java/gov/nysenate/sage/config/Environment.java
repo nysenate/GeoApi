@@ -13,8 +13,6 @@ public class Environment {
 
     @Value("${google.maps.key:API Key obtained from Google (this key is public facing)}") private String googleMapsKey;
 
-    @Value("${validate.threads:3}") private int validateThreads;
-
     @Value("${job.upload.dir:/data/geoapi_data/uploads/}") private String jobUploadDir;
 
     @Value("${job.download.dir:/data/geoapi_data/downloads/}") private String jobDownloadDir;
@@ -25,10 +23,6 @@ public class Environment {
 
     public String getUspsAmsUiUrl() {
         return uspsAmsUiUrl.trim();
-    }
-
-    public int getValidateThreads() {
-        return validateThreads;
     }
 
     public String getJobUploadDir() {

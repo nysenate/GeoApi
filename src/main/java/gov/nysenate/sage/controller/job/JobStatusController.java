@@ -5,6 +5,7 @@ import gov.nysenate.sage.dao.model.job.SqlJobProcessDao;
 import gov.nysenate.sage.model.job.JobProcessStatus;
 import gov.nysenate.sage.model.job.JobUser;
 import gov.nysenate.sage.model.result.JobErrorResult;
+import gov.nysenate.sage.service.job.JobBatchProcessor;
 import org.apache.shiro.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.File;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -25,13 +25,13 @@ import static gov.nysenate.sage.util.controller.JobControllerUtil.getJobUser;
 @RestController
 @RequestMapping(value = "/job/status")
 public class JobStatusController {
-    private static final String TEMP_DIR = "/tmp";
-    private static final String LOCK_FILENAME = "batchJobProcess.lock";
     private final SqlJobProcessDao sqlJobProcessDao;
+    private final JobBatchProcessor jobBatchProcessor;
 
     @Autowired
-    public JobStatusController(SqlJobProcessDao sqlJobProcessDao) {
+    public JobStatusController(SqlJobProcessDao sqlJobProcessDao, JobBatchProcessor jobBatchProcessor) {
         this.sqlJobProcessDao = sqlJobProcessDao;
+        this.jobBatchProcessor = jobBatchProcessor;
     }
 
     /**
@@ -85,7 +85,7 @@ public class JobStatusController {
      */
     @GetMapping(value = "/processor")
     public Object jobProcessor() {
-        return getResponse(this::isProcessorRunning);
+        return getResponse(jobBatchProcessor::isRunning);
     }
 
     /**
@@ -115,11 +115,7 @@ public class JobStatusController {
     private Object getResponse(HttpServletRequest request, Function<JobUser, List<JobProcessStatus>> jpsSupplier) {
         return getResponse(() -> {
             JobUser jobUser = getJobUser(request);
-            return new JobStatusResponse(jpsSupplier.apply(jobUser), isProcessorRunning());
+            return new JobStatusResponse(jpsSupplier.apply(jobUser), jobBatchProcessor.isRunning());
         });
-    }
-
-    private boolean isProcessorRunning() {
-        return new File(TEMP_DIR, LOCK_FILENAME).exists();
     }
 }

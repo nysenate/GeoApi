@@ -74,10 +74,7 @@ usps.default = usps
 ################################
 ## Multi-Threading
 ################################
-validate.threads = 3
-distassign.threads = 3
-geocode.threads = 3
-revgeocode.threads = 3
+num.threads = 3
 
 ##################################
 ## GeoApi Database Configuration
@@ -120,11 +117,7 @@ job.upload.dir = /data/geoapi_data/uploads/
 # Local directory to save completed batch jobs
 job.download.dir = /data/geoapi_data/downloads/
 
-// TODO: no longer used?
 job.batch.size = 40
-job.threads.validate = 1
-job.threads.geocode = 2
-job.threads.distassign = 2
 
 #####################################
 ## Assignment Configuration
