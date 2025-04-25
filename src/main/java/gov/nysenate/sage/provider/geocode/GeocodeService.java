@@ -9,8 +9,6 @@ import gov.nysenate.sage.dao.provider.nysgeo.GeocoderDao;
 import gov.nysenate.sage.dao.stats.geocode.SqlGeocodeStatsDao;
 import gov.nysenate.sage.model.PostOfficeData;
 import gov.nysenate.sage.model.address.*;
-import gov.nysenate.sage.model.geo.Geocode;
-import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
@@ -24,6 +22,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nonnull;
+import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -65,10 +64,6 @@ public class GeocodeService {
         this.executor = ExecutorUtil.createExecutor("geocode", env.getValidateThreads());
     }
 
-    public GeocodedAddress getGeocodedAddress(List<Geocoder> geocoders, @Nonnull Address address) {
-        return getOrDefault(geocode(geocoders, address), address);
-    }
-
     public GeocodeResult geocode(List<Geocoder> geocoders, @Nonnull Address address) {
         var geocodedAddress = new GeocodedAddress(address);
         if (!address.isValid()) {
@@ -82,18 +77,7 @@ public class GeocodeService {
             geocoders = defaultRanking;
         }
         if (address instanceof PostOfficeBox poBox) {
-            if (address.getZip5() == null) {
-                return getGeocodeResult(poBox, List.of());
-            }
-            var cacheResult = poBoxCache.get(poBox.getZip5(), geocoders);
-            if (cacheResult == null) {
-                final List<Geocoder> finalGeocoders = geocoders;
-                List<GeocodeResult> postOfficeResults = postOfficeDao.getPostOffices(poBox.getZip5())
-                        .stream().map(addr -> geocode(finalGeocoders, addr)).toList();
-                cacheResult = PostOfficeData.getGeocodeData(postOfficeResults);
-                poBoxCache.put(poBox.getZip5(), geocoders, cacheResult);
-            }
-            return getGeocodeResult(poBox, cacheResult.getData(poBox.getPostalCity()));
+            return getPostOfficeResult(poBox, geocoders);
         }
 
         ResultStatus status = MISSING_GEOCODER;
@@ -114,37 +98,8 @@ public class GeocodeService {
         return result;
     }
 
-    public List<GeocodedAddress> getGeocodedAddresses(List<Address> addresses) {
-        List<GeocodeResult> results = geocode(addresses);
-        List<GeocodedAddress> finalResults = new ArrayList<>();
-        for (int i = 0; i < addresses.size(); i++) {
-            finalResults.add(getOrDefault(results.get(i), addresses.get(i)));
-        }
-        return finalResults;
-    }
-
     public List<GeocodeResult> geocode(List<Address> addresses) {
-        List<GeocodeResult> geocodeResults = new ArrayList<>();
-        List<Future<GeocodeResult>> futureGeocodeResults = new ArrayList<>();
-
-        for (Address address : addresses) {
-            futureGeocodeResults.add(executor.submit(() -> geocode(null, address)));
-        }
-
-        for (Future<GeocodeResult> geocodeResult : futureGeocodeResults) {
-            try {
-                geocodeResults.add(geocodeResult.get());
-            }
-            catch (Exception ex) {
-                geocodeResults.add(new GeocodeResult(null, INTERNAL_ERROR));
-                logger.error("Error while processing Future", ex);
-            }
-        }
-        return geocodeResults;
-    }
-
-    public GeocodedAddress getRevGeocodedAddress(List<Geocoder> geocoders, Point point) {
-        return getOrDefault(reverseGeocode(geocoders, point), point);
+        return getBatchResults(addresses, address -> geocode(null, address));
     }
 
     public GeocodeResult reverseGeocode(List<Geocoder> geocoders, Point point) {
@@ -174,21 +129,38 @@ public class GeocodeService {
         return new GeocodeResult(revGeocoder, status, revGeocodedAddress);
     }
 
-    public List<GeocodedAddress> getRevGeocodedAddresses(List<Point> points) {
-        List<GeocodeResult> results = reverseGeocode(points);
-        List<GeocodedAddress> finalResults = new ArrayList<>();
-        for (int i = 0; i < points.size(); i++) {
-            finalResults.add(getOrDefault(results.get(i), points.get(i)));
-        }
-        return finalResults;
+    public List<GeocodeResult> reverseGeocode(List<Point> points) {
+        return getBatchResults(points, point -> reverseGeocode(null, point));
     }
 
-    public List<GeocodeResult> reverseGeocode(List<Point> points) {
+    private synchronized GeocodeResult getPostOfficeResult(PostOfficeBox poBox, @Nonnull List<Geocoder> geocoders) {
+        if (poBox.getZip5() == null) {
+            return new GeocodeResult(null, MISSING_GEOCODED_ADDRESS, new GeocodedAddress(poBox));
+        }
+        var cacheResult = poBoxCache.get(poBox.getZip5(), geocoders);
+        if (cacheResult == null) {
+            List<GeocodeResult> postOfficeResults = postOfficeDao.getPostOffices(poBox.getZip5())
+                    .stream().map(addr -> geocode(geocoders, addr)).toList();
+            cacheResult = PostOfficeData.getGeocodeData(postOfficeResults);
+            poBoxCache.put(poBox.getZip5(), geocoders, cacheResult);
+        }
+        List<GeocodedAddress> postOffices = cacheResult.getData(poBox.getPostalCity());
+        if (postOffices.isEmpty()) {
+            return new GeocodeResult(null, NON_NY_STATE, new GeocodedAddress(poBox));
+        }
+        final Geocoder firstGeocoder = postOffices.get(0).getGeocode().originalGeocoder();
+        boolean hasCommonGeocoder = postOffices.stream().map(geoAddr -> geoAddr.getGeocode().originalGeocoder())
+                .allMatch(firstGeocoder::equals);
+        var postalGeoAddr = new GeocodedPostOfficeBox(poBox, postOffices);
+        return new GeocodeResult(hasCommonGeocoder ? firstGeocoder : null, SUCCESS, postalGeoAddr);
+    }
+
+    private <T> List<GeocodeResult> getBatchResults(List<T> inputs, Function<T, GeocodeResult> resultMapper) {
         List<GeocodeResult> geocodeResults = new ArrayList<>();
         List<Future<GeocodeResult>> futureGeocodeResults = new ArrayList<>();
 
-        for (Point point : points) {
-            futureGeocodeResults.add(executor.submit(() -> reverseGeocode(null, point)));
+        for (T input : inputs) {
+            futureGeocodeResults.add(executor.submit(() -> resultMapper.apply(input)));
         }
 
         for (Future<GeocodeResult> geocodeResult : futureGeocodeResults) {
@@ -203,23 +175,8 @@ public class GeocodeService {
         return geocodeResults;
     }
 
-    private static GeocodedAddress getOrDefault(GeocodeResult baseResult, Address defaultAddress) {
-        return baseResult.isSuccess() ? baseResult.getGeocodedAddress() : new GeocodedAddress(defaultAddress);
-    }
-
-    private static GeocodedAddress getOrDefault(GeocodeResult baseResult, Point defaultPoint) {
-        return baseResult.isSuccess() ? baseResult.getGeocodedAddress() :
-                new GeocodedAddress(new Geocode(defaultPoint, GeocodeQuality.POINT, null, false));
-    }
-
-    private static GeocodeResult getGeocodeResult(PostOfficeBox poBox, List<GeocodedAddress> postOffices) {
-        if (postOffices.isEmpty()) {
-            return new GeocodeResult(null, MISSING_GEOCODED_ADDRESS, new GeocodedAddress(poBox));
-        }
-        final Geocoder firstGeocoder = postOffices.get(0).getGeocode().originalGeocoder();
-        boolean hasCommonGeocoder = postOffices.stream().map(geoAddr -> geoAddr.getGeocode().originalGeocoder())
-                .allMatch(firstGeocoder::equals);
-        var postalGeoAddr = new GeocodedPostOfficeBox(poBox, postOffices);
-        return new GeocodeResult(hasCommonGeocoder ? firstGeocoder : null, SUCCESS, postalGeoAddr);
+    @PreDestroy
+    private void shutdownThreads() {
+        executor.shutdown();
     }
 }

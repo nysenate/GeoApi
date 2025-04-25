@@ -14,8 +14,6 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-
 @Category(IntegrationTest.class)
 public class GeocacheDaoIT extends BaseTests {
     @Autowired
@@ -23,12 +21,11 @@ public class GeocacheDaoIT extends BaseTests {
 
     @Test
     public void testCacheSave() {
-        ArrayList<GeocodeResult> gcs = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
             var a = Address.getAddress(i + "BOO" + " ST", "Test", "Test", "NY", "00001", "");
-            Geocode gc = new Geocode(new Point("12", "12"), GeocodeQuality.HOUSE, null, false);
-            gcs.add(new GeocodeResult(null, ResultStatus.SUCCESS, new GeocodedAddress(a, gc)));
+            var gc = new Geocode(new Point("12", "12"), GeocodeQuality.HOUSE, null, false);
+            var currResult = new GeocodeResult(null, ResultStatus.SUCCESS, new GeocodedAddress(a, gc));
+            geoCache.cache(currResult);
         }
-        geoCache.cache(gcs);
     }
 }

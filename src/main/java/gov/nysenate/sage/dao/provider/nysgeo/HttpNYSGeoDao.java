@@ -59,7 +59,6 @@ public class HttpNYSGeoDao implements GeocoderDao {
         return geocodedAddress;
     }
 
-    /** {@inheritDoc} */
     private GeocodedAddress getGeocodedAddress(String urlString, boolean isRevGeocode) {
         try {
             String response = UrlRequest.getResponseFromUrl(urlString.replaceAll(" ", "%20"));

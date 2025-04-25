@@ -95,17 +95,10 @@ public class GeoCache extends BaseDao implements GeocoderDao {
                 .addValue("method", gc.originalGeocoder().name())
                 .addValue("quality", gc.quality().name());
 
-        if (namedJdbcTemplate.update(UPDATE_CACHE_ENTRY.getSql(), params) == 0) {
-            namedJdbcTemplate.update(INSERT_CACHE_ENTRY.getSql(), params);
-        }
-    }
-
-    /**
-     * Saves any GeocodedAddress objects stored in the buffer into the database.
-     */
-    public void cache(List<GeocodeResult> geocodeResults) {
-        for (GeocodeResult result : geocodeResults) {
-            cache(result);
+        synchronized (this) {
+            if (namedJdbcTemplate.update(UPDATE_CACHE_ENTRY.getSql(), params) == 0) {
+                namedJdbcTemplate.update(INSERT_CACHE_ENTRY.getSql(), params);
+            }
         }
     }
 }

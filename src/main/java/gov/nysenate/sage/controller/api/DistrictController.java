@@ -12,6 +12,7 @@ import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.IntersectResult;
 import gov.nysenate.sage.provider.district.DistrictService;
+import gov.nysenate.sage.provider.district.GeocodeUtils;
 import gov.nysenate.sage.provider.district.LocalSource;
 import gov.nysenate.sage.provider.district.ShapefileService;
 import gov.nysenate.sage.provider.geocode.GeocodeService;
@@ -89,8 +90,9 @@ public class DistrictController extends BaseController {
             currGeocoders = List.of(getValue(geocoder, Geocoder.class));
         }
 
-        GeocodedAddress geocodedAddress = point == null ? geocodeService.getGeocodedAddress(currGeocoders, address) :
-                geocodeService.getRevGeocodedAddress(currGeocoders, point);
+        GeocodedAddress geocodedAddress = point == null ?
+                GeocodeUtils.getGeocodedAddress(address, geocodeService.geocode(currGeocoders, address)) :
+                GeocodeUtils.getRevGeocodedAddress(point, geocodeService.reverseGeocode(currGeocoders, point));
         List<LocalSource> currDistrictSources = null;
         if (districtSource != null) {
             currDistrictSources = List.of(getValue(districtSource, LocalSource.class));
@@ -129,8 +131,8 @@ public class DistrictController extends BaseController {
 
         // TODO: only geocode if shapefile used?
         List<GeocodedAddress> geocodedAddresses = points.isEmpty() ?
-                geocodeService.getGeocodedAddresses(addresses) :
-                geocodeService.getRevGeocodedAddresses(points);
+                GeocodeUtils.getGeocodedAddresses(addresses, geocodeService.geocode(addresses)) :
+                GeocodeUtils.getRevGeocodedAddresses(points, geocodeService.reverseGeocode(points));
         return new BatchDistrictResponse(
                 districtService.assignDistricts(geocodedAddresses, List.of(DistrictType.values()))
                         .stream().map(memberProvider::assignMembers).toList()

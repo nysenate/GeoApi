@@ -50,7 +50,7 @@ public final class BuildingAddress extends Address {
         Pair<String> parts = splitBldgId(streetWithNum);
         this.bldgId = parts.first();
         // The following line would remove all numerical suffixes and special characters.
-        // This causes problems when matching the street file table. This may adversely affect the geocache table
+        // This causes problems when matching the street file table. This may adversely affect the geocache table.
         this.street = parts.second().replaceAll("[#:;.,']", "").replaceAll("[ -]+", " ").toUpperCase();
     }
 

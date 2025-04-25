@@ -31,6 +31,19 @@ public class PostOfficeData<T> {
         this.consolidatedData = consolidatedData;
     }
 
+    public static PostOfficeData<List<GeocodedAddress>> getGeocodeData(List<GeocodeResult> possibleResults) {
+        var postalCityMap = new HashMap<String, List<GeocodedAddress>>();
+        List<GeocodedAddress> allGeocodedAddresses = possibleResults.stream().filter(BaseResult::isSuccess)
+                .map(GeocodeResult::getGeocodedAddress).toList();
+        for (GeocodedAddress geoAddr : allGeocodedAddresses) {
+            String postalCity = geoAddr.getAddress().getPostalCity();
+            List<GeocodedAddress> currGeoAddrs = postalCityMap.computeIfAbsent(postalCity, k -> new ArrayList<>());
+            currGeoAddrs.add(geoAddr);
+        }
+
+        return new PostOfficeData<>(postalCityMap, allGeocodedAddresses);
+    }
+
     public static PostOfficeData<DistrictResult> getDistrictData(List<DistrictResult> possibleResults) {
         Map<String, DistrictResult> dataMap = new HashMap<>();
         // A town may have multiple Post Offices.
@@ -43,19 +56,6 @@ public class PostOfficeData<T> {
         }
 
         return new PostOfficeData<>(dataMap, consolidateResultsWithoutConflicts(possibleResults));
-    }
-
-    public static PostOfficeData<List<GeocodedAddress>> getGeocodeData(List<GeocodeResult> possibleResults) {
-        var postalCityMap = new HashMap<String, List<GeocodedAddress>>();
-        List<GeocodedAddress> allGeocodedAddresses = possibleResults.stream().filter(BaseResult::isSuccess)
-                .map(GeocodeResult::getGeocodedAddress).toList();
-        for (GeocodedAddress geoAddr : allGeocodedAddresses) {
-            String postalCity = geoAddr.getAddress().getPostalCity();
-            List<GeocodedAddress> currGeoAddrs = postalCityMap.computeIfAbsent(postalCity, k -> new ArrayList<>());
-            currGeoAddrs.add(geoAddr);
-        }
-
-        return new PostOfficeData<>(postalCityMap, allGeocodedAddresses);
     }
 
     /**

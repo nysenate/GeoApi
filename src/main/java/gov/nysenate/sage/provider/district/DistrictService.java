@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Nonnull;
 import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.List;
@@ -68,18 +69,7 @@ public class DistrictService {
                 return new DistrictResult(null, geocodedAddress);
             }
             if (address instanceof PostOfficeBox) {
-                if (address.getZip5() == null) {
-                    return new DistrictResult(null, geocodedAddress);
-                }
-                var cacheResult = poBoxCache.get(address.getZip5(), providers);
-                if (cacheResult == null) {
-                    final List<LocalSource> finalProviders = providers;
-                    List<DistrictResult> postOfficeResults = ((GeocodedPostOfficeBox) geocodedAddress).getPostOffices().stream()
-                            .map(geoAddr -> assignDistricts(finalProviders, geoAddr, requiredTypes)).toList();
-                    cacheResult = PostOfficeData.getDistrictData(postOfficeResults);
-                    poBoxCache.put(address.getZip5(), providers, cacheResult);
-                }
-                return cacheResult.getData(address.getPostalCity());
+                return getPostOfficeResult(providers, (GeocodedPostOfficeBox) geocodedAddress, requiredTypes);
             }
         }
 
@@ -119,6 +109,22 @@ public class DistrictService {
             }
         }
         return districtResults;
+    }
+
+    private synchronized DistrictResult getPostOfficeResult(List<LocalSource> providers, @Nonnull GeocodedPostOfficeBox geoPoBox,
+                                                            List<DistrictType> requiredTypes) {
+        Address address = geoPoBox.getAddress();
+        if (address.getZip5() == null) {
+            return new DistrictResult(null, geoPoBox);
+        }
+        var cacheResult = poBoxCache.get(address.getZip5(), providers);
+        if (cacheResult == null) {
+            List<DistrictResult> postOfficeResults = geoPoBox.getPostOffices().stream()
+                    .map(geoAddr -> assignDistricts(providers, geoAddr, requiredTypes)).toList();
+            cacheResult = PostOfficeData.getDistrictData(postOfficeResults);
+            poBoxCache.put(address.getZip5(), providers, cacheResult);
+        }
+        return cacheResult.getData(address.getPostalCity());
     }
 
     @PreDestroy
