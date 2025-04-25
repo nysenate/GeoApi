@@ -22,18 +22,16 @@ public class JobRecord {
 
     private final Address address;
     private Address correctedAddress;
-    private Geocode geocode;
-    private DistrictInfo districtInfo;
+    private GeocodedAddress geocodedAddress;
 
     public JobRecord(Map<Column, Integer> indexMap, List<Object> row) {
         this.indexMap = indexMap;
         this.row = row;
-        for (Column column : this.indexMap.keySet()) {
-            Object value = this.row.get(this.indexMap.get(column));
+        for (Column column : indexMap.keySet()) {
+            Object value = row.get(indexMap.get(column));
             dataMap.put(column, value);
         }
 
-        /** Construct address */
         String street = (String) dataMap.get(Column.street);
         String city = (String) dataMap.get(Column.city);
         String state = (String) dataMap.get(Column.state);
@@ -43,51 +41,54 @@ public class JobRecord {
     }
 
     public List<Object> getRow() {
-        for (Column column : this.indexMap.keySet()) {
-            this.row.set(this.indexMap.get(column), this.dataMap.get(column));
+        for (Column column : indexMap.keySet()) {
+            row.set(indexMap.get(column), dataMap.get(column));
         }
-        return this.row;
+        return row;
     }
 
     public void applyAddressResult(AddressResult addressResult) {
         if (addressResult != null && addressResult.isValidated() && addressResult.getAddress() != null) {
             this.correctedAddress = addressResult.getAddress();
 
-            this.dataMap.put(Column.uspsStreet, this.correctedAddress.getAddr1());
-            this.dataMap.put(Column.uspsCity, this.correctedAddress.getPostalCity());
-            this.dataMap.put(Column.uspsState, this.correctedAddress.getState());
-            this.dataMap.put(Column.uspsZip5, this.correctedAddress.getZip5().toString());
-            this.dataMap.put(Column.uspsZip4, this.correctedAddress.getZip4().toString());
+            dataMap.put(Column.uspsStreet, correctedAddress.getAddr1());
+            dataMap.put(Column.uspsCity, correctedAddress.getPostalCity());
+            dataMap.put(Column.uspsState, correctedAddress.getState());
+            dataMap.put(Column.uspsZip5, correctedAddress.getZip5().toString());
+            dataMap.put(Column.uspsZip4, correctedAddress.getZip4().toString());
         }
     }
 
     public void applyGeocodeResult(GeocodeResult geocodeResult) {
-        if (geocodeResult != null && geocodeResult.isSuccess() && geocodeResult.getGeocodedAddress() != null) {
-            GeocodedAddress geocodedAddress = geocodeResult.getGeocodedAddress();
-            this.geocode = geocodedAddress.getGeocode();
-
-            this.dataMap.put(Column.lat, this.geocode.lat());
-            this.dataMap.put(Column.lon, this.geocode.lon());
-            this.dataMap.put(Column.geoMethod, this.geocode.originalGeocoder());
-            this.dataMap.put(Column.geoQuality, this.geocode.quality());
+        if (geocodeResult == null || !geocodeResult.isSuccess()) {
+            return;
+        }
+        this.geocodedAddress = geocodeResult.getGeocodedAddress();
+        if (geocodedAddress != null) {
+            Geocode geocode = geocodedAddress.getGeocode();
+            if (geocode != null) {
+                dataMap.put(Column.lat, geocode.lat());
+                dataMap.put(Column.lon, geocode.lon());
+                dataMap.put(Column.geoMethod, geocode.originalGeocoder());
+                dataMap.put(Column.geoQuality, geocode.quality());
+            }
         }
     }
 
     public void applyDistrictResult(DistrictResult districtResult) {
         if (districtResult != null && districtResult.isSuccess()) {
-            this.districtInfo = districtResult.getDistrictInfo();
-            this.dataMap.put(Column.senate, districtInfo.getDistCode(DistrictType.SENATE));
-            this.dataMap.put(Column.assembly, districtInfo.getDistCode(DistrictType.ASSEMBLY));
-            this.dataMap.put(Column.congressional, districtInfo.getDistCode(DistrictType.CONGRESSIONAL));
-            this.dataMap.put(Column.county, districtInfo.getDistCode(DistrictType.COUNTY));
-            this.dataMap.put(Column.school, districtInfo.getDistCode(DistrictType.SCHOOL));
-            this.dataMap.put(Column.town_city, districtInfo.getDistCode(DistrictType.TOWN_CITY));
-            this.dataMap.put(Column.election, districtInfo.getDistCode(DistrictType.ELECTION));
-            this.dataMap.put(Column.ward, districtInfo.getDistCode(DistrictType.WARD));
+            DistrictInfo districtInfo = districtResult.getDistrictInfo();
+            dataMap.put(Column.senate, districtInfo.getDistCode(DistrictType.SENATE));
+            dataMap.put(Column.assembly, districtInfo.getDistCode(DistrictType.ASSEMBLY));
+            dataMap.put(Column.congressional, districtInfo.getDistCode(DistrictType.CONGRESSIONAL));
+            dataMap.put(Column.county, districtInfo.getDistCode(DistrictType.COUNTY));
+            dataMap.put(Column.school, districtInfo.getDistCode(DistrictType.SCHOOL));
+            dataMap.put(Column.town_city, districtInfo.getDistCode(DistrictType.TOWN_CITY));
+            dataMap.put(Column.election, districtInfo.getDistCode(DistrictType.ELECTION));
+            dataMap.put(Column.ward, districtInfo.getDistCode(DistrictType.WARD));
         }
     }
 
-    /** Explicit getters/setters */
     public Address getAddress() {
         return address;
     }
@@ -96,9 +97,7 @@ public class JobRecord {
         return correctedAddress;
     }
 
-    /** Implicit getters */
     public GeocodedAddress getGeocodedAddress() {
-        boolean hasCorrectedAddress = correctedAddress != null && correctedAddress.isValid();
-        return (geocode != null) ?  new GeocodedAddress((hasCorrectedAddress ? correctedAddress : address), geocode) : new GeocodedAddress();
+        return geocodedAddress;
     }
 }

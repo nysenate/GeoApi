@@ -12,14 +12,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class JobFile extends BaseJobFile<JobRecord> {
+public class JobFile {
     /** Represents the functional group a header column belongs to */
-    protected enum Group {
+    private enum Group {
         address, validateAddress, geocode, district
     }
 
     /** Types of header columns */
-    protected enum Type {
+    private enum Type {
         stringType, doubleType, intType
     }
 
@@ -78,6 +78,51 @@ public class JobFile extends BaseJobFile<JobRecord> {
     private final List<Column> columns = new ArrayList<>();
     private final Map<Column, Integer> columnIndexMap = new HashMap<>();
     private final List<CellProcessor> processors = new ArrayList<>();
+    private final List<JobRecord> records = new ArrayList<>();
+
+    /**
+     * Given a header (array of column names), create a custom cell processor to parse values properly
+     */
+    public JobFile(String[] header) {
+        if (header == null) {
+            return;
+        }
+        for (int i = 0; i < header.length; i++) {
+            if (header[i] == null || header[i].isEmpty()) {
+                continue;
+            }
+            var toAdd = new Optional();
+            // Try to match column name to a Column
+            String columnAlias = FormatUtil.toCamelCase(header[i]);
+            Column headerColumn = Column.resolveColumn(columnAlias);
+            if (headerColumn != null) {
+                // Record the index for the column
+                columns.add(headerColumn);
+                columnIndexMap.put(headerColumn, i);
+
+                // Tell the processors to use the correct types
+                if (headerColumn.type.equals(Type.doubleType)) {
+                    toAdd = new Optional(new ParseDouble());
+                }
+                else if (headerColumn.type.equals(Type.intType)) {
+                    toAdd = new Optional(new ParseInt());
+                }
+            }
+            processors.add(toAdd);
+        }
+    }
+
+    public void addRecord(JobRecord record) {
+        records.add(record);
+    }
+
+    public List<JobRecord> getRecords() {
+        return records;
+    }
+
+    public int recordCount() {
+        return records.size();
+    }
 
     public boolean hasAddress() {
         return checkColumnsForGroup(Group.address);
@@ -96,11 +141,6 @@ public class JobFile extends BaseJobFile<JobRecord> {
     /** Indicates whether the job has district code columns to be filled in */
     public boolean requiresDistrictAssign() {
         return checkColumnsForGroup(Group.district);
-    }
-
-    /** Indicates whether the job has any columns to be filled in */
-    public boolean requiresAny() {
-        return requiresAddressValidation() || requiresGeocode() || requiresDistrictAssign();
     }
 
     /**
@@ -122,7 +162,11 @@ public class JobFile extends BaseJobFile<JobRecord> {
 
     /** Returns true if the Column list contains an element belonging to the given Group */
     private boolean checkColumnsForGroup(Group group) {
-        for (Column column : columns) { if (column.group.equals(group)) return true; }
+        for (Column column : columns) {
+            if (column.group.equals(group)) {
+                return true;
+            }
+        }
         return false;
     }
 
@@ -140,45 +184,5 @@ public class JobFile extends BaseJobFile<JobRecord> {
      */
     public Map<Column, Integer> getColumnIndexMap() {
         return columnIndexMap;
-    }
-
-    /**
-     * Given a header (array of column names) create a custom cell processor to parse values properly
-     */
-    public String[] processHeader(String[] header) {
-        if (header == null || header.length == 0) {
-            return header;
-        }
-        for (int i = 0; i < header.length; i++) {
-            // Try to match column name to a Column
-            if (header[i] != null && !header[i].isEmpty()) {
-                String columnAlias = FormatUtil.toCamelCase(header[i]);
-                Column headerColumn = Column.resolveColumn(columnAlias);
-                if (headerColumn != null) {
-
-                    // Record the index for the column
-                    columns.add(headerColumn);
-                    columnIndexMap.put(headerColumn, i);
-
-                    // Tell the processors to use the correct types
-                    if (headerColumn.type.equals(Type.doubleType)) {
-                        this.processors.add(new Optional(new ParseDouble()));
-                    }
-                    else if (headerColumn.type.equals(Type.intType)) {
-                        this.processors.add(new Optional(new ParseInt()));
-                    }
-                    else {
-                        this.processors.add(new Optional());
-                    }
-                }
-                else {
-                    this.processors.add(new Optional());
-                }
-            }
-            else {
-                this.processors.add(new Optional());
-            }
-        }
-        return header;
     }
 }

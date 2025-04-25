@@ -147,15 +147,14 @@ public class JobBatchProcessor implements JobProcessor {
             String[] header = jobReader.getHeader(true);
 
             // Create the job file and analyze the header columns
-            JobFile jobFile = new JobFile();
-            jobFile.processHeader(header);
+            var jobFile = new JobFile(header);
 
             logger.info("--------------------------------------------------------------------");
             logger.info("Starting Batch Job");
             logger.info("Job Header: {}", FormatUtil.toJsonString(header));
 
             // Check if file can be skipped
-            if (!jobFile.requiresAny()) {
+            if (!jobFile.requiresAddressValidation() && !jobFile.requiresGeocode() && !jobFile.requiresDistrictAssign()) {
                 skipFile(jobStatus);
             }
             else {
@@ -187,7 +186,7 @@ public class JobBatchProcessor implements JobProcessor {
                 while( (row = jobReader.read(processors)) != null ) {
                     jobFile.addRecord(new JobRecord(jobFile.getColumnIndexMap(), row));
                 }
-                logger.info("{} records", jobFile.getRecords().size());
+                logger.info("{} records", jobFile.recordCount());
                 logger.info("--------------------------------------------------------------------");
 
                 LinkedTransferQueue<Future<JobBatch>> jobResultsQueue = new LinkedTransferQueue<>();
@@ -402,13 +401,8 @@ public class JobBatchProcessor implements JobProcessor {
             logger.info("Geocoding for records {}-{}", jobBatch.fromRecord(), jobBatch.toRecord());
 
             List<GeocodeResult> geocodeResults = geocodeService.geocode(jobBatch.getAddresses(true));
-            if (geocodeResults.size() == jobBatch.jobRecords().size()) {
-                for (int i = 0; i < geocodeResults.size(); i++) {
-                    jobBatch.setGeocodeResult(i, geocodeResults.get(i));
-                }
-            }
-
-            return this.jobBatch;
+            jobBatch.setGeocodeResults(geocodeResults);
+            return jobBatch;
         }
     }
 
@@ -435,10 +429,7 @@ public class JobBatchProcessor implements JobProcessor {
             List<DistrictResult> districtResults = districtService.assignDistricts(
                     jobBatch.getGeocodedAddresses(), districtTypes
             );
-            for (int i = 0; i < districtResults.size(); i++) {
-                jobBatch.setDistrictResult(i, districtResults.get(i));
-            }
-
+            jobBatch.setDistrictResults(districtResults);
             return jobBatch;
         }
     }

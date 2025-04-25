@@ -67,15 +67,25 @@ public record JobBatch(List<JobRecord> jobRecords, int fromRecord, int toRecord)
         }
     }
 
-    public void setGeocodeResult(int index, GeocodeResult geocodeResult) {
-        if (this.jobRecords.get(index) != null) {
-            this.jobRecords.get(index).applyGeocodeResult(geocodeResult);
+    public void setGeocodeResults(List<GeocodeResult> geocodeResults) {
+        if (jobRecords.size() != geocodeResults.size()) {
+            return;
+        }
+        for (int i =  0; i < geocodeResults.size(); i++) {
+            if (jobRecords.get(i) != null) {
+                jobRecords.get(i).applyGeocodeResult(geocodeResults.get(i));
+            }
         }
     }
 
-    public void setDistrictResult(int index, DistrictResult districtResult) {
-        if (this.jobRecords.get(index) != null) {
-            this.jobRecords.get(index).applyDistrictResult(districtResult);
+    public void setDistrictResults(List<DistrictResult> districtResults) {
+        if (jobRecords.size() != districtResults.size()) {
+            return;
+        }
+        for (int i =  0; i < districtResults.size(); i++) {
+            if (jobRecords.get(i) != null) {
+                jobRecords.get(i).applyDistrictResult(districtResults.get(i));
+            }
         }
     }
 }

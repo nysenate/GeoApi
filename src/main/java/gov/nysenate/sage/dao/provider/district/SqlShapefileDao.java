@@ -61,8 +61,8 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
                 continue;
             }
             String sql = GET_DISTRICT_FROM_POINT.getSql("districts", getReplacements(districtType, "type"));
-            SqlParameterSource params = new MapSqlParameterSource("lat", geocode.point().lat())
-                    .addValue("lon", geocode.point().lon());
+            SqlParameterSource params = new MapSqlParameterSource("lat", geocode.lat())
+                    .addValue("lon", geocode.lon());
             SingleDistrict result = namedJdbcTemplate.queryForObject(sql, params,
                     new SingleDistrictMapper(districtType));
             typeToDistrictMap.put(districtType, result);
