@@ -35,7 +35,7 @@ public abstract sealed class Address permits BuildingAddress, PostOfficeBox, Unp
                         zip4 = zips[1];
                     }
                 }
-                else {
+                else if (postalCity == null) {
                     postalCity = part;
                 }
             }
