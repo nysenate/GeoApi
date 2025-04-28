@@ -93,7 +93,12 @@ public class SqlStreetfileDao extends BaseDao implements StreetfileDao {
         locked = false;
     }
 
-    public DistrictInfo getDistrictInfo(BuildingAddress addr, @Nonnull DistrictMatchLevel matchLevel) {
+    @Override
+    public DistrictInfo getDistrictInfo(BuildingAddress addr) {
+        return getDistrictInfo(addr, DistrictMatchLevel.HOUSE);
+    }
+
+    private DistrictInfo getDistrictInfo(BuildingAddress addr, @Nonnull DistrictMatchLevel matchLevel) {
         if (addr == null || matchLevel == DistrictMatchLevel.NOMATCH) {
             return DistrictInfo.empty;
         }
