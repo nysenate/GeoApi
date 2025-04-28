@@ -60,7 +60,7 @@ public class JobRecord {
     }
 
     public void applyGeocodeResult(GeocodeResult geocodeResult) {
-        if (geocodeResult == null || !geocodeResult.isSuccess()) {
+        if (geocodeResult == null) {
             return;
         }
         this.geocodedAddress = geocodeResult.getGeocodedAddress();
