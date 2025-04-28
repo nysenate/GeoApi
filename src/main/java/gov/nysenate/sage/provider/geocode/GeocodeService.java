@@ -1,6 +1,8 @@
 package gov.nysenate.sage.provider.geocode;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multimap;
 import gov.nysenate.sage.dao.data.PostOfficeDao;
 import gov.nysenate.sage.dao.provider.nysgeo.GeocoderDao;
 import gov.nysenate.sage.dao.stats.geocode.SqlGeocodeStatsDao;
@@ -137,9 +139,11 @@ public class GeocodeService {
     private synchronized GeocodeResult getPostOfficeResult(PostOfficeBox poBox, @Nonnull List<Geocoder> geocoders) {
         GeocodeResult result = poBoxCache.get(poBox, geocoders);
         if (result == null) {
-            List<GeocodeResult> postOfficeResults = postOfficeDao.getPostOffices(poBox.getZip5())
-                    .stream().map(addr -> geocode(geocoders, addr)).toList();
-            result = poBoxCache.putAndGet(poBox, geocoders, postOfficeResults);
+            Multimap<String, GeocodeResult> postalCityMap = ArrayListMultimap.create();
+            for (BuildingAddress postOffice : postOfficeDao.getPostOffices(poBox.getZip5())) {
+                postalCityMap.put(postOffice.getPostalCity(), geocode(geocoders, postOffice));
+            }
+            result = poBoxCache.putAndGet(poBox, geocoders, postalCityMap);
         }
         result.setAddress(poBox);
         return result;

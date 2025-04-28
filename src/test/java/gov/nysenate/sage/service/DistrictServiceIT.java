@@ -27,7 +27,7 @@ public class DistrictServiceIT extends BaseTests {
     private GeocodeService geocodeService;
 
     @Autowired
-    private DistrictService DistrictService;
+    private DistrictService districtService;
 
     @Test
     @Transactional(value = DatabaseConfig.geoApiTxManager)
@@ -35,7 +35,7 @@ public class DistrictServiceIT extends BaseTests {
         GeocodeResult geocodeResult =
                 geocodeService.geocode(List.of(Geocoder.GOOGLE),
                         new BuildingAddress("3 Tyron St", "Albany", "NY", "12203"));
-        assertNotNull(DistrictService.assignDistricts(List.of(STREETFILE, SHAPEFILE),
+        assertNotNull(districtService.assignDistricts(List.of(STREETFILE, SHAPEFILE),
                 geocodeResult.getGeocodedAddress(), DistrictType.getStandardTypes()));
     }
 

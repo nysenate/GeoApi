@@ -1,13 +1,17 @@
 package gov.nysenate.sage.provider.district;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multimap;
 import gov.nysenate.sage.controller.api.DistrictUtil;
 import gov.nysenate.sage.dao.provider.district.SqlShapefileDao;
 import gov.nysenate.sage.dao.provider.streetfile.StreetfileDao;
 import gov.nysenate.sage.model.PostOfficeCache;
 import gov.nysenate.sage.model.address.*;
+import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
+import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.PostOfficeCacheManager;
 import gov.nysenate.sage.util.ExecutorUtil;
 import org.slf4j.Logger;
@@ -22,6 +26,9 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import static gov.nysenate.sage.model.geo.GeocodeQuality.HOUSE;
+import static gov.nysenate.sage.model.geo.GeocodeQuality.POINT;
+import static gov.nysenate.sage.model.result.ResultStatus.*;
 import static gov.nysenate.sage.provider.district.LocalSource.SHAPEFILE;
 import static gov.nysenate.sage.provider.district.LocalSource.STREETFILE;
 
@@ -57,36 +64,30 @@ public class DistrictService {
             providers = defaultRanking;
         }
 
-        if (geocodedAddress == null) {
-            return new DistrictResult(null, null);
-        }
         Address address = geocodedAddress.getAddress();
-        if (address != null) {
-            if (address.isOutOfState() || !address.isValid()) {
-                return new DistrictResult(null, geocodedAddress);
+        if (address instanceof PostOfficeBox poBox) {
+            if (geocodedAddress instanceof GeocodedPostOfficeBox poBoxGeoAddr) {
+                return getPostOfficeResult(poBox, providers, poBoxGeoAddr);
             }
-            if (address instanceof PostOfficeBox poBox) {
-                if (geocodedAddress instanceof GeocodedPostOfficeBox poBoxGeoAddr) {
-                    return getPostOfficeResult(poBox, providers, poBoxGeoAddr, requiredTypes);
-                }
-                else {
-                    logger.warn("Error handling PO box {}", poBox);
-                    return new DistrictResult(null, geocodedAddress);
-                }
+            else {
+                logger.warn("Error handling PO box {}", poBox);
+                return new DistrictResult(null, INTERNAL_ERROR);
             }
         }
 
         var results = new ArrayList<DistrictResult>();
         for (LocalSource provider : providers) {
-            var result = new DistrictResult(provider, geocodedAddress);
-            if (result.isSuccess()) {
+            ResultStatus status = getStatus(geocodedAddress, provider);
+            DistrictInfo districtInfo = DistrictInfo.empty;
+            if (status == SUCCESS) {
                 if (provider == STREETFILE) {
-                    result.setDistrictInfo(streetfileDao.getDistrictInfo((BuildingAddress) address));
+                    districtInfo = streetfileDao.getDistrictInfo((BuildingAddress) address);
                 }
                 else if (provider == SHAPEFILE) {
-                    result.setDistrictInfo(sqlShapefileDao.getDistrictInfo(geocodedAddress.getGeocode(), requiredTypes));
+                    districtInfo = sqlShapefileDao.getDistrictInfo(geocodedAddress.getGeocode(), requiredTypes);
                 }
             }
+            var result = new DistrictResult(provider, status, districtInfo);
             result.setResultTime();
             results.add(result);
         }
@@ -115,13 +116,16 @@ public class DistrictService {
     }
 
     private synchronized DistrictResult getPostOfficeResult(PostOfficeBox poBox, List<LocalSource> providers,
-                                                            GeocodedPostOfficeBox geoPoBox,
-                                                            List<DistrictType> requiredTypes) {
+                                                            GeocodedPostOfficeBox geoPoBox) {
         var cacheResult = poBoxCache.get(poBox, providers);
         if (cacheResult == null) {
-            List<DistrictResult> postOfficeResults = geoPoBox.getPostOffices().stream()
-                    .map(geoAddr -> assignDistricts(providers, geoAddr, requiredTypes)).toList();
-            cacheResult = poBoxCache.putAndGet(poBox, providers, postOfficeResults);
+            Multimap<String, DistrictResult> postalCityMap = ArrayListMultimap.create();
+            for (GeocodedAddress geoPostOffice : geoPoBox.getPostOffices()) {
+                // Might as well assign all the types
+                postalCityMap.put(geoPostOffice.getAddress().getPostalCity(),
+                        assignDistricts(providers, geoPostOffice, List.of(DistrictType.values())));
+            }
+            cacheResult = poBoxCache.putAndGet(poBox, providers, postalCityMap);
         }
         return cacheResult;
     }
@@ -129,5 +133,28 @@ public class DistrictService {
     @PreDestroy
     private void shutdownThreads() {
         executor.shutdown();
+    }
+
+    private static ResultStatus getStatus(final GeocodedAddress geoAddress, LocalSource source) {
+        if (geoAddress == null) {
+            return MISSING_GEOCODED_ADDRESS;
+        }
+        if (!geoAddress.isValidAddress() && source == LocalSource.STREETFILE) {
+            return INVALID_ADDRESS;
+        }
+        else if (source == LocalSource.SHAPEFILE) {
+            if (!geoAddress.isValidGeocode()) {
+                return INVALID_GEOCODE;
+            }
+            if (geoAddress.getGeocode().quality() != HOUSE && geoAddress.getGeocode().quality() != POINT) {
+                return INSUFFICIENT_GEOCODE;
+            }
+        }
+        else if (geoAddress.isValidAddress()) {
+            if (geoAddress.getAddress().isOutOfState()) {
+                return NON_NY_STATE;
+            }
+        }
+        return SUCCESS;
     }
 }

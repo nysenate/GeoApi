@@ -25,6 +25,7 @@ import org.supercsv.io.CsvListReader;
 import org.supercsv.io.CsvListWriter;
 import org.supercsv.prefs.CsvPreference;
 
+import javax.annotation.PreDestroy;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -494,5 +495,12 @@ public class JobBatchProcessor implements JobProcessor {
             jobStatus.setCompleteTime(TimeUtil.currentTimestamp());
             sqlJobProcessDao.setJobProcessStatus(jobStatus);
         }
+    }
+
+    @PreDestroy
+    private void shutdownThreads(){
+        addressExecutor.shutdown();
+        geocodeExecutor.shutdown();
+        districtExecutor.shutdown();
     }
 }

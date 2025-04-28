@@ -71,7 +71,7 @@ public record JobBatch(List<JobRecord> jobRecords, int fromRecord, int toRecord)
         if (jobRecords.size() != geocodeResults.size()) {
             return;
         }
-        for (int i =  0; i < geocodeResults.size(); i++) {
+        for (int i = 0; i < geocodeResults.size(); i++) {
             if (jobRecords.get(i) != null) {
                 jobRecords.get(i).applyGeocodeResult(geocodeResults.get(i));
             }
@@ -82,7 +82,7 @@ public record JobBatch(List<JobRecord> jobRecords, int fromRecord, int toRecord)
         if (jobRecords.size() != districtResults.size()) {
             return;
         }
-        for (int i =  0; i < districtResults.size(); i++) {
+        for (int i = 0; i < districtResults.size(); i++) {
             if (jobRecords.get(i) != null) {
                 jobRecords.get(i).applyDistrictResult(districtResults.get(i));
             }

@@ -1,6 +1,6 @@
 package gov.nysenate.sage.provider;
 
-import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import gov.nysenate.sage.model.PostOfficeCache;
 import gov.nysenate.sage.model.PostOfficeData;
 import gov.nysenate.sage.model.address.GeocodedAddress;
@@ -11,10 +11,7 @@ import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.provider.district.LocalSource;
 import gov.nysenate.sage.provider.geocode.Geocoder;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static gov.nysenate.sage.controller.api.DistrictUtil.consolidateResultsWithoutConflicts;
 import static gov.nysenate.sage.model.result.ResultStatus.*;
@@ -32,7 +29,7 @@ public final class PostOfficeCacheManager {
     }
 
     public static PostOfficeCache<LocalSource, DistrictResult> getDistrictCache() {
-        var tempCache = new PostOfficeCache<>(new DistrictResult(null, null), PostOfficeCacheManager::getDistrictData);
+        var tempCache = new PostOfficeCache<>(new DistrictResult(null, INVALID_ADDRESS), PostOfficeCacheManager::getDistrictData);
         caches.add(tempCache);
         return tempCache;
     }
@@ -43,25 +40,18 @@ public final class PostOfficeCacheManager {
         }
     }
 
-    private static PostOfficeData<GeocodeResult> getGeocodeData(List<GeocodeResult> possibleResults) {
-        var tempMap = new HashMap<String, List<GeocodedAddress>>();
-        List<GeocodedAddress> allGeocodedAddresses = possibleResults.stream().filter(BaseResult::isSuccess)
-                .map(GeocodeResult::getGeocodedAddress).toList();
-        for (GeocodedAddress geoAddr : allGeocodedAddresses) {
-            String postalCity = geoAddr.getAddress().getPostalCity();
-            List<GeocodedAddress> currGeoAddrs = tempMap.computeIfAbsent(postalCity, k -> new ArrayList<>());
-            currGeoAddrs.add(geoAddr);
-        }
-
+    private static PostOfficeData<GeocodeResult> getGeocodeData(Multimap<String, GeocodeResult> postalCityToResults) {
         var postalCityMap = new HashMap<String, GeocodeResult>();
-        for (var entry : tempMap.entrySet()) {
-            postalCityMap.put(entry.getKey(), toGeocodeResult(entry.getValue()));
+        for (String postalCity : postalCityToResults.keySet()) {
+            postalCityMap.put(postalCity, toGeocodeResult(postalCityToResults.get(postalCity)));
         }
 
-        return new PostOfficeData<>(postalCityMap, toGeocodeResult(allGeocodedAddresses));
+        return new PostOfficeData<>(postalCityMap, toGeocodeResult(postalCityToResults.values()));
     }
 
-    private static GeocodeResult toGeocodeResult(List<GeocodedAddress> postOffices) {
+    private static GeocodeResult toGeocodeResult(Collection<GeocodeResult> geocodeResults) {
+        List<GeocodedAddress> postOffices = geocodeResults.stream().filter(BaseResult::isSuccess)
+                .map(GeocodeResult::getGeocodedAddress).toList();
         if (postOffices.isEmpty()) {
             return new GeocodeResult(null, NON_NY_STATE);
         }
@@ -72,17 +62,12 @@ public final class PostOfficeCacheManager {
         return new GeocodeResult(hasCommonGeocoder ? firstGeocoder : null, SUCCESS, postalGeoAddr);
     }
 
-    private static PostOfficeData<DistrictResult> getDistrictData(List<DistrictResult> possibleResults) {
+    private static PostOfficeData<DistrictResult> getDistrictData(Multimap<String, DistrictResult> postalCityToResults) {
         Map<String, DistrictResult> dataMap = new HashMap<>();
-        // A town may have multiple Post Offices.
-        ArrayListMultimap<String, DistrictResult> postalCityToResultMultimap = ArrayListMultimap.create();
-        for (DistrictResult result : possibleResults) {
-            postalCityToResultMultimap.put(result.getAddress().getPostalCity(), result);
-        }
-        for (String postalCity : postalCityToResultMultimap.keySet()) {
-            dataMap.put(postalCity, consolidateResultsWithoutConflicts(postalCityToResultMultimap.get(postalCity)));
+        for (String postalCity : postalCityToResults.keySet()) {
+            dataMap.put(postalCity, consolidateResultsWithoutConflicts(postalCityToResults.get(postalCity)));
         }
 
-        return new PostOfficeData<>(dataMap, consolidateResultsWithoutConflicts(possibleResults));
+        return new PostOfficeData<>(dataMap, consolidateResultsWithoutConflicts(postalCityToResults.values()));
     }
 }

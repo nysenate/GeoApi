@@ -1,6 +1,5 @@
 package gov.nysenate.sage.controller.api;
 
-import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
@@ -14,7 +13,7 @@ import java.util.*;
 public final class DistrictUtil {
     private DistrictUtil() {}
 
-    public static DistrictResult consolidateResultsWithoutConflicts(List<DistrictResult> districtResults) {
+    public static DistrictResult consolidateResultsWithoutConflicts(Collection<DistrictResult> districtResults) {
         DistrictMatchLevel consolidatedMatchLevel = DistrictMatchLevel.getMin(
                 districtResults.stream().map(result -> result.getDistrictInfo().matchLevel()).toList()
         );
@@ -22,8 +21,7 @@ public final class DistrictUtil {
                 districtResults.stream().map(DistrictResult::getDistrictInfo).toList(), consolidatedMatchLevel);
         List<LocalSource> sources  = districtResults.stream().map(BaseResult::getSource).toList();
         LocalSource source = sources.size() == 1 ? sources.get(0) : LocalSource.STREETFILE_AND_SHAPEFILE;
-        GeocodedAddress geoAddr = districtResults.size() == 1 ? districtResults.get(0).getGeoAddress() : null;
-        return new DistrictResult(source, geoAddr, consolidatedInfo);
+        return new DistrictResult(source, consolidatedInfo);
     }
 
     /**
@@ -70,7 +68,7 @@ public final class DistrictUtil {
         }
 
         LocalSource finalSource = usedFallback ? LocalSource.STREETFILE_AND_SHAPEFILE : first.getSource();
-        DistrictInfo finalDistInfo = new DistrictInfo(typeToDistrictMap, firstDistInfo.matchLevel());
-        return new DistrictResult(finalSource, first.getGeoAddress(), finalDistInfo);
+        var finalDistInfo = new DistrictInfo(typeToDistrictMap, firstDistInfo.matchLevel());
+        return new DistrictResult(finalSource, finalDistInfo);
     }
 }

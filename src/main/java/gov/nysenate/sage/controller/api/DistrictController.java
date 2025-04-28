@@ -10,6 +10,7 @@ import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.DistrictResult;
+import gov.nysenate.sage.model.result.DistrictResultWithMembers;
 import gov.nysenate.sage.model.result.IntersectResult;
 import gov.nysenate.sage.provider.district.DistrictService;
 import gov.nysenate.sage.provider.district.GeocodeUtils;
@@ -99,7 +100,7 @@ public class DistrictController extends BaseController {
         }
         DistrictResult initialResult = districtService.assignDistricts(currDistrictSources, geocodedAddress,
                 List.of(DistrictType.values()));
-        return new DistrictResponse(memberProvider.assignMembers(initialResult));
+        return new DistrictResponse(memberProvider.assignMembers(initialResult), geocodedAddress);
     }
 
     /**
@@ -129,14 +130,13 @@ public class DistrictController extends BaseController {
             }
         }
 
-        // TODO: only geocode if shapefile used?
         List<GeocodedAddress> geocodedAddresses = points.isEmpty() ?
                 GeocodeUtils.getGeocodedAddresses(addresses, geocodeService.geocode(addresses)) :
                 GeocodeUtils.getRevGeocodedAddresses(points, geocodeService.reverseGeocode(points));
-        return new BatchDistrictResponse(
+        List<DistrictResultWithMembers> results =
                 districtService.assignDistricts(geocodedAddresses, List.of(DistrictType.values()))
-                        .stream().map(memberProvider::assignMembers).toList()
-        );
+                        .stream().map(memberProvider::assignMembers).toList();
+        return BatchDistrictResponse.of(results, geocodedAddresses);
     }
 
     /**
