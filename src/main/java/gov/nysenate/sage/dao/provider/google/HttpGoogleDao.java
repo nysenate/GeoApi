@@ -3,6 +3,7 @@ package gov.nysenate.sage.dao.provider.google;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.dao.provider.nysgeo.GeocoderDao;
+import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Geocode;
@@ -128,7 +129,7 @@ public class HttpGoogleDao implements GeocoderDao {
                         }
                     }
                 }
-                var address = new BuildingAddress(streetNumber, street, city, state, zip5, zip4);
+                var address = new Address(streetNumber + " " + street, "", city, state, zip5, zip4);
                 JsonNode location = result.get("geometry").get("location");
                 String lat = location.get("lat").asText("0");
                 String lon = location.get("lng").asText("0");

@@ -8,12 +8,51 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public sealed class Address permits BuildingAddress, PostOfficeBox {
+    // TODO: making them final would be nice
     private static final Pattern zipPattern = Pattern.compile("(\\d{5})(-\\d{4})?");
     private String addr1, addr2;
     private String postalCity;
     private String state = "NY";
     private Zip5 zip5;
     private Zip4 zip4;
+
+    public Address(String addr1, String addr2, String postalCity, String state, String zip5, String zip4) {
+        this.addr1 = addr1;
+        this.addr2 = addr2;
+        this.postalCity = postalCity;
+        this.state = state;
+        this.zip5 = new Zip5(zip5);
+        if (zip4 != null) {
+            this.zip4 = new Zip4(zip4);
+        }
+    }
+
+    public Address(String addr1, String postalCity, String state, String zip5) {
+        this(addr1, null, postalCity, state, zip5, null);
+    }
+
+    protected Address(Address addrToCopy) {
+        this.addr1 = addrToCopy.getAddr1();
+        this.addr2 = addrToCopy.getAddr2();
+        this.postalCity = addrToCopy.getPostalCity();
+        this.state = addrToCopy.getState();
+        this.zip5 = addrToCopy.getZip5();
+        this.zip4 = addrToCopy.getZip4();
+    }
+
+    protected Address(AddressWithoutNum awn) {
+        this.postalCity = awn.postalCity();
+        this.zip5 = awn.zip5();
+    }
+
+    protected Address(String postalCity, String state, String zip5, Zip4 zip4) {
+        setPostalCity(postalCity);
+        this.state = state;
+        if (!StringUtils.isBlank(zip5)) {
+            this.zip5 = new Zip5(zip5);
+        }
+        this.zip4 = zip4;
+    }
 
     public static Address getAddress(String addr) {
         String postalCity = null, state = null, zip5 = null, zip4 = null;
@@ -38,40 +77,6 @@ public sealed class Address permits BuildingAddress, PostOfficeBox {
             }
         }
         return new Address(csv[0], "", postalCity, state, zip5, zip4);
-    }
-
-    public Address(String addr1, String addr2, String postalCity, String state, String zip5, String zip4) {
-        this.addr1 = addr1;
-        this.addr2 = addr2;
-        this.postalCity = postalCity;
-        this.state = state;
-        this.zip5 = new Zip5(zip5);
-        this.zip4 = new Zip4(zip4);
-    }
-
-    protected Address(Address addrToCopy) {
-        this.addr1 = addrToCopy.getAddr1();
-        this.addr2 = addrToCopy.getAddr2();
-        this.postalCity = addrToCopy.getPostalCity();
-        this.state = addrToCopy.getState();
-        this.zip5 = addrToCopy.getZip5();
-        this.zip4 = addrToCopy.getZip4();
-    }
-
-    protected Address(AddressWithoutNum awn) {
-        this.postalCity = awn.postalCity();
-        this.zip5 = awn.zip5();
-    }
-
-    protected Address(String postalCity, String state, String zip5, String zip4) {
-        setPostalCity(postalCity);
-        this.state = state;
-        if (!StringUtils.isBlank(zip5)) {
-            this.zip5 = new Zip5(zip5);
-        }
-        if (!StringUtils.isBlank(zip4)) {
-            this.zip4 = new Zip4(zip4);
-        }
     }
 
     public String getAddr1() {

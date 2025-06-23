@@ -2,7 +2,10 @@ package gov.nysenate.sage.provider.geocache;
 
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.provider.nysgeo.GeocoderDao;
-import gov.nysenate.sage.model.address.*;
+import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.BuildingAddress;
+import gov.nysenate.sage.model.address.GeocodedAddress;
+import gov.nysenate.sage.model.address.Zip4;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
@@ -76,12 +79,12 @@ public class GeoCache extends BaseDao implements GeocoderDao {
         }
         GeocodedAddress geoAddr = result.getGeocodedAddress();
         if (geoAddr == null || !geoAddr.isValidAddress() || !geoAddr.isValidGeocode() ||
-                geoAddr.getGeocode().isCached() || geoAddr.getAddress() instanceof PostOfficeBox) {
+                geoAddr.getGeocode().isCached() || !(geoAddr.getAddress() instanceof BuildingAddress bldgAddr)) {
             return;
         }
         Address address = geoAddr.getAddress();
         Geocode gc = geoAddr.getGeocode();
-        var params = getIdParams(((BuildingAddress) address))
+        var params = getIdParams(bldgAddr)
                 .addValue("latlon", "POINT(" + gc.lon() + " " + gc.lat() + ")")
                 .addValue("method", gc.originalGeocoder().name())
                 .addValue("quality", gc.quality().name());

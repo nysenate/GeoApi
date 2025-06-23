@@ -2,7 +2,6 @@ package gov.nysenate.sage.dao.data;
 
 import com.google.common.collect.Multimap;
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.address.Zip5;
 import org.springframework.jdbc.core.RowMapper;
@@ -32,9 +31,10 @@ public class SqlPostOfficeDao extends BaseDao implements PostOfficeDao {
     public synchronized void replaceData(Multimap<Zip5, BuildingAddress> postOfficeMap) {
         namedJdbcTemplate.update(PostOfficeQuery.CLEAR_TABLE.getSql(getPublicSchema()), Map.of());
         for (var postalAddress : postOfficeMap.entries()) {
-            Address address = postalAddress.getValue();
+            BuildingAddress address = postalAddress.getValue();
             var params = new MapSqlParameterSource("deliveryZip", postalAddress.getKey().toString())
-                    .addValue("streetWithNum", address.getAddr1())
+                    .addValue("bldgId", address.getBldgId())
+                    .addValue("street", address.getStreet())
                     .addValue("city", address.getPostalCity())
                     .addValue("zip5", address.getZip5().toString())
                     .addValue("zip4", address.getZip4().toString());
@@ -46,11 +46,8 @@ public class SqlPostOfficeDao extends BaseDao implements PostOfficeDao {
     private static class PostOfficeHandler implements RowMapper<BuildingAddress> {
         @Override
         public BuildingAddress mapRow(ResultSet rs, int rowNum) throws SQLException {
-            var addr = new BuildingAddress(rs.getString("street_with_num"), rs.getString("city"),
-                    "NY", rs.getString("zip5"), rs.getString("zip4"));
-            // The addresses were validated before being inserted.
-            addr.setUspsValidated(true);
-            return addr;
+            return new BuildingAddress(rs.getString("bldg_id"), rs.getString("street"),
+                    rs.getString("city"), "NY", rs.getString("zip5"), rs.getString("zip4"));
         }
     }
 }

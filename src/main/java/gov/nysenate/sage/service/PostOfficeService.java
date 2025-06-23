@@ -84,11 +84,11 @@ public class PostOfficeService {
             if (!lineData[numParts - 3].equals("NY")) {
                 continue;
             }
-            var currAddr = new BuildingAddress(lineData[numParts - 5], lineData[numParts - 4], "NY",
+            var currAddr = new Address(lineData[numParts - 5], "", lineData[numParts - 4], "NY",
                     lineData[numParts - 2], lineData[numParts - 1]);
-            Address correctedAddr = addressService.validateOrDefault(currAddr);
-            if (correctedAddr.isUspsValidated() && correctedAddr instanceof BuildingAddress correctedBldgAddr && correctedBldgAddr.getZip4() != null) {
-                dataMap.put(new Zip5(lineData[deliveryZipIndex]), correctedBldgAddr);
+            currAddr = addressService.validateOrDefault(currAddr);
+            if (currAddr.isUspsValidated() && currAddr instanceof BuildingAddress bldgAddr && currAddr.getZip4() != null) {
+                dataMap.put(new Zip5(lineData[deliveryZipIndex]), bldgAddr);
             }
             else {
                 logger.warn("Problem validating this Post Office: {}", currAddr);

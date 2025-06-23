@@ -55,3 +55,16 @@ RENAME COLUMN memberurl TO member_url;
 
 DROP TABLE log.requesttypes;
 DROP TABLE log.services;
+
+
+TRUNCATE TABLE public.post_office;
+
+ALTER TABLE public.post_office
+DROP COLUMN street_with_num;
+
+ALTER TABLE public.post_office
+    ADD COLUMN bldg_id text CHECK ( bldg_id IS NOT NULL AND bldg_id != '' );
+
+ALTER TABLE public.post_office
+    ADD COLUMN street text CHECK ( street IS NOT NULL AND street != '' );
+

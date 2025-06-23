@@ -2,6 +2,7 @@ package gov.nysenate.sage.dao.provider.nysgeo;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Geocode;
@@ -66,14 +67,14 @@ public class HttpNYSGeoDao implements GeocoderDao {
             }
             JsonNode node = objectMapper.readTree(response);
             int score = -1;
-            BuildingAddress address;
+            Address address;
 
             if (isRevGeocode && node.has("address") && node.get("address") != null) {
                 JsonNode addressNode = node.get("address");
-                address = new BuildingAddress(addressNode.get("Street").toString().trim().replaceAll("\"", ""),
+                address = new Address(addressNode.get("Street").toString().trim().replaceAll("\"", ""), "",
                         addressNode.get("City").toString().trim().replaceAll("\"", ""),
                         addressNode.get("State").toString().trim().replaceAll("\"", ""),
-                        addressNode.get("ZIP").toString().trim().replaceAll("\"", ""));
+                        addressNode.get("ZIP").toString().trim().replaceAll("\"", ""), null);
             }
             else if (node.has("candidates") && node.get("candidates").get(0) != null) {
                 node = node.get("candidates").get(0);
@@ -83,7 +84,7 @@ public class HttpNYSGeoDao implements GeocoderDao {
                     candidateAddress[i] = candidateAddress[i].trim().replaceAll("\"", "");
                 }
 
-                address = new BuildingAddress(candidateAddress[0], candidateAddress[1], candidateAddress[2], candidateAddress[3]);
+                address = new Address(candidateAddress[0], "", candidateAddress[1], candidateAddress[2], candidateAddress[3], null);
 
                 if (node.has("score") && node.get("score") != null) {
                     score = node.get("score").asInt();

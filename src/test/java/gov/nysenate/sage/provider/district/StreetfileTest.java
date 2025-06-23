@@ -3,7 +3,7 @@ package gov.nysenate.sage.provider.district;
 import gov.nysenate.sage.BaseTests;
 import gov.nysenate.sage.annotation.IntegrationTest;
 import gov.nysenate.sage.config.DatabaseConfig;
-import gov.nysenate.sage.model.address.BuildingAddress;
+import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
@@ -33,7 +33,7 @@ public class StreetfileTest extends BaseTests {
     @Test
     @Transactional(value = DatabaseConfig.geoApiTxManager)
     public void shouldNotDistrictAssignCityGeocodeQuality() {
-        var addr = new BuildingAddress("", "Delmar", "NY", "");
+        var addr = new Address("", "Delmar", "NY", "");
         var geo = new Geocode(new Point("42.6220235", "-73.8326232"), GeocodeQuality.CITY, Geocoder.GOOGLE, false);
         var geoAddr = new GeocodedAddress(addr, geo);
         DistrictResult districtResult = districtService.assignDistricts(List.of(LocalSource.STREETFILE), geoAddr, types);

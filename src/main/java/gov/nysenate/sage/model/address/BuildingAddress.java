@@ -8,27 +8,16 @@ public final class BuildingAddress extends Address {
     private final String bldgId;
     private final String street;
 
+    // The AMS constructor.
     public BuildingAddress(Address baseAddress, String bldgId, String street) {
         super(baseAddress);
         this.bldgId = bldgId;
         this.street = street;
     }
 
-    public BuildingAddress(String streetWithNum, String postalCity, String state, String zip5) {
-        this(streetWithNum, postalCity, state, zip5, null);
-    }
-
-    public BuildingAddress(String streetWithNum, String postalCity, String state, String zip5, String zip4) {
-        super(postalCity, state, zip5, zip4);
-        Pair<String> parts = splitBldgId(streetWithNum);
-        this.bldgId = parts.first();
-        // The following line would remove all numerical suffixes and special characters.
-        // This causes problems when matching the street file table. This may adversely affect the geocache table.
-        this.street = parts.second().replaceAll("[#:;.,']", "").replaceAll("[ -]+", " ").toUpperCase();
-    }
-
+    // Assembles a BuildingAddress from database storage.
     public BuildingAddress(String bldgId, String street, String postalCity, String state, String zip5, String zip4) {
-        super(postalCity, state, zip5, zip4);
+        super(postalCity, state, zip5, StringUtils.isBlank(zip4) ? null : new Zip4(zip4));
         this.bldgId = bldgId;
         this.street = street;
     }
