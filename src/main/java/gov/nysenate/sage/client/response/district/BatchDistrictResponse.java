@@ -10,7 +10,7 @@ import java.util.List;
 
 public class BatchDistrictResponse extends BatchResponse<DistrictResponse> {
     private BatchDistrictResponse(List<Tuple<DistrictResultWithMembers, GeocodedAddress>> results) {
-        super(results, result -> new DistrictResponse(result.first(), result.second()));
+        super(results, result -> new DistrictResponse(result.first(), result.second(), false));
     }
 
     public static BatchDistrictResponse of(List<DistrictResultWithMembers> districtResults, List<GeocodedAddress> geoAddrs) {

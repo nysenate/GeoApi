@@ -1,20 +1,13 @@
 package gov.nysenate.sage.model.address;
 
 public final class PostOfficeBox extends Address {
-    private final int boxNumber;
-
-    public PostOfficeBox(int boxNumber, String addr2, String postalCity, String state, String zip5, String zip4) {
-        super(postalCity, state, zip5, zip4);
-        this.boxNumber = boxNumber;
+    // We actually have no use to add more fields: we just need to know it's a PO box.
+    public PostOfficeBox(Address baseAddress) {
+        super(baseAddress);
     }
 
     @Override
-    public String getAddr1() {
-        return "PO BOX " + boxNumber;
-    }
-
-    @Override
-    public String toString() {
-        return getAddr1() + ", " + super.toString();
+    public boolean isUspsValidated() {
+        return true;
     }
 }

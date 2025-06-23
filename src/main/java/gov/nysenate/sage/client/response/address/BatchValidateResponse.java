@@ -6,7 +6,7 @@ import gov.nysenate.sage.model.result.AddressResult;
 import java.util.List;
 
 public class BatchValidateResponse extends BatchResponse<ValidateResponse> {
-    public BatchValidateResponse(List<AddressResult> addressResults) {
-        super(addressResults, ValidateResponse::new);
+    public BatchValidateResponse(List<AddressResult> addressResults, boolean usePunct) {
+        super(addressResults, res -> new ValidateResponse(res, usePunct));
     }
 }

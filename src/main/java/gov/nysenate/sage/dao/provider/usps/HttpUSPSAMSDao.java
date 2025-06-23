@@ -8,12 +8,15 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.BuildingAddress;
+import gov.nysenate.sage.model.address.PostOfficeBox;
 import gov.nysenate.sage.model.address.Zip5;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.CityStateResult;
 import gov.nysenate.sage.provider.address.AddressDao;
 import gov.nysenate.sage.provider.address.AddressSource;
 import gov.nysenate.sage.util.UrlRequest;
+import org.apache.commons.text.WordUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +31,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static gov.nysenate.sage.model.result.ResultStatus.NO_ADDRESS_VALIDATE_RESULT;
+import static gov.nysenate.sage.model.result.ResultStatus.SUCCESS;
+import static gov.nysenate.sage.util.AddressUtil.initCapStreetLine;
 
 /**
  * Data abstraction layer for querying the USPS AMS web service to perform address and city/state
@@ -39,6 +44,7 @@ public class HttpUSPSAMSDao implements AddressDao {
     private static final String VALIDATE_METHOD = "validate";
     private static final String CITYSTATE_METHOD = "citystate";
     private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final List<String> streetParts = List.of("preDir", "streetName", "streetSuffix", "postDir");
     @Value("${usps.ams.api.url}")
     private String uspsApiUrl;
 
@@ -49,16 +55,13 @@ public class HttpUSPSAMSDao implements AddressDao {
 
     /** {@inheritDoc} */
     public AddressResult validate(Address address) {
-        var urlParams = new StringBuilder();
         try {
-            // TODO: need changes in USPS application so that we don't need to pass in every parameter
-            urlParams.append("?addr1=").append(encode(address.getAddr1()))
-                    .append("&addr2=").append(encode(address.getAddr2()))
-                    .append("&city=").append(encode(address.getPostalCity()))
-                    .append("&state=").append(encode(address.getState()))
-                    .append("&zip5=").append(encode(address.getZip5()))
-                    .append("&zip4=").append(encode(address.getZip4()))
-                    .append("&initCaps=true");
+            String urlParams = "?addr1=" + encode(address.getAddr1()) +
+                    "&addr2=" + encode(address.getAddr2()) +
+                    "&city=" + encode(address.getPostalCity()) +
+                    "&state=" + encode(address.getState()) +
+                    "&zip5=" + encode(address.getZip5()) +
+                    "&zip4=" + encode(address.getZip4());
 
             String url = uspsApiUrl + VALIDATE_METHOD + urlParams;
             logger.info("Making a connection to: \n{}", url);
@@ -99,7 +102,7 @@ public class HttpUSPSAMSDao implements AddressDao {
             requestRoot.add(addressNode);
         }
         String jsonPayload = requestRoot.toString();
-        String url = uspsApiUrl + VALIDATE_METHOD + "?batch=true&initCaps=true";
+        String url = uspsApiUrl + VALIDATE_METHOD;
         try {
             String json = UrlRequest.getResponseFromUrlUsingPOST(url, jsonPayload);
             var addressResults = new ArrayList<AddressResult>();
@@ -123,15 +126,10 @@ public class HttpUSPSAMSDao implements AddressDao {
         if (root == null) {
             return null;
         }
-        var addressResult = new AddressResult(source());
-        JsonNode statusNode = root.get("status");
+        var addressResult = new AddressResult(source(), NO_ADDRESS_VALIDATE_RESULT);
         JsonNode addressNode = root.get("address");
         JsonNode footnotesNode = root.get("footnotes");
-
-        boolean validated = root.get("validated").asBoolean(false);
-        String status = statusNode.get("name").asText();
-
-        addressResult.addMessage(String.format("Status: %s", status));
+        addressResult.addMessage(String.format("Status: %s", root.get("status").get("name").asText()));
 
         for (int i = 0; i < footnotesNode.size(); i++) {
             JsonNode footnoteNode = footnotesNode.get(i);
@@ -140,28 +138,41 @@ public class HttpUSPSAMSDao implements AddressDao {
             addressResult.addMessage(String.format("%s - %s", ftName, ftDesc));
         }
 
-        if (validated) {
-            try {
-                String addr1 = addressNode.get("addr1").asText();
-                String addr2 = addressNode.get("addr2").asText();
-                String city = addressNode.get("city").asText();
-                String state = addressNode.get("state").asText();
-                String zip5 = addressNode.get("zip5").asText();
-                String zip4 = addressNode.get("zip4").asText();
+        String addr1 = initCapStreetLine(addressNode.get("addr1").asText());
+        String addr2 = initCapStreetLine(addressNode.get("addr2").asText());
+        String city = initCapStreetLine(addressNode.get("city").asText());
+        String state = addressNode.get("state").asText();
+        String zip5 = addressNode.get("zip5").asText();
+        String zip4 = addressNode.get("zip4").asText();
+        var currAddress = new Address(addr1, addr2, city, state, zip5, zip4);
 
-                var validatedAddress = Address.getAddress(addr1, addr2, city, state, zip5, zip4);
-                validatedAddress.setUspsValidated(true);
-                addressResult.setAddress(validatedAddress);
+        if (root.get("success").asBoolean(false)) {
+            try {
+                String street = getStreetFromRecord(addressNode.get("records").get(0));
+                if ("PO BOX".equals(street)) {
+                    currAddress = new PostOfficeBox(currAddress);
+                }
+                else {
+                    String streetNumber = addr1.split(" ")[0];
+                    currAddress = new BuildingAddress(currAddress, streetNumber, street);
+                }
+                addressResult.setStatusCode(SUCCESS);
             } catch (Exception ex) {
                 logger.error("Bad address node: {}", addressNode);
-                addressResult.setStatusCode(NO_ADDRESS_VALIDATE_RESULT);
             }
         }
-        else {
-            addressResult.setStatusCode(NO_ADDRESS_VALIDATE_RESULT);
-        }
+        addressResult.setAddress(currAddress);
         addressResult.setResultTime();
         return addressResult;
+    }
+
+    private static String getStreetFromRecord(JsonNode record) {
+        var streetPartList = new ArrayList<String>();
+        for (String fieldName : streetParts) {
+            streetPartList.add(record.get(fieldName).asText());
+
+        }
+        return String.join(" ", streetPartList).replaceAll(" +", " ").trim();
     }
 
     public CityStateResult lookupCityState(Zip5 zip5) {
@@ -194,7 +205,7 @@ public class HttpUSPSAMSDao implements AddressDao {
         Gson prettyGson = new GsonBuilder().setPrettyPrinting().create();
 
         String jsonPayload = prettyGson.toJson(zip5List);
-        String url = uspsApiUrl + CITYSTATE_METHOD + "?batch=true&initCaps=true";
+        String url = uspsApiUrl + CITYSTATE_METHOD;
         try {
             String json = UrlRequest.getResponseFromUrlUsingPOST(url, jsonPayload);
             if (json != null && !json.isEmpty()) {
@@ -221,7 +232,9 @@ public class HttpUSPSAMSDao implements AddressDao {
         }
         CityStateResult cityStateResult;
         if (root.get("success").asBoolean(false)) {
-            cityStateResult = new CityStateResult(source(), root.get("cityName").asText(),
+            String cityName = initCapStreetLine(root.get("cityName").asText());
+            cityName = WordUtils.capitalizeFully(cityName.toLowerCase());
+            cityStateResult = new CityStateResult(source(), cityName,
                     root.get("stateAbbr").asText(), root.get("zipCode").asInt());
         }
         else {

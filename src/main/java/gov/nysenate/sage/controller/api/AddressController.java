@@ -58,7 +58,7 @@ public final class AddressController extends BaseController {
             @RequestParam(required = false) String zip4) {
         Address address = getAddressFromParams(addr, addr1, addr2, city, state, zip5, zip4);
         AddressSource source = getValueOrNull(provider, AddressSource.class);
-        return new ValidateResponse(addressService.validate(address, source, punct));
+        return new ValidateResponse(addressService.validate(address, source), punct);
     }
 
     /**
@@ -89,7 +89,7 @@ public final class AddressController extends BaseController {
         AddressSource source = getValueOrNull(provider, AddressSource.class);
         String batchJsonPayload = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
         List<Address> addresses = getAddressesFromJsonBody(batchJsonPayload);
-        return new BatchValidateResponse(addressService.validate(addresses, source, punct));
+        return new BatchValidateResponse(addressService.validate(addresses, source), punct);
     }
 
     /**

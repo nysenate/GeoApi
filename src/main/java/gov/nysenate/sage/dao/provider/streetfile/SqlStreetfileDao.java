@@ -6,6 +6,7 @@ import gov.nysenate.sage.controller.api.DistrictUtil;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.base.SqlTable;
 import gov.nysenate.sage.dao.provider.district.ShapefileDao;
+import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.address.DistrictedStreetRange;
 import gov.nysenate.sage.model.address.StreetAddressRange;
@@ -94,11 +95,11 @@ public class SqlStreetfileDao extends BaseDao implements StreetfileDao {
     }
 
     @Override
-    public DistrictInfo getDistrictInfo(BuildingAddress addr) {
+    public DistrictInfo getDistrictInfo(Address addr) {
         return getDistrictInfo(addr, DistrictMatchLevel.HOUSE);
     }
 
-    private DistrictInfo getDistrictInfo(BuildingAddress addr, @Nonnull DistrictMatchLevel matchLevel) {
+    private DistrictInfo getDistrictInfo(Address addr, @Nonnull DistrictMatchLevel matchLevel) {
         if (addr == null || matchLevel == DistrictMatchLevel.NOMATCH) {
             return DistrictInfo.empty;
         }
@@ -107,20 +108,22 @@ public class SqlStreetfileDao extends BaseDao implements StreetfileDao {
         if (matchLevel.compareTo(DistrictMatchLevel.ZIP5) >= 0) {
             sqlBuilder.append(" AND zip5 = '%s'\n".formatted(addr.getZip5()));
         }
-        if (matchLevel.compareTo(DistrictMatchLevel.STREET) >= 0) {
-            sqlBuilder.append(" AND street = '%s'".formatted(addr.getStreet().toUpperCase()));
-        }
-        if (matchLevel.compareTo(DistrictMatchLevel.HOUSE) >= 0) {
-            int bldgNum;
-            try {
-                bldgNum = Integer.parseInt(addr.getStreetWithNum().replaceFirst("(?i)[a-z]? .*$", ""));
-            } catch (NumberFormatException ex) {
-                logger.warn("Could not parse building number from {}", addr.getStreetWithNum());
-                return getDistrictInfo(addr, matchLevel.getNextHighestLevel());
+        if (addr instanceof BuildingAddress bldgAddr) {
+            if (matchLevel.compareTo(DistrictMatchLevel.STREET) >= 0) {
+                sqlBuilder.append(" AND street = '%s'".formatted(bldgAddr.getStreet().toUpperCase()));
             }
-            StreetParity parity = bldgNum%2 == 0 ? EVENS : ODDS;
-            sqlBuilder.append(" AND (bldg_low <= %d AND %d <= bldg_high)".formatted(bldgNum, bldgNum))
-                    .append( "AND (parity = 'ALL' OR parity = '%s')".formatted(parity.name()));
+            if (matchLevel == DistrictMatchLevel.HOUSE) {
+                int bldgNum;
+                try {
+                    bldgNum = Integer.parseInt(bldgAddr.getBldgId().replaceFirst("(?i)[a-z]?$", ""));
+                } catch (NumberFormatException ex) {
+                    logger.warn("Could not parse building number from {}", bldgAddr.getBldgId());
+                    return getDistrictInfo(bldgAddr, matchLevel.getNextHighestLevel());
+                }
+                StreetParity parity = bldgNum % 2 == 0 ? EVENS : ODDS;
+                sqlBuilder.append(" AND (bldg_low <= %d AND %d <= bldg_high)".formatted(bldgNum, bldgNum))
+                        .append(" AND (parity = 'ALL' OR parity = '%s')".formatted(parity.name()));
+            }
         }
 
         checkLock();

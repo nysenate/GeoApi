@@ -257,8 +257,7 @@ public class JobBatchProcessor implements JobProcessor {
                         batchNum++;
                     }
                     catch (Exception e) {
-                        logger.error("{}", String.valueOf(e));
-                        e.getCause().printStackTrace();
+                        logger.error("Error when processing job batch", e);
                     }
                 }
 
@@ -362,7 +361,7 @@ public class JobBatchProcessor implements JobProcessor {
     private record ValidateJobBatch(JobBatch jobBatch, AddressService addressService) implements Callable<JobBatch> {
         @Override
             public JobBatch call() {
-                List<AddressResult> addressResults = addressService.validate(jobBatch.getAddresses(), null, false);
+                List<AddressResult> addressResults = addressService.validate(jobBatch.getAddresses(), null);
                 if (addressResults.size() == jobBatch.getAddresses().size()) {
                     for (int i = 0; i < addressResults.size(); i++) {
                         jobBatch.setAddressResult(i, addressResults.get(i));

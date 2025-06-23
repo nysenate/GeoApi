@@ -22,7 +22,7 @@ public class GeocacheDaoIT extends BaseTests {
     @Test
     public void testCacheSave() {
         for (int i = 0; i < 100; i++) {
-            var a = Address.getAddress(i + "BOO" + " ST", "Test", "Test", "NY", "00001", "");
+            var a = new Address(i + "BOO" + " ST", "Test", "Test", "NY", "00001", "");
             var gc = new Geocode(new Point("12", "12"), GeocodeQuality.HOUSE, null, false);
             var currResult = new GeocodeResult(null, ResultStatus.SUCCESS, new GeocodedAddress(a, gc));
             geoCache.cache(currResult);

@@ -2,13 +2,14 @@ package gov.nysenate.sage.service.data;
 
 import gov.nysenate.sage.dao.model.member.MemberDao;
 import gov.nysenate.sage.dao.model.senate.SqlSenateDao;
-import gov.nysenate.sage.model.address.BuildingAddress;
+import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.district.DistrictMember;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.provider.geocode.GeocodeService;
+import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.service.district.DistrictMemberProvider;
 import gov.nysenate.sage.util.AssemblyScraper;
 import gov.nysenate.sage.util.CongressScraper;
@@ -34,16 +35,19 @@ public class DataGenService implements SageDataGenService {
     private final SqlSenateDao sqlSenateDao;
     private final MemberDao memberDao;
     private final DistrictMemberProvider memberProvider;
+    private final AddressService addressService;
     private final GeocodeService geocodeService;
     @Value("${nysenate.domain:https://www.nysenate.gov}")
     private String nysenateDomain;
 
     @Autowired
     public DataGenService(SqlSenateDao sqlSenateDao, MemberDao memberDao,
-                          DistrictMemberProvider memberProvider, GeocodeService geocodeService) {
+                          DistrictMemberProvider memberProvider, AddressService addressService,
+                          GeocodeService geocodeService) {
         this.sqlSenateDao = sqlSenateDao;
         this.memberDao = memberDao;
         this.memberProvider = memberProvider;
+        this.addressService = addressService;
         this.geocodeService = geocodeService;
     }
 
@@ -114,10 +118,12 @@ public class DataGenService implements SageDataGenService {
                 continue;
             }
             for (Office office : senator.getOffices()) {
-                String street = office.getStreet().replaceAll("(?i)Avesuite", "Ave Suite")
+                String addr1 = office.getStreet().replaceAll("(?i)Avesuite", "Ave Suite")
                         .replaceAll("(?i)avenuesuite", "Avenue Suite");
-                var officeAddress = new BuildingAddress(street, office.getCity(), office.getPostalCode());
-                Point point = getPoint(officeAddress);
+                var baseAddress = new Address(addr1, "", office.getCity(), office.getProvince(),
+                        office.getPostalCode(), null);
+                var validatedAddress = addressService.validateOrDefault(baseAddress);
+                Point point = getPoint(validatedAddress);
                 if (point != null && point.isValid()) {
                     office.setLatitude(point.lat().doubleValue());
                     office.setLongitude(point.lon().doubleValue());
@@ -132,7 +138,7 @@ public class DataGenService implements SageDataGenService {
         }
     }
 
-    private Point getPoint(BuildingAddress officeAddress) {
+    private Point getPoint(Address officeAddress) {
         GeocodeResult result = geocodeService.geocode(null, officeAddress);
         if (result.isSuccess()) {
             Geocode geocodedOffice = result.getGeocode();

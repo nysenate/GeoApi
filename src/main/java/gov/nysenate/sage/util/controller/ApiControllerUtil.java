@@ -35,12 +35,10 @@ public final class ApiControllerUtil {
      */
     public static Address getAddressFromParams(String addr, String addr1, String addr2, String postalCity,
                                                String state, String zip5, String zip4) {
-        if (addr != null) {
-            return Address.getAddress(addr);
+        if (addr == null) {
+            return new Address(addr1, addr2, postalCity, state, zip5, zip4);
         }
-        else {
-            return Address.getAddress(addr1, addr2, postalCity, state, zip5, zip4);
-        }
+        return Address.getAddress(addr);
     }
 
     /**

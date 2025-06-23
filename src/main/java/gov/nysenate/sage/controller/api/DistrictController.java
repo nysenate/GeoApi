@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 
 import static gov.nysenate.sage.model.result.ResultStatus.BAD_OVERLAY;
@@ -80,10 +81,8 @@ public class DistrictController extends BaseController {
             @RequestParam(required = false) String zip5,
             @RequestParam(required = false) String zip4) {
 
-        Address address = getAddressFromParams(addr, addr1, addr2, city, state, zip5, zip4);
-        if (uspsValidate) {
-            address = addressService.validateOrDefault(address, usePunct);
-        }
+        Address originalAddress = getAddressFromParams(addr, addr1, addr2, city, state, zip5, zip4);
+        Address uspsAddress = addressService.validateOrDefault(originalAddress);
         Point point = getPointFromParams(lat, lon);
 
         List<Geocoder> currGeocoders = null;
@@ -92,7 +91,7 @@ public class DistrictController extends BaseController {
         }
 
         GeocodedAddress geocodedAddress = point == null ?
-                GeocodeUtils.getGeocodedAddress(address, geocodeService.geocode(currGeocoders, address)) :
+                GeocodeUtils.getGeocodedAddress(uspsAddress, geocodeService.geocode(currGeocoders, uspsAddress)) :
                 GeocodeUtils.getRevGeocodedAddress(point, geocodeService.reverseGeocode(currGeocoders, point));
         List<LocalSource> currDistrictSources = null;
         if (districtSource != null) {
@@ -100,7 +99,10 @@ public class DistrictController extends BaseController {
         }
         DistrictResult initialResult = districtService.assignDistricts(currDistrictSources, geocodedAddress,
                 List.of(DistrictType.values()));
-        return new DistrictResponse(memberProvider.assignMembers(initialResult), geocodedAddress);
+        if (!uspsValidate) {
+            geocodedAddress = new GeocodedAddress(originalAddress, geocodedAddress.getGeocode());
+        }
+        return new DistrictResponse(memberProvider.assignMembers(initialResult), geocodedAddress, usePunct);
     }
 
     /**
@@ -118,12 +120,10 @@ public class DistrictController extends BaseController {
             throws IOException {
 
         String batchJsonPayload = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
-        List<Address> addresses = getAddressesFromJsonBody(batchJsonPayload);
-        if (uspsValidate) {
-            addresses = addressService.validateOrDefault(addresses, usePunct);
-        }
+        List<Address> originalAddresses = getAddressesFromJsonBody(batchJsonPayload);
+        List<Address> uspsAddresses = addressService.validateOrDefault(originalAddresses);
         List<Point> points = List.of();
-        if (addresses.isEmpty()) {
+        if (uspsAddresses.isEmpty()) {
             points = getPointsFromJsonBody(batchJsonPayload);
             if (points.isEmpty()) {
                 return new ApiError(this.getClass(), INVALID_BATCH_ADDRESSES);
@@ -131,11 +131,19 @@ public class DistrictController extends BaseController {
         }
 
         List<GeocodedAddress> geocodedAddresses = points.isEmpty() ?
-                GeocodeUtils.getGeocodedAddresses(addresses, geocodeService.geocode(addresses)) :
+                GeocodeUtils.getGeocodedAddresses(uspsAddresses, geocodeService.geocode(uspsAddresses)) :
                 GeocodeUtils.getRevGeocodedAddresses(points, geocodeService.reverseGeocode(points));
         List<DistrictResultWithMembers> results =
                 districtService.assignDistricts(geocodedAddresses, List.of(DistrictType.values()))
                         .stream().map(memberProvider::assignMembers).toList();
+
+        if (!uspsValidate) {
+            List<GeocodedAddress> tempGeoAddrs = new ArrayList<>();
+            for (int i = 0; i < geocodedAddresses.size(); i++) {
+                tempGeoAddrs.add(new GeocodedAddress(originalAddresses.get(i), geocodedAddresses.get(i).getGeocode()));
+            }
+            geocodedAddresses = tempGeoAddrs;
+        }
         return BatchDistrictResponse.of(results, geocodedAddresses);
     }
 

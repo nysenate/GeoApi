@@ -7,16 +7,13 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public abstract sealed class Address permits BuildingAddress, PostOfficeBox, UnparsedAddress {
-    private static final Pattern poBoxPattern = Pattern.compile("(?i)PO Box (\\d+)"),
-            zipPattern = Pattern.compile("(\\d{5})(-\\d{4})?");
+public sealed class Address permits BuildingAddress, PostOfficeBox {
+    private static final Pattern zipPattern = Pattern.compile("(\\d{5})(-\\d{4})?");
+    private String addr1, addr2;
     private String postalCity;
     private String state = "NY";
     private Zip5 zip5;
     private Zip4 zip4;
-
-    /** Verification info */
-    private boolean uspsValidated = false;
 
     public static Address getAddress(String addr) {
         String postalCity = null, state = null, zip5 = null, zip4 = null;
@@ -40,22 +37,25 @@ public abstract sealed class Address permits BuildingAddress, PostOfficeBox, Unp
                 }
             }
         }
-        return getAddress(csv[0], "", postalCity, state, zip5, zip4);
+        return new Address(csv[0], "", postalCity, state, zip5, zip4);
     }
 
-    public static Address getAddress(String addr1, String addr2, String postalCity, String state, String zip5, String zip4) {
-        try {
-            Matcher poBoxMatcher = poBoxPattern.matcher(addr1);
-            if (poBoxMatcher.matches()) {
-                int boxNumber = Integer.parseInt(poBoxMatcher.group(1));
-                return new PostOfficeBox(boxNumber, addr2, postalCity, state, zip5, zip4);
-            }
-            var tempBldgAddr = new BuildingAddress(addr1, postalCity, state, zip5, zip4);
-            tempBldgAddr.setInternal(addr2);
-            return tempBldgAddr;
-        } catch (Exception ex) {
-            return new UnparsedAddress(addr1, postalCity, state, zip5, zip4);
-        }
+    public Address(String addr1, String addr2, String postalCity, String state, String zip5, String zip4) {
+        this.addr1 = addr1;
+        this.addr2 = addr2;
+        this.postalCity = postalCity;
+        this.state = state;
+        this.zip5 = new Zip5(zip5);
+        this.zip4 = new Zip4(zip4);
+    }
+
+    protected Address(Address addrToCopy) {
+        this.addr1 = addrToCopy.getAddr1();
+        this.addr2 = addrToCopy.getAddr2();
+        this.postalCity = addrToCopy.getPostalCity();
+        this.state = addrToCopy.getState();
+        this.zip5 = addrToCopy.getZip5();
+        this.zip4 = addrToCopy.getZip4();
     }
 
     protected Address(AddressWithoutNum awn) {
@@ -74,10 +74,12 @@ public abstract sealed class Address permits BuildingAddress, PostOfficeBox, Unp
         }
     }
 
-    public abstract String getAddr1();
+    public String getAddr1() {
+        return addr1;
+    }
 
     public String getAddr2() {
-        return "";
+        return addr2;
     }
 
     public String getPostalCity() {
@@ -94,7 +96,7 @@ public abstract sealed class Address permits BuildingAddress, PostOfficeBox, Unp
 
     @Override
     public String toString() {
-        return (StringUtils.isBlank(postalCity) ? "" : postalCity) + (StringUtils.isBlank(state) ? "" : ", " + state)
+        return addr1 + " " + (StringUtils.isBlank(postalCity) ? "" : postalCity) + (StringUtils.isBlank(state) ? "" : ", " + state)
                 + (zip5 == null ? "" : ", " + zip5) + (zip4 == null ? "" : "-" + zip4);
     }
 
@@ -112,12 +114,7 @@ public abstract sealed class Address permits BuildingAddress, PostOfficeBox, Unp
 
     /** Indicates if address has been marked USPS validated. */
     public boolean isUspsValidated() {
-        return uspsValidated;
-    }
-
-    /** Marks address as validated by USPS. */
-    public void setUspsValidated(boolean uspsValidated) {
-        this.uspsValidated = uspsValidated;
+        return false;
     }
 
     public boolean isValid() {

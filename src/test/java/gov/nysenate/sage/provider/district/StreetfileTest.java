@@ -34,7 +34,6 @@ public class StreetfileTest extends BaseTests {
     @Transactional(value = DatabaseConfig.geoApiTxManager)
     public void shouldNotDistrictAssignCityGeocodeQuality() {
         var addr = new BuildingAddress("", "Delmar", "NY", "");
-        addr.setUspsValidated(false);
         var geo = new Geocode(new Point("42.6220235", "-73.8326232"), GeocodeQuality.CITY, Geocoder.GOOGLE, false);
         var geoAddr = new GeocodedAddress(addr, geo);
         DistrictResult districtResult = districtService.assignDistricts(List.of(LocalSource.STREETFILE), geoAddr, types);

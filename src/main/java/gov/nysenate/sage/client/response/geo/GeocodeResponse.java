@@ -13,7 +13,7 @@ public class GeocodeResponse extends BaseResponse {
     public GeocodeResponse(GeocodeResult geocodeResult) {
         super(geocodeResult);
         if (geocodeResult != null && geocodeResult.isSuccess()) {
-            this.address = new AddressView(geocodeResult.getGeocodedAddress().getAddress());
+            this.address = new AddressView(geocodeResult.getGeocodedAddress().getAddress(), false);
             this.geocode = new GeocodeView(geocodeResult.getGeocodedAddress().getGeocode());
             this.isGeocoded = true;
         }

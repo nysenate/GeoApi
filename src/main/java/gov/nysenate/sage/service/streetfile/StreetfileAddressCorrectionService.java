@@ -52,7 +52,7 @@ public final class StreetfileAddressCorrectionService {
                 }
                 // We want to first try a correction without changing components.
                 // This is especially relevant for NYC streetfiles, which may have ranges with currently non-existent addresses.
-                // AMS will attempt to correct such addresses to a different, existing address.
+                // AMS may attempt to correct such addresses to a different, existing address.
                 if (getRank(result.getMessages()) > minRank) {
                     nextToCorrectMap.computeIfAbsent(uncorrectedAwn, k -> new LinkedList<>())
                             .add(numsToValidate.get(addrIndex));

@@ -29,7 +29,8 @@ public final class PostOfficeCacheManager {
     }
 
     public static PostOfficeCache<LocalSource, DistrictResult> getDistrictCache() {
-        var tempCache = new PostOfficeCache<>(new DistrictResult(null, INVALID_ADDRESS), PostOfficeCacheManager::getDistrictData);
+        var tempCache = new PostOfficeCache<>(new DistrictResult(null, INVALID_ADDRESS),
+                PostOfficeCacheManager::getDistrictData);
         caches.add(tempCache);
         return tempCache;
     }

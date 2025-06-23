@@ -27,8 +27,7 @@ public class AddressTest {
 
     @Test
     public void isEmptyTest() {
-        var a = new BuildingAddress("", "", "");
-        assertFalse(a.isValid());
+        var a = new Address("", "", "", "", "", "");
         assertFalse(a.isValid());
     }
 

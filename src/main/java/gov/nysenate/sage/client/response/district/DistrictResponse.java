@@ -21,7 +21,7 @@ public class DistrictResponse extends BaseResponse {
     protected String matchLevel;
     protected DistrictsView districts;
 
-    public DistrictResponse(DistrictResultWithMembers districtResult, GeocodedAddress geoAddr) {
+    public DistrictResponse(DistrictResultWithMembers districtResult, GeocodedAddress geoAddr, boolean usePunct) {
         super(districtResult);
         if (districtResult == null) {
             return;
@@ -36,7 +36,7 @@ public class DistrictResponse extends BaseResponse {
         }
         Address realAddress = geoAddr.getAddress();
         if (realAddress != null) {
-            this.address = new AddressView(realAddress);
+            this.address = new AddressView(realAddress, usePunct);
             this.uspsValidated = realAddress.isUspsValidated();
         }
         Geocode realGeocode = geoAddr.getGeocode();

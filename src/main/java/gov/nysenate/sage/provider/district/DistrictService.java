@@ -7,7 +7,10 @@ import gov.nysenate.sage.controller.api.DistrictUtil;
 import gov.nysenate.sage.dao.provider.district.SqlShapefileDao;
 import gov.nysenate.sage.dao.provider.streetfile.StreetfileDao;
 import gov.nysenate.sage.model.PostOfficeCache;
-import gov.nysenate.sage.model.address.*;
+import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.GeocodedAddress;
+import gov.nysenate.sage.model.address.GeocodedPostOfficeBox;
+import gov.nysenate.sage.model.address.PostOfficeBox;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
@@ -81,7 +84,7 @@ public class DistrictService {
             DistrictInfo districtInfo = DistrictInfo.empty;
             if (status == SUCCESS) {
                 if (provider == STREETFILE) {
-                    districtInfo = streetfileDao.getDistrictInfo((BuildingAddress) address);
+                    districtInfo = streetfileDao.getDistrictInfo(address);
                 }
                 else if (provider == SHAPEFILE) {
                     districtInfo = sqlShapefileDao.getDistrictInfo(geocodedAddress.getGeocode(), requiredTypes);

@@ -2,6 +2,7 @@ package gov.nysenate.sage.client.view.address;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.util.AddressUtil;
 
 /**
  * AddressView represents the structure of an address representation on the response end of the API.
@@ -16,8 +17,11 @@ public class AddressView {
     protected String zip4 = null;
     protected Integer id;
 
-    public AddressView(Address address) {
+    public AddressView(Address address, boolean usePunct) {
         this.addr1 = address.getAddr1();
+        if (usePunct) {
+            this.addr1 = AddressUtil.addr1WithPunct(address);
+        }
         this.addr2 = address.getAddr2();
         this.city = address.getPostalCity();
         this.state = address.getState();

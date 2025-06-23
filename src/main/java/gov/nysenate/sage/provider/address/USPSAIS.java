@@ -174,10 +174,7 @@ public class USPSAIS implements AddressDao {
 
                         /** USPS usually sets the addr2 which is not intuitive. Here we can
                          *  create a new Address object with addr1 initialized with addr2. */
-                        var validatedAddr = Address.getAddress(addr2, "", city, state, zip5, zip4);
-
-                        /** Mark address as validated */
-                        validatedAddr.setUspsValidated(true);
+                        var validatedAddr = new Address(addr2, "", city, state, zip5, zip4);
 
                         if (returnText != null) {
                             batchResults.get(index % BATCH_SIZE).addMessage(returnText);

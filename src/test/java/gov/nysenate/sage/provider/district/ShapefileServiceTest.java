@@ -31,7 +31,6 @@ public class ShapefileServiceTest extends BaseTests {
     @Transactional(value = DatabaseConfig.geoApiTxManager)
     public void shouldNotDistrictAssignCityGeocodeQuality() {
         var addr = new BuildingAddress("", "Delmar", "NY", "");
-        addr.setUspsValidated(false);
         Geocode geo = new Geocode(new Point("42.6220235", "-73.8326232"), GeocodeQuality.CITY, Geocoder.GOOGLE, false);
         GeocodedAddress geoAddr = new GeocodedAddress(addr, geo);
         DistrictResult res = districtService.assignDistricts(List.of(LocalSource.SHAPEFILE), geoAddr, List.of(DistrictType.SENATE));

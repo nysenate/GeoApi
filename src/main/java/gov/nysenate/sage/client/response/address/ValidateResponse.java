@@ -8,12 +8,12 @@ public class ValidateResponse extends BaseResponse {
     protected AddressView address;
     protected boolean validated = false;
 
-    public ValidateResponse(AddressResult addressResult) {
+    public ValidateResponse(AddressResult addressResult, boolean usePunct) {
         super(addressResult);
         if (addressResult != null) {
             this.validated = addressResult.isValidated();
             if (addressResult.getAddress() != null) {
-                this.address = new AddressView(addressResult.getAddress());
+                this.address = new AddressView(addressResult.getAddress(), usePunct);
             }
         }
     }

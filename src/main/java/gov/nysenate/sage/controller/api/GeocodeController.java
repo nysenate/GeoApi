@@ -54,7 +54,7 @@ public class GeocodeController extends BaseController {
                                 @RequestParam(required = false) String zip5,
                                 @RequestParam(required = false) String zip4) {
         Address address = getAddressFromParams(null, addr1, addr2, city, state, zip5, zip4);
-        address = addressService.validateOrDefault(address, false);
+        address = addressService.validateOrDefault(address);
 
         if (address == null || !address.isValid()) {
             return new ApiError(this.getClass(), INVALID_ADDRESS);
@@ -87,7 +87,7 @@ public class GeocodeController extends BaseController {
             return new ApiError(this.getClass(), MISSING_POINT);
         }
         GeocodeResult result = geocodeService.reverseGeocode(currGeocoders, point);
-        result.setAddress(addressService.validateOrDefault(result.getAddress(), false));
+        result.setAddress(addressService.validateOrDefault(result.getAddress()));
         return new RevGeocodeResponse(result);
     }
 
@@ -101,7 +101,7 @@ public class GeocodeController extends BaseController {
     @PostMapping(value = "/geocode/batch")
     public BaseResponse batchGeocode(HttpServletRequest request) throws IOException {
         String batchJsonPayload = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
-        List<Address> addresses = addressService.validateOrDefault(getAddressesFromJsonBody(batchJsonPayload), false);
+        List<Address> addresses = addressService.validateOrDefault(getAddressesFromJsonBody(batchJsonPayload));
         if (addresses.isEmpty()) {
             return new ApiError(this.getClass(), INVALID_BATCH_ADDRESSES);
         }
@@ -127,7 +127,7 @@ public class GeocodeController extends BaseController {
 
         List<GeocodeResult> revGeocodeResults = geocodeService.reverseGeocode(points);
         List<Address> addresses = revGeocodeResults.stream().map(GeocodeResult::getAddress).toList();
-        addresses = addressService.validateOrDefault(addresses, false);
+        addresses = addressService.validateOrDefault(addresses);
         for (int i = 0; i < addresses.size(); i++) {
             revGeocodeResults.get(i).setAddress(addresses.get(i));
         }

@@ -7,7 +7,6 @@ import gov.nysenate.sage.model.result.CityStateResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.address.AddressDao;
 import gov.nysenate.sage.provider.address.AddressSource;
-import gov.nysenate.sage.util.AddressUtil;
 import gov.nysenate.sage.util.TimeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,19 +39,14 @@ public class AddressService {
      * Validates an address using USPS or another provider if available.
      * @param address Address to validate
      * @param source Source to use
-     * @param usePunct If true, validated address will have periods after abbreviations.
-     * @return AddressResult
+=     * @return AddressResult
      */
-    public AddressResult validate(Address address, AddressSource source, boolean usePunct) {
-        AddressResult addressResult = internalValidate(address, source);
-        if (addressResult.isValidated() && usePunct) {
-            addressResult.setAddress(AddressUtil.addPunctuation(addressResult.getAddress()));
-        }
-        return addressResult;
+    public AddressResult validate(Address address, AddressSource source) {
+        return internalValidate(address, source);
     }
 
-    public Address validateOrDefault(Address address, boolean usePunct) {
-        return getOrDefault(validate(address, null, usePunct), address);
+    public Address validateOrDefault(Address address) {
+        return getOrDefault(validate(address, null), address);
     }
 
     private AddressResult internalValidate(Address address, AddressSource source) {
@@ -73,10 +67,9 @@ public class AddressService {
      * Validates addresses using USPS or another provider if available.
      * @param addresses List of Addresses to validate
      * @param source Source to use
-     * @param usePunct Apply address punctuation to each result.
      * @return List<AddressResult>
      */
-    public List<AddressResult> validate(List<Address> addresses, AddressSource source, boolean usePunct) {
+    public List<AddressResult> validate(List<Address> addresses, AddressSource source) {
         if (addresses.isEmpty()) {
             return List.of();
         }
@@ -92,20 +85,12 @@ public class AddressService {
             }
         }
         logger.info("USPS validate time: {} ms.", TimeUtil.getElapsedMs(startTime));
-
-        if (usePunct) {
-            for (AddressResult addressResult : addressResults) {
-                if (addressResult != null && addressResult.isValidated()) {
-                    addressResult.setAddress(AddressUtil.addPunctuation(addressResult.getAddress()));
-                }
-            }
-        }
         return addressResults;
     }
 
-    public List<Address> validateOrDefault(List<Address> addresses, boolean usePunct) {
+    public List<Address> validateOrDefault(List<Address> addresses) {
         List<Address> finalAddresses = new ArrayList<>();
-        List<AddressResult> results = validate(addresses, null, usePunct);
+        List<AddressResult> results = validate(addresses, null);
         for (int i = 0; i < addresses.size(); i++) {
             finalAddresses.add(getOrDefault(results.get(i), addresses.get(i)));
         }

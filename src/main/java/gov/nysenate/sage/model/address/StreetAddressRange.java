@@ -17,7 +17,7 @@ public record StreetAddressRange(int bldgLow, int bldgHigh, StreetParity parity,
     public List<Address> addresses() {
         var addresses = new ArrayList<Address>();
         for (int num = bldgLow; num <= bldgHigh;) {
-            addresses.add(new BuildingAddress(num, awn));
+            addresses.add(awn.toAddress(num));
             if (parity == StreetParity.ALL) {
                 num++;
             }

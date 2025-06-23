@@ -17,9 +17,9 @@ public final class AddressUtil {
      * Adds a period to the end of every directional, street type abbreviation, and unit type.
      * @return Punctuated address
      */
-    public static Address addPunctuation(Address address) {
-        if (address == null || !address.isValid() || !(address instanceof BuildingAddress bldgAddr)) {
-            return address;
+    public static String addr1WithPunct(Address address) {
+        if (!address.isValid() || !(address instanceof BuildingAddress bldgAddr)) {
+            return address.toString();
         }
         Set<String> streetTypes = new HashSet<>();
         streetTypes.addAll(AddressDictionary.streetTypeMap.values());
@@ -29,38 +29,24 @@ public final class AddressUtil {
         String stTypeAlt = String.join("|", streetTypes);
         String directionalAlt = String.join("|", AddressDictionary.directionMap.values());
 
-        String streetWithNum = bldgAddr.getStreetWithNum();
+        String addr1 = bldgAddr.getAddr1();
 
-        if (!streetWithNum.isEmpty()) {
-            Matcher m = Pattern.compile("(?i)(" + unitAlt + ")( *#? *\\d*-?\\w*)$").matcher(streetWithNum);
+        if (!addr1.isEmpty()) {
+            Matcher m = Pattern.compile("(?i)(" + unitAlt + ")( *#? *\\d*-?\\w*)$").matcher(addr1);
             if (m.find()) {
-                streetWithNum = m.replaceFirst("$1.$2");
+                addr1 = m.replaceFirst("$1.$2");
             }
-            Matcher dirM = Pattern.compile("(?i)\\b(" + directionalAlt + ")\\b").matcher(streetWithNum);
+            Matcher dirM = Pattern.compile("(?i)\\b(" + directionalAlt + ")\\b").matcher(addr1);
             if (dirM.find()) {
-                streetWithNum = dirM.replaceAll("$1.");
+                addr1 = dirM.replaceAll("$1.");
             }
-            String addr1Rev = StringUtils.reverseDelimited(streetWithNum, ' ');
+            String addr1Rev = StringUtils.reverseDelimited(addr1, ' ');
             Matcher stypeM = Pattern.compile("(?i)\\b(" + stTypeAlt + ")\\b").matcher(addr1Rev);
             if (stypeM.find()) {
-                streetWithNum = StringUtils.reverseDelimited(stypeM.replaceAll("$1."), ' ');
+                addr1 = StringUtils.reverseDelimited(stypeM.replaceAll("$1."), ' ');
             }
         }
-        bldgAddr.setStreetWithNum(streetWithNum);
-        return address;
-    }
-
-    /**
-     * This method takes in a street address and ensures that it is in mixed case
-     * For example, W TYPICAL ST NW APT 1S -> W Typical St NW Apt 1S
-     * @param address address
-     */
-    public static Address performInitCapsOnAddress(Address address) {
-        var bldgAddr = ((BuildingAddress) address);
-        bldgAddr.setStreetWithNum(initCapStreetLine(bldgAddr.getStreetWithNum()));
-        bldgAddr.setInternal(initCapStreetLine(bldgAddr.getInternal()));
-        bldgAddr.setPostalCity(WordUtils.capitalizeFully(bldgAddr.getPostalCity().toLowerCase()));
-        return address;
+        return addr1;
     }
 
     /**
@@ -71,6 +57,9 @@ public final class AddressUtil {
      * @return String
      */
     public static String initCapStreetLine(String line) {
+        if (line == null || line.isEmpty()) {
+            return line;
+        }
         // Perform init caps on the street address
         line = WordUtils.capitalizeFully(line.toLowerCase());
         // Ensure unit portion is fully uppercase e.g. 2N
@@ -85,8 +74,7 @@ public final class AddressUtil {
         if (m.find()) {
             line = m.replaceAll(m.group().toUpperCase());
         }
-        line = line.replaceAll("(?i)Po Box", "PO Box");
-        return line;
+        return line.replaceAll("(?i)Po Box", "PO Box");
     }
 
     /**
