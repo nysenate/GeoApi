@@ -3,7 +3,7 @@ package gov.nysenate.sage.model.job;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.util.FormatUtil;
 import org.supercsv.cellprocessor.Optional;
-import org.supercsv.cellprocessor.ParseDouble;
+import org.supercsv.cellprocessor.ParseBigDecimal;
 import org.supercsv.cellprocessor.ParseInt;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 
@@ -88,10 +88,7 @@ public class JobFile {
             return;
         }
         for (int i = 0; i < header.length; i++) {
-            if (header[i] == null || header[i].isEmpty()) {
-                continue;
-            }
-            var toAdd = new Optional();
+            Optional toAdd = null;
             // Try to match column name to a Column
             String columnAlias = FormatUtil.toCamelCase(header[i]);
             Column headerColumn = Column.resolveColumn(columnAlias);
@@ -102,7 +99,7 @@ public class JobFile {
 
                 // Tell the processors to use the correct types
                 if (headerColumn.type.equals(Type.doubleType)) {
-                    toAdd = new Optional(new ParseDouble());
+                    toAdd = new Optional(new ParseBigDecimal());
                 }
                 else if (headerColumn.type.equals(Type.intType)) {
                     toAdd = new Optional(new ParseInt());

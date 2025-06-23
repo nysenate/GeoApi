@@ -37,12 +37,13 @@ public class JobRecord {
         String state = (String) dataMap.get(Column.state);
         String zip5 = (String) dataMap.get(Column.zip5);
         String zip4 = (String) dataMap.get(Column.zip4);
-        this.address = Address.getAddress(street, "", city, state, zip5, zip4);
+        this.address = new Address(street, "", city, state, zip5, zip4);
     }
 
     public List<Object> getRow() {
         for (Column column : indexMap.keySet()) {
-            row.set(indexMap.get(column), dataMap.get(column));
+            Object colValue = dataMap.get(column);
+            row.set(indexMap.get(column), colValue == null ? null : colValue.toString());
         }
         return row;
     }

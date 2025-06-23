@@ -62,8 +62,8 @@ public record JobBatch(List<JobRecord> jobRecords, int fromRecord, int toRecord)
     }
 
     public void setAddressResult(int index, AddressResult addressResult) {
-        if (this.jobRecords.get(index) != null) {
-            this.jobRecords.get(index).applyAddressResult(addressResult);
+        if (jobRecords.get(index) != null) {
+            jobRecords.get(index).applyAddressResult(addressResult);
         }
     }
 
