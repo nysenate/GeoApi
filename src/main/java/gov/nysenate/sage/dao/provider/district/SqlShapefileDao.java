@@ -195,7 +195,8 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
         if (StringUtils.isBlank(code) || !type.hasShapefile()) {
             return null;
         }
-        return getDistrictMap(type, code).getDistrictName();
+        DistrictMap map = getDistrictMap(type, code);
+        return map == null ? null : map.getDistrictName();
     }
 
     /**
