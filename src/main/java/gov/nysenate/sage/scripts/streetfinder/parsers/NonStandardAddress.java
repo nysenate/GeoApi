@@ -22,12 +22,10 @@ import static gov.nysenate.sage.scripts.streetfinder.parsers.NonStandardAddressT
  * This class attempts to parse out those pieces.
  */
 public class NonStandardAddress {
-    private static final String aptNumRegex = "(?<normalAptType>%s)".formatted(String.join("|", AddressDictionary.unitNumMap.keySet()));
     private static final Pattern
             // Some bldgNum examples: 10, 10A, 1/2, 4 1/2
             addressPattern = Pattern.compile("(?i)(?<bldgNum>([\\d /]+[A-Z]? ))?(?<preDir>[NSEW]{1,2} )?(?<street>" + streetRegex() + ")(?<postDir>[NSEW]{1,2} )?"),
-            aptPattern = Pattern.compile("(?<numAptType>%s) (?<aptNum>\\d+)|(?<noNumAptType>%s)"
-                    .formatted(aptNumRegex, String.join("|", AddressDictionary.unitNoNumMap.keySet())));
+            aptPattern = Pattern.compile(AddressDictionary.aptPatternString);
 
     private final College college;
     private NonStandardAddressType type = NORMAL;

@@ -134,7 +134,8 @@ public final class AddressDictionary {
                     "HNGR", List.of("HANGAR", "HNGR"), "LOT", List.of("LOT"),
                     "OFC", List.of("OFC", "OFFICE"), "PIER", List.of("PIER"), "RM", List.of("RM", "ROOM"),
                     "SIDE", List.of("SIDE"), "SLIP", List.of("SLIP"), "SPC", List.of("SPACE", "SPC"),
-                    "STE", List.of("STE", "SUITE"), "STOP", List.of("STOP"), "TRLR", List.of("TRAILER", "TRLR")
+                    "STE", List.of("STE", "SUITE"), "STOP", List.of("STOP"), "TRLR", List.of("TRAILER", "TRLR"),
+                    "#", List.of("#")
             );
     public static final ImmutableMap<String, String> unitMap = getUnitMap();
     public static final ImmutableMap<String, String> highWayMap = getMap(
@@ -154,6 +155,10 @@ public final class AddressDictionary {
                     "US Rte", List.of("US ROUTE", "US RT", "US RTE"), "USFS Hwy", List.of("USFS HIGH WAY", "USFS HIGHWAY", "USFS HWY")
             );
     public static final ImmutableMap<String, String> directionMap = getDirectionMap();
+
+    public static final String aptNumRegex = "(?<normalAptType>%s)".formatted(String.join("|", AddressDictionary.unitNumMap.keySet()));
+    public static final String aptPatternString = "(?<numAptType>%s) (?<aptNum>\\d+)|(?<noNumAptType>%s)"
+            .formatted(AddressDictionary.aptNumRegex, String.join("|", AddressDictionary.unitNoNumMap.keySet()));
 
     private AddressDictionary() {}
 
