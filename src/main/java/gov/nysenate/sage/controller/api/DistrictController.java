@@ -11,9 +11,9 @@ import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.DistrictResultWithMembers;
+import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.IntersectResult;
 import gov.nysenate.sage.provider.district.DistrictService;
-import gov.nysenate.sage.provider.district.GeocodeUtils;
 import gov.nysenate.sage.provider.district.LocalSource;
 import gov.nysenate.sage.provider.district.ShapefileService;
 import gov.nysenate.sage.provider.geocode.GeocodeService;
@@ -90,9 +90,9 @@ public class DistrictController extends BaseController {
             currGeocoders = List.of(getValue(geocoder, Geocoder.class));
         }
 
-        GeocodedAddress geocodedAddress = point == null ?
-                GeocodeUtils.getGeocodedAddress(uspsAddress, geocodeService.geocode(currGeocoders, uspsAddress)) :
-                GeocodeUtils.getRevGeocodedAddress(point, geocodeService.reverseGeocode(currGeocoders, point));
+        GeocodedAddress geocodedAddress = (point == null ?
+                geocodeService.geocode(currGeocoders, uspsAddress) :
+                geocodeService.reverseGeocode(currGeocoders, point)).getGeocodedAddress();
         List<LocalSource> currDistrictSources = null;
         if (districtSource != null) {
             currDistrictSources = List.of(getValue(districtSource, LocalSource.class));
@@ -130,9 +130,9 @@ public class DistrictController extends BaseController {
             }
         }
 
-        List<GeocodedAddress> geocodedAddresses = points.isEmpty() ?
-                GeocodeUtils.getGeocodedAddresses(uspsAddresses, geocodeService.geocode(uspsAddresses)) :
-                GeocodeUtils.getRevGeocodedAddresses(points, geocodeService.reverseGeocode(points));
+        List<GeocodedAddress> geocodedAddresses = (points.isEmpty() ?
+                geocodeService.geocode(uspsAddresses) : geocodeService.reverseGeocode(points))
+                    .stream().map(GeocodeResult::getGeocodedAddress).toList();
         List<DistrictResultWithMembers> results =
                 districtService.assignDistricts(geocodedAddresses, List.of(DistrictType.values()))
                         .stream().map(memberProvider::assignMembers).toList();

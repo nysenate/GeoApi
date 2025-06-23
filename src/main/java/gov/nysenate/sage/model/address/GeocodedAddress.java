@@ -25,16 +25,6 @@ public class GeocodedAddress implements Serializable {
         this.geocode = geocode;
     }
 
-    public static GeocodedAddress from(GeocodedAddress result, Address defaultAddress) {
-        if (result == null) {
-            return new GeocodedAddress(defaultAddress);
-        }
-        if (defaultAddress.isUspsValidated()) {
-            result.setAddress(defaultAddress);
-        }
-        return result;
-    }
-
     public Address getAddress() {
         return address;
     }

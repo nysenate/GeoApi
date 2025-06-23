@@ -11,6 +11,8 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.address.PostOfficeBox;
+import gov.nysenate.sage.model.geo.Geocode;
+import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
@@ -67,6 +69,7 @@ public class GeocodeService {
         this.executor = ExecutorUtil.createExecutor("geocode", numThreads);
     }
 
+    // Note that the returned Address will be the input Address unless the input Address isn't validated, and the geocoding succeeds.
     public GeocodeResult geocode(List<Geocoder> geocoders, @Nonnull Address address) {
         var geocodedAddress = new GeocodedAddress(address);
         if (!address.isValid()) {
@@ -87,16 +90,20 @@ public class GeocodeService {
         Geocoder geocoder = null;
         for (Geocoder newGeocoder : geocoders) {
             geocoder = newGeocoder;
-            geocodedAddress = geocoderDaoMap.get(geocoder).getGeocodedAddress(((BuildingAddress) address));
-            geocodeStatsDao.putGeocodedAddress(geocoder, geocodedAddress);
-            if (geocodedAddress == null || !geocodedAddress.isValidGeocode()) {
+            GeocodedAddress tempGeoAddr = geocoderDaoMap.get(geocoder).getGeocodedAddress(((BuildingAddress) address));
+            geocodeStatsDao.putGeocodedAddress(geocoder, tempGeoAddr);
+            if (tempGeoAddr == null || !tempGeoAddr.isValidGeocode()) {
                 status = NO_GEOCODE_RESULT;
             } else {
                 status = SUCCESS;
+                geocodedAddress = tempGeoAddr;
                 break;
             }
         }
-        var result = new GeocodeResult(geocoder, status, GeocodedAddress.from(geocodedAddress, address));
+        if (address.isUspsValidated()) {
+            geocodedAddress.setAddress(address);
+        }
+        var result = new GeocodeResult(geocoder, status, geocodedAddress);
         geoCache.cache(result);
         return result;
     }
@@ -106,26 +113,27 @@ public class GeocodeService {
     }
 
     public GeocodeResult reverseGeocode(List<Geocoder> geocoders, Point point) {
+        var revGeocodedAddress = new GeocodedAddress(new Geocode(point, GeocodeQuality.POINT, null, false));
         if (point == null) {
-            return new GeocodeResult(null, MISSING_POINT);
+            return new GeocodeResult(null, MISSING_POINT, revGeocodedAddress);
         }
         if (geocoders == null) {
             geocoders = defaultRanking;
         }
         ResultStatus status = MISSING_GEOCODER;
         Geocoder revGeocoder = null;
-        GeocodedAddress revGeocodedAddress = null;
         for (Geocoder newGeocoder : geocoders) {
             revGeocoder = newGeocoder;
-            revGeocodedAddress = geocoderDaoMap.get(revGeocoder).getGeocodedAddress(point);
-            if (revGeocodedAddress == null) {
+            GeocodedAddress tempGeoAddr = geocoderDaoMap.get(revGeocoder).getGeocodedAddress(point);
+            if (tempGeoAddr == null) {
                 status = RESPONSE_PARSE_ERROR;
             }
-            else if (!revGeocodedAddress.isValidAddress()) {
+            else if (!tempGeoAddr.isValidAddress()) {
                 status = NO_REVERSE_GEOCODE_RESULT;
             }
             else {
                 status = SUCCESS;
+                revGeocodedAddress = tempGeoAddr;
                 break;
             }
         }
