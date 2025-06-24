@@ -87,7 +87,7 @@ public class PostOfficeService {
             var currAddr = new Address(lineData[numParts - 5], "", lineData[numParts - 4], "NY",
                     lineData[numParts - 2], lineData[numParts - 1]);
             currAddr = addressService.validateOrDefault(currAddr);
-            if (currAddr.isUspsValidated() && currAddr instanceof BuildingAddress bldgAddr && currAddr.getZip4() != null) {
+            if (currAddr.isUspsValidated() && currAddr instanceof BuildingAddress bldgAddr) {
                 dataMap.put(new Zip5(lineData[deliveryZipIndex]), bldgAddr);
             }
             else {

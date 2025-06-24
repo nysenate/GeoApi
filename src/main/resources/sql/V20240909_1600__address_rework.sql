@@ -92,5 +92,5 @@ ALTER COLUMN zip4 TYPE varchar(4),
 ADD CONSTRAINT valid_zips CHECK (
     (delivery_zip IS NOT NULL AND isZip(delivery_zip, 5)) AND
     (zip5 IS NOT NULL AND isZip(zip5, 5)) AND
-    (zip4 IS NOT NULL AND isZip(zip4, 4))
+    (zip4 IS NULL OR isZip(zip4, 4))
 );
