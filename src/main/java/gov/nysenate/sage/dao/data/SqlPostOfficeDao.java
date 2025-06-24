@@ -37,7 +37,7 @@ public class SqlPostOfficeDao extends BaseDao implements PostOfficeDao {
                     .addValue("street", address.getStreet())
                     .addValue("city", address.getPostalCity())
                     .addValue("zip5", address.getZip5().toString())
-                    .addValue("zip4", address.getZip4().toString());
+                    .addValue("zip4", address.getZip4() == null ? null : address.getZip4().toString());
             String sql = PostOfficeQuery.ADD_ADDRESS.getSql(getPublicSchema());
             namedJdbcTemplate.update(sql, params);
         }
