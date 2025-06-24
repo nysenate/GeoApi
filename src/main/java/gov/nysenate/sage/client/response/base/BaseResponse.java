@@ -40,7 +40,7 @@ public class BaseResponse {
     }
 
     public String getSource() {
-        return String.valueOf(source);
+        return source == null ? null : source.toString();
     }
 
     public List<String> getMessages() {

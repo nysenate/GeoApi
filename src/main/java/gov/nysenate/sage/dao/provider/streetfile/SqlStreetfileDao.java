@@ -115,7 +115,7 @@ public class SqlStreetfileDao extends BaseDao implements StreetfileDao {
             if (matchLevel == DistrictMatchLevel.HOUSE) {
                 int bldgNum;
                 try {
-                    bldgNum = Integer.parseInt(bldgAddr.getBldgId().replaceFirst("(?i)[a-z]?$", ""));
+                    bldgNum = Integer.parseInt(bldgAddr.getBldgId().replaceFirst("(?i)[a-z]$", ""));
                 } catch (NumberFormatException ex) {
                     logger.warn("Could not parse building number from {}", bldgAddr.getBldgId());
                     return getDistrictInfo(bldgAddr, matchLevel.getNextHighestLevel());

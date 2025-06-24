@@ -64,7 +64,6 @@ public class HttpUSPSAMSDao implements AddressDao {
                     "&zip4=" + encode(address.getZip4());
 
             String url = uspsApiUrl + VALIDATE_METHOD + urlParams;
-            logger.info("Making a connection to: \n{}", url);
 
             String response = UrlRequest.getResponseFromUrl(url);
             if (response != null && !response.isEmpty()) {
@@ -129,12 +128,12 @@ public class HttpUSPSAMSDao implements AddressDao {
         var addressResult = new AddressResult(source(), NO_ADDRESS_VALIDATE_RESULT);
         JsonNode addressNode = root.get("address");
         JsonNode footnotesNode = root.get("footnotes");
-        addressResult.addMessage(String.format("Status: %s", root.get("status").get("name").asText()));
+        addressResult.addMessage(String.format("Status: %s", root.get("status").get("shortDesc").asText()));
 
         for (int i = 0; i < footnotesNode.size(); i++) {
             JsonNode footnoteNode = footnotesNode.get(i);
-            String ftName = footnoteNode.get("name").asText();
-            String ftDesc = footnoteNode.get("desc").asText();
+            String ftName = footnoteNode.get("shortDesc").asText();
+            String ftDesc = footnoteNode.get("longDesc").asText();
             addressResult.addMessage(String.format("%s - %s", ftName, ftDesc));
         }
 
@@ -148,7 +147,7 @@ public class HttpUSPSAMSDao implements AddressDao {
 
         if (root.get("success").asBoolean(false)) {
             try {
-                String street = getStreetFromRecord(addressNode.get("records").get(0));
+                String street = getStreetFromRecord(root.get("records").get(0));
                 if ("PO BOX".equals(street)) {
                     currAddress = new PostOfficeBox(currAddress);
                 }
@@ -158,7 +157,7 @@ public class HttpUSPSAMSDao implements AddressDao {
                 }
                 addressResult.setStatusCode(SUCCESS);
             } catch (Exception ex) {
-                logger.error("Bad address node: {}", addressNode);
+                logger.error("Bad address node: {}", addressNode, ex);
             }
         }
         addressResult.setAddress(currAddress);

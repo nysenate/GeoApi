@@ -120,8 +120,9 @@ public class DataGenService implements SageDataGenService {
             for (Office office : senator.getOffices()) {
                 String addr1 = office.getStreet().replaceAll("(?i)Avesuite", "Ave Suite")
                         .replaceAll("(?i)avenuesuite", "Avenue Suite");
+                String[] zips = office.getPostalCode().split("-");
                 var baseAddress = new Address(addr1, "", office.getCity(), office.getProvince(),
-                        office.getPostalCode(), null);
+                        zips[0], zips.length > 1 ? zips[1] : null);
                 var validatedAddress = addressService.validateOrDefault(baseAddress);
                 Point point = getPoint(validatedAddress);
                 if (point != null && point.isValid()) {
