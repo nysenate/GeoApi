@@ -1,7 +1,5 @@
 package gov.nysenate.sage.model.district;
 
-import java.util.List;
-
 public enum DistrictType {
     // Available as shape files
     ASSEMBLY("district", false), CONGRESSIONAL("district", false), SENATE("district", false),
@@ -25,10 +23,6 @@ public enum DistrictType {
     DistrictType(String name, String code) {
         this.name = name;
         this.code = code;
-    }
-
-    public static List<DistrictType> getStandardTypes() {
-        return List.of(ASSEMBLY, CONGRESSIONAL, SENATE, SCHOOL, TOWN_CITY, COUNTY, ZIP);
     }
 
     public String nameColumn() {

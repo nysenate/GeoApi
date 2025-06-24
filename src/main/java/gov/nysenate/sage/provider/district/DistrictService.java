@@ -25,7 +25,9 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -62,7 +64,7 @@ public class DistrictService {
     }
 
     public DistrictResult assignDistricts(List<LocalSource> providers, GeocodedAddress geocodedAddress,
-                                          List<DistrictType> requiredTypes) {
+                                          Set<DistrictType> requiredTypes) {
         if (providers == null) {
             providers = defaultRanking;
         }
@@ -79,6 +81,8 @@ public class DistrictService {
         }
 
         var results = new ArrayList<DistrictResult>();
+        // Used to avoid unnecessary geometry queries.
+        Set<DistrictType> typesToAssign = EnumSet.copyOf(requiredTypes);
         for (LocalSource provider : providers) {
             ResultStatus status = getStatus(geocodedAddress, provider);
             DistrictInfo districtInfo = DistrictInfo.empty;
@@ -87,8 +91,9 @@ public class DistrictService {
                     districtInfo = streetfileDao.getDistrictInfo(address);
                 }
                 else if (provider == SHAPEFILE) {
-                    districtInfo = sqlShapefileDao.getDistrictInfo(geocodedAddress.getGeocode(), requiredTypes);
+                    districtInfo = sqlShapefileDao.getDistrictInfo(geocodedAddress.getGeocode(), typesToAssign);
                 }
+                typesToAssign.removeAll(districtInfo.getAssignedTypes());
             }
             var result = new DistrictResult(provider, status, districtInfo);
             result.setResultTime();
@@ -99,7 +104,7 @@ public class DistrictService {
     }
 
     public List<DistrictResult> assignDistricts(List<GeocodedAddress> geocodedAddresses,
-                                                List<DistrictType> requiredTypes) {
+                                                Set<DistrictType> requiredTypes) {
         var districtResults = new ArrayList<DistrictResult>();
         var futureDistrictResults = new ArrayList<Future<DistrictResult>>();
 
@@ -126,7 +131,7 @@ public class DistrictService {
             for (GeocodedAddress geoPostOffice : geoPoBox.getPostOffices()) {
                 // Might as well assign all the types
                 postalCityMap.put(geoPostOffice.getAddress().getPostalCity(),
-                        assignDistricts(providers, geoPostOffice, List.of(DistrictType.values())));
+                        assignDistricts(providers, geoPostOffice, Set.of(DistrictType.values())));
             }
             cacheResult = poBoxCache.putAndGet(poBox, providers, postalCityMap);
         }

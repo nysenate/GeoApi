@@ -6,6 +6,7 @@ import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
 
 import java.util.List;
+import java.util.Set;
 
 public interface ShapefileDao {
     /**
@@ -14,7 +15,7 @@ public interface ShapefileDao {
      * @param districtTypes  Collection of district types to resolve
      * @return  DistrictInfo if query was successful, null otherwise
      */
-    DistrictInfo getDistrictInfo(Geocode geocode, List<DistrictType> districtTypes);
+    DistrictInfo getDistrictInfo(Geocode geocode, Set<DistrictType> districtTypes);
 
     /**
      * Creates and returns a DistrictOverlap object which contains lists of all districts that contained

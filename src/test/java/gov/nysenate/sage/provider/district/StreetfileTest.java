@@ -17,8 +17,8 @@ import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 @Category(IntegrationTest.class)
 public class StreetfileTest extends BaseTests {
@@ -26,7 +26,7 @@ public class StreetfileTest extends BaseTests {
     @Autowired
     private DistrictService districtService;
 
-    private static final List<DistrictType> types = Arrays.asList(DistrictType.ASSEMBLY, DistrictType.CONGRESSIONAL,
+    private static final Set<DistrictType> types = Set.of(DistrictType.ASSEMBLY, DistrictType.CONGRESSIONAL,
             DistrictType.COUNTY, DistrictType.SENATE, DistrictType.SCHOOL, DistrictType.TOWN_CITY, DistrictType.ZIP);
 
     @Ignore

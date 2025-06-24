@@ -54,7 +54,7 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
     }
 
     /** {@inheritDoc} */
-    public DistrictInfo getDistrictInfo(Geocode geocode, List<DistrictType> districtTypes) {
+    public DistrictInfo getDistrictInfo(Geocode geocode, Set<DistrictType> districtTypes) {
         Map<DistrictType, SingleDistrict>  typeToDistrictMap = new HashMap<>();
         for (DistrictType districtType : districtTypes) {
             if (!districtType.hasShapefile()) {

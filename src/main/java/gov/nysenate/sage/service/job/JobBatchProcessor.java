@@ -33,6 +33,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -193,7 +194,7 @@ public class JobBatchProcessor implements JobProcessor {
                 logger.info("--------------------------------------------------------------------");
 
                 LinkedTransferQueue<Future<JobBatch>> jobResultsQueue = new LinkedTransferQueue<>();
-                List<DistrictType> districtTypes = jobFile.getRequiredDistrictTypes();
+                Set<DistrictType> districtTypes = jobFile.getRequiredDistrictTypes();
 
                 int recordCount = jobFile.recordCount();
                 int batchCount =  (recordCount + jobBatchSize - 1) / jobBatchSize; // Allows us to round up
@@ -407,10 +408,10 @@ public class JobBatchProcessor implements JobProcessor {
      */
     private static class DistrictJobBatch implements Callable<JobBatch> {
         private final Future<JobBatch> futureJobBatch;
-        private final List<DistrictType> districtTypes;
+        private final Set<DistrictType> districtTypes;
         private final DistrictService districtService;
 
-        public DistrictJobBatch(Future<JobBatch> futureJobBatch, List<DistrictType> types, DistrictService districtService)
+        public DistrictJobBatch(Future<JobBatch> futureJobBatch, Set<DistrictType> types, DistrictService districtService)
                 throws InterruptedException, ExecutionException {
             this.futureJobBatch = futureJobBatch;
             this.districtTypes = types;

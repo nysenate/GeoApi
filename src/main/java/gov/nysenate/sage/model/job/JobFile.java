@@ -7,10 +7,7 @@ import org.supercsv.cellprocessor.ParseBigDecimal;
 import org.supercsv.cellprocessor.ParseInt;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class JobFile {
     /** Represents the functional group a header column belongs to */
@@ -144,8 +141,8 @@ public class JobFile {
      * Returns a lost of district types that match the columns in the header.
      * @return List<DistrictType>
      */
-    public List<DistrictType> getRequiredDistrictTypes() {
-        List<DistrictType> reqTypes = new ArrayList<>();
+    public Set<DistrictType> getRequiredDistrictTypes() {
+        Set<DistrictType> reqTypes = new HashSet<>();
         for (Column column : columns) {
             if (column.group.equals(Group.district)) {
                 try {

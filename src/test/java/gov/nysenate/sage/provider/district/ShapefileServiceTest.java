@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.assertNotEquals;
 
@@ -33,7 +34,7 @@ public class ShapefileServiceTest extends BaseTests {
         var addr = new Address("", "Delmar", "NY", "");
         Geocode geo = new Geocode(new Point("42.6220235", "-73.8326232"), GeocodeQuality.CITY, Geocoder.GOOGLE, false);
         GeocodedAddress geoAddr = new GeocodedAddress(addr, geo);
-        DistrictResult res = districtService.assignDistricts(List.of(LocalSource.SHAPEFILE), geoAddr, List.of(DistrictType.SENATE));
+        DistrictResult res = districtService.assignDistricts(List.of(LocalSource.SHAPEFILE), geoAddr, Set.of(DistrictType.SENATE));
         assertNotEquals(ResultStatus.SUCCESS, res.getStatusCode());
     }
 }

@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static gov.nysenate.sage.model.result.ResultStatus.BAD_OVERLAY;
 import static gov.nysenate.sage.model.result.ResultStatus.INVALID_BATCH_ADDRESSES;
@@ -98,7 +99,7 @@ public class DistrictController extends BaseController {
             currDistrictSources = List.of(getValue(districtSource, LocalSource.class));
         }
         DistrictResult initialResult = districtService.assignDistricts(currDistrictSources, geocodedAddress,
-                List.of(DistrictType.values()));
+                Set.of(DistrictType.values()));
         if (!uspsValidate) {
             geocodedAddress = new GeocodedAddress(originalAddress, geocodedAddress.getGeocode());
         }
@@ -134,7 +135,7 @@ public class DistrictController extends BaseController {
                 geocodeService.geocode(uspsAddresses) : geocodeService.reverseGeocode(points))
                     .stream().map(GeocodeResult::getGeocodedAddress).toList();
         List<DistrictResultWithMembers> results =
-                districtService.assignDistricts(geocodedAddresses, List.of(DistrictType.values()))
+                districtService.assignDistricts(geocodedAddresses, Set.of(DistrictType.values()))
                         .stream().map(memberProvider::assignMembers).toList();
 
         if (!uspsValidate) {
