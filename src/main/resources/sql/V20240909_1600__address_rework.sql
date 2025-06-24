@@ -75,12 +75,13 @@ SET method = 'GOOGLE'
 WHERE method = 'HttpGoogleDao';
 
 TRUNCATE TABLE public.streetfile;
-TRUNCATE TABLE public.post_office;
 
 ALTER TABLE public.streetfile
 ALTER COLUMN zip5 DROP NOT NULL,
 ALTER COLUMN zip5 TYPE varchar(5),
 ADD CONSTRAINT valid_zip CHECK ( zip5 IS NOT NULL AND isZip(zip5, 5) );
+
+TRUNCATE TABLE public.post_office;
 
 ALTER TABLE public.post_office
 ALTER COLUMN delivery_zip DROP NOT NULL,
