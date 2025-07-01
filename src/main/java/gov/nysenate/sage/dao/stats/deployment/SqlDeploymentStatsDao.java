@@ -20,7 +20,7 @@ public class SqlDeploymentStatsDao extends BaseDao implements DeploymentStatsDao
     private static class DeploymentStatsMapper implements RowMapper<Deployment> {
         @Override
         public Deployment mapRow(ResultSet rs, int rowNum) throws SQLException {
-            return new Deployment(rs.getInt("id"), rs.getTimestamp("deployTime"), rs.getInt("apiRequestsSince"));
+            return new Deployment(rs.getInt("id"), rs.getTimestamp("deploy_time"), rs.getInt("api_requests_since"));
         }
     }
 }

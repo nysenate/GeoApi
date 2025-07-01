@@ -119,7 +119,7 @@ public class DataGenController {
         return invalidAuthResponse();
     }
 
-    @GetMapping(value = "/process/post-offices")
+    @GetMapping(value = "/post-offices")
     public BaseResponse processPostOffices(HttpServletRequest request,
                                      @RequestParam(required = false, defaultValue = "defaultUser") String username,
                                    @RequestParam(required = false, defaultValue = "defaultPass") String password,

@@ -13,6 +13,7 @@ import gov.nysenate.sage.model.address.PostOfficeBox;
 import gov.nysenate.sage.model.address.Zip5;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.CityStateResult;
+import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.address.AddressDao;
 import gov.nysenate.sage.provider.address.AddressSource;
 import gov.nysenate.sage.util.UrlRequest;
@@ -107,7 +108,12 @@ public class HttpUSPSAMSDao implements AddressDao {
             var addressResults = new ArrayList<AddressResult>();
             JsonNode responseRoot = objectMapper.readTree(json);
             for (JsonNode node : responseRoot.get("results")) {
-                addressResults.add(getAddressResultFromJsonValidate(node));
+                try {
+                    addressResults.add(getAddressResultFromJsonValidate(node));
+                } catch (Exception ex) {
+                    logger.error("Failed to parse: {}", node.toString(), ex);
+                    addressResults.add(new AddressResult(source(), ResultStatus.GENERAL_FAILURE));
+                }
             }
             return addressResults;
         }
@@ -143,6 +149,10 @@ public class HttpUSPSAMSDao implements AddressDao {
         String state = addressNode.get("state").asText();
         String zip5 = addressNode.get("zip5").asText();
         String zip4 = addressNode.get("zip4").asText();
+        // Seems to stand for "non-deliverable"
+        if ("ND".equals(zip4)) {
+            zip4 = null;
+        }
         var currAddress = new Address(addr1, addr2, city, state, zip5, zip4);
 
         if (root.get("success").asBoolean(false)) {
