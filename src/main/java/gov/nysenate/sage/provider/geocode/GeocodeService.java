@@ -90,7 +90,7 @@ public class GeocodeService {
         Geocoder geocoder = null;
         for (Geocoder newGeocoder : geocoders) {
             geocoder = newGeocoder;
-            GeocodedAddress tempGeoAddr = geocoderDaoMap.get(geocoder).getGeocodedAddress(((BuildingAddress) address));
+            GeocodedAddress tempGeoAddr = geocoderDaoMap.get(geocoder).getGeocodedAddress(address);
             geocodeStatsDao.putGeocodedAddress(geocoder, tempGeoAddr);
             if (tempGeoAddr == null || !tempGeoAddr.isValidGeocode()) {
                 status = NO_GEOCODE_RESULT;

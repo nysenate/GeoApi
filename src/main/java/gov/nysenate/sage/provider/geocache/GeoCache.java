@@ -31,11 +31,11 @@ public class GeoCache extends BaseDao implements GeocoderDao {
     }
 
     @Override
-    public GeocodedAddress getGeocodedAddress(BuildingAddress address) {
-        if (address.isValid()) {
+    public GeocodedAddress getGeocodedAddress(Address address) {
+        if (address.isValid() && address instanceof BuildingAddress bldgAddr) {
             String sql = addZip4(SELECT_CACHE_ENTRY.getSql(), address.getZip4());
             List<GeocodedAddress> geoAddrs = namedJdbcTemplate.query(sql,
-                    getIdParams(address), new GeocodedStreetAddressMapper());
+                    getIdParams(bldgAddr), new GeocodedStreetAddressMapper());
             if (!geoAddrs.isEmpty()) {
                 return geoAddrs.get(0);
             }

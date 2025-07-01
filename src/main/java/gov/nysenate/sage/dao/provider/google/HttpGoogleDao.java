@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.dao.provider.nysgeo.GeocoderDao;
 import gov.nysenate.sage.model.address.Address;
-import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
@@ -51,7 +50,7 @@ public class HttpGoogleDao implements GeocoderDao {
      * @return          GeocodedAddress containing best matched Geocode.
      */
     @Override
-    public GeocodedAddress getGeocodedAddress(BuildingAddress address) {
+    public GeocodedAddress getGeocodedAddress(Address address) {
         if (address.getZip5() == null) {
             return new GeocodedAddress(address);
         }
