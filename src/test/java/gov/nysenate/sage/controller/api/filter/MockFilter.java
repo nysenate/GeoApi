@@ -1,6 +1,5 @@
 package gov.nysenate.sage.controller.api.filter;
 
-import gov.nysenate.sage.BaseTests;
 import org.mockito.stubbing.Answer;
 
 import javax.servlet.FilterChain;
@@ -22,8 +21,7 @@ import static org.mockito.Mockito.*;
  * (Documentation subject to change)
  * <a href="http://docs.mockito.googlecode.com/hg/org/mockito/Mockito.html">...</a>
  */
-public class MockFilter extends BaseTests
-{
+public class MockFilter {
     protected FilterConfig mockFilterConfig;
     protected FilterChain mockFilterChain;
     protected HttpServletRequest mockServletRequest;
@@ -33,20 +31,17 @@ public class MockFilter extends BaseTests
     PrintWriter pWriter = new PrintWriter(sWriter);
     protected HashMap<String,Object> attributes = new HashMap<>();
 
-    public MockFilter()
-    {
+    public MockFilter() {
         this.setUp();
     }
 
-    public void setUp()
-    {
+    public void setUp() {
         mockFilterConfig = mock(FilterConfig.class);
         mockFilterChain = mock(FilterChain.class);
         mockServletRequest = mock(HttpServletRequest.class);
         mockServletResponse = mock(HttpServletResponse.class);
 
-        try
-        {
+        try {
             /** Mock getWriter() method for ServletResponse */
             when(mockServletResponse.getWriter()).thenReturn(this.pWriter);
 
@@ -67,8 +62,7 @@ public class MockFilter extends BaseTests
     }
 
     /** Mock output method for ServletResponse */
-    public String getMockFilterResponseOutput()
-    {
+    public String getMockFilterResponseOutput() {
         return sWriter.getBuffer().toString();
     }
 

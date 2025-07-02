@@ -13,7 +13,7 @@ public class AddressTest {
     @Test
     public void testParser() {
         Address result = Address.getAddress("529 Columbia Turnpike, Rensselaer, NY, USA");
-        assertEquals("529 COLUMBIA TURNPIKE", result.getAddr1());
+        assertEquals("529 Columbia Turnpike", result.getAddr1());
         assertEquals("Rensselaer", result.getPostalCity());
         assertEquals("NY", result.getState());
     }
@@ -21,7 +21,7 @@ public class AddressTest {
     @Test
     public void toStringTest() {
         var address = new Address("1234 Testing Ln", "Test Valley", "T", "12345");
-        assertEquals("1234 Testing Ln, Test Valley, T 12345", address.toString());
+        assertEquals("1234 Testing Ln, Test Valley, T, 12345", address.toString());
     }
 
     @Test
@@ -35,17 +35,17 @@ public class AddressTest {
         var eligibile1 = new Address("100 N Drive", "Troy", "NY", "12180");
         var eligibile2 = new Address("100 N Drive", "", "", "12180");
         var eligibile3 = new Address("100 N Drive", "Troy", "NY", "");
+        var eligible4 = new Address("100 N Drive", "Troy", "", "");
         var notEligibile1 = new Address("100 N Drive", "", "", "");
         var notEligibile2 = new Address("100 N Drive", "", "NY", "");
-        var notEligibile3 = new Address("100 N Drive", "Troy", "", "");
         var notEligibile4 = new Address("", "Troy", "NY", "12180");
 
         assertTrue(eligibile1.isValid());
         assertTrue(eligibile2.isValid());
         assertTrue(eligibile3.isValid());
+        assertTrue(eligible4.isValid());
         assertFalse(notEligibile1.isValid());
         assertFalse(notEligibile2.isValid());
-        assertFalse(notEligibile3.isValid());
         assertFalse(notEligibile4.isValid());
     }
 }

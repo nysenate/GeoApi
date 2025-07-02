@@ -20,7 +20,7 @@ public class SqlApiRequestLogger extends BaseDao {
     public void logApiRequest(@Nonnull ApiRequest apiRequest) {
         ApiUser apiUser = apiRequest.getApiUser();
         var params = new MapSqlParameterSource()
-                .addValue("ipAddress", apiRequest.getIpAddress().getHostAddress())
+                .addValue("ipAddress", apiRequest.getHostAddress())
                 .addValue("apiUserId", apiUser.getId())
                 .addValue("request", apiRequest.getRequest())
                 .addValue("service", apiRequest.getService())

@@ -80,7 +80,7 @@ public sealed class Address permits BuildingAddress, PostOfficeBox {
 
     @Override
     public String toString() {
-        return addr1 + " " + (StringUtils.isBlank(postalCity) ? "" : postalCity) + (StringUtils.isBlank(state) ? "" : ", " + state)
+        return addr1 + (StringUtils.isBlank(postalCity) ? "" : ", " + postalCity) + (StringUtils.isBlank(state) ? "" : ", " + state)
                 + (zip5 == null ? "" : ", " + zip5) + (zip4 == null ? "" : "-" + zip4);
     }
 
@@ -94,7 +94,7 @@ public sealed class Address permits BuildingAddress, PostOfficeBox {
     }
 
     public boolean isValid() {
-        return !StringUtils.isBlank(postalCity) || zip5 != null;
+        return !StringUtils.isBlank(addr1) && (!StringUtils.isBlank(postalCity) || zip5 != null);
     }
 
     public boolean isOutOfState() {

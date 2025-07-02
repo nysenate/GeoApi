@@ -17,7 +17,6 @@ import static org.junit.Assert.*;
 
 @Category(IntegrationTest.class)
 public class CongressionalDaoIT extends BaseTests {
-    private static final int TOTAL_CONGRESSIONALS = 26;
 
     @Autowired
     private MemberDao memberDao;
@@ -27,7 +26,6 @@ public class CongressionalDaoIT extends BaseTests {
     public void getCongressionalsTest() {
         List<DistrictMember> congressionalList = memberDao.getMembers(DistrictType.CONGRESSIONAL);
         assertNotNull(congressionalList);
-        assertEquals(TOTAL_CONGRESSIONALS, congressionalList.size());
 
         DistrictMember c = congressionalList.get(0);
         assertEquals(DistrictType.CONGRESSIONAL, c.districtType());

@@ -4,6 +4,8 @@ import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.logger.apirequest.SqlApiRequestLogger;
 import gov.nysenate.sage.model.api.ApiRequest;
+import gov.nysenate.sage.model.result.ResultStatus;
+import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
@@ -31,10 +34,6 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 @Component
 public class ApiFilter implements Filter {
     private static final Logger logger = LoggerFactory.getLogger(ApiFilter.class);
-
-    /** String keys used for setting key value attributes in the request object */
-    private static final String RESPONSE_OBJECT_KEY = "responseObject";
-    /** The valid format of an api request */
 
     private final SqlApiRequestLogger sqlApiRequestLogger;
     private final ApiUserAuth apiUserAuth;
@@ -57,7 +56,7 @@ public class ApiFilter implements Filter {
     public ApiFilter(Environment env, SqlApiRequestLogger sqlApiRequestLogger, ApiUserAuth apiUserAuth) {
         this.sqlApiRequestLogger = sqlApiRequestLogger;
         this.apiUserAuth = apiUserAuth;
-        ipFilter = env.getUserIpFilter();
+        this.ipFilter = env.getUserIpFilter();
     }
 
     @Override
@@ -67,11 +66,15 @@ public class ApiFilter implements Filter {
         var apiRequest = new ApiRequest(request);
         String key = servletRequest.getParameter("key");
         if (key == null) {
-            if (apiRequest.getIpAddress().getHostAddress().matches(ipFilter)) {
+            if (apiRequest.getHostAddress().matches(ipFilter)) {
                 key = defaultKey;
             }
-            else if (apiRequest.getService().matches(publicApiFilter)) {
+            else if (apiRequest.getService() != null && apiRequest.getService().matches(publicApiFilter)) {
                 key = publicKey;
+            }
+            else {
+                writeErrorResponse(API_KEY_MISSING, response);
+                return;
             }
         }
         apiRequest.setApiUser(apiUserAuth.getApiUser(key));
@@ -88,13 +91,16 @@ public class ApiFilter implements Filter {
                     filterChain.doFilter(request, response);
                 }
                 else {
-                    setApiResponse(new ApiError(API_REQUEST_INVALID), request);
+                    writeErrorResponse(API_REQUEST_INVALID, response);
                 }
             }
             else {
-                setApiResponse(new ApiError(API_KEY_INVALID), request);
+                writeErrorResponse(API_KEY_INVALID, response);
                 logger.warn("Failed to validate request using key: {}", key);
             }
+        }
+        else {
+            writeErrorResponse(API_OUTPUT_FORMAT_UNSUPPORTED, response);
         }
     }
 
@@ -111,7 +117,6 @@ public class ApiFilter implements Filter {
         try {
             FormatType format = FormatType.valueOf(request.getParameter("format").toUpperCase());
         } catch (IllegalArgumentException ignored) {
-            setApiResponse(new ApiError(API_OUTPUT_FORMAT_UNSUPPORTED), request);
             return false;
         }
         catch (NullPointerException ignored) {}
@@ -119,12 +124,15 @@ public class ApiFilter implements Filter {
     }
 
     /**
-     * Simply sets the given response object as an attribute within the request. This is used
-     * for passing response data to the formatting methods for output processing.
-     * @param response  Object containing response data
-     * @param request   ServletRequest
+     * Write an error json response
+     * @param response HttpServletResponse
+     * @throws IOException if it failed to write or flush buffer.
      */
-    public static void setApiResponse(Object response, ServletRequest request) {
-        request.setAttribute(RESPONSE_OBJECT_KEY, response);
+    private void writeErrorResponse(ResultStatus errorStatus, ServletResponse response) throws IOException {
+        var errorResponse = new ApiError(errorStatus);
+        response.getWriter().append(FormatUtil.toJsonString(errorResponse));
+        response.setContentType("application/json");
+        ((HttpServletResponse) response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.flushBuffer();
     }
 }

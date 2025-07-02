@@ -18,7 +18,7 @@ import java.beans.PropertyVetoException;
 @Configuration
 public class DatabaseConfig {
     private static final Logger logger = LoggerFactory.getLogger(DatabaseConfig.class);
-    public static final String geoApiTxManager = "geoApiTxManager";
+    public static final String geoApiTxManager = "txManager";
 
     /** PostgreSQL Database Configuration */
     @Value("${db.driver:org.postgresql.Driver}") private String dbDriver;
@@ -94,7 +94,7 @@ public class DatabaseConfig {
      * Configures a Spring transaction manager for the postgres data source.
      * @return PlatformTransactionManager
      */
-    @Bean(name = "txManager")
+    @Bean(name = geoApiTxManager)
     public PlatformTransactionManager transactionManager() {
         return new DataSourceTransactionManager(postgresDataSource());
     }

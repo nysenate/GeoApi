@@ -23,7 +23,7 @@ public class ApiRequest {
     private final boolean isValid;
     /** Authentication */
     private ApiUser apiUser;
-    private InetAddress ipAddress;
+    private String hostAddress;
 
     /** Uri attributes */
     private String service;
@@ -35,7 +35,7 @@ public class ApiRequest {
         String remoteIp = forwardedForIp == null ? request.getRemoteAddr() : forwardedForIp;
         // Resolve IP address into InetAddress
         try {
-            this.ipAddress = InetAddress.getByName(remoteIp);
+            this.hostAddress = InetAddress.getByName(remoteIp).getHostAddress();
         }
         catch (UnknownHostException ex) {
             logger.warn("Unknown remote ip host!", ex);
@@ -65,8 +65,8 @@ public class ApiRequest {
         this.apiUser = apiUser;
     }
 
-    public InetAddress getIpAddress() {
-        return ipAddress;
+    public String getHostAddress() {
+        return hostAddress;
     }
 
     public String getService() {

@@ -29,9 +29,9 @@ public class CountyDaoIT extends BaseTests {
 
         County county = counties.get(0);
 
-        assertNotEquals(county.senateCode(), 0);
+        assertNotEquals(0, county.senateCode());
         assertNotNull(county.name());
-        assertNotEquals(county.fipsCode(), 0);
+        assertNotEquals(0, county.fipsCode());
     }
 
     @Test
@@ -44,7 +44,7 @@ public class CountyDaoIT extends BaseTests {
     @Test
     @Transactional(value = DatabaseConfig.geoApiTxManager)
     public void getFipsCountyMapTest() {
-        assertEquals(sqlCountyDao.getCountyBySenateCode(1).name().toLowerCase(), "albany");
-        assertEquals(sqlCountyDao.getCountyBySenateCode(59).name().toLowerCase(), "nassau");
+        assertEquals(Integer.valueOf(1), sqlCountyDao.getSenateCode(1));
+        assertEquals(Integer.valueOf(28), sqlCountyDao.getSenateCode(59));
     }
 }
