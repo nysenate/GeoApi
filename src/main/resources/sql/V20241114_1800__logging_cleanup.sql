@@ -1,4 +1,4 @@
-DROP SCHEMA log;
+DROP SCHEMA log CASCADE;
 CREATE SCHEMA log;
 
 CREATE TABLE log.deployment (
