@@ -24,7 +24,7 @@ public enum ShapefileQueries implements BasicSqlQuery {
                 SELECT ${intersectType}.${codeColumn} AS code,
                     ST_Intersection(${baseType}.geom, ${intersectType}.geom) AS intersection_geom
                 FROM ${schema}.${baseType}, ${schema}.${intersectType}
-                WHERE ${baseType}.${baseCodeColumn} = :districtCode AND ST_Intersects(${baseType}.geom, ${intersectType}.geom)
+                WHERE ${baseType}.${baseCodeColumn}::varchar = :districtCode AND ST_Intersects(${baseType}.geom, ${intersectType}.geom)
             ) as temp ORDER BY area DESC""");
 
     private final String query;

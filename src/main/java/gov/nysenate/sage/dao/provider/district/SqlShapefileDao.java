@@ -75,9 +75,7 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
         Map<String, String> replacementMap = getReplacements(intersectType, "intersectType");
         replacementMap.put("baseType", baseType.name().toLowerCase());
         replacementMap.put("baseCodeColumn", baseType.codeColumn());
-        // Only town/city has codes that aren't numbers.
-        SqlParameterSource params = new MapSqlParameterSource("districtCode",
-                baseType == DistrictType.TOWN_CITY ? refCode : Integer.parseInt(refCode));
+        var params = new MapSqlParameterSource("districtCode", refCode);
 
         String sql = GET_INTERSECTION.getSql("districts", replacementMap);
         return namedJdbcTemplate.query(sql, params, (rs, rowNum) -> {
