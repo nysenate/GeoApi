@@ -19,6 +19,8 @@ public class Mailer {
     private static final Logger logger = LoggerFactory.getLogger(Mailer.class);
     @Value("${smtp.host}")
     private String smtpHostName;
+    @Value("${smtp.auth}")
+    private String smtpAuth;
     @Value("${smtp.debug}")
     private String smtpDebug;
     @Value("${smtp.active}")
@@ -47,7 +49,7 @@ public class Mailer {
 
         Properties props = new Properties();
         props.put("mail.smtp.host", smtpHostName);
-        props.put("mail.smtp.auth", true);
+        props.put("mail.smtp.auth", smtpAuth);
         props.put("mail.debug", smtpDebug);
         props.put("mail.smtp.port", smtpPort);
         props.put("mail.smtp.starttls.enable", smtpTlsEnable);
