@@ -2,6 +2,7 @@ package gov.nysenate.sage.provider.district;
 
 import gov.nysenate.sage.dao.provider.streetfile.StreetfileDao;
 import gov.nysenate.sage.model.address.DistrictedStreetRange;
+import gov.nysenate.sage.model.address.Zip5;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +26,7 @@ public class Streetfile implements StreetLookupService {
 
     /** {@inheritDoc} */
     @Override
-    public List<DistrictedStreetRange> streetLookup(Integer zip5) {
+    public List<DistrictedStreetRange> streetLookup(Zip5 zip5) {
         try {
             return streetfileDao.getDistrictStreetRangesByZip(zip5);
         }

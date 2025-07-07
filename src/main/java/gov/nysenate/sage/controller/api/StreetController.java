@@ -3,6 +3,7 @@ package gov.nysenate.sage.controller.api;
 import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.client.response.street.StreetResponse;
 import gov.nysenate.sage.model.address.DistrictedStreetRange;
+import gov.nysenate.sage.model.address.Zip5;
 import gov.nysenate.sage.model.result.StreetResult;
 import gov.nysenate.sage.provider.district.StreetLookupService;
 import gov.nysenate.sage.provider.district.Streetfile;
@@ -38,7 +39,8 @@ public class StreetController extends BaseController {
     @GetMapping(value = "/lookup")
     public BaseResponse addressBatchCityState(@RequestParam int zip5) {
         logger.info("Getting street data for zip5 {}", zip5);
-        List<DistrictedStreetRange> streets = streetfile.streetLookup(zip5);
+        var zip5Obj = new Zip5(zip5);
+        List<DistrictedStreetRange> streets = streetfile.streetLookup(zip5Obj);
         return new StreetResponse(new StreetResult(streets));
     }
 }

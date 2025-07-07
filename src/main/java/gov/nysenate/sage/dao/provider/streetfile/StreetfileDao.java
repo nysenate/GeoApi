@@ -2,6 +2,7 @@ package gov.nysenate.sage.dao.provider.streetfile;
 
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.DistrictedStreetRange;
+import gov.nysenate.sage.model.address.Zip5;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictType;
 
@@ -27,5 +28,5 @@ public interface StreetfileDao {
      * Returns a list of street ranges with district information for a given zip5.
      * @return List of DistrictedStreetRange
      */
-    List<DistrictedStreetRange> getDistrictStreetRangesByZip(Integer zip5);
+    List<DistrictedStreetRange> getDistrictStreetRangesByZip(Zip5 zip5);
 }

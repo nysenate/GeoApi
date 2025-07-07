@@ -6,10 +6,7 @@ import gov.nysenate.sage.controller.api.DistrictUtil;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.base.SqlTable;
 import gov.nysenate.sage.dao.provider.district.ShapefileDao;
-import gov.nysenate.sage.model.address.Address;
-import gov.nysenate.sage.model.address.BuildingAddress;
-import gov.nysenate.sage.model.address.DistrictedStreetRange;
-import gov.nysenate.sage.model.address.StreetAddressRange;
+import gov.nysenate.sage.model.address.*;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
@@ -137,14 +134,14 @@ public class SqlStreetfileDao extends BaseDao implements StreetfileDao {
     }
 
     /** {@inheritDoc} */
-    public List<DistrictedStreetRange> getDistrictStreetRangesByZip(Integer zip5) {
+    public List<DistrictedStreetRange> getDistrictStreetRangesByZip(Zip5 zip5) {
         if (zip5 == null) {
             return null;
         }
 
         checkLock();
         return namedJdbcTemplate.query(StreetfileQuery.SELECT_BY_ZIP.getSql(),
-                        new MapSqlParameterSource("zip5", zip5), new DistrictStreetRangeMapper());
+                        new MapSqlParameterSource("zip5", zip5.toString()), new DistrictStreetRangeMapper());
     }
 
     private void checkLock() {
