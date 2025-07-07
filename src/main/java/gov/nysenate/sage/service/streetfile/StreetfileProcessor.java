@@ -16,6 +16,7 @@ import gov.nysenate.sage.scripts.streetfinder.scripts.utils.DistrictingData;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLineType;
 import gov.nysenate.sage.util.FormatUtil;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,9 +47,11 @@ public class StreetfileProcessor {
     @Autowired
     public StreetfileProcessor(@Value("${streetfile.dir}") String streetfileDir, CountyDao countyDao,
                                TownCityDao townCityDao, StreetfileAddressCorrectionService correctionService,
-                               StreetfileDao streetfileDao) {
+                               StreetfileDao streetfileDao) throws IOException {
         this.sourceDir = Path.of(streetfileDir, "text_files").toFile();
+        FileUtils.forceMkdir(sourceDir);
         this.resultsDir = Path.of(streetfileDir, "results").toFile();
+        FileUtils.forceMkdir(resultsDir);
         this.streetfilePath = Path.of(resultsDir.getPath(), "streetfile.txt");
         this.conflictPath = Path.of(resultsDir.getPath(), "conflicts.txt");
         this.improperPath = Path.of(resultsDir.getPath(), "improper.txt");
@@ -63,10 +66,10 @@ public class StreetfileProcessor {
         File[] dataFiles = sourceDir.listFiles();
         File[] resultFiles = resultsDir.listFiles();
         if (dataFiles == null || resultFiles == null) {
-            throw new IOException("Couldn't access directories.");
+            throw new IOException("The necessary directories do not exist.");
         }
         if (dataFiles.length == 0) {
-            logger.info("No streetfile data to process.");
+            logger.warn("No streetfile data to process.");
             return null;
         }
 
