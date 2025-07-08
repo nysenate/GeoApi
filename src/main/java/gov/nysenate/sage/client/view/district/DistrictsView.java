@@ -43,6 +43,7 @@ public class DistrictsView {
         this.ward = viewFrom(WARD, dInfo, geomMap);
         this.village = viewFrom(VILLAGE, dInfo, geomMap);
         this.cityCouncil = viewFrom(CITY_COUNCIL, dInfo, geomMap);
+        this.election = viewFrom(ELECTION, dInfo, geomMap);
     }
 
     private static DistrictView viewFrom(DistrictType type, DistrictInfo info, Map<DistrictType, DistrictMap> typeToGeom) {
