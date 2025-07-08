@@ -26,7 +26,6 @@ import javax.annotation.Nonnull;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -44,7 +43,7 @@ public class SqlStreetfileDao extends BaseDao implements StreetfileDao {
     private static final Map<DistrictType, String> distColMap;
     private static final String copySqlTemplate = "COPY public.streetfile(%s) FROM STDIN CSV NULL '%s'";
     private final String columnOrder;
-    private final Connection connection;
+    private final BaseConnection connection;
     private final ShapefileDao shapefileDao;
     private boolean locked = false;
 
@@ -86,7 +85,7 @@ public class SqlStreetfileDao extends BaseDao implements StreetfileDao {
         checkLock();
         locked = true;
         jdbcTemplate.execute("TRUNCATE streetfile RESTART IDENTITY");
-        var copyManager = new CopyManager((BaseConnection) connection);
+        var copyManager = new CopyManager(connection);
         copyManager.copyIn(copySqlTemplate.formatted(columnOrder, nullString()), new FileReader(streetfilePath.toFile()));
         locked = false;
     }
