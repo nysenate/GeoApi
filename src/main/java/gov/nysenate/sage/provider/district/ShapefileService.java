@@ -5,6 +5,7 @@ import gov.nysenate.sage.dao.provider.district.SqlShapefileDao;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.IntersectResult;
+import gov.nysenate.sage.model.result.MapListResult;
 import gov.nysenate.sage.model.result.MapResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.util.FormatUtil;
@@ -52,8 +53,8 @@ public class ShapefileService implements MapService {
 
     /** {@inheritDoc} */
     @Override
-    public MapResult getDistrictMaps(DistrictType districtType) {
-        var mapResult = new MapResult();
+    public MapListResult getDistrictMaps(DistrictType districtType) {
+        var mapResult = new MapListResult();
         List<DistrictMap> mapCollection = sqlShapefileDao.getDistrictMaps(districtType);
         if (mapCollection != null) {
             mapResult.setDistrictMaps(mapCollection);

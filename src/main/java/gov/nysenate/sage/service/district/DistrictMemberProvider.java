@@ -8,7 +8,6 @@ import gov.nysenate.sage.model.district.DistrictMember;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.DistrictResultWithMembers;
-import gov.nysenate.sage.model.result.MapResult;
 import gov.nysenate.services.model.Senator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -40,22 +39,17 @@ public class DistrictMemberProvider {
     }
 
     /**
-     * Adds the senator, congressional, and assembly member data to the map result.
+     * Adds the senator, congressional, and/or assembly member data to the map result.
      */
-    public void assignDistrictMembers(MapResult mapResult) {
-        if (mapResult == null || !mapResult.isSuccess()) {
+    public void assignDistrictMembers(DistrictMap map) {
+        if (map == null || map.getDistrictType() == DistrictType.TOWN_CITY) {
             return;
         }
-        for (DistrictMap map : mapResult.getDistrictMaps()) {
-            if (map.getDistrictType() == DistrictType.TOWN_CITY) {
-                continue;
-            }
-            int code = Integer.parseInt(map.getDistrictCode());
-            switch (map.getDistrictType()) {
-                case SENATE -> map.setSenator(senatorCache.get(code));
-                case ASSEMBLY -> map.setMember(assemblyCache.get(code));
-                case CONGRESSIONAL -> map.setMember(congressionalCache.get(code));
-            }
+        int code = Integer.parseInt(map.getDistrictCode());
+        switch (map.getDistrictType()) {
+            case SENATE -> map.setSenator(senatorCache.get(code));
+            case ASSEMBLY -> map.setMember(assemblyCache.get(code));
+            case CONGRESSIONAL -> map.setMember(congressionalCache.get(code));
         }
     }
 

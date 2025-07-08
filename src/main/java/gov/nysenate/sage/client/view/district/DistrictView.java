@@ -1,18 +1,17 @@
 package gov.nysenate.sage.client.view.district;
 
-import gov.nysenate.sage.model.district.DistrictInfo;
-import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.client.view.map.PolygonMapView;
 import gov.nysenate.sage.util.FormatUtil;
 
 public class DistrictView {
-    protected String name;
-    protected String district;
+    private final String name;
+    private final String district;
+    private final PolygonMapView map;
 
-    public DistrictView(DistrictType districtType, DistrictInfo districtInfo) {
-        if (districtInfo != null) {
-            this.name = districtInfo.getDistName(districtType);
-            this.district = districtInfo.getDistCode(districtType);
-        }
+    public DistrictView(String name, String code, PolygonMapView mapView) {
+        this.name = name;
+        this.district = code;
+        this.map = mapView;
     }
 
     public String getName() {
@@ -24,5 +23,9 @@ public class DistrictView {
             return null;
         }
         return district;
+    }
+
+    public PolygonMapView getMap() {
+        return map;
     }
 }

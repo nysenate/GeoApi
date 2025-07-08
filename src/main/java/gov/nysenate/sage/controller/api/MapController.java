@@ -3,7 +3,9 @@ package gov.nysenate.sage.controller.api;
 import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.client.response.map.MapResponse;
 import gov.nysenate.sage.client.response.map.MultipleMapResponse;
+import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.model.result.MapListResult;
 import gov.nysenate.sage.model.result.MapResult;
 import gov.nysenate.sage.provider.district.ShapefileService;
 import gov.nysenate.sage.service.district.DistrictMemberProvider;
@@ -41,23 +43,24 @@ public class MapController extends BaseController {
                             @RequestParam(required = false) String district,
                             @RequestParam(required = false) boolean showMembers,
                             @RequestParam(required = false) boolean meta) {
-        MapResult mapResult;
         DistrictType districtType = getValue(distType, DistrictType.class);
         if (district != null) {
             district = FormatUtil.cleanString(district);
             logger.info("Retrieving {} district {} map.", districtType.name(), district);
-            mapResult = shapefileService.getDistrictMap(districtType, district);
+            MapResult mapResult = shapefileService.getDistrictMap(districtType, district);
             if (showMembers || meta) {
-                districtMemberProvider.assignDistrictMembers(mapResult);
+                districtMemberProvider.assignDistrictMembers(mapResult.getDistrictMap());
             }
             return new MapResponse(mapResult, !meta);
         } else {
             logger.info("Retrieving all {} district maps.", districtType.name());
-            mapResult = shapefileService.getDistrictMaps(districtType);
-            if (showMembers || meta) {
-                districtMemberProvider.assignDistrictMembers(mapResult);
+            MapListResult mapListResult = shapefileService.getDistrictMaps(districtType);
+            if ((showMembers || meta) && mapListResult.getDistrictMaps() != null) {
+                for (DistrictMap districtMap : mapListResult.getDistrictMaps()) {
+                    districtMemberProvider.assignDistrictMembers(districtMap);
+                }
             }
-            return new MultipleMapResponse(mapResult, !meta);
+            return new MultipleMapResponse(mapListResult, !meta);
         }
     }
 }

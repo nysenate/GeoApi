@@ -1,7 +1,12 @@
 package gov.nysenate.sage.client.view.district;
 
+import gov.nysenate.sage.client.view.map.PolygonMapView;
 import gov.nysenate.sage.model.district.DistrictInfo;
+import gov.nysenate.sage.model.district.DistrictMap;
+import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResultWithMembers;
+
+import java.util.Map;
 
 import static gov.nysenate.sage.model.district.DistrictType.*;
 
@@ -22,23 +27,27 @@ public class DistrictsView {
     protected DistrictView village;
     protected DistrictView cityCouncil;
 
-    public DistrictsView(DistrictResultWithMembers result) {
+    public DistrictsView(DistrictResultWithMembers result, Map<DistrictType, DistrictMap> geomMap) {
         if (result == null) {
             return;
         }
         DistrictInfo dInfo = result.getDistrictInfo();
-        this.senate = new SenateDistrictView(dInfo, result.getSenator());
-        this.congressional = new MemberDistrictView(CONGRESSIONAL, dInfo, result.getCongressionalMember());
-        this.assembly = new MemberDistrictView(ASSEMBLY, dInfo, result.getAssemblyMember());
-        this.county = new DistrictView(COUNTY, dInfo);
-        this.election = new DistrictView(ELECTION, dInfo);
-        this.school = new DistrictView(SCHOOL, dInfo);
-        this.town = new DistrictView(TOWN_CITY, dInfo);
-        this.zip = new DistrictView(ZIP, dInfo);
-        this.cleg = new DistrictView(COUNTY_LEG, dInfo);
-        this.ward = new DistrictView(WARD, dInfo);
-        this.village = new DistrictView(VILLAGE, dInfo);
-        this.cityCouncil = new DistrictView(CITY_COUNCIL, dInfo);
+        this.senate = new SenateDistrictView(viewFrom(SENATE, dInfo, geomMap), result.getSenator());
+        this.congressional = new MemberDistrictView(viewFrom(CONGRESSIONAL, dInfo, geomMap), result.getCongressionalMember());
+        this.assembly = new MemberDistrictView(viewFrom(ASSEMBLY, dInfo, geomMap), result.getAssemblyMember());
+        this.county = viewFrom(COUNTY, dInfo, geomMap);
+        this.school = viewFrom(SCHOOL, dInfo, geomMap);
+        this.town = viewFrom(TOWN_CITY, dInfo, geomMap);
+        this.zip = viewFrom(ZIP, dInfo, geomMap);
+        this.cleg = viewFrom(COUNTY_LEG, dInfo, geomMap);
+        this.ward = viewFrom(WARD, dInfo, geomMap);
+        this.village = viewFrom(VILLAGE, dInfo, geomMap);
+        this.cityCouncil = viewFrom(CITY_COUNCIL, dInfo, geomMap);
+    }
+
+    private static DistrictView viewFrom(DistrictType type, DistrictInfo info, Map<DistrictType, DistrictMap> typeToGeom) {
+        DistrictMap map = typeToGeom.get(type);
+        return new DistrictView(info.getDistName(type), info.getDistCode(type), map == null ? null : new PolygonMapView(map));
     }
 
     public SenateDistrictView getSenate() {
@@ -90,6 +99,6 @@ public class DistrictsView {
     }
 
     private static <V extends DistrictView> V getDistrictView(V view) {
-        return view != null && view.district != null ? view : null;
+        return view != null && view.getDistrict() != null ? view : null;
     }
 }

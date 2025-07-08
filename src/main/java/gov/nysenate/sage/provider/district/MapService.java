@@ -1,6 +1,7 @@
 package gov.nysenate.sage.provider.district;
 
 import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.model.result.MapListResult;
 import gov.nysenate.sage.model.result.MapResult;
 
 /**
@@ -13,5 +14,5 @@ public interface MapService {
     MapResult getDistrictMap(DistrictType districtType, String code);
 
     /** Provides a collection of all district maps for a given type */
-    MapResult getDistrictMaps(DistrictType districtType);
+    MapListResult getDistrictMaps(DistrictType districtType);
 }

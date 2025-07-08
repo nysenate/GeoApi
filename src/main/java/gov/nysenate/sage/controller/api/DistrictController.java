@@ -7,12 +7,10 @@ import gov.nysenate.sage.client.response.district.DistrictResponse;
 import gov.nysenate.sage.client.response.district.IntersectResponse;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
+import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Point;
-import gov.nysenate.sage.model.result.DistrictResult;
-import gov.nysenate.sage.model.result.DistrictResultWithMembers;
-import gov.nysenate.sage.model.result.GeocodeResult;
-import gov.nysenate.sage.model.result.IntersectResult;
+import gov.nysenate.sage.model.result.*;
 import gov.nysenate.sage.provider.district.DistrictService;
 import gov.nysenate.sage.provider.district.LocalSource;
 import gov.nysenate.sage.provider.district.ShapefileService;
@@ -28,9 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static gov.nysenate.sage.model.result.ResultStatus.BAD_OVERLAY;
 import static gov.nysenate.sage.model.result.ResultStatus.INVALID_BATCH_ADDRESSES;
@@ -72,6 +68,7 @@ public class DistrictController extends BaseController {
             @RequestParam(required = false) String geocoder,
             @RequestParam(required = false, defaultValue = "true") boolean uspsValidate,
             @RequestParam(required = false) boolean usePunct,
+            @RequestParam(required = false) boolean showMaps,
             @RequestParam(required = false) String lat,
             @RequestParam(required = false) String lon,
             @RequestParam(required = false) String addr,
@@ -103,7 +100,17 @@ public class DistrictController extends BaseController {
         if (!uspsValidate) {
             geocodedAddress = new GeocodedAddress(originalAddress, geocodedAddress.getGeocode());
         }
-        return new DistrictResponse(memberProvider.assignMembers(initialResult), geocodedAddress, usePunct);
+        Map<DistrictType, DistrictMap> geomMap = new HashMap<>();
+        if (showMaps) {
+            for (DistrictType type : initialResult.getAssignedDistricts()) {
+                String code = initialResult.getDistrictInfo().getDistCode(type);
+                MapResult result = shapefileService.getDistrictMap(type, code);
+                if (result.isSuccess()) {
+                    geomMap.put(type, result.getDistrictMap());
+                }
+            }
+        }
+        return new DistrictResponse(memberProvider.assignMembers(initialResult), geocodedAddress, usePunct, geomMap);
     }
 
     /**
@@ -168,7 +175,7 @@ public class DistrictController extends BaseController {
             @RequestParam(required = false) String zip5,
             @RequestParam(required = false) String zip4) {
         return districtAssign(null, null, true,
-                usePunct, lat, lon, addr, addr1, addr2, city, state, zip5, zip4);
+                usePunct, false, lat, lon, addr, addr1, addr2, city, state, zip5, zip4);
     }
 
     /**

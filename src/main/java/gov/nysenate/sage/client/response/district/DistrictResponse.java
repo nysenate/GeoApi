@@ -6,9 +6,12 @@ import gov.nysenate.sage.client.view.district.DistrictsView;
 import gov.nysenate.sage.client.view.geo.GeocodeView;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
+import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.result.DistrictResultWithMembers;
+
+import java.util.Map;
 
 public class DistrictResponse extends BaseResponse {
     protected AddressView address;
@@ -22,6 +25,10 @@ public class DistrictResponse extends BaseResponse {
     protected DistrictsView districts;
 
     public DistrictResponse(DistrictResultWithMembers districtResult, GeocodedAddress geoAddr, boolean usePunct) {
+        this(districtResult, geoAddr, usePunct, Map.of());
+    }
+
+    public DistrictResponse(DistrictResultWithMembers districtResult, GeocodedAddress geoAddr, boolean usePunct, Map<DistrictType, DistrictMap> geomMap) {
         super(districtResult);
         if (districtResult == null) {
             return;
@@ -29,8 +36,7 @@ public class DistrictResponse extends BaseResponse {
         this.districtAssigned = !districtResult.getAssignedDistricts().isEmpty();
         this.senateAssigned = districtResult.getAssignedDistricts().contains(DistrictType.SENATE);
         this.matchLevel = districtResult.getDistrictInfo().matchLevel().name();
-        this.isMultiMatch = districtResult.isMultiMatch();
-        this.districts = new DistrictsView(districtResult);
+        this.districts = new DistrictsView(districtResult, geomMap);
         if (geoAddr == null) {
             return;
         }
