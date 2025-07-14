@@ -9,27 +9,32 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PolygonMapView {
-    protected int precision = 8;
+    private static final int precision = 8;
     protected List<List<Double[]>> geom;
     protected String type = "";
 
-    public PolygonMapView(DistrictMap districtMap) {
-        if (districtMap != null && districtMap.getPolygons() != null) {
-            this.type = districtMap.getGeometryType();
-            this.geom = new ArrayList<>();
-            for (Polygon polygon : districtMap.getPolygons()) {
-                if (polygon.getPoints() != null) {
-                    List<Double[]> geomPoly = new ArrayList<>();
-                    for (Point point : polygon.getPoints()) {
-                        Double[] p = new Double[2];
-                        p[0] = point.lat().setScale(precision, RoundingMode.HALF_UP).doubleValue();
-                        p[1] = point.lon().setScale(precision, RoundingMode.HALF_UP).doubleValue();
-                        geomPoly.add(p);
-                    }
-                    this.geom.add(geomPoly);
+    public PolygonMapView(List<Polygon> polygons, String type) {
+        this.type = type;
+        if (polygons == null) {
+            return;
+        }
+        this.geom = new ArrayList<>();
+        for (Polygon polygon : polygons) {
+            if (polygon.getPoints() != null) {
+                List<Double[]> geomPoly = new ArrayList<>();
+                for (Point point : polygon.getPoints()) {
+                    Double[] p = new Double[2];
+                    p[0] = point.lat().setScale(precision, RoundingMode.HALF_UP).doubleValue();
+                    p[1] = point.lon().setScale(precision, RoundingMode.HALF_UP).doubleValue();
+                    geomPoly.add(p);
                 }
+                this.geom.add(geomPoly);
             }
         }
+    }
+
+    public PolygonMapView(DistrictMap districtMap) {
+        this(districtMap.getPolygons(), districtMap.getGeometryType());
     }
 
     public List<List<Double[]>> getGeom() {

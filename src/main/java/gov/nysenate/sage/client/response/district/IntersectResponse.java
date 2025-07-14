@@ -12,7 +12,7 @@ public record IntersectResponse(List<DistrictOverlapView> overlaps, DistrictType
                                 PolygonMapView referenceMap, BigDecimal totalReferenceArea, String areaUnit) {
     public static IntersectResponse from(IntersectResult intersectResult) {
         BigDecimal totalArea = intersectResult.getMainMap().getArea();
-        List<DistrictOverlapView> overlaps = intersectResult.getOverlap().stream()
+        List<DistrictOverlapView> overlaps = intersectResult.getOverlaps().stream()
                 .map(dMap -> new DistrictOverlapView(dMap, totalArea)).toList();
         return new IntersectResponse(overlaps, intersectResult.getIntersectType(),
                 new PolygonMapView(intersectResult.getMainMap()), intersectResult.getMainMap().getArea(),

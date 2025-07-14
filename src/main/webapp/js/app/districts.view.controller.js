@@ -144,7 +144,7 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
     };
 
     $scope.showFullMapForOverlap = function(index, overlap) {
-        mapService.setOverlay(overlap.map.geom, overlap.name, false, true, null, this.colors[index % this.colors.length]);
+        mapService.setOverlay(overlap.fullMap.geom, overlap.name, false, true, null, this.colors[index % this.colors.length]);
     };
 
     $scope.setOfficeMarker = function(office) {

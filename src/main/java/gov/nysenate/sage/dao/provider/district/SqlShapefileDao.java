@@ -71,7 +71,7 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
     }
 
     /** {@inheritDoc} */
-    public List<DistrictMap> getDistrictOverlap(DistrictType baseType, DistrictType intersectType, String refCode) {
+    public List<IntersectMap> getDistrictOverlap(DistrictType baseType, DistrictType intersectType, String refCode) {
         Map<String, String> replacementMap = getReplacements(intersectType, "intersectType");
         replacementMap.put("baseType", baseType.name().toLowerCase());
         replacementMap.put("baseCodeColumn", baseType.codeColumn());
@@ -79,12 +79,13 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
 
         String sql = GET_INTERSECTION.getSql("districts", replacementMap);
         return namedJdbcTemplate.query(sql, params, (rs, rowNum) -> {
-            DistrictMap intersectMap = getDistrictMapFromJson(rs.getString("intersect_geo_json"));
+            IntersectMap intersectMap = getDistrictMapFromJson(rs.getString("intersect_geo_json"), new IntersectMap());
             intersectMap.setDistrictType(intersectType);
             String code = getDistrictCode(rs, intersectType);
             intersectMap.setDistrictCode(code);
             intersectMap.setDistrictName(getDistrictName(intersectType, code));
             intersectMap.setArea(rs.getBigDecimal("area"));
+            intersectMap.setFullMapPolygons(getDistrictMap(intersectType, code).getPolygons());
             return intersectMap;
         }).stream().filter(dm -> !dm.getArea().equals(BigDecimal.ZERO)).toList();
     }
@@ -137,7 +138,7 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
                 default -> rs.getString("name");
             };
             var metadata = new DistrictMetadata(type, name, code);
-            DistrictMap map = getDistrictMapFromJson(rs.getString("map"));
+            DistrictMap map = getDistrictMapFromJson(rs.getString("map"), new DistrictMap());
             map.setDistrictMetadata(metadata);
             map.setArea(rs.getBigDecimal("area"));
             return map;
@@ -204,11 +205,10 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
      * @return          DistrictMap containing the geometry.
      *                  null if map string not present or error
      */
-    private static DistrictMap getDistrictMapFromJson(String jsonMap) {
+    private static <T extends DistrictMap> T getDistrictMapFromJson(String jsonMap, T districtMap) {
         if (jsonMap == null || jsonMap.isEmpty() || jsonMap.equals("null")) {
             return null;
         }
-        var districtMap = new DistrictMap();
         var objectMapper = new ObjectMapper();
         try {
             JsonNode mapNode = objectMapper.readTree(jsonMap);
