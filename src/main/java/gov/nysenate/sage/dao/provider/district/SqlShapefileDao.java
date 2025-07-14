@@ -9,7 +9,6 @@ import gov.nysenate.sage.dao.model.county.CountyDao;
 import gov.nysenate.sage.model.district.*;
 import gov.nysenate.sage.model.geo.*;
 import gov.nysenate.sage.util.FormatUtil;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -134,7 +133,7 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
                 case CONGRESSIONAL -> "NY Congressional District " + code;
                 case TOWN_CITY -> (code.startsWith("-") ? "City" : "Town") + " of " + rs.getString("name");
                 case ZIP -> "Zipcode " + code;
-                case COUNTY -> countySenateCodeToNameMap.get(Integer.parseInt(code));
+                case COUNTY -> countySenateCodeToNameMap.get(Integer.parseInt(code)) + " County";
                 default -> rs.getString("name");
             };
             var metadata = new DistrictMetadata(type, name, code);
@@ -191,9 +190,6 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
 
     @Override
     public String getDistrictName(DistrictType type, String code) {
-        if (StringUtils.isBlank(code) || !type.hasShapefile()) {
-            return null;
-        }
         DistrictMap map = getDistrictMap(type, code);
         return map == null ? null : map.getDistrictName();
     }
