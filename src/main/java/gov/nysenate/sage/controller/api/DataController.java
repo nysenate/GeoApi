@@ -3,6 +3,7 @@ package gov.nysenate.sage.controller.api;
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.client.response.base.GenericResponse;
+import gov.nysenate.sage.dao.model.county.CountyDao;
 import gov.nysenate.sage.dao.provider.district.SqlShapefileDao;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,10 +17,12 @@ import static gov.nysenate.sage.model.result.ResultStatus.SUCCESS;
 @RestController
 @RequestMapping(value = ConstantUtil.REST_PATH + "data")
 public class DataController {
+    private final CountyDao countyDao;
     private final SqlShapefileDao sqlShapefileDao;
 
     @Autowired
-    public DataController(SqlShapefileDao sqlShapefileDao) {
+    public DataController(CountyDao countyDao, SqlShapefileDao sqlShapefileDao) {
+        this.countyDao = countyDao;
         this.sqlShapefileDao = sqlShapefileDao;
     }
 
@@ -31,8 +34,9 @@ public class DataController {
      * (GET)    /api/v2/data/sencache
      */
     @GetMapping(value = "/sencache")
-    public BaseResponse updateSencache() {
+    public BaseResponse updateCaches() {
         try {
+            countyDao.cacheCounties();
             sqlShapefileDao.cacheDistrictMaps();
             return new GenericResponse(true,  SUCCESS.getCode() + ": " + SUCCESS.getDesc());
         } catch (Exception e) {

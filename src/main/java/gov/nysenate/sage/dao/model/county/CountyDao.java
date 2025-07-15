@@ -1,5 +1,6 @@
 package gov.nysenate.sage.dao.model.county;
 
+import com.google.common.collect.ImmutableList;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.district.County;
 import org.slf4j.Logger;
@@ -16,12 +17,12 @@ import java.util.List;
 @Repository
 public class CountyDao extends BaseDao {
     private static final Logger logger = LoggerFactory.getLogger(CountyDao.class);
-    private List<County> counties;
+    private ImmutableList<County> counties;
 
     @PostConstruct
-    private void init() {
-        this.counties = namedJdbcTemplate.query(
-                CountyQuery.GET_ALL_COUNTIES.getSql(getPublicSchema()), new CountyHandler());
+    public void cacheCounties() {
+        this.counties = ImmutableList.copyOf(namedJdbcTemplate.query(
+                CountyQuery.GET_ALL_COUNTIES.getSql(getPublicSchema()), new CountyHandler()));
     }
 
     public List<County> getCounties() {
@@ -33,17 +34,15 @@ public class CountyDao extends BaseDao {
                 .map(County::senateCode).findFirst().orElse(null);
     }
 
-    public County getCountyBySenateCode(int code) {
+    public String getLinkBySenateCode(String senateCodeStr) {
         try {
-            var params = new MapSqlParameterSource("senateCode", code);
-            List<County> countyList = namedJdbcTemplate
-                    .query(CountyQuery.GET_COUNTY_BY_ID.getSql(getPublicSchema()), params, new CountyHandler());
-            if (countyList.get(0) != null) {
-                return countyList.get(0);
-            }
+            var params = new MapSqlParameterSource("senateCode", Integer.parseInt(senateCodeStr));
+            return namedJdbcTemplate.queryForObject(
+                    CountyQuery.GET_LINK_BY_SENATE_CODE.getSql(getPublicSchema()), params, String.class
+            );
         }
         catch (Exception ex) {
-            logger.error("Failed to get county by %s: %s%n%s".formatted("senateCode", code, ex.getMessage()));
+            logger.error("Failed to get county by %s: %s%n%s".formatted("senateCode", senateCodeStr, ex.getMessage()));
         }
         return null;
     }

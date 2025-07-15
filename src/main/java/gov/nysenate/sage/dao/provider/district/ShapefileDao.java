@@ -8,6 +8,7 @@ import gov.nysenate.sage.model.geo.Geocode;
 
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
 
 public interface ShapefileDao {
     /**
@@ -34,7 +35,7 @@ public interface ShapefileDao {
      * Retrieves a mapped collection of DistrictMaps.
      * @return Map<DistrictType, List<DistrictMap>>
      */
-    List<DistrictMap> getDistrictMaps(DistrictType type);
+    SortedSet<DistrictMap> getDistrictMaps(DistrictType type);
 
     /**
      * Fetches all the district maps from the database and stores them in a collection as well as

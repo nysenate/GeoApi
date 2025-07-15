@@ -1,6 +1,5 @@
 package gov.nysenate.sage.provider.district;
 
-import gov.nysenate.sage.dao.model.county.CountyDao;
 import gov.nysenate.sage.dao.provider.district.SqlShapefileDao;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
@@ -14,62 +13,39 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.SortedSet;
 
 @Service
 public class ShapefileService implements MapService {
     private final SqlShapefileDao sqlShapefileDao;
 
-    private final CountyDao countyDao;
-
     @Autowired
-    public ShapefileService(SqlShapefileDao sqlShapefileDao, CountyDao countyDao) {
+    public ShapefileService(SqlShapefileDao sqlShapefileDao) {
         this.sqlShapefileDao = sqlShapefileDao;
-        this.countyDao = countyDao;
     }
 
     /** {@inheritDoc} */
     @Override
     public MapResult getDistrictMap(DistrictType districtType, String code) {
-        var mapResult = new MapResult();
-        if (code != null && !code.isEmpty()) {
-            code = FormatUtil.trimLeadingZeroes(code);
-            DistrictMap map = sqlShapefileDao.getDistrictMap(districtType, code);
-            if (map != null) {
-                // For COVID links
-                if (districtType.equals(DistrictType.COUNTY)) {
-                    map.setLink(countyDao.getCountyBySenateCode(Integer.parseInt(code)).link());
-                }
-                mapResult.setDistrictMap(map);
-                mapResult.setStatusCode(ResultStatus.SUCCESS);
-            }
-            else {
-                mapResult.setStatusCode(ResultStatus.NO_MAP_RESULT);
-            }
+        code = FormatUtil.trimLeadingZeroes(code).trim();
+        if (code.isEmpty()) {
+            return new MapResult(ResultStatus.MISSING_DISTRICT_CODE);
         }
-        else {
-            mapResult.setStatusCode(ResultStatus.MISSING_DISTRICT_CODE);
+        DistrictMap map = sqlShapefileDao.getDistrictMap(districtType, code);
+        if (map == null) {
+            return new MapResult(ResultStatus.NO_MAP_RESULT);
         }
-        return mapResult;
+        return new MapResult(map);
     }
 
     /** {@inheritDoc} */
     @Override
     public MapListResult getDistrictMaps(DistrictType districtType) {
-        var mapResult = new MapListResult();
-        List<DistrictMap> mapCollection = sqlShapefileDao.getDistrictMaps(districtType);
-        if (mapCollection != null) {
-            mapResult.setDistrictMaps(mapCollection);
-            mapResult.setStatusCode(ResultStatus.SUCCESS);
-            if (districtType.equals(DistrictType.COUNTY)) {
-                for (DistrictMap map : mapCollection) {
-                    map.setLink(countyDao.getCountyBySenateCode(Integer.parseInt(map.getDistrictCode())).link());
-                }
-            }
+        SortedSet<DistrictMap> mapSet = sqlShapefileDao.getDistrictMaps(districtType);
+        if (mapSet == null) {
+            return new MapListResult(ResultStatus.NO_MAP_RESULT);
         }
-        else {
-            mapResult.setStatusCode(ResultStatus.NO_MAP_RESULT);
-        }
-        return mapResult;
+        return new MapListResult(mapSet);
     }
 
     /**

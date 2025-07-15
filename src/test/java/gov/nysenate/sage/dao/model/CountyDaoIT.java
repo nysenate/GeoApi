@@ -37,8 +37,7 @@ public class CountyDaoIT extends BaseTests {
     @Test
     @Transactional(value = DatabaseConfig.geoApiTxManager)
     public void getCountyBySenateCodeTest() {
-        County county = sqlCountyDao.getCountyBySenateCode(14);
-        assertEquals("erie", county.name().toLowerCase());
+        assertNotNull(sqlCountyDao.getLinkBySenateCode("14"));
     }
 
     @Test

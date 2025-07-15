@@ -24,7 +24,6 @@ import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static gov.nysenate.sage.dao.provider.district.ShapefileQueries.*;
 
@@ -37,14 +36,11 @@ import static gov.nysenate.sage.dao.provider.district.ShapefileQueries.*;
 public class SqlShapefileDao extends BaseDao implements ShapefileDao {
     private static final Logger logger = LoggerFactory.getLogger(SqlShapefileDao.class);
     private final CountyDao countyDao;
-    private final Map<Integer, String> countySenateCodeToNameMap;
     private ImmutableMap<DistrictType, SortedSet<DistrictMap>> districtMapCache = ImmutableMap.of();
 
     @Autowired
     public SqlShapefileDao(CountyDao countyDao) {
         this.countyDao = countyDao;
-        this.countySenateCodeToNameMap = countyDao.getCounties().stream()
-                .collect(Collectors.toMap(County::senateCode, County::name));
     }
 
     @PostConstruct
@@ -90,9 +86,8 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
     }
 
     /** {@inheritDoc} */
-    public List<DistrictMap> getDistrictMaps(DistrictType type) {
-        SortedSet<DistrictMap> districtMaps = districtMapCache.get(type);
-        return districtMaps == null ? List.of() : districtMaps.stream().toList();
+    public SortedSet<DistrictMap> getDistrictMaps(DistrictType type) {
+        return districtMapCache.get(type);
     }
 
     /** {@inheritDoc} */
@@ -133,13 +128,17 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
                 case CONGRESSIONAL -> "NY Congressional District " + code;
                 case TOWN_CITY -> (code.startsWith("-") ? "City" : "Town") + " of " + rs.getString("name");
                 case ZIP -> "Zipcode " + code;
-                case COUNTY -> countySenateCodeToNameMap.get(Integer.parseInt(code)) + " County";
+                case COUNTY -> rs.getString("name") + " County";
                 default -> rs.getString("name");
             };
             var metadata = new DistrictMetadata(type, name, code);
             DistrictMap map = getDistrictMapFromJson(rs.getString("map"), new DistrictMap());
             map.setDistrictMetadata(metadata);
             map.setArea(rs.getBigDecimal("area"));
+            // For COVID links
+            if (type == DistrictType.COUNTY) {
+                map.setLink(countyDao.getLinkBySenateCode(code));
+            }
             return map;
         }
     }

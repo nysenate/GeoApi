@@ -17,7 +17,7 @@ public enum DistrictType {
     }
 
     DistrictType(String code, boolean hasName) {
-        this(hasName ? "NAME" : code, code);
+        this(hasName ? "name" : code, code);
     }
 
     DistrictType(String name, String code) {
