@@ -92,7 +92,6 @@ public class DataGenService implements SageDataGenService {
     }
 
     private void updateDistrictMembers(DistrictType districtType, List<DistrictMember> newMembers) {
-        logger.info("Saving NY {} members from website scraping...", districtType);
         if (newMembers.isEmpty()) {
             throw new RuntimeException("No %s members found!".formatted(districtType));
         }
@@ -102,6 +101,7 @@ public class DataGenService implements SageDataGenService {
                 memberDao.insertOrReplaceDistrictMember(newMember);
             }
         }
+        logger.info("Saved NY {} members from website scraping", districtType);
     }
 
     /**

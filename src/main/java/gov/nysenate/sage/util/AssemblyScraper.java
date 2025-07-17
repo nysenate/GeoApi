@@ -18,7 +18,7 @@ import java.util.List;
  */
 public class AssemblyScraper {
     private static final Logger logger = LoggerFactory.getLogger(AssemblyScraper.class);
-    private static final String ASSEMBLY_MEM_URL = "https://www.nyassembly.gov/mem/email/";
+    private static final String ASSEMBLY_URL = "https://www.nyassembly.gov";
 
     public static List<DistrictMember> getAssemblies() {
         List<DistrictMember> ret = new ArrayList<>();
@@ -35,19 +35,18 @@ public class AssemblyScraper {
             // The DIV contains district number of the member.
             // The ordinal suffix ("st", "nd", "rd", "th") is stripped from district ordinal.
 
-            logger.info("Connecting to " + ASSEMBLY_MEM_URL);
+            logger.info("Connecting to " + ASSEMBLY_URL);
 
-            Document doc = Jsoup.connect(ASSEMBLY_MEM_URL).get();
+            Document doc = Jsoup.connect(ASSEMBLY_URL + "/mem/email").get();
             Elements memberList = doc.select("#mem-email-list li"); //#mem-email-list
             for (Element member : memberList) {
                 try {
                     Elements memberInfo = member.children();
                     String memberName = memberInfo.get(0).text();
-                    String memberUrl = memberInfo.get(0).attr("href");
-                    String districtNumber = memberInfo.get(1).text().replaceAll("District","").trim();
-                    int distNum = Integer.parseInt( districtNumber.replace("st","").replace("nd","")
-                            .replace("rd","").replace("th","") );
-//                String memberEmail = memberInfo.get(2).text().trim();
+                    String memberUrl = ASSEMBLY_URL + memberInfo.get(0).attr("href");
+                    String districtNumber = memberInfo.get(1).text().replaceAll("District","")
+                            .replaceAll("st|nd|rd|th","").trim();
+                    int distNum = Integer.parseInt(districtNumber);
 
                     logger.info("Retrieved member [{}], AD={}", memberName, distNum);
                     ret.add(new DistrictMember(DistrictType.ASSEMBLY, distNum, memberName, memberUrl));
