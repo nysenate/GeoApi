@@ -2,7 +2,6 @@ package gov.nysenate.sage.controller.api.filter;
 
 import gov.nysenate.sage.BaseTests;
 import gov.nysenate.sage.annotation.IntegrationTest;
-import gov.nysenate.sage.config.DatabaseConfig;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.model.api.ApiUser;
 import gov.nysenate.sage.model.result.ResultStatus;
@@ -10,7 +9,6 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -33,7 +31,6 @@ public class ApiFilterIT extends BaseTests {
     private String publicApiKey;
 
     @Test
-    @Transactional(value = DatabaseConfig.geoApiTxManager)
     public void apiFilterAuthenticateDefaultUser() throws Exception {
         apiFilter.init(mf.getMockFilterConfig());
 
@@ -54,7 +51,6 @@ public class ApiFilterIT extends BaseTests {
     }
 
     @Test
-    @Transactional(value = DatabaseConfig.geoApiTxManager)
     public void apiFilterAuthenticatesValidKey() throws Exception {
         apiFilter.init(mf.getMockFilterConfig());
 
@@ -72,7 +68,6 @@ public class ApiFilterIT extends BaseTests {
     }
 
     @Test
-    @Transactional(value = DatabaseConfig.geoApiTxManager)
     public void apiFilterRejectsInvalidKey() throws Exception {
         apiFilter.init(mf.getMockFilterConfig());
 
@@ -93,7 +88,6 @@ public class ApiFilterIT extends BaseTests {
     }
 
     @Test
-    @Transactional(value = DatabaseConfig.geoApiTxManager)
     public void apiFilterRejectsMissingKey() throws Exception {
         apiFilter.init(mf.getMockFilterConfig());
 
@@ -114,7 +108,6 @@ public class ApiFilterIT extends BaseTests {
     }
 
     @Test
-    @Transactional(value = DatabaseConfig.geoApiTxManager)
     public void apiFilterParsesValidURI() throws Exception {
         String validBodyUri = "/GeoApi/api/testMethod/json/body/param?somestuff";
 
@@ -137,7 +130,6 @@ public class ApiFilterIT extends BaseTests {
     }
 
     @Test
-    @Transactional(value = DatabaseConfig.geoApiTxManager)
     public void apiFilterParsesInvalidURI() throws Exception {
         String invalidUri = "/GeoApi/api/param?addr1=";
 

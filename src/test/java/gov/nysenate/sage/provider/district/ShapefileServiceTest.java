@@ -2,7 +2,6 @@ package gov.nysenate.sage.provider.district;
 
 import gov.nysenate.sage.BaseTests;
 import gov.nysenate.sage.annotation.IntegrationTest;
-import gov.nysenate.sage.config.DatabaseConfig;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictType;
@@ -16,7 +15,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
@@ -29,7 +27,6 @@ public class ShapefileServiceTest extends BaseTests {
 
     @Ignore
     @Test
-    @Transactional(value = DatabaseConfig.geoApiTxManager)
     public void shouldNotDistrictAssignCityGeocodeQuality() {
         var addr = new Address("", "Delmar", "NY", "");
         Geocode geo = new Geocode(new Point("42.6220235", "-73.8326232"), GeocodeQuality.CITY, Geocoder.GOOGLE, false);

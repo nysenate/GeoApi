@@ -11,5 +11,5 @@ import org.springframework.transaction.annotation.Transactional;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {TestConfig.class, ConsoleApplicationConfig.class})
 @ActiveProfiles("test")
-@Transactional(DatabaseConfig.geoApiTxManager)
+@Transactional(transactionManager = DatabaseConfig.geoApiTxManager)
 public abstract class BaseTests {}

@@ -17,8 +17,8 @@ import java.beans.PropertyVetoException;
 @EnableTransactionManagement
 @Configuration
 public class DatabaseConfig {
-    private static final Logger logger = LoggerFactory.getLogger(DatabaseConfig.class);
     public static final String geoApiTxManager = "txManager";
+    private static final Logger logger = LoggerFactory.getLogger(DatabaseConfig.class);
 
     /** PostgreSQL Database Configuration */
     @Value("${db.driver:org.postgresql.Driver}") private String dbDriver;

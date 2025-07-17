@@ -2,7 +2,6 @@ package gov.nysenate.sage.service;
 
 import gov.nysenate.sage.BaseTests;
 import gov.nysenate.sage.annotation.IntegrationTest;
-import gov.nysenate.sage.config.DatabaseConfig;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.provider.district.DistrictService;
@@ -11,7 +10,6 @@ import gov.nysenate.sage.provider.geocode.Geocoder;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
@@ -31,7 +29,6 @@ public class DistrictServiceIT extends BaseTests {
     private DistrictService districtService;
 
     @Test
-    @Transactional(value = DatabaseConfig.geoApiTxManager)
     public void assignDistrictsDefaultTest() {
         GeocodeResult geocodeResult =
                 geocodeService.geocode(List.of(Geocoder.GOOGLE),
@@ -42,7 +39,6 @@ public class DistrictServiceIT extends BaseTests {
     }
 
     @Test
-    @Transactional(value = DatabaseConfig.geoApiTxManager)
     public void assignTest() {
         GeocodeResult geocodeResult =
                 geocodeService.geocode(List.of(Geocoder.GOOGLE),
