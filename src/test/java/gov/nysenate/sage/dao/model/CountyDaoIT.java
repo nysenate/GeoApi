@@ -38,7 +38,7 @@ public class CountyDaoIT extends BaseTests {
 
     @Test
     public void getFipsCountyMapTest() {
-        assertEquals(Integer.valueOf(1), sqlCountyDao.getSenateCode(1));
-        assertEquals(Integer.valueOf(28), sqlCountyDao.getSenateCode(59));
+        assertEquals("1", sqlCountyDao.getSenateCodeStr(1));
+        assertEquals("28", sqlCountyDao.getSenateCodeStr(59));
     }
 }

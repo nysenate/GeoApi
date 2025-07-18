@@ -57,7 +57,7 @@ public abstract class BaseResult<S extends DataSource> {
     }
 
     public boolean isSuccess() {
-        return statusCode != null && statusCode.equals(ResultStatus.SUCCESS);
+        return statusCode == ResultStatus.SUCCESS;
     }
 
     public Timestamp getResultTime() {

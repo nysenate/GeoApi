@@ -35,6 +35,7 @@ import static gov.nysenate.sage.dao.provider.district.ShapefileQueries.*;
 @Repository
 public class SqlShapefileDao extends BaseDao implements ShapefileDao {
     private static final Logger logger = LoggerFactory.getLogger(SqlShapefileDao.class);
+    private static final BigDecimal MIN_INTERSECT_SQ_KM = BigDecimal.ONE;
     private final CountyDao countyDao;
     private ImmutableMap<DistrictType, SortedSet<DistrictMap>> districtMapCache = ImmutableMap.of();
 
@@ -70,6 +71,9 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
         Map<String, String> replacementMap = getReplacements(intersectType, "intersectType");
         replacementMap.put("baseType", baseType.name().toLowerCase());
         replacementMap.put("baseCodeColumn", baseType.codeColumn());
+        if (baseType == DistrictType.COUNTY) {
+            refCode = countyDao.getFipsCode(refCode);
+        }
         var params = new MapSqlParameterSource("districtCode", refCode);
 
         String sql = GET_INTERSECTION.getSql("districts", replacementMap);
@@ -82,7 +86,7 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
             intersectMap.setArea(rs.getBigDecimal("area"));
             intersectMap.setFullMapPolygons(getDistrictMap(intersectType, code).getPolygons());
             return intersectMap;
-        }).stream().filter(dm -> !dm.getArea().equals(BigDecimal.ZERO)).toList();
+        }).stream().filter(dm -> dm.getArea().compareTo(MIN_INTERSECT_SQ_KM) > 0).toList();
     }
 
     /** {@inheritDoc} */
@@ -168,7 +172,7 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
         String code;
         // County codes need to be mapped from FIPS code
         if (type == DistrictType.COUNTY) {
-            code = Integer.toString(countyDao.getSenateCode(rs.getInt("code")));
+            code = countyDao.getSenateCodeStr(rs.getInt("code"));
         }
         // Normal district code
         else {

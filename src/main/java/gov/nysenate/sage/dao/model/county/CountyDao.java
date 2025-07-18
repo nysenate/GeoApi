@@ -29,9 +29,14 @@ public class CountyDao extends BaseDao {
         return counties;
     }
 
-    public Integer getSenateCode(int fipsCode) {
+    public String getSenateCodeStr(int fipsCode) {
         return counties.stream().filter(county -> county.fipsCode() == fipsCode)
-                .map(County::senateCode).findFirst().orElse(null);
+                .map(county -> Integer.toString(county.senateCode())).findFirst().orElse(null);
+    }
+
+    public String getFipsCode(String senateCode) {
+        return counties.stream().filter(county -> Integer.toString(county.senateCode()).equals(senateCode))
+                .map(county -> Integer.toString(county.fipsCode())).findFirst().orElse(null);
     }
 
     public String getLinkBySenateCode(String senateCodeStr) {
