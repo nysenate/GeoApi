@@ -207,6 +207,7 @@ public class DistrictController extends BaseController {
         }
         IntersectResult intersectResult = shapefileService.getIntersectionResult(
                 getValue(sourceType, DistrictType.class), sourceId, getValue(intersectType, DistrictType.class));
+        intersectResult.getOverlaps().forEach(memberProvider::assignMember);
         return IntersectResponse.from(intersectResult);
     }
 }

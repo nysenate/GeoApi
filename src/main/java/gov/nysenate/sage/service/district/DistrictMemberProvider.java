@@ -41,7 +41,7 @@ public class DistrictMemberProvider {
     /**
      * Adds the senator, congressional, and/or assembly member data to the map result.
      */
-    public void assignDistrictMembers(DistrictMap map) {
+    public void assignMember(DistrictMap map) {
         if (map == null || map.getDistrictType() == DistrictType.TOWN_CITY) {
             return;
         }
@@ -77,7 +77,6 @@ public class DistrictMemberProvider {
         for (T member : members) {
             tempMap.put(getDistrict.apply(member), member);
         }
-        return  ImmutableMap.copyOf(tempMap);
+        return ImmutableMap.copyOf(tempMap);
     }
-
 }

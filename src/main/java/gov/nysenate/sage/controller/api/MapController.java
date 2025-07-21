@@ -49,7 +49,7 @@ public class MapController extends BaseController {
             logger.info("Retrieving {} district {} map.", districtType.name(), district);
             MapResult mapResult = shapefileService.getDistrictMap(districtType, district);
             if (showMembers || meta) {
-                districtMemberProvider.assignDistrictMembers(mapResult.getDistrictMap());
+                districtMemberProvider.assignMember(mapResult.getDistrictMap());
             }
             return new MapResponse(mapResult, !meta);
         } else {
@@ -57,7 +57,7 @@ public class MapController extends BaseController {
             MapListResult mapListResult = shapefileService.getDistrictMaps(districtType);
             if ((showMembers || meta) && mapListResult.getDistrictMaps() != null) {
                 for (DistrictMap districtMap : mapListResult.getDistrictMaps()) {
-                    districtMemberProvider.assignDistrictMembers(districtMap);
+                    districtMemberProvider.assignMember(districtMap);
                 }
             }
             return new MultipleMapResponse(mapListResult, !meta);
