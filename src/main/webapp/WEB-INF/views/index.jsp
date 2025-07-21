@@ -263,6 +263,7 @@
                                     <option value="town_city">Town/City</option>
                                     <option value="school">School</option>
                                     <option value="zip">Zip</option>
+                                    <option value="electric_utility">Electric Utility</option>
                                 </select>
                             </div>
                             <div>
@@ -292,6 +293,7 @@
                                 <option value="town_city">Town/City</option>
                                 <option value="school">School</option>
                                 <option value="zip">Zip</option>
+                                <option value="electric_utility">Electric Utility</option>
                             </select>
                         </div>
                     </div>
@@ -504,7 +506,8 @@
                         <div class="info-container title connected-bottom">
                             <p class="member-name" ng-click="drawIntersect()">{{overlaps.length + " " +
                                 (intersectType.charAt(0) +
-                                intersectType.slice(1).toLowerCase()).replace("Town_city", "Town/City")}} District Matches &nbsp; <a title="Show Map"
+                                intersectType.slice(1).toLowerCase()).replace("Town_city", "Town/City")
+                                .replace("Electric_utility", "Electric Utility")}} District Matches &nbsp; <a title="Show Map"
                                                                                     class="icon-map"></a></p>
                         </div>
                         <div class="info-container title connected" ng-show="id == 1">
@@ -542,7 +545,7 @@
                                         <div ng-show="intersectType != 'senate'">
                                             <p style="font-size:16px;padding-left: 10px;" class="senate district"
                                                ng-style="getColorStyle(d.district)">
-                                                {{(intersectType.charAt(0) + intersectType.slice(1).toLowerCase()).replace("Town_city", "Town/City")}}
+                                                {{(intersectType.charAt(0) + intersectType.slice(1).toLowerCase()).replace("Town_city", "Town/City").replace("Electric_utility", "Electric Utility")}}
                                                 District {{d.district}}
                                             </p>
                                         </div>

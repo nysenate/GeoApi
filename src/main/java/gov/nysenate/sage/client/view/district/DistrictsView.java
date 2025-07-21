@@ -26,6 +26,7 @@ public class DistrictsView {
     protected DistrictView ward;
     protected DistrictView village;
     protected DistrictView cityCouncil;
+    protected DistrictView electricUtility;
 
     public DistrictsView(DistrictResultWithMembers result, Map<DistrictType, DistrictMap> geomMap) {
         if (result == null) {
@@ -44,6 +45,7 @@ public class DistrictsView {
         this.village = viewFrom(VILLAGE, dInfo, geomMap);
         this.cityCouncil = viewFrom(CITY_COUNCIL, dInfo, geomMap);
         this.election = viewFrom(ELECTION, dInfo, geomMap);
+        this.electricUtility = viewFrom(ELECTRIC_UTILITY, dInfo, geomMap);
     }
 
     private static DistrictView viewFrom(DistrictType type, DistrictInfo info, Map<DistrictType, DistrictMap> typeToGeom) {
@@ -97,6 +99,10 @@ public class DistrictsView {
 
     public DistrictView getCityCouncil() {
         return getDistrictView(cityCouncil);
+    }
+
+    public DistrictView getElectricUtility() {
+        return getDistrictView(electricUtility);
     }
 
     private static <V extends DistrictView> V getDistrictView(V view) {
