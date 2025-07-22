@@ -3,9 +3,7 @@ package gov.nysenate.sage.model.result;
 import gov.nysenate.sage.provider.geocode.DataSource;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * Serves as a base class to provide common fields to sub-classed results. Result objects are
@@ -14,14 +12,18 @@ import java.util.List;
  */
 public abstract class BaseResult<S extends DataSource> {
     // A null source means the service was never actually hit for a result.
-    private final S source;
+    private final LinkedHashSet<S> sources;
     protected int serialId; // Can be used for maintaining order in a list
     protected List<String> messages = new ArrayList<>();
     protected ResultStatus statusCode = ResultStatus.SUCCESS;
     protected Timestamp resultTime;
 
     protected BaseResult(S source) {
-        this.source = source;
+        this.sources = source == null ? null : new LinkedHashSet<>(Set.of(source));
+    }
+
+    protected BaseResult(LinkedHashSet<S> sources) {
+        this.sources = sources;
     }
 
     public List<String> getMessages() {
@@ -44,8 +46,8 @@ public abstract class BaseResult<S extends DataSource> {
         this.messages = messages;
     }
 
-    public S getSource() {
-        return source;
+    public LinkedHashSet<S> getSources() {
+        return sources;
     }
 
     public ResultStatus getStatusCode() {
@@ -56,6 +58,7 @@ public abstract class BaseResult<S extends DataSource> {
         this.statusCode = statusCode;
     }
 
+    // TODO: feel like this should be abstract, based on other data members
     public boolean isSuccess() {
         return statusCode == ResultStatus.SUCCESS;
     }

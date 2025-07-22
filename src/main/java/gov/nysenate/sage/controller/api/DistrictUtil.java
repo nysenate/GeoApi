@@ -19,9 +19,9 @@ public final class DistrictUtil {
         );
         DistrictInfo consolidatedInfo = DistrictUtil.getDistrictInfoWithoutConflicts(
                 districtResults.stream().map(DistrictResult::getDistrictInfo).toList(), consolidatedMatchLevel);
-        List<LocalSource> sources  = districtResults.stream().map(BaseResult::getSource).toList();
-        LocalSource source = sources.size() == 1 ? sources.get(0) : LocalSource.STREETFILE_AND_SHAPEFILE;
-        return new DistrictResult(source, consolidatedInfo);
+        List<LocalSource> sources  = districtResults.stream().map(BaseResult::getSources)
+                .flatMap(Collection::stream).toList();
+        return new DistrictResult(new LinkedHashSet<>(sources), consolidatedInfo);
     }
 
     /**
@@ -46,29 +46,24 @@ public final class DistrictUtil {
      */
     public static DistrictResult consolidateResults(List<DistrictResult> results) {
         DistrictResult first = results.get(0);
-        if (results.stream().noneMatch(BaseResult::isSuccess) || results.size() == 1) {
+        results = results.stream().filter(BaseResult::isSuccess).toList();
+        if (results.size() <= 1) {
             return first;
         }
-        DistrictInfo firstDistInfo = first.getDistrictInfo();
         var typeToDistrictMap = new HashMap<DistrictType, SingleDistrict>();
-        boolean usedFallback = false;
+        var sourcesUsed = new LinkedHashSet<LocalSource>();
         for (DistrictType distType : DistrictType.values()) {
-            SingleDistrict singleDistrict = firstDistInfo.getDistrict(distType);
-            if (singleDistrict != null) {
-                typeToDistrictMap.put(distType, singleDistrict);
-                continue;
-            }
-            Optional<SingleDistrict> distOpt = results.stream().skip(1)
-                    .map(result -> result.getDistrictInfo().getDistrict(distType))
-                    .filter(Objects::nonNull).findFirst();
-            if (distOpt.isPresent()) {
-                usedFallback = true;
-                typeToDistrictMap.put(distType, distOpt.get());
+            for (DistrictResult result : results) {
+                SingleDistrict singleDistrict = result.getDistrictInfo().getDistrict(distType);
+                if (singleDistrict != null) {
+                    typeToDistrictMap.put(distType, singleDistrict);
+                    sourcesUsed.addAll(result.getSources());
+                    break;
+                }
             }
         }
 
-        LocalSource finalSource = usedFallback ? LocalSource.STREETFILE_AND_SHAPEFILE : first.getSource();
-        var finalDistInfo = new DistrictInfo(typeToDistrictMap, firstDistInfo.matchLevel());
-        return new DistrictResult(finalSource, finalDistInfo);
+        var finalDistInfo = new DistrictInfo(typeToDistrictMap, first.getDistrictInfo().matchLevel());
+        return new DistrictResult(sourcesUsed, finalDistInfo);
     }
 }

@@ -24,18 +24,13 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import static gov.nysenate.sage.model.geo.GeocodeQuality.HOUSE;
 import static gov.nysenate.sage.model.geo.GeocodeQuality.POINT;
 import static gov.nysenate.sage.model.result.ResultStatus.*;
-import static gov.nysenate.sage.provider.district.LocalSource.SHAPEFILE;
-import static gov.nysenate.sage.provider.district.LocalSource.STREETFILE;
 
 /**
  * Provides methods for mapping GeocodedAddress to DistrictResult.
@@ -76,7 +71,7 @@ public class DistrictService {
             }
             else {
                 logger.warn("Error handling PO box {}", poBox);
-                return new DistrictResult(null, INTERNAL_ERROR);
+                return new DistrictResult(INTERNAL_ERROR);
             }
         }
 
@@ -87,15 +82,13 @@ public class DistrictService {
             ResultStatus status = getStatus(geocodedAddress, provider);
             DistrictInfo districtInfo = DistrictInfo.empty;
             if (status == SUCCESS) {
-                if (provider == STREETFILE) {
-                    districtInfo = streetfileDao.getDistrictInfo(address);
-                }
-                else if (provider == SHAPEFILE) {
-                    districtInfo = sqlShapefileDao.getDistrictInfo(geocodedAddress.getGeocode(), typesToAssign);
-                }
+                districtInfo = switch (provider) {
+                    case STREETFILE -> streetfileDao.getDistrictInfo(address);
+                    case SHAPEFILE -> sqlShapefileDao.getDistrictInfo(geocodedAddress.getGeocode(), typesToAssign);
+                };
                 typesToAssign.removeAll(districtInfo.getAssignedTypes());
             }
-            var result = new DistrictResult(provider, status, districtInfo);
+            var result = new DistrictResult(new LinkedHashSet<>(Set.of(provider)), status, districtInfo);
             result.setResultTime();
             results.add(result);
         }

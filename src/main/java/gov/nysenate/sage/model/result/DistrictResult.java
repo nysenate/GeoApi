@@ -4,6 +4,7 @@ import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.provider.district.LocalSource;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import static gov.nysenate.sage.model.result.ResultStatus.SUCCESS;
@@ -14,16 +15,16 @@ import static gov.nysenate.sage.model.result.ResultStatus.SUCCESS;
 public class DistrictResult extends BaseResult<LocalSource> {
     private final DistrictInfo districtInfo;
 
-    public DistrictResult(LocalSource source, DistrictInfo districtInfo) {
-        this(source, SUCCESS, districtInfo);
+    public DistrictResult(LinkedHashSet<LocalSource> sources, DistrictInfo districtInfo) {
+        this(sources, SUCCESS, districtInfo);
     }
 
-    public DistrictResult(LocalSource source, ResultStatus status) {
-        this(source, status, DistrictInfo.empty);
+    public DistrictResult(ResultStatus status) {
+        this(null, status, DistrictInfo.empty);
     }
 
-    public DistrictResult(LocalSource source, ResultStatus status, DistrictInfo districtInfo) {
-        super(source);
+    public DistrictResult(LinkedHashSet<LocalSource> sources, ResultStatus status, DistrictInfo districtInfo) {
+        super(sources);
         this.statusCode = status;
         this.districtInfo = districtInfo;
         setResultTime();

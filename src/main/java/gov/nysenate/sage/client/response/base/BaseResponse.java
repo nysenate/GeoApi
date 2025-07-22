@@ -2,20 +2,21 @@ package gov.nysenate.sage.client.response.base;
 
 import gov.nysenate.sage.model.result.BaseResult;
 import gov.nysenate.sage.model.result.ResultStatus;
-import gov.nysenate.sage.provider.geocode.DataSource;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class BaseResponse {
     private final ResultStatus status;
-    private DataSource source = null;
+    private LinkedHashSet<?> sources = null;
     protected final List<String> messages = new ArrayList<>();
 
     public BaseResponse(BaseResult<?> baseResult) {
         if (baseResult != null) {
             this.status = baseResult.getStatusCode();
-            this.source = baseResult.getSource();
+            this.sources = baseResult.getSources();
             this.messages.addAll(baseResult.getMessages());
         }
         else {
@@ -39,8 +40,11 @@ public class BaseResponse {
         return status.getCode();
     }
 
-    public String getSource() {
-        return source == null ? null : source.toString();
+    public String getSources() {
+        if (sources == null) {
+            return null;
+        }
+        return sources.stream().map(Object::toString).collect(Collectors.joining(", "));
     }
 
     public List<String> getMessages() {
