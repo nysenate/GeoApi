@@ -22,7 +22,7 @@ public final class PostOfficeCacheManager {
     private PostOfficeCacheManager() {}
 
     public static PostOfficeCache<Geocoder, GeocodeResult> getGeocodeCache() {
-        var tempCache = new PostOfficeCache<>(new GeocodeResult(null, MISSING_GEOCODED_ADDRESS),
+        var tempCache = new PostOfficeCache<>(new GeocodeResult(MISSING_GEOCODED_ADDRESS),
                 PostOfficeCacheManager::getGeocodeData);
         caches.add(tempCache);
         return tempCache;
@@ -36,9 +36,7 @@ public final class PostOfficeCacheManager {
     }
 
     public static void clearCaches() {
-        for (var cache : caches) {
-            cache.clear();
-        }
+        caches.forEach(PostOfficeCache::clear);
     }
 
     private static PostOfficeData<GeocodeResult> getGeocodeData(Multimap<String, GeocodeResult> postalCityToResults) {
@@ -46,7 +44,6 @@ public final class PostOfficeCacheManager {
         for (String postalCity : postalCityToResults.keySet()) {
             postalCityMap.put(postalCity, toGeocodeResult(postalCityToResults.get(postalCity)));
         }
-
         return new PostOfficeData<>(postalCityMap, toGeocodeResult(postalCityToResults.values()));
     }
 
@@ -54,13 +51,12 @@ public final class PostOfficeCacheManager {
         List<GeocodedAddress> postOffices = geocodeResults.stream().filter(BaseResult::isSuccess)
                 .map(GeocodeResult::getGeocodedAddress).toList();
         if (postOffices.isEmpty()) {
-            return new GeocodeResult(null, NON_NY_STATE);
+            return new GeocodeResult(NON_NY_STATE);
         }
-        final Geocoder firstGeocoder = postOffices.get(0).getGeocode().originalGeocoder();
-        boolean hasCommonGeocoder = postOffices.stream().map(geoAddr -> geoAddr.getGeocode().originalGeocoder())
-                .allMatch(firstGeocoder::equals);
+        List<Geocoder> geocoders = postOffices.stream().map(geoAddr -> geoAddr.getGeocode().originalGeocoder())
+                .toList();
         var postalGeoAddr = new GeocodedPostOfficeBox(postOffices);
-        return new GeocodeResult(hasCommonGeocoder ? firstGeocoder : null, SUCCESS, postalGeoAddr);
+        return new GeocodeResult(geocoders, postalGeoAddr);
     }
 
     private static PostOfficeData<DistrictResult> getDistrictData(Multimap<String, DistrictResult> postalCityToResults) {
@@ -68,7 +64,6 @@ public final class PostOfficeCacheManager {
         for (String postalCity : postalCityToResults.keySet()) {
             dataMap.put(postalCity, consolidateResultsWithoutConflicts(postalCityToResults.get(postalCity)));
         }
-
         return new PostOfficeData<>(dataMap, consolidateResultsWithoutConflicts(postalCityToResults.values()));
     }
 }

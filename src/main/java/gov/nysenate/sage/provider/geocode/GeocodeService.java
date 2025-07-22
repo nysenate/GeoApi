@@ -170,7 +170,7 @@ public class GeocodeService {
                 geocodeResults.add(geocodeResult.get());
             }
             catch (Exception ex) {
-                geocodeResults.add(new GeocodeResult(null, INTERNAL_ERROR));
+                geocodeResults.add(new GeocodeResult(INTERNAL_ERROR));
                 logger.error("Error while processing Future", ex);
             }
         }
