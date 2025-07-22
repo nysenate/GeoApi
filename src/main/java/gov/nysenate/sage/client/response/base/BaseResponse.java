@@ -3,21 +3,17 @@ package gov.nysenate.sage.client.response.base;
 import gov.nysenate.sage.model.result.BaseResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.stream.Collectors;
 
 public class BaseResponse {
     private final ResultStatus status;
     private LinkedHashSet<?> sources = null;
-    protected final List<String> messages = new ArrayList<>();
 
     public BaseResponse(BaseResult<?> baseResult) {
         if (baseResult != null) {
             this.status = baseResult.getStatusCode();
             this.sources = baseResult.getSources();
-            this.messages.addAll(baseResult.getMessages());
         }
         else {
             this.status = ResultStatus.RESPONSE_ERROR;
@@ -45,9 +41,5 @@ public class BaseResponse {
             return null;
         }
         return sources.stream().map(Object::toString).collect(Collectors.joining(", "));
-    }
-
-    public List<String> getMessages() {
-        return this.messages;
     }
 }

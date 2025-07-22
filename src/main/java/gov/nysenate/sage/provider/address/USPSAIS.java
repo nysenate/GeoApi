@@ -134,11 +134,10 @@ public class USPSAIS implements AddressDao {
                 Node error = (Node)xpath.evaluate("Error", response, XPathConstants.NODE);
                 if (error != null)
                 {
-                    ArrayList<String> messages = new ArrayList<>();
-                    messages.add(xpath.evaluate("Description", error).trim());
+                    String message = xpath.evaluate("Description", error).trim();
                     for (AddressResult result : batchResults) {
                         result.setStatusCode(ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
-                        result.setMessages(messages);
+                        result.addMessage(message);
                     }
                 }
                 else
@@ -235,10 +234,7 @@ public class USPSAIS implements AddressDao {
             /** If the request failed, mark them all as such */
             Node error = (Node)xpath.evaluate("Error", response, XPathConstants.NODE);
             if (error != null) {
-                List<String> messages = new ArrayList<>();
-                messages.add(xpath.evaluate("Description", error).trim());
                 var result = new CityStateResult(source(), ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
-                result.setMessages(messages);
                 for (int i = 0; i < zips.size(); i++) {
                     results.add(result);
                 }
@@ -250,9 +246,7 @@ public class USPSAIS implements AddressDao {
 
                 error = (Node)xpath.evaluate("Error", addressResponse, XPathConstants.NODE);
                 if (error != null) {
-                    var result = new CityStateResult(source(), ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
-                    result.addMessage(xpath.evaluate("Description", error).trim());
-                    results.add(result);
+                    results.add(new CityStateResult(source(), ResultStatus.NO_ADDRESS_VALIDATE_RESULT));
                     continue;
                 }
 

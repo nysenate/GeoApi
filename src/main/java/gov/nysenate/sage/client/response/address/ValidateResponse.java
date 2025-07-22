@@ -4,9 +4,12 @@ import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.client.view.address.AddressView;
 import gov.nysenate.sage.model.result.AddressResult;
 
+import java.util.List;
+
 public class ValidateResponse extends BaseResponse {
     protected AddressView address;
     protected boolean validated = false;
+    protected List<String> messages = null;
 
     public ValidateResponse(AddressResult addressResult, boolean usePunct) {
         super(addressResult);
@@ -15,6 +18,7 @@ public class ValidateResponse extends BaseResponse {
             if (addressResult.getAddress() != null) {
                 this.address = new AddressView(addressResult.getAddress(), usePunct);
             }
+            this.messages = addressResult.getMessages();
         }
     }
 
@@ -24,5 +28,9 @@ public class ValidateResponse extends BaseResponse {
 
     public boolean isValidated() {
         return validated;
+    }
+
+    public List<String> getMessages() {
+        return messages;
     }
 }

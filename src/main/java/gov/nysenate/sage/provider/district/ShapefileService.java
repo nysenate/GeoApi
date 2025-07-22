@@ -59,8 +59,6 @@ public class ShapefileService implements MapService {
         DistrictMap sourceMap = sqlShapefileDao.getDistrictMap(sourceType, sourceId);
         // We only need the overlap for the specified intersect type
         List<IntersectMap> overlaps = sqlShapefileDao.getDistrictOverlap(sourceType, intersectWith, sourceId);
-        var result = new IntersectResult(sourceMap, intersectWith, overlaps);
-        result.setResultTime();
-        return result;
+        return new IntersectResult(sourceMap, intersectWith, overlaps);
     }
 }

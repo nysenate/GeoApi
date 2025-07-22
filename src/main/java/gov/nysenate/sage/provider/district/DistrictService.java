@@ -88,11 +88,8 @@ public class DistrictService {
                 };
                 typesToAssign.removeAll(districtInfo.getAssignedTypes());
             }
-            var result = new DistrictResult(new LinkedHashSet<>(Set.of(provider)), status, districtInfo);
-            result.setResultTime();
-            results.add(result);
+            results.add(new DistrictResult(new LinkedHashSet<>(Set.of(provider)), status, districtInfo));
         }
-
         return DistrictUtil.consolidateResults(results);
     }
 

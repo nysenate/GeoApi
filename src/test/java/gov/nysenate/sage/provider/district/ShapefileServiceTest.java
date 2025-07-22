@@ -9,7 +9,6 @@ import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.DistrictResult;
-import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.geocode.Geocoder;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -19,7 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertFalse;
 
 @Category(IntegrationTest.class)
 public class ShapefileServiceTest extends BaseTests {
@@ -32,6 +31,6 @@ public class ShapefileServiceTest extends BaseTests {
         Geocode geo = new Geocode(new Point("42.6220235", "-73.8326232"), GeocodeQuality.CITY, Geocoder.GOOGLE, false);
         GeocodedAddress geoAddr = new GeocodedAddress(addr, geo);
         DistrictResult res = districtService.assignDistricts(List.of(LocalSource.SHAPEFILE), geoAddr, Set.of(DistrictType.SENATE));
-        assertNotEquals(ResultStatus.SUCCESS, res.getStatusCode());
+        assertFalse(res.isSuccess());
     }
 }

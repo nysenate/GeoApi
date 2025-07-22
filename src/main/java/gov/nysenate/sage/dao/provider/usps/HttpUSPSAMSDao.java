@@ -171,7 +171,6 @@ public class HttpUSPSAMSDao implements AddressDao {
             }
         }
         addressResult.setAddress(currAddress);
-        addressResult.setResultTime();
         return addressResult;
     }
 
@@ -239,18 +238,14 @@ public class HttpUSPSAMSDao implements AddressDao {
         if (root == null) {
             return null;
         }
-        CityStateResult cityStateResult;
         if (root.get("success").asBoolean(false)) {
             String cityName = initCapStreetLine(root.get("cityName").asText());
             cityName = WordUtils.capitalizeFully(cityName.toLowerCase());
-            cityStateResult = new CityStateResult(source(), cityName,
+            return new CityStateResult(source(), cityName,
                     root.get("stateAbbr").asText(), root.get("zipCode").asInt());
         }
-        else {
-            cityStateResult = new CityStateResult(source(), NO_ADDRESS_VALIDATE_RESULT);
-        }
-        cityStateResult.setResultTime();
-        return cityStateResult;
+        return new CityStateResult(source(), NO_ADDRESS_VALIDATE_RESULT);
+
     }
 
     private static String encode(Object input) {

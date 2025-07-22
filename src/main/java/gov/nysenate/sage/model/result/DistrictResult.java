@@ -27,7 +27,6 @@ public class DistrictResult extends BaseResult<LocalSource> {
         super(sources);
         this.statusCode = status;
         this.districtInfo = districtInfo;
-        setResultTime();
     }
 
     public DistrictInfo getDistrictInfo() {
