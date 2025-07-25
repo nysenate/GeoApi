@@ -5,7 +5,7 @@ shopt -s nullglob
 # Loop used to prevent errors if there are no XLSX files.
 # May need to run "apt-get install default-jre libreoffice-java-common"
 for filename in "${non_txt_dir}"/*.xlsx; do
-  libreoffice --headless --convert-to txt "${filename}" --outdir "${txt_dir}"
+  libreoffice --headless --convert-to csv "${filename}" --outdir "${txt_dir}"
 done
 
 # NYC specific parsing
