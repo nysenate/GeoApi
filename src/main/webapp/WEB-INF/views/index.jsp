@@ -409,7 +409,7 @@
                         <span ng-switch-when="CITY">City boundary is approximated.</span>
                     </div>
                     <div class="info-container connected-top slim">
-                        <a style="font-size:13px;" ng-hide="viewSuggestions" ng-click="viewSuggestions=true">Did you
+                        <a style="font-size:13px;" ng-hide="viewSuggestions || overlaps" ng-click="viewSuggestions=true">Did you
                             mean something else?</a>
                         <div ng-show="viewSuggestions">
                         <span style="color:#333;font-size:13px;">If the returned location is not what you intended, try entering more information

@@ -18,8 +18,17 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
 
     /** Handle results of district info query */
     $scope.$on("districtInfo", function() {
+        $scope.address = undefined;
+        $scope.geocoded = undefined;
+        $scope.geocode = undefined;
+        $scope.senateAssigned = undefined;
+        $scope.districtAssigned = undefined;
+        $scope.districts = undefined;
+        $scope.intersectType = "none";
+        $scope.overlaps = undefined;
+
         $scope = angular.extend($scope, dataBus.data);
-        $scope.viewSuggestions = (!$scope.districtAssigned && !$scope.multiMatch);
+        $scope.viewSuggestions = !$scope.districtAssigned && !$scope.overlaps;
         dataBus.setBroadcast("expandResults", true);
         mapService.toggleMap(true);
 
