@@ -11,7 +11,6 @@ sage.controller("MemberViewController", function($scope, dataBus, mapService) {
 
     $scope.showMember = function() {
         $scope.member = dataBus.data;
-        console.log($scope.member);
         dataBus.setBroadcast("expandResults", true);
     };
 

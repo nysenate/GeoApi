@@ -10,8 +10,6 @@ sage.controller("DistrictMapController", function($scope, $http, mapService, men
     $scope.type = "";
     $scope.selectedDistrict = "";
     $scope.intersectType = "none";
-    $scope.geoProvider = "default";
-    $scope.provider = "default";
     $scope.showMemberOption = false;
     $scope.showOptions = false;
     $scope.sortedMemberList = [];
@@ -25,6 +23,7 @@ sage.controller("DistrictMapController", function($scope, $http, mapService, men
             mapService.toggleMap(true);
             $scope.minimized = false;
         }
+        console.log("menu toggled for district map. visible? " + $scope.visible);
     });
 
     /**

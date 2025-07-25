@@ -15,7 +15,6 @@ sage.controller('DistrictInfoController', function($scope, $http, mapService, me
     $scope.geoProvider = "default";
     $scope.provider = "default";
     $scope.uspsValidate = "true";
-    $scope.showMaps = "true";
 
     mapService.makeAutocomplete($scope.inputId);
 
@@ -72,8 +71,7 @@ sage.controller('DistrictInfoController', function($scope, $http, mapService, me
         url += (this.provider != "" && this.provider != "default") ? "&provider=" + this.provider : "";
         url += (this.geoProvider != "" && this.geoProvider != "default") ? "&geoProvider=" + this.geoProvider : "";
         url += (this.uspsValidate != "false" && this.uspsValidate != "") ? "&uspsValidate=true" : "";
-        url += (this.showMaps != "false" && this.showMaps != "") ? "&showMaps=true" : "";
-        url += "&showMembers=true&showMultiMatch=true";
+        url += "&showMaps=true&showMembers=true&showMultiMatch=true";
         url = url.replace(/#/g, ""); // Pound marks mess up the query string
         return url;
     };
