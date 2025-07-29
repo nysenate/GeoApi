@@ -14,6 +14,7 @@ public final class DistrictUtil {
     private DistrictUtil() {}
 
     public static DistrictResult consolidateResultsWithoutConflicts(Collection<DistrictResult> districtResults) {
+        districtResults = districtResults.stream().filter(BaseResult::isSuccess).toList();
         DistrictMatchLevel consolidatedMatchLevel = DistrictMatchLevel.getMin(
                 districtResults.stream().map(result -> result.getDistrictInfo().matchLevel()).toList()
         );
