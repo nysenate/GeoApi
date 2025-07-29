@@ -1,7 +1,7 @@
 package gov.nysenate.sage.dao.stats.api;
 
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.dao.model.api.SqlApiUserDao;
+import gov.nysenate.sage.dao.model.api.ApiUserDao;
 import gov.nysenate.sage.model.api.ApiUser;
 import gov.nysenate.sage.model.stats.ApiUserStats;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,16 +20,16 @@ import java.util.stream.Collectors;
 
 @Repository
 public class SqlApiUserStatsDao extends BaseDao implements ApiUserStatsDao {
-    private final SqlApiUserDao sqlApiUserDao;
+    private final ApiUserDao apiUserDao;
 
     @Autowired
-    public SqlApiUserStatsDao(SqlApiUserDao sqlApiUserDao) {
-        this.sqlApiUserDao = sqlApiUserDao;
+    public SqlApiUserStatsDao(ApiUserDao apiUserDao) {
+        this.apiUserDao = apiUserDao;
     }
 
     /** {@inheritDoc} */
     public Map<Integer, ApiUserStats> getRequestCounts(Timestamp from, Timestamp to) {
-        Map<Integer, ApiUser> idToUserMap = sqlApiUserDao.getApiUsers().stream()
+        Map<Integer, ApiUser> idToUserMap = apiUserDao.getApiUsers().stream()
                 .collect(Collectors.toMap(ApiUser::getId, Function.identity()));
         var params = new MapSqlParameterSource("from", from).addValue("to", to);
         var handler = new RequestCountHandler(idToUserMap);

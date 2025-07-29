@@ -12,20 +12,13 @@ base.url = http://localhost:8080
 # Remote IPs matching (regex) user.ip.filter are not required to specify an API key.
 user.ip.filter = (127.0.0.1)
 
-# Such requests default to using the user.default API key.
-user.default.key =
-
 # Allow api calls that match the regex to use the default user if no key is supplied.
 # The format of an api request is /api/v2/service/method. The regex should contain an
 # an alternation of allowed services e.g (map|street)
 public.api.filter = (map)
 
-# Default API key for accessing public apis
-user.public.key =
-
 #Default admin username and pass. Required for ensuring database is configured correctly with shiro
 default.admin.username = Can be found in the database
-
 default.admin.password = Can be found in the database
 
 #################################

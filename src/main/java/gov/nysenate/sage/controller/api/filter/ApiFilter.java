@@ -3,10 +3,12 @@ package gov.nysenate.sage.controller.api.filter;
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.logger.apirequest.SqlApiRequestLogger;
+import gov.nysenate.sage.dao.model.api.ApiUserDao;
+import gov.nysenate.sage.dao.model.api.RequiredApiUser;
 import gov.nysenate.sage.model.api.ApiRequest;
+import gov.nysenate.sage.model.api.ApiUser;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.util.FormatUtil;
-import gov.nysenate.sage.util.auth.ApiUserAuth;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,16 +38,12 @@ public class ApiFilter implements Filter {
     private static final Logger logger = LoggerFactory.getLogger(ApiFilter.class);
 
     private final SqlApiRequestLogger sqlApiRequestLogger;
-    private final ApiUserAuth apiUserAuth;
+    private final ApiUserDao apiUserDao;
     private final String ipFilter;
 
     /** Api services that are designated as public */
     @Value("${public.api.filter:(map)}")
     private String publicApiFilter;
-    @Value("${user.public.key}")
-    private String publicKey;
-    @Value("${user.default.key}")
-    private String defaultKey;
     @Value("${api.logging.enabled:true}")
     private boolean apiLoggingEnabled;
 
@@ -53,9 +51,9 @@ public class ApiFilter implements Filter {
     public enum FormatType { JSON, XML }
 
     @Autowired
-    public ApiFilter(Environment env, SqlApiRequestLogger sqlApiRequestLogger, ApiUserAuth apiUserAuth) {
+    public ApiFilter(Environment env, SqlApiRequestLogger sqlApiRequestLogger, ApiUserDao apiUserDao) {
         this.sqlApiRequestLogger = sqlApiRequestLogger;
-        this.apiUserAuth = apiUserAuth;
+        this.apiUserDao = apiUserDao;
         this.ipFilter = env.getUserIpFilter();
     }
 
@@ -65,19 +63,23 @@ public class ApiFilter implements Filter {
         var request = (HttpServletRequest) servletRequest;
         var apiRequest = new ApiRequest(request);
         String key = servletRequest.getParameter("key");
+        ApiUser apiUser;
         if (key == null) {
             if (apiRequest.getHostAddress().matches(ipFilter)) {
-                key = defaultKey;
+                apiUser = apiUserDao.getRequiredApiUser(RequiredApiUser.DEFAULT);
             }
             else if (apiRequest.getService() != null && apiRequest.getService().matches(publicApiFilter)) {
-                key = publicKey;
+                apiUser = apiUserDao.getRequiredApiUser(RequiredApiUser.PUBLIC);
             }
             else {
                 writeErrorResponse(API_KEY_MISSING, response);
                 return;
             }
         }
-        apiRequest.setApiUser(apiUserAuth.getApiUser(key));
+        else {
+            apiUser = apiUserDao.getApiUserByKey(key);
+        }
+        apiRequest.setApiUser(apiUser);
 
         // Check that the url is formatted correctly
         if (validateRequest(request)) {

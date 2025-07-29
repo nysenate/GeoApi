@@ -8,6 +8,8 @@ public enum ApiUserQuery implements BasicSqlQuery {
 
     GET_API_USER_BY_KEY("SELECT * FROM ${schema}." + SqlTable.API_USER + " WHERE apikey = :apikey"),
 
+    GET_API_USER_BY_NAME("SELECT * FROM ${schema}." + SqlTable.API_USER + " WHERE name = :name"),
+
     GET_ALL_API_USERS("SELECT * FROM ${schema}." + SqlTable.API_USER),
 
     INSERT_API_USER("INSERT INTO ${schema}." + SqlTable.API_USER + " (apikey,name,description,admin) VALUES (:apikey,:name,:description,:admin)"),

@@ -2,7 +2,7 @@ package gov.nysenate.sage.controller.admin;
 
 import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.client.view.job.JobProcessStatusView;
-import gov.nysenate.sage.dao.model.api.SqlApiUserDao;
+import gov.nysenate.sage.dao.model.api.ApiUserDao;
 import gov.nysenate.sage.dao.model.job.SqlJobProcessDao;
 import gov.nysenate.sage.dao.model.job.SqlJobUserDao;
 import gov.nysenate.sage.dao.stats.api.SqlApiUsageStatsDao;
@@ -37,7 +37,7 @@ public class AdminApiController {
     private final SqlApiUserStatsDao sqlApiUserStatsDao;
     private final SqlApiUsageStatsDao sqlApiUsageStatsDao;
     private final SqlDeploymentStatsDao sqlDeploymentStatsDao;
-    private final SqlApiUserDao sqlApiUserDao;
+    private final ApiUserDao apiUserDao;
     private final SqlJobUserDao sqlJobUserDao;
     private final SqlGeocodeStatsDao sqlGeocodeStatsDao;
     private final SqlJobProcessDao sqlJobProcessDao;
@@ -48,13 +48,13 @@ public class AdminApiController {
     @Autowired
     public AdminApiController(SqlApiUserStatsDao sqlApiUserStatsDao,
                               SqlApiUsageStatsDao sqlApiUsageStatsDao, SqlDeploymentStatsDao sqlDeploymentStatsDao,
-                              SqlApiUserDao sqlApiUserDao, SqlJobUserDao sqlJobUserDao,
+                              ApiUserDao apiUserDao, SqlJobUserDao sqlJobUserDao,
                               SqlGeocodeStatsDao sqlGeocodeStatsDao, SqlJobProcessDao sqlJobProcessDao,
                               ApiUserAuth apiUserAuth, JobUserAuth jobUserAuth, AdminUserAuth adminUserAuth) {
         this.sqlApiUserStatsDao = sqlApiUserStatsDao;
         this.sqlApiUsageStatsDao = sqlApiUsageStatsDao;
         this.sqlDeploymentStatsDao = sqlDeploymentStatsDao;
-        this.sqlApiUserDao = sqlApiUserDao;
+        this.apiUserDao = apiUserDao;
         this.sqlJobUserDao = sqlJobUserDao;
         this.sqlGeocodeStatsDao = sqlGeocodeStatsDao;
         this.sqlJobProcessDao = sqlJobProcessDao;
@@ -81,7 +81,7 @@ public class AdminApiController {
         if (subject.hasRole("ADMIN") ||
                 adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
                 apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
-            return sqlApiUserDao.getApiUsers();
+            return apiUserDao.getApiUsers();
         }
         return invalidAuthResponse();
     }
@@ -355,9 +355,9 @@ public class AdminApiController {
         GenericResponse response;
         try {
             int id = Integer.parseInt(request.getParameter("id"));
-            ApiUser apiUserToRemove = sqlApiUserDao.getApiUserById(id);
+            ApiUser apiUserToRemove = apiUserDao.getApiUserById(id);
             if (apiUserToRemove != null) {
-                sqlApiUserDao.removeApiUser(apiUserToRemove);
+                apiUserDao.removeApiUser(apiUserToRemove);
                 response = new GenericResponse(true, "Deleted Api User: " + apiUserToRemove.getName());
             }
             else {

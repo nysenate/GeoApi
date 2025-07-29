@@ -6,13 +6,11 @@ import java.io.Serializable;
  * Model class for representing a user and their assigned key.
  */
 public class ApiUser implements Serializable {
+	private final String apiKey;
+	private final String name;
+	private final String description;
+	private final boolean admin;
 	private int id;
-	private String apiKey;
-	private String name;
-	private String description;
-	private boolean admin;
-
-	public ApiUser() {}
 
 	public ApiUser(String apiKey, String name, String description, boolean admin) {
 		this.apiKey = apiKey;
@@ -20,11 +18,6 @@ public class ApiUser implements Serializable {
 		this.description = description;
 		this.admin = admin;
 	}
-
-    public ApiUser(int id, String apiKey, String name, String description, boolean admin) {
-        this(apiKey, name, description, admin);
-        this.id = id;
-    }
 
 	public int getId() {
 		return id;
@@ -46,23 +39,7 @@ public class ApiUser implements Serializable {
 		this.id = id;
 	}
 
-	public void setApiKey(String apiKey) {
-		this.apiKey = apiKey;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
 	public boolean isAdmin() {
 		return admin;
-	}
-
-	public void setAdmin(boolean admin) {
-		this.admin = admin;
 	}
 }

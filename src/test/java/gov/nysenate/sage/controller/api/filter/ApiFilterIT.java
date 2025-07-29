@@ -3,12 +3,13 @@ package gov.nysenate.sage.controller.api.filter;
 import gov.nysenate.sage.BaseTests;
 import gov.nysenate.sage.annotation.IntegrationTest;
 import gov.nysenate.sage.config.Environment;
+import gov.nysenate.sage.dao.model.api.ApiUserDao;
+import gov.nysenate.sage.dao.model.api.RequiredApiUser;
 import gov.nysenate.sage.model.api.ApiUser;
 import gov.nysenate.sage.model.result.ResultStatus;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -25,10 +26,10 @@ public class ApiFilterIT extends BaseTests {
     private ApiFilter apiFilter;
 
     @Autowired
-    private Environment env;
+    private ApiUserDao apiUserDao;
 
-    @Value("${user.public.key}")
-    private String publicApiKey;
+    @Autowired
+    private Environment env;
 
     @Test
     public void apiFilterAuthenticateDefaultUser() throws Exception {
@@ -59,7 +60,7 @@ public class ApiFilterIT extends BaseTests {
         /* Set remote ip to something that's not loopback.
          *  Set the key to the default key in the request */
         when(mf.getMockServletRequest().getRemoteAddr()).thenReturn("192.168.0.1");
-        when(mf.getMockServletRequest().getParameter("key")).thenReturn(publicApiKey);
+        when(mf.getMockServletRequest().getParameter("key")).thenReturn(apiUserDao.getRequiredApiUser(RequiredApiUser.PUBLIC).getApiKey());
 
         apiFilter.doFilter(mf.getMockServletRequest(), mf.getMockServletResponse(), mf.getMockFilterChain());
 
