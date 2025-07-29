@@ -8,7 +8,6 @@ import gov.nysenate.sage.model.geo.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
@@ -18,12 +17,6 @@ import java.util.List;
 
 public abstract class BaseDao {
     private static final Logger logger = LoggerFactory.getLogger(BaseDao.class);
-    @Value("${env.log.schema:log}")
-    private String logSchema;
-    @Value("${env.public.schema:public}")
-    private String publicSchema;
-    @Value("${env.job.schema:job}")
-    private String jobSchema;
     @Autowired
     protected JdbcTemplate jdbcTemplate;
     @Autowired
@@ -73,14 +66,14 @@ public abstract class BaseDao {
     }
 
     protected String getJobSchema() {
-        return jobSchema;
+        return "job";
     }
 
     protected String getPublicSchema() {
-        return publicSchema;
+        return "public";
     }
 
     protected String getLogSchema() {
-        return logSchema;
+        return "log";
     }
 }

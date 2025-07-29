@@ -37,6 +37,7 @@ import static gov.nysenate.sage.dao.provider.district.ShapefileQueries.*;
 public class SqlShapefileDao extends BaseDao implements ShapefileDao {
     private static final Logger logger = LoggerFactory.getLogger(SqlShapefileDao.class);
     private static final BigDecimal MIN_INTERSECT_SQ_KM = BigDecimal.ONE;
+    private static final String geometrySchema = "districts";
     private final CountyDao countyDao;
     private ImmutableMap<DistrictType, SortedSet<DistrictMap>> districtMapCache = ImmutableMap.of();
 
@@ -57,7 +58,7 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
             if (!districtType.hasShapefile()) {
                 continue;
             }
-            String sql = GET_DISTRICT_FROM_POINT.getSql("districts", getReplacements(districtType, "type"));
+            String sql = GET_DISTRICT_FROM_POINT.getSql(geometrySchema, getReplacements(districtType, "type"));
             SqlParameterSource params = new MapSqlParameterSource("lat", geocode.lat())
                     .addValue("lon", geocode.lon());
             SingleDistrict result = namedJdbcTemplate.queryForObject(sql, params,
@@ -77,7 +78,7 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
         }
         var params = new MapSqlParameterSource("districtCode", refCode);
 
-        String sql = GET_INTERSECTION.getSql("districts", replacementMap);
+        String sql = GET_INTERSECTION.getSql(geometrySchema, replacementMap);
         return namedJdbcTemplate.query(sql, params, (rs, rowNum) -> {
             IntersectMap intersectMap = getDistrictMapFromJson(rs.getString("intersect_geo_json"), new IntersectMap());
             intersectMap.setDistrictType(intersectType);
@@ -107,7 +108,7 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
             } catch (Exception e) {
                 logger.warn("Could not clean {} maps.", districtType);
             }
-            String sql = GET_DISTRICT_MAP.getSql("districts", getReplacements(districtType, "type"));
+            String sql = GET_DISTRICT_MAP.getSql(geometrySchema, getReplacements(districtType, "type"));
             SortedSet<DistrictMap> currDistrictMapSet = new TreeSet<>(
                     namedJdbcTemplate.query(sql, new DistrictCacheMapper(districtType))
             );
@@ -203,14 +204,14 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
         var replacementMap = getReplacements(type, "type");
         // Leading zeroes are meaningful only in zip codes.
         if (type != DistrictType.ZIP) {
-            namedJdbcTemplate.update(CLEAN_CODES.getSql("districts", replacementMap), Map.of());
+            namedJdbcTemplate.update(CLEAN_CODES.getSql(geometrySchema, replacementMap), Map.of());
         }
         var callbackHandler = new CodeCallbackHandler();
-        namedJdbcTemplate.query(GET_CODES.getSql("districts", replacementMap), callbackHandler);
+        namedJdbcTemplate.query(GET_CODES.getSql(geometrySchema, replacementMap), callbackHandler);
         for (var tuple : callbackHandler.codeList) {
             var params = new MapSqlParameterSource("code", tuple.first()).addValue("mainGid", tuple.second());
-            namedJdbcTemplate.update(SET_UNION.getSql("districts", replacementMap), params);
-            namedJdbcTemplate.update(DELETE_REDUNDANT_MAPS.getSql("districts", replacementMap), params);
+            namedJdbcTemplate.update(SET_UNION.getSql(geometrySchema, replacementMap), params);
+            namedJdbcTemplate.update(DELETE_REDUNDANT_MAPS.getSql(geometrySchema, replacementMap), params);
         }
     }
 
