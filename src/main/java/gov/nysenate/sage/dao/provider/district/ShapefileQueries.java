@@ -25,7 +25,32 @@ public enum ShapefileQueries implements BasicSqlQuery {
                     ST_Intersection(${baseType}.geom, ${intersectType}.geom) AS intersection_geom
                 FROM ${schema}.${baseType}, ${schema}.${intersectType}
                 WHERE ${baseType}.${baseCodeColumn}::varchar = :districtCode AND ST_Intersects(${baseType}.geom, ${intersectType}.geom)
-            ) as temp ORDER BY area DESC""");
+            ) as temp ORDER BY area DESC"""),
+
+    CLEAN_CODES("""
+            UPDATE ${schema}.${type}
+            SET ${codeColumn} = TRIM(TRIM(LEADING '0' FROM ${codeColumn}))
+            """),
+
+    GET_CODES("""
+            SELECT ${codeColumn} AS code, COUNT(*) AS code_count, MIN(gid) AS main_gid
+            FROM ${schema}.${type}
+            GROUP BY ${codeColumn}
+            """),
+
+    SET_UNION("""
+            UPDATE ${schema}.${type}
+            SET geom = (
+                SELECT St_Union(geom) FROM ${schema}.${type} WHERE ${codeColumn} = :code GROUP BY ${codeColumn}
+            )
+            WHERE gid = :mainGid
+            """),
+
+    DELETE_REDUNDANT_MAPS("""
+            DELETE FROM ${schema}.${type}
+            WHERE ${codeColumn} = :code AND gid != :mainGid
+            """);
+
 
     private final String query;
 

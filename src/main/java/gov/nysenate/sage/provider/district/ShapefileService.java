@@ -8,7 +8,6 @@ import gov.nysenate.sage.model.result.IntersectResult;
 import gov.nysenate.sage.model.result.MapListResult;
 import gov.nysenate.sage.model.result.MapResult;
 import gov.nysenate.sage.model.result.ResultStatus;
-import gov.nysenate.sage.util.FormatUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,8 +26,7 @@ public class ShapefileService implements MapService {
     /** {@inheritDoc} */
     @Override
     public MapResult getDistrictMap(DistrictType districtType, String code) {
-        code = FormatUtil.trimLeadingZeroes(code).trim();
-        if (code.isEmpty()) {
+        if (code == null || code.isBlank()) {
             return new MapResult(ResultStatus.MISSING_DISTRICT_CODE);
         }
         DistrictMap map = sqlShapefileDao.getDistrictMap(districtType, code);

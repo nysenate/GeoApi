@@ -1,7 +1,6 @@
 package gov.nysenate.sage.client.view.district;
 
 import gov.nysenate.sage.client.view.map.PolygonMapView;
-import gov.nysenate.sage.util.FormatUtil;
 
 public class DistrictView {
     private final String name;
@@ -19,7 +18,7 @@ public class DistrictView {
     }
 
     public String getDistrict() {
-        if (district != null && (district.isEmpty() || FormatUtil.trimLeadingZeroes(district).equals("0"))) {
+        if (district == null || district.isBlank()) {
             return null;
         }
         return district;

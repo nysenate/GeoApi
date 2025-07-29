@@ -40,14 +40,6 @@ public final class FormatUtil {
         return s;
     }
 
-    /** Removes leading zeroes in a string */
-    public static String trimLeadingZeroes(String s) {
-        if (s == null) {
-            return "";
-        }
-        return s.replaceFirst("^0+(?!$)", "");
-    }
-
     /**
      * Returns JSON representation of object.
      * Failure to map object results in empty string.

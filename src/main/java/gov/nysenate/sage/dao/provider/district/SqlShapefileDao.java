@@ -8,10 +8,11 @@ import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.model.county.CountyDao;
 import gov.nysenate.sage.model.district.*;
 import gov.nysenate.sage.model.geo.*;
-import gov.nysenate.sage.util.FormatUtil;
+import gov.nysenate.sage.util.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -101,6 +102,11 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
             if (!districtType.hasShapefile()) {
                 continue;
             }
+            try {
+                cleanMaps(districtType);
+            } catch (Exception e) {
+                logger.warn("Could not clean {} maps.", districtType);
+            }
             String sql = GET_DISTRICT_MAP.getSql("districts", getReplacements(districtType, "type"));
             SortedSet<DistrictMap> currDistrictMapSet = new TreeSet<>(
                     namedJdbcTemplate.query(sql, new DistrictCacheMapper(districtType))
@@ -169,16 +175,12 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
         if (rs == null) {
             return null;
         }
-        String code;
         // County codes need to be mapped from FIPS code
         if (type == DistrictType.COUNTY) {
-            code = countyDao.getSenateCodeStr(rs.getInt("code"));
+            return countyDao.getSenateCodeStr(rs.getInt("code"));
         }
         // Normal district code
-        else {
-            code = rs.getString("code");
-        }
-        return FormatUtil.trimLeadingZeroes(code).trim();
+        return rs.getString("code");
     }
 
     @Override
@@ -195,6 +197,32 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
     public String getDistrictName(DistrictType type, String code) {
         DistrictMap map = getDistrictMap(type, code);
         return map == null ? null : map.getDistrictName();
+    }
+
+    private void cleanMaps(DistrictType type) {
+        var replacementMap = getReplacements(type, "type");
+        // Leading zeroes are meaningful only in zip codes.
+        if (type != DistrictType.ZIP) {
+            namedJdbcTemplate.update(CLEAN_CODES.getSql("districts", replacementMap), Map.of());
+        }
+        var callbackHandler = new CodeCallbackHandler();
+        namedJdbcTemplate.query(GET_CODES.getSql("districts", replacementMap), callbackHandler);
+        for (var tuple : callbackHandler.codeList) {
+            var params = new MapSqlParameterSource("code", tuple.first()).addValue("mainGid", tuple.second());
+            namedJdbcTemplate.update(SET_UNION.getSql("districts", replacementMap), params);
+            namedJdbcTemplate.update(DELETE_REDUNDANT_MAPS.getSql("districts", replacementMap), params);
+        }
+    }
+
+    private static class CodeCallbackHandler implements RowCallbackHandler {
+        private final List<Tuple<String, Integer>> codeList = new ArrayList<>();
+
+        @Override
+        public void processRow(@Nonnull ResultSet rs) throws SQLException {
+            if (rs.getInt("code_count") > 1) {
+                codeList.add(new Tuple<>(rs.getString("code"), rs.getInt("main_gid")));
+            }
+        }
     }
 
     /**
