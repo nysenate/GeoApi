@@ -1,9 +1,7 @@
 package gov.nysenate.sage.service.data;
 
-import gov.nysenate.sage.dao.model.member.MemberDao;
 import gov.nysenate.sage.dao.model.senate.SqlSenateDao;
 import gov.nysenate.sage.model.address.Address;
-import gov.nysenate.sage.model.district.DistrictMember;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.Point;
@@ -11,8 +9,6 @@ import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.provider.geocode.GeocodeService;
 import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.service.district.DistrictMemberProvider;
-import gov.nysenate.sage.util.AssemblyScraper;
-import gov.nysenate.sage.util.CongressScraper;
 import gov.nysenate.services.NYSenateJSONClient;
 import gov.nysenate.services.model.District;
 import gov.nysenate.services.model.Office;
@@ -33,7 +29,6 @@ public class DataGenService implements SageDataGenService {
     private static final Logger logger = LoggerFactory.getLogger(DataGenService.class);
     private static final int NUM_SENATE_SEATS = 63;
     private final SqlSenateDao sqlSenateDao;
-    private final MemberDao memberDao;
     private final DistrictMemberProvider memberProvider;
     private final AddressService addressService;
     private final GeocodeService geocodeService;
@@ -41,11 +36,9 @@ public class DataGenService implements SageDataGenService {
     private String nysenateDomain;
 
     @Autowired
-    public DataGenService(SqlSenateDao sqlSenateDao, MemberDao memberDao,
-                          DistrictMemberProvider memberProvider, AddressService addressService,
-                          GeocodeService geocodeService) {
+    public DataGenService(SqlSenateDao sqlSenateDao, DistrictMemberProvider memberProvider,
+                          AddressService addressService, GeocodeService geocodeService) {
         this.sqlSenateDao = sqlSenateDao;
-        this.memberDao = memberDao;
         this.memberProvider = memberProvider;
         this.addressService = addressService;
         this.geocodeService = geocodeService;
@@ -73,11 +66,11 @@ public class DataGenService implements SageDataGenService {
 
     public synchronized void generateMetaData(String option) throws IOException {
         if (option.matches("a|assembly|all")) {
-            updateDistrictMembers(DistrictType.ASSEMBLY, AssemblyScraper.getAssemblies());
+            memberProvider.updateDistrictMembers(DistrictType.ASSEMBLY);
         }
 
         if (option.matches("c|congress|all")) {
-            updateDistrictMembers(DistrictType.CONGRESSIONAL, CongressScraper.getCongressionals());
+            memberProvider.updateDistrictMembers(DistrictType.CONGRESSIONAL);
         }
 
         if (option.matches("s|senate|all")) {
@@ -89,19 +82,6 @@ public class DataGenService implements SageDataGenService {
     @Scheduled(cron = "${senator.refresh.cron:0 0 0/12 * * *}")
     private void autoRefresh() throws IOException {
         generateMetaData("all");
-    }
-
-    private void updateDistrictMembers(DistrictType districtType, List<DistrictMember> newMembers) {
-        if (newMembers.isEmpty()) {
-            throw new RuntimeException("No %s members found!".formatted(districtType));
-        }
-
-        for (DistrictMember newMember : newMembers) {
-            if (newMember != null) {
-                memberDao.insertOrReplaceDistrictMember(newMember);
-            }
-        }
-        logger.info("Saved NY {} members from website scraping", districtType);
     }
 
     /**

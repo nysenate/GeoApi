@@ -8,6 +8,8 @@ import gov.nysenate.sage.model.district.DistrictMember;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.DistrictResultWithMembers;
+import gov.nysenate.sage.util.AssemblyScraper;
+import gov.nysenate.sage.util.CongressScraper;
 import gov.nysenate.services.model.Senator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -36,6 +38,23 @@ public class DistrictMemberProvider {
         this.sqlSenateDao = sqlSenateDao;
         this.memberDao = memberDao;
         recreateCaches();
+    }
+
+    public void updateDistrictMembers(DistrictType type) {
+        List<DistrictMember> newMembers = switch (type) {
+            case CONGRESSIONAL -> CongressScraper.getCongressionals();
+            case ASSEMBLY -> AssemblyScraper.getAssemblies();
+            default -> List.of();
+        };
+        if (newMembers.isEmpty()) {
+            throw new RuntimeException("No %s members found!".formatted(type));
+        }
+
+        for (DistrictMember newMember : newMembers) {
+            if (newMember != null) {
+                memberDao.insertOrReplaceDistrictMember(newMember);
+            }
+        }
     }
 
     /**
