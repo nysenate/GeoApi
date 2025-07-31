@@ -527,7 +527,7 @@
                                              style="line-height:42px;height:42px;margin-right:0;" class="small-box"
                                              ng-style="getBgStyle(i)">{{(d.areaPercentage).toFixed(0) || '<1'}}%
                                         </div>
-                                        <div class="senator" style="height:56px;" ng-show="intersectType == 'senate'">
+                                        <div class="senator" style="height:56px;" ng-show="intersectType == 'SENATE'">
                                             <div class="senator-pic-holder" style="width:50px;height:50px;">
                                                 <a target="_blank" ng-href="{{d.member.url}}"><img
                                                         ng-src="{{d.member.imageUrl | senatorPic}}" class="senator-pic"></a>
@@ -542,7 +542,7 @@
                                                 </p>
                                             </div>
                                         </div>
-                                        <div ng-show="intersectType != 'senate'">
+                                        <div ng-show="intersectType != 'SENATE'">
                                             <p style="font-size:16px;padding-left: 10px;" class="senate district"
                                                ng-style="getColorStyle(d.district)">
                                                 {{(intersectType.charAt(0) + intersectType.slice(1).toLowerCase()).replace("Town_city", "Town/City").replace("Electric_utility", "Electric Utility")}}
