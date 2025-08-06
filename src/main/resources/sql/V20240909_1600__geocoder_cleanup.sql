@@ -1,11 +1,17 @@
 ALTER TABLE geocoder.cache.geocache
 SET SCHEMA public;
 
-ALTER TABLE public.geocache
-ADD COLUMN bldg_id text NOT NULL DEFAULT '';
+DELETE FROM public.geocache
+WHERE bldgnum = 0;
 
-UPDATE public.geocache
-SET bldg_id = bldgnum::text;
+ALTER TABLE public.geocache
+    ALTER COLUMN bldgnum TYPE text;
+
+ALTER TABLE public.geocache
+    RENAME COLUMN bldgnum TO bldg_id;
+
+DELETE FROM public.geocache
+WHERE street = '' OR street LIKE '%[%' OR street LIKE '%]%';
 
 CREATE FUNCTION orderParts(street text, streettype text)
     RETURNS TEXT AS $$
@@ -20,6 +26,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+ALTER TABLE public.geocache
+DROP CONSTRAINT geocache_bldgnum_predir_street_streettype_postdir_location__key;
+
 UPDATE public.geocache
 SET street = regexp_replace(
         trim(array_to_string(ARRAY[predir, orderParts(street, streettype), postdir], ' ')),
@@ -28,7 +37,6 @@ SET street = regexp_replace(
 DROP FUNCTION orderParts(street text, streettype text);
 
 ALTER TABLE public.geocache
-DROP COLUMN bldgNum,
 DROP COLUMN predir,
 DROP COLUMN streettype,
 DROP COLUMN postdir;
@@ -38,8 +46,7 @@ SET zip4 = NULL
 WHERE zip4 = '';
 
 DELETE FROM public.geocache
-WHERE method = 'YahooDao' OR street = '' OR street LIKE '%[%' OR street LIKE '%]%' OR
-    zip5 = '00000' OR zip5 NOT SIMILAR TO '[0-9]{5}' OR
+WHERE zip5 = '00000' OR zip5 NOT SIMILAR TO '[0-9]{5}' OR
     zip4 = '0000' OR (zip4 IS NOT NULL AND zip4 NOT SIMILAR TO '[0-9]{4}');
 
 DELETE FROM public.geocache
@@ -57,8 +64,28 @@ UPDATE public.geocache
 SET method = 'GOOGLE'
 WHERE method = 'HttpGoogleDao';
 
-ALTER TABLE public.geocache RENAME COLUMN location TO postal_city;
+DELETE FROM public.geocache
+WHERE method != 'NYSGEO' AND method != 'GOOGLE';
+
 ALTER TABLE public.geocache
+RENAME COLUMN location TO postal_city;
+
+DELETE FROM public.geocache a
+WHERE EXISTS (
+    SELECT 1
+    FROM public.geocache b
+    WHERE a.bldg_id = b.bldg_id
+      AND a.street = b.street
+      AND a.postal_city = b.postal_city
+      AND a.state = b.state
+      AND a.zip5 = b.zip5
+      AND a.zip4 = b.zip4
+      AND a.id < b.id
+);
+
+ALTER TABLE public.geocache
+    ADD CONSTRAINT address_key
+        UNIQUE (bldg_id, street, postal_city, state, zip5, zip4),
     ADD CONSTRAINT valid_bldg_id CHECK (bldg_id SIMILAR TO '[0-9]%'),
     ALTER COLUMN street SET NOT NULL,
     ADD CONSTRAINT valid_state CHECK (state IN
@@ -66,4 +93,5 @@ ALTER TABLE public.geocache
         'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MH', 'MD', 'MA', 'MI', 'MN',
         'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'MP', 'OH', 'OK',
         'OR', 'PW', 'PA', 'PR', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VI', 'VA', 'WA', 'WV',
-        'WI', 'WY'));
+        'WI', 'WY')
+    );
