@@ -1,11 +1,11 @@
 package gov.nysenate.sage.model.address;
 
-public abstract class Zip {
+public sealed abstract class Zip permits Zip5, Zip4 {
     private final int zip;
 
     public Zip(int zip) {
         if (zip <= 0 || zip >= Math.pow(10, numDigits())) {
-            throw new IllegalArgumentException("Zip number must be positive with at most " + numDigits() + " digits");
+            throw new IllegalArgumentException(zip + " is not a valid zip" + numDigits());
         }
         this.zip = zip;
     }

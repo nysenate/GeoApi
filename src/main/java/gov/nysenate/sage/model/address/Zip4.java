@@ -1,6 +1,6 @@
 package gov.nysenate.sage.model.address;
 
-public class Zip4 extends Zip {
+public final class Zip4 extends Zip {
     public Zip4(String zip) {
         super(zip);
     }
