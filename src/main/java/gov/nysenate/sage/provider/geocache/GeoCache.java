@@ -5,7 +5,6 @@ import gov.nysenate.sage.dao.provider.nysgeo.GeocoderDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
-import gov.nysenate.sage.model.address.Zip4;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
@@ -33,8 +32,7 @@ public class GeoCache extends BaseDao implements GeocoderDao {
     @Override
     public GeocodedAddress getGeocodedAddress(Address address) {
         if (address.isValid() && address instanceof BuildingAddress bldgAddr) {
-            String sql = addZip4(SELECT_CACHE_ENTRY.getSql(), address.getZip4());
-            List<GeocodedAddress> geoAddrs = namedJdbcTemplate.query(sql,
+            List<GeocodedAddress> geoAddrs = namedJdbcTemplate.query(SELECT_CACHE_ENTRY.getSql(),
                     getIdParams(bldgAddr), new GeocodedStreetAddressMapper());
             if (!geoAddrs.isEmpty()) {
                 return geoAddrs.get(0);
@@ -48,7 +46,7 @@ public class GeoCache extends BaseDao implements GeocoderDao {
         public GeocodedAddress mapRow(ResultSet rs, int rowNum) throws SQLException {
             var addr = new BuildingAddress(rs.getString("bldg_id"), WordUtils.capitalizeFully(rs.getString("street")),
                     WordUtils.capitalizeFully(rs.getString("postal_city")), rs.getString("state"),
-                    rs.getString("zip5"), rs.getString("zip4"));
+                    rs.getString("zip5"), null);
             return new GeocodedAddress(addr, getGeocodeFromResultSet(rs));
         }
     }
@@ -69,8 +67,7 @@ public class GeoCache extends BaseDao implements GeocoderDao {
                 .addValue("street", StringUtils.upperCase(address.getStreet()))
                 .addValue("postalCity", StringUtils.upperCase(address.getPostalCity()))
                 .addValue("state", StringUtils.upperCase(address.getState()))
-                .addValue("zip5", address.getZip5().toString())
-                .addValue("zip4", address.getZip4() == null ? null : address.getZip4().toString());
+                .addValue("zip5", address.getZip5().toString());
     }
 
     public void cache(GeocodeResult result) {
@@ -79,10 +76,9 @@ public class GeoCache extends BaseDao implements GeocoderDao {
         }
         GeocodedAddress geoAddr = result.getGeocodedAddress();
         if (geoAddr == null || !geoAddr.isValidAddress() || !geoAddr.isValidGeocode() ||
-                geoAddr.getGeocode().isCached() || !(geoAddr.getAddress() instanceof BuildingAddress bldgAddr)) {
+                !(geoAddr.getAddress() instanceof BuildingAddress bldgAddr)) {
             return;
         }
-        Address address = geoAddr.getAddress();
         Geocode gc = geoAddr.getGeocode();
         var params = getIdParams(bldgAddr)
                 .addValue("latlon", "POINT(" + gc.lon() + " " + gc.lat() + ")")
@@ -90,18 +86,9 @@ public class GeoCache extends BaseDao implements GeocoderDao {
                 .addValue("quality", gc.quality().name());
 
         synchronized (this) {
-            if (namedJdbcTemplate.update(addZip4(UPDATE_CACHE_ENTRY.getSql(), address.getZip4()), params) == 0) {
+            if (namedJdbcTemplate.update(UPDATE_CACHE_ENTRY.getSql(), params) == 0) {
                 namedJdbcTemplate.update(INSERT_CACHE_ENTRY.getSql(), params);
             }
-        }
-    }
-
-    private static String addZip4(String baseSql, Zip4 zip4) {
-        if (zip4 == null) {
-            return baseSql.formatted("zip4 IS NULL");
-        }
-        else {
-            return baseSql.formatted("zip4 = :zip4");
         }
     }
 }

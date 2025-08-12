@@ -1,4 +1,4 @@
-ALTER TABLE geocoder.cache.geocache
+ALTER TABLE cache.geocache
 SET SCHEMA public;
 
 DELETE FROM public.geocache
@@ -11,7 +11,26 @@ ALTER TABLE public.geocache
     RENAME COLUMN bldgnum TO bldg_id;
 
 DELETE FROM public.geocache
-WHERE street = '' OR street LIKE '%[%' OR street LIKE '%]%';
+WHERE street NOT SIMILAR TO '([A-Z]|[0-9]| )+';
+
+CREATE FUNCTION addOrdinalIndicators(street text)
+    RETURNS TEXT AS $$
+BEGIN
+    IF street NOT SIMILAR TO '[0-9]+' THEN
+        RETURN street;
+    ELSIF street SIMILAR TO '1[1-3]+' THEN
+        RETURN street || 'TH';
+    ELSIF street SIMILAR TO '%1' THEN
+        RETURN street || 'ST';
+    ELSIF street SIMILAR TO '%2' THEN
+        RETURN street || 'ND';
+    ELSIF street SIMILAR TO '%3' THEN
+        RETURN street || 'RD';
+    ELSE
+        RETURN street || 'TH';
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
 
 CREATE FUNCTION orderParts(street text, streettype text)
     RETURNS TEXT AS $$
@@ -27,27 +46,25 @@ END;
 $$ LANGUAGE plpgsql;
 
 ALTER TABLE public.geocache
-DROP CONSTRAINT geocache_bldgnum_predir_street_streettype_postdir_location__key;
+    DROP CONSTRAINT geocache_bldgnum_predir_street_streettype_postdir_location__key;
 
 UPDATE public.geocache
 SET street = regexp_replace(
-        trim(array_to_string(ARRAY[predir, orderParts(street, streettype), postdir], ' ')),
+        trim(array_to_string(ARRAY[predir, orderParts(addOrdinalIndicators(street), streettype), postdir], ' ')),
     ' {2,}', ' ');
 
 DROP FUNCTION orderParts(street text, streettype text);
 
+DROP FUNCTION addOrdinalIndicators(street text);
+
 ALTER TABLE public.geocache
 DROP COLUMN predir,
 DROP COLUMN streettype,
-DROP COLUMN postdir;
-
-UPDATE public.geocache
-SET zip4 = NULL
-WHERE zip4 = '';
+DROP COLUMN postdir,
+DROP COLUMN zip4;
 
 DELETE FROM public.geocache
-WHERE zip5 = '00000' OR zip5 NOT SIMILAR TO '[0-9]{5}' OR
-    zip4 = '0000' OR (zip4 IS NOT NULL AND zip4 NOT SIMILAR TO '[0-9]{4}');
+WHERE zip5 = '00000' OR zip5 NOT SIMILAR TO '[0-9]{5}';
 
 DELETE FROM public.geocache
 WHERE state NOT IN('AL', 'AK', 'AS', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'DC', 'FM', 'FL', 'GA', 'GU',
@@ -79,13 +96,12 @@ WHERE EXISTS (
       AND a.postal_city = b.postal_city
       AND a.state = b.state
       AND a.zip5 = b.zip5
-      AND a.zip4 = b.zip4
       AND a.id < b.id
 );
 
 ALTER TABLE public.geocache
     ADD CONSTRAINT address_key
-        UNIQUE (bldg_id, street, postal_city, state, zip5, zip4),
+        UNIQUE (bldg_id, street, postal_city, state, zip5),
     ADD CONSTRAINT valid_bldg_id CHECK (bldg_id SIMILAR TO '[0-9]%'),
     ALTER COLUMN street SET NOT NULL,
     ADD CONSTRAINT valid_state CHECK (state IN

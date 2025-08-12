@@ -7,7 +7,7 @@ $$ LANGUAGE plpgsql;
 
 ALTER TABLE public.geocache
     ADD CONSTRAINT valid_zips CHECK (
-        isZip(zip5, 5) AND (zip4 IS NULL OR isZip(zip4, 4))
+        isZip(zip5, 5)
     );
 
 TRUNCATE TABLE public.streetfile;
