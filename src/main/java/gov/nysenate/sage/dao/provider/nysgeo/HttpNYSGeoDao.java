@@ -36,7 +36,10 @@ public class HttpNYSGeoDao implements GeocoderDao {
 
     /** {@inheritDoc} */
     public GeocodedAddress getGeocodedAddress(Address address) {
-        String formattedQuery = String.format("?SingleLine=%s", address.toString());
+        String formattedQuery = String.format("?Street=%s&City=%s&State=%s&ZIP=%s",
+                address.getAddr1(), address.getPostalCity(), address.getState(), address.getZip5() +
+                        (address.getZip4() == null ? "" : "-" + address.getZip4())
+        );
         String url = DEFAULT_BASE_URL + GEOCODE_EXTENSION + formattedQuery + COMMON_PARAMS;
         return getGeocodedAddress(url, false);
     }
@@ -53,7 +56,7 @@ public class HttpNYSGeoDao implements GeocoderDao {
             geocodedAddress = getGeocodedAddress(url, true); // Response is identical to address->geocode response.
         }
         catch (NullPointerException ex) {
-            logger.error("Null pointer while performing google geocode!", ex);
+            logger.error("Null pointer while performing {} geocode!", geocoder(), ex);
         }
         return geocodedAddress;
     }
@@ -76,7 +79,15 @@ public class HttpNYSGeoDao implements GeocoderDao {
                         addressNode.get("ZIP").toString().trim().replaceAll("\"", ""), null);
             }
             else if (node.has("candidates") && node.get("candidates").get(0) != null) {
-                node = node.get("candidates").get(0);
+                JsonNode bestNode = node.get("candidates").get(0);
+                for (JsonNode candidateNode : node.get("candidates")) {
+                    int currScore = candidateNode.get("score").asInt();
+                    if (currScore > score) {
+                        bestNode = candidateNode;
+                        score = currScore;
+                    }
+                }
+                node = bestNode;
 
                 String[] candidateAddress = node.get("address").toString().split(",");
                 for (int i = 0; i < candidateAddress.length; i++) {
@@ -84,10 +95,6 @@ public class HttpNYSGeoDao implements GeocoderDao {
                 }
 
                 address = new Address(candidateAddress[0], "", candidateAddress[1], candidateAddress[2], candidateAddress[3], null);
-
-                if (node.has("score") && node.get("score") != null) {
-                    score = node.get("score").asInt();
-                }
             }
             else {
                 return null;
@@ -128,8 +135,6 @@ public class HttpNYSGeoDao implements GeocoderDao {
         else if (quality == 0) {
             return GeocodeQuality.NOMATCH;
         }
-        else {
-            return GeocodeQuality.UNKNOWN;
-        }
+        return GeocodeQuality.UNKNOWN;
     }
 }
