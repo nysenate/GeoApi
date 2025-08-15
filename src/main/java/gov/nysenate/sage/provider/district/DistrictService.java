@@ -70,6 +70,9 @@ public class DistrictService {
                 return getPostOfficeResult(poBox, providers, poBoxGeoAddr);
             }
             else {
+                if (poBox.isOutOfState()) {
+                    return new DistrictResult(NON_NY_STATE);
+                }
                 logger.warn("Error handling PO box {}", poBox);
                 return new DistrictResult(INTERNAL_ERROR);
             }
