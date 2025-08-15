@@ -28,5 +28,5 @@ public interface StreetfileDao {
      * Returns a list of street ranges with district information for a given zip5.
      * @return List of DistrictedStreetRange
      */
-    List<DistrictedStreetRange> getDistrictStreetRangesByZip(Zip5 zip5);
+    List<DistrictedStreetRange> getRanges(Zip5 zip5);
 }

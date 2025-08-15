@@ -133,7 +133,7 @@ public class SqlStreetfileDao extends BaseDao implements StreetfileDao {
     }
 
     /** {@inheritDoc} */
-    public List<DistrictedStreetRange> getDistrictStreetRangesByZip(Zip5 zip5) {
+    public List<DistrictedStreetRange> getRanges(Zip5 zip5) {
         if (zip5 == null) {
             return null;
         }
