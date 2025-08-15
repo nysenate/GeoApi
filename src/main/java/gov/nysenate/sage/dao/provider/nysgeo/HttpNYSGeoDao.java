@@ -36,8 +36,8 @@ public class HttpNYSGeoDao implements GeocoderDao {
 
     /** {@inheritDoc} */
     public GeocodedAddress getGeocodedAddress(Address address) {
-        String formattedQuery = String.format("?Street=%s&City=%s&State=%s&ZIP=%s",
-                address.getAddr1(), address.getPostalCity(), address.getState(), address.getZip5() +
+        String formattedQuery = String.format("?Street=%s&City=%s&ZIP=%s",
+                address.getAddr1(), address.getPostalCity(), address.getZip5() +
                         (address.getZip4() == null ? "" : "-" + address.getZip4())
         );
         String url = DEFAULT_BASE_URL + GEOCODE_EXTENSION + formattedQuery + COMMON_PARAMS;
@@ -62,8 +62,9 @@ public class HttpNYSGeoDao implements GeocoderDao {
     }
 
     private GeocodedAddress getGeocodedAddress(String urlString, boolean isRevGeocode) {
+        urlString = urlString.replaceAll(" ", "%20").replaceAll("#", "%23");
         try {
-            String response = UrlRequest.getResponseFromUrl(urlString.replaceAll(" ", "%20"));
+            String response = UrlRequest.getResponseFromUrl(urlString);
             if (response == null) {
                 return null;
             }
@@ -113,6 +114,7 @@ public class HttpNYSGeoDao implements GeocoderDao {
         catch (NullPointerException ex) {
             logger.error("NullPointerException while parsing NYS Geocoder response!", ex);
         }
+        logger.error("Bad query was: {}", urlString);
         return null;
     }
 
