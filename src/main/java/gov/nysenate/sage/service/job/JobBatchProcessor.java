@@ -2,6 +2,7 @@ package gov.nysenate.sage.service.job;
 
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.model.job.SqlJobProcessDao;
+import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.job.*;
 import gov.nysenate.sage.model.result.AddressResult;
@@ -30,10 +31,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -88,7 +86,6 @@ public class JobBatchProcessor implements JobProcessor {
     }
 
     @Scheduled(cron = "${job.process.cron}")
-    /** Entry point for cron job */
     public synchronized void run() throws Exception {
         isRunning = true;
         List<JobProcessStatus> runningJobs = sqlJobProcessDao.getJobStatusesByCondition(RUNNING, null);
@@ -190,13 +187,12 @@ public class JobBatchProcessor implements JobProcessor {
                 while( (row = jobReader.read(processors)) != null ) {
                     jobFile.addRecord(new JobRecord(jobFile.getColumnIndexMap(), row));
                 }
-                logger.info("{} records", jobFile.recordCount());
+                int recordCount = jobFile.recordCount();
+                logger.info("{} records", recordCount);
                 logger.info("--------------------------------------------------------------------");
 
                 LinkedTransferQueue<Future<JobBatch>> jobResultsQueue = new LinkedTransferQueue<>();
-                Set<DistrictType> districtTypes = jobFile.getRequiredDistrictTypes();
 
-                int recordCount = jobFile.recordCount();
                 int batchCount =  (recordCount + jobBatchSize - 1) / jobBatchSize; // Allows us to round up
                 logger.info("Dividing job into {} batches", batchCount);
 
@@ -204,43 +200,42 @@ public class JobBatchProcessor implements JobProcessor {
                     int from = (i * jobBatchSize);
                     int to = Math.min(from + jobBatchSize, recordCount);
                     ArrayList<JobRecord> batchRecords = new ArrayList<>(jobFile.getRecords().subList(from, to));
-                    JobBatch jobBatch = new JobBatch(batchRecords, from, to);
+                    var jobBatch = new JobBatch(batchRecords, from, to);
 
-                    Future<JobBatch> futureValidatedBatch = null;
-                    if (jobFile.requiresAddressValidation()) {
-                        futureValidatedBatch = addressExecutor.submit(new ValidateJobBatch(jobBatch, addressService));
-                    }
-
+                    Future<JobBatch> fullBatch = addressExecutor.submit(new ValidateJobBatch(jobBatch, addressService));
                     if (jobFile.requiresGeocode() || jobFile.requiresDistrictAssign()) {
-                        Future<JobBatch> futureGeocodedBatch;
-                        if (jobFile.requiresAddressValidation() && futureValidatedBatch != null) {
-                            futureGeocodedBatch = geocodeExecutor.submit(new GeocodeJobBatch(futureValidatedBatch, geocodeService));
-                        }
-                        else {
-                            futureGeocodedBatch = geocodeExecutor.submit(new GeocodeJobBatch(jobBatch, geocodeService));
-                        }
-
+                        fullBatch = geocodeExecutor.submit(new GeocodeJobBatch(fullBatch, geocodeService));
                         if (jobFile.requiresDistrictAssign()) {
-                            Future<JobBatch> futureDistrictedBatch = districtExecutor.submit(new DistrictJobBatch(futureGeocodedBatch, districtTypes, districtService));
-                            jobResultsQueue.add(futureDistrictedBatch);
-                        }
-                        else {
-                            jobResultsQueue.add(futureGeocodedBatch);
+                            fullBatch = districtExecutor.submit(
+                                    new DistrictJobBatch(fullBatch, jobFile.getRequiredDistrictTypes(), districtService)
+                            );
                         }
                     }
-                    else {
-                        jobResultsQueue.add(futureValidatedBatch);
-                    }
+                    jobResultsQueue.add(fullBatch);
                 }
 
                 boolean interrupted = false;
-                int batchNum = 0;
+                int batchNum = 0, inStateRecords = 0, correctedAddresses = 0, geocodes = 0;
+                var districtAssignments = new HashMap<Column, Integer>();
                 while (jobResultsQueue.peek() != null) {
                     try {
                         logger.info("Waiting on batch # {}", batchNum);
                         JobBatch batch = jobResultsQueue.poll().get();
                         for (JobRecord record : batch.jobRecords()) {
                             jobWriter.write(record.getRow(), processors);
+                            if (record.getAddress() != null && record.getAddress().isOutOfState()) {
+                                continue;
+                            }
+                            inStateRecords++;
+                            if (record.getCorrectedAddress() != null && record.getCorrectedAddress().isUspsValidated()) {
+                                correctedAddresses++;
+                            }
+                            if (record.getGeocodedAddress() != null && record.getGeocodedAddress().isValidGeocode()) {
+                                geocodes++;
+                            }
+                            for (Column distColumn : record.getAssignedDistricts()) {
+                                districtAssignments.merge(distColumn, 1, Integer::sum);
+                            }
                         }
                         jobWriter.flush(); // Ensure records have been written
 
@@ -276,6 +271,18 @@ public class JobBatchProcessor implements JobProcessor {
                     }
                     logger.info("Completed batch processing for job file!");
                 }
+
+                var distResultBuilder = new StringBuilder();
+                for (var entry : districtAssignments.entrySet()) {
+                    distResultBuilder.append("\t%s: %d%%\n".formatted(entry.getKey(),
+                            Math.round(100.0 * entry.getValue()/inStateRecords)));
+                }
+                logger.info("Batch job results for NY addresses in {}:\n{}% validated, {}% geocoded\nDistrict assignments:\n{}",
+                        fileName,
+                        Math.round(100.0 * correctedAddresses/inStateRecords),
+                        Math.round(100.0 * geocodes/inStateRecords),
+                        distResultBuilder
+                );
             }
         }
         catch (FileNotFoundException ex) {
@@ -361,29 +368,20 @@ public class JobBatchProcessor implements JobProcessor {
 
     private record ValidateJobBatch(JobBatch jobBatch, AddressService addressService) implements Callable<JobBatch> {
         @Override
-            public JobBatch call() {
-                List<AddressResult> addressResults = addressService.validate(jobBatch.getAddresses(), null);
-                if (addressResults.size() == jobBatch.getAddresses().size()) {
-                    for (int i = 0; i < addressResults.size(); i++) {
-                        jobBatch.setAddressResult(i, addressResults.get(i));
-                    }
-                }
-                return this.jobBatch;
-            }
+        public JobBatch call() {
+            List<Address> baseAddresses = jobBatch.jobRecords().stream().map(JobRecord::getAddress).toList();
+            List<AddressResult> addressResults = addressService.validate(baseAddresses, null);
+            jobBatch.setAddressResults(addressResults);
+            return this.jobBatch;
         }
+    }
 
     /**
      * A callable for the executor to perform geocoding for a JobBatch.
      */
     private static class GeocodeJobBatch implements Callable<JobBatch> {
         private final GeocodeService geocodeService;
-        private JobBatch jobBatch;
-        private Future<JobBatch> futureJobBatch;
-
-        public GeocodeJobBatch(JobBatch jobBatch, GeocodeService geocodeService) {
-            this.jobBatch = jobBatch;
-            this.geocodeService = geocodeService;
-        }
+        private final Future<JobBatch> futureJobBatch;
 
         public GeocodeJobBatch(Future<JobBatch> futureValidatedJobBatch, GeocodeService geocodeService) {
             this.futureJobBatch = futureValidatedJobBatch;
@@ -392,14 +390,12 @@ public class JobBatchProcessor implements JobProcessor {
 
         @Override
         public JobBatch call() throws Exception {
-            if (jobBatch == null && futureJobBatch != null) {
-                this.jobBatch = futureJobBatch.get();
-            }
-            logger.info("Geocoding for records {}-{}", jobBatch.fromRecord(), jobBatch.toRecord());
+            JobBatch finishedBatch = futureJobBatch.get();
+            logger.info("Geocoding for records {}-{}", finishedBatch.fromRecord(), finishedBatch.toRecord());
 
-            List<GeocodeResult> geocodeResults = geocodeService.geocode(jobBatch.getAddresses(true));
-            jobBatch.setGeocodeResults(geocodeResults);
-            return jobBatch;
+            List<GeocodeResult> geocodeResults = geocodeService.geocode(finishedBatch.getBestAddresses());
+            finishedBatch.setGeocodeResults(geocodeResults);
+            return finishedBatch;
         }
     }
 

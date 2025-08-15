@@ -14,29 +14,10 @@ import java.util.List;
  */
 public record JobBatch(List<JobRecord> jobRecords, int fromRecord, int toRecord) {
     /**
-     * Retrieve list of input addresses for this batch.
-     *
+     * Retrieve list of input addresses, using the USPS corrected versions if they exist.
      * @return List<Address>
      */
-    public List<Address> getAddresses() {
-        List<Address> addresses = new ArrayList<>();
-        for (JobRecord jobRecord : jobRecords) {
-            addresses.add(jobRecord.getAddress());
-        }
-        return addresses;
-    }
-
-    /**
-     * Retrieve list of input addresses with option to instead return the usps corrected
-     * versions if they exist.
-     *
-     * @param swapWithValidatedAddress if true, perform swapping. otherwise delegate to getAddresses().
-     * @return List<Address>
-     */
-    public List<Address> getAddresses(boolean swapWithValidatedAddress) {
-        if (!swapWithValidatedAddress) {
-            return getAddresses();
-        }
+    public List<Address> getBestAddresses() {
         List<Address> addresses = new ArrayList<>();
         for (JobRecord jobRecord : jobRecords) {
             if (jobRecord.getCorrectedAddress() != null && jobRecord.getCorrectedAddress().isUspsValidated()) {
@@ -50,7 +31,6 @@ public record JobBatch(List<JobRecord> jobRecords, int fromRecord, int toRecord)
 
     /**
      * Retrieve list of geocoded addresses for this batch.
-     *
      * @return List<GeocodedAddress>
      */
     public List<GeocodedAddress> getGeocodedAddresses() {
@@ -61,9 +41,14 @@ public record JobBatch(List<JobRecord> jobRecords, int fromRecord, int toRecord)
         return geocodedAddresses;
     }
 
-    public void setAddressResult(int index, AddressResult addressResult) {
-        if (jobRecords.get(index) != null) {
-            jobRecords.get(index).applyAddressResult(addressResult);
+    public void setAddressResults(List<AddressResult> addressResults) {
+        if (jobRecords.size() != addressResults.size()) {
+            return;
+        }
+        for (int i = 0; i < addressResults.size(); i++) {
+            if (jobRecords.get(i) != null) {
+                jobRecords.get(i).applyAddressResult(addressResults.get(i));
+            }
         }
     }
 
