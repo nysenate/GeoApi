@@ -318,6 +318,7 @@ public class JobController {
                 process.setFileName(targetFile.getName());
                 process.setRecordCount(recordCount);
                 process.setRequestor(getJobUser(request));
+                process.setValidationRequired(jobFile.requiresAddressValidation());
                 process.setGeocodeRequired(jobFile.requiresGeocode());
                 process.setDistrictRequired(jobFile.requiresDistrictAssign());
                 jobRequest.addProcess(process);
