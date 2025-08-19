@@ -22,4 +22,11 @@ public record Geocode(Point point, GeocodeQuality quality, Geocoder originalGeoc
     public boolean isValidGeocode() {
         return quality() != null && quality().compareTo(GeocodeQuality.CITY) >= 0;
     }
+
+    public Geocoder geocoder() {
+        if (isCached) {
+            return Geocoder.GEOCACHE;
+        }
+        return originalGeocoder;
+    }
 }

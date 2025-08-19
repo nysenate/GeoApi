@@ -10,6 +10,7 @@ import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.provider.district.DistrictService;
 import gov.nysenate.sage.provider.geocode.GeocodeService;
+import gov.nysenate.sage.provider.geocode.Geocoder;
 import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.util.*;
 import org.slf4j.Logger;
@@ -215,7 +216,8 @@ public class JobBatchProcessor implements JobProcessor {
                 }
 
                 boolean interrupted = false;
-                int batchNum = 0, inStateRecords = 0, correctedAddresses = 0, geocodes = 0;
+                int batchNum = 0, inStateRecords = 0, correctedAddresses = 0;
+                var geocodeAssignments = new EnumMap<Geocoder, Integer>(Geocoder.class);
                 var districtAssignments = new HashMap<Column, Integer>();
                 while (jobResultsQueue.peek() != null) {
                     try {
@@ -223,15 +225,16 @@ public class JobBatchProcessor implements JobProcessor {
                         JobBatch batch = jobResultsQueue.poll().get();
                         for (JobRecord record : batch.jobRecords()) {
                             jobWriter.write(record.getRow(), processors);
-                            if (record.getAddress() != null && record.getAddress().isOutOfState()) {
+                            if (record.getAddress() == null || record.getAddress().isOutOfState()) {
                                 continue;
                             }
                             inStateRecords++;
                             if (record.getCorrectedAddress() != null && record.getCorrectedAddress().isUspsValidated()) {
                                 correctedAddresses++;
                             }
-                            if (record.getGeocodedAddress() != null && record.getGeocodedAddress().isValidGeocode()) {
-                                geocodes++;
+                            var geoAddr = record.getGeocodedAddress();
+                            if (geoAddr != null && geoAddr.isValidGeocode()) {
+                                geocodeAssignments.merge(geoAddr.getGeocode().geocoder(), 1, Integer::sum);
                             }
                             for (Column distColumn : record.getAssignedDistricts()) {
                                 districtAssignments.merge(distColumn, 1, Integer::sum);
@@ -272,15 +275,21 @@ public class JobBatchProcessor implements JobProcessor {
                     logger.info("Completed batch processing for job file!");
                 }
 
+                var geoResultBuilder = new StringBuilder();
+                for (var entry : geocodeAssignments.entrySet()) {
+                    geoResultBuilder.append("\t%s: %d%%\n".formatted(entry.getKey(),
+                            Math.round(100.0 * entry.getValue()/inStateRecords)));
+                }
+
                 var distResultBuilder = new StringBuilder();
                 for (var entry : districtAssignments.entrySet()) {
                     distResultBuilder.append("\t%s: %d%%\n".formatted(entry.getKey(),
                             Math.round(100.0 * entry.getValue()/inStateRecords)));
                 }
-                logger.info("Batch job results for NY addresses in {}:\n{}% validated, {}% geocoded\nDistrict assignments:\n{}",
+                logger.info("Batch job results for NY addresses in {}:\n{}% validated\n Geocode assignments:\n{}\nDistrict assignments:\n{}",
                         fileName,
                         Math.round(100.0 * correctedAddresses/inStateRecords),
-                        Math.round(100.0 * geocodes/inStateRecords),
+                        geoResultBuilder,
                         distResultBuilder
                 );
             }
