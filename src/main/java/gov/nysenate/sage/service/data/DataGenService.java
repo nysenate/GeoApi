@@ -28,6 +28,7 @@ import java.util.List;
 public class DataGenService implements SageDataGenService {
     private static final Logger logger = LoggerFactory.getLogger(DataGenService.class);
     private static final int NUM_SENATE_SEATS = 63;
+    private static final Address LOB = new Address("198 State St", "Albany", "NY", "12247");
     private final SqlSenateDao sqlSenateDao;
     private final DistrictMemberProvider memberProvider;
     private final AddressService addressService;
@@ -101,10 +102,20 @@ public class DataGenService implements SageDataGenService {
                 String addr1 = office.getStreet().replaceAll("(?i)Avesuite", "Ave Suite")
                         .replaceAll("(?i)avenuesuite", "Avenue Suite");
                 String[] zips = office.getPostalCode().split("-");
-                var baseAddress = new Address(addr1, "", office.getCity(), office.getProvince(),
-                        zips[0], zips.length > 1 ? zips[1] : null);
-                var validatedAddress = addressService.validateOrDefault(baseAddress);
-                Point point = getPoint(validatedAddress);
+                Address address;
+                if (addr1.matches("(\\d+ )?Legislative Office (Bldg|Building).*")) {
+                    address = LOB;
+                }
+                else {
+                    address = new Address(addr1, "", office.getCity(), office.getProvince(),
+                            zips[0], zips.length > 1 ? zips[1] : null);
+                }
+                // Offices within the Capitol are corrected poorly by AMS, since it's a unique zipcode.
+                if (!"12247".equals(zips[0])) {
+                    address = addressService.validateOrDefault(address);
+                }
+
+                Point point = getPoint(address);
                 if (point != null && point.isValid()) {
                     office.setLatitude(point.lat().doubleValue());
                     office.setLongitude(point.lon().doubleValue());
@@ -126,7 +137,7 @@ public class DataGenService implements SageDataGenService {
             return geocodedOffice.point();
         }
         else {
-            logger.error("SAGE was unable to geocode this office address: {}", officeAddress);
+            logger.error("Unable to geocode this office address: {}", officeAddress);
             return null;
         }
     }
