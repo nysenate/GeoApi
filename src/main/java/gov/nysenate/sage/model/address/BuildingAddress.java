@@ -29,6 +29,11 @@ public final class BuildingAddress extends Address {
     }
 
     @Override
+    public String getPrimaryAddr1() {
+        return bldgId + " " + street;
+    }
+
+    @Override
     public boolean isValid() {
         return super.isValid() && !StringUtils.isBlank(bldgId) && !StringUtils.isBlank(street);
     }

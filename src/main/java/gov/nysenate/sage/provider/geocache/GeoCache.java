@@ -3,12 +3,10 @@ package gov.nysenate.sage.provider.geocache;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.provider.nysgeo.GeocoderDao;
 import gov.nysenate.sage.model.address.Address;
-import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
-import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.provider.geocode.Geocoder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.WordUtils;
@@ -20,7 +18,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-import static gov.nysenate.sage.dao.provider.geocache.SqlGeocacheQuery.*;
+import static gov.nysenate.sage.provider.geocache.SqlGeocacheQuery.*;
 
 @Service
 public class GeoCache extends BaseDao implements GeocoderDao {
@@ -31,9 +29,9 @@ public class GeoCache extends BaseDao implements GeocoderDao {
 
     @Override
     public GeocodedAddress getGeocodedAddress(Address address) {
-        if (address.isValid() && address instanceof BuildingAddress bldgAddr) {
+        if (address.isCacheable()) {
             List<GeocodedAddress> geoAddrs = namedJdbcTemplate.query(SELECT_CACHE_ENTRY.getSql(),
-                    getIdParams(bldgAddr), new GeocodedStreetAddressMapper());
+                    getIdParams(address), new GeocodedStreetAddressMapper());
             if (!geoAddrs.isEmpty()) {
                 return geoAddrs.get(0);
             }
@@ -41,46 +39,13 @@ public class GeoCache extends BaseDao implements GeocoderDao {
         return null;
     }
 
-    private static class GeocodedStreetAddressMapper implements RowMapper<GeocodedAddress> {
-        @Override
-        public GeocodedAddress mapRow(ResultSet rs, int rowNum) throws SQLException {
-            var addr = new BuildingAddress(rs.getString("bldg_id"), WordUtils.capitalizeFully(rs.getString("street")),
-                    WordUtils.capitalizeFully(rs.getString("postal_city")), rs.getString("state"),
-                    rs.getString("zip5"), null);
-            return new GeocodedAddress(addr, getGeocodeFromResultSet(rs));
-        }
-    }
-
-    /**
-     * Constructs a Geocode from the result set.
-     * @param rs Result set that has rs.next() already called
-     */
-    private static Geocode getGeocodeFromResultSet(ResultSet rs) throws SQLException {
-        var point = new Point(rs.getString("lat"), rs.getString("lon"));
-        GeocodeQuality quality = GeocodeQuality.fromString(rs.getString("quality"));
-        Geocoder geocoder = Geocoder.valueOf(rs.getString("method"));
-        return new Geocode(point, quality, geocoder, true);
-    }
-
-    private static MapSqlParameterSource getIdParams(BuildingAddress address) {
-        return new MapSqlParameterSource("bldgId", StringUtils.upperCase(address.getBldgId()))
-                .addValue("street", StringUtils.upperCase(address.getStreet()))
-                .addValue("postalCity", StringUtils.upperCase(address.getPostalCity()))
-                .addValue("state", StringUtils.upperCase(address.getState()))
-                .addValue("zip5", address.getZip5().toString());
-    }
-
-    public void cache(GeocodeResult result) {
-        if (result == null || !result.isSuccess() || result.getGeocode() == null || result.getGeocode().isCached()) {
-            return;
-        }
-        GeocodedAddress geoAddr = result.getGeocodedAddress();
-        if (geoAddr == null || !geoAddr.isValidAddress() || !geoAddr.isValidGeocode() ||
-                !(geoAddr.getAddress() instanceof BuildingAddress bldgAddr)) {
+    public void cache(GeocodedAddress geoAddr) {
+        if (geoAddr == null || geoAddr.getAddress() == null ||
+                !geoAddr.getAddress().isCacheable() || !geoAddr.isValidGeocode()) {
             return;
         }
         Geocode gc = geoAddr.getGeocode();
-        var params = getIdParams(bldgAddr)
+        var params = getIdParams(geoAddr.getAddress())
                 .addValue("latlon", "POINT(" + gc.lon() + " " + gc.lat() + ")")
                 .addValue("method", gc.originalGeocoder().name())
                 .addValue("quality", gc.quality().name());
@@ -90,5 +55,25 @@ public class GeoCache extends BaseDao implements GeocoderDao {
                 namedJdbcTemplate.update(INSERT_CACHE_ENTRY.getSql(), params);
             }
         }
+    }
+
+    private static class GeocodedStreetAddressMapper implements RowMapper<GeocodedAddress> {
+        @Override
+        public GeocodedAddress mapRow(ResultSet rs, int rowNum) throws SQLException {
+            var addr = new Address(rs.getString("primary_addr1"),
+                    WordUtils.capitalizeFully(rs.getString("postal_city")),
+                    rs.getString("state"), rs.getString("zip5"));
+            var point = new Point(rs.getString("lat"), rs.getString("lon"));
+            GeocodeQuality quality = GeocodeQuality.fromString(rs.getString("quality"));
+            Geocoder geocoder = Geocoder.valueOf(rs.getString("method"));
+            return new GeocodedAddress(addr, new Geocode(point, quality, geocoder, true));
+        }
+    }
+
+    private static MapSqlParameterSource getIdParams(Address address) {
+        return new MapSqlParameterSource("primaryAddr1", StringUtils.upperCase(address.getPrimaryAddr1()))
+                .addValue("postalCity", StringUtils.upperCase(address.getPostalCity()))
+                .addValue("state", StringUtils.upperCase(address.getState()))
+                .addValue("zip5", address.getZip5().toString());
     }
 }

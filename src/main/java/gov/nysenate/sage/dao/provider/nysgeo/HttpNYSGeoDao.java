@@ -9,6 +9,7 @@ import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.provider.geocode.Geocoder;
 import gov.nysenate.sage.util.UrlRequest;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,6 +21,8 @@ import java.io.IOException;
 public class HttpNYSGeoDao implements GeocoderDao {
     private static final Logger logger = LoggerFactory.getLogger(HttpNYSGeoDao.class);
     private static final String COMMON_PARAMS = "&outSR=4326&f=pjson";
+    private static final String REV_GEOCODE_QUERY = "?location={\"x\" : %s, \"y\" : %s, " +
+            "\"spatialReference\" : {\"wkid\" : 4326}}&returnIntersection=false";
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Value("${nys.geocoder.url:https://gisservices.its.ny.gov/arcgis/rest/services/Locators/Street_and_Address_Composite/GeocodeServer}")
@@ -36,10 +39,16 @@ public class HttpNYSGeoDao implements GeocoderDao {
 
     /** {@inheritDoc} */
     public GeocodedAddress getGeocodedAddress(Address address) {
-        String formattedQuery = String.format("?Street=%s&City=%s&ZIP=%s",
-                address.getAddr1(), address.getPostalCity(), address.getZip5() +
-                        (address.getZip4() == null ? "" : "-" + address.getZip4())
-        );
+        if (!address.isValid()) {
+            return null;
+        }
+        String formattedQuery = "?Street=" + address.getPrimaryAddr1();
+        if (!StringUtils.isBlank(address.getPostalCity())) {
+            formattedQuery += "&City=" + address.getPostalCity();
+        }
+        if (address.getZip5() != null) {
+            formattedQuery += "&ZIP=" + address.getZip5() + (address.getZip4() == null ? "" : "-" + address.getZip4());
+        }
         String url = DEFAULT_BASE_URL + GEOCODE_EXTENSION + formattedQuery + COMMON_PARAMS;
         return getGeocodedAddress(url, false);
     }
@@ -48,7 +57,6 @@ public class HttpNYSGeoDao implements GeocoderDao {
     public GeocodedAddress getGeocodedAddress(Point point) {
         GeocodedAddress geocodedAddress = null;
         try {
-            String REV_GEOCODE_QUERY = "?location={\"x\" : %s, \"y\" : %s, \"spatialReference\" : {\"wkid\" : 4326}}&returnIntersection=false";
             String formattedQuery = String.format(REV_GEOCODE_QUERY, point.lon(), point.lat());
             formattedQuery = formattedQuery.replaceAll(" ", "%20").replaceAll(" \" ","%22").replaceAll(",","%2C").replaceAll("\\{","%7B").replaceAll("}","%7D");
             logger.info(formattedQuery);

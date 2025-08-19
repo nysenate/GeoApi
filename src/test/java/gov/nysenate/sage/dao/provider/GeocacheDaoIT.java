@@ -25,7 +25,7 @@ public class GeocacheDaoIT extends BaseTests {
             var a = new Address(i + "BOO" + " ST", "Test", "Test", "NY", "00001", "");
             var gc = new Geocode(new Point("12", "12"), GeocodeQuality.HOUSE, null, false);
             var currResult = new GeocodeResult(null, ResultStatus.SUCCESS, new GeocodedAddress(a, gc));
-            geoCache.cache(currResult);
+            geoCache.cache(currResult.getGeocodedAddress());
         }
     }
 }

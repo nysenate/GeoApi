@@ -100,11 +100,15 @@ public class GeocodeService {
                 break;
             }
         }
-        if (address.isUspsValidated()) {
-            geocodedAddress.setAddress(address);
+        var result = new GeocodeResult(geocoder, status, new GeocodedAddress(address, geocodedAddress.getGeocode()));
+        if (geocoder != Geocoder.GEOCACHE && status == SUCCESS) {
+            geoCache.cache(result.getGeocodedAddress());
+            // If the address hasn't been standardized, we should cache both forms to be safe.
+            if (!address.isUspsValidated()) {
+                result = new GeocodeResult(geocoder, status, geocodedAddress);
+                geoCache.cache(result.getGeocodedAddress());
+            }
         }
-        var result = new GeocodeResult(geocoder, status, geocodedAddress);
-        geoCache.cache(result);
         return result;
     }
 

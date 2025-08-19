@@ -62,6 +62,10 @@ public sealed class Address permits BuildingAddress, PostOfficeBox {
         return addr1;
     }
 
+    public String getPrimaryAddr1() {
+        return addr1;
+    }
+
     public String getAddr2() {
         return addr2;
     }
@@ -95,6 +99,10 @@ public sealed class Address permits BuildingAddress, PostOfficeBox {
 
     public boolean isValid() {
         return !StringUtils.isBlank(addr1) && (!StringUtils.isBlank(postalCity) || zip5 != null);
+    }
+
+    public boolean isCacheable() {
+        return !StringUtils.isBlank(addr1) && postalCity != null && zip5 != null && state != null;
     }
 
     public boolean isOutOfState() {

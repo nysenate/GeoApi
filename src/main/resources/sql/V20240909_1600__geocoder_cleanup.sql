@@ -7,9 +7,6 @@ WHERE bldgnum = 0;
 ALTER TABLE public.geocache
     ALTER COLUMN bldgnum TYPE text;
 
-ALTER TABLE public.geocache
-    RENAME COLUMN bldgnum TO bldg_id;
-
 DELETE FROM public.geocache
 WHERE street NOT SIMILAR TO '([A-Z]|[0-9]| )+';
 
@@ -48,17 +45,21 @@ $$ LANGUAGE plpgsql;
 ALTER TABLE public.geocache
     DROP CONSTRAINT geocache_bldgnum_predir_street_streettype_postdir_location__key;
 
+ALTER TABLE public.geocache
+ADD COLUMN primary_addr1 TEXT;
+
 UPDATE public.geocache
-SET street = regexp_replace(
-        trim(array_to_string(ARRAY[predir, orderParts(addOrdinalIndicators(street), streettype), postdir], ' ')),
+SET primary_addr1 = regexp_replace(
+        trim(array_to_string(ARRAY[bldgnum, predir, orderParts(addOrdinalIndicators(street), streettype), postdir], ' ')),
     ' {2,}', ' ');
 
 DROP FUNCTION orderParts(street text, streettype text);
-
 DROP FUNCTION addOrdinalIndicators(street text);
 
 ALTER TABLE public.geocache
+DROP COLUMN bldgnum,
 DROP COLUMN predir,
+DROP COLUMN street,
 DROP COLUMN streettype,
 DROP COLUMN postdir,
 DROP COLUMN zip4;
@@ -91,8 +92,7 @@ DELETE FROM public.geocache a
 WHERE EXISTS (
     SELECT 1
     FROM public.geocache b
-    WHERE a.bldg_id = b.bldg_id
-      AND a.street = b.street
+    WHERE a.primary_addr1 = b.primary_addr1
       AND a.postal_city = b.postal_city
       AND a.state = b.state
       AND a.zip5 = b.zip5
@@ -101,9 +101,7 @@ WHERE EXISTS (
 
 ALTER TABLE public.geocache
     ADD CONSTRAINT address_key
-        UNIQUE (bldg_id, street, postal_city, state, zip5),
-    ADD CONSTRAINT valid_bldg_id CHECK (bldg_id SIMILAR TO '[0-9]%'),
-    ALTER COLUMN street SET NOT NULL,
+        UNIQUE (primary_addr1, postal_city, state, zip5),
     ADD CONSTRAINT valid_state CHECK (state IN
         ('AL', 'AK', 'AS', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'DC', 'FM', 'FL', 'GA', 'GU',
         'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MH', 'MD', 'MA', 'MI', 'MN',
