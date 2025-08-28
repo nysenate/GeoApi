@@ -1,4 +1,4 @@
-package gov.nysenate.sage.dao.data;
+package gov.nysenate.sage.dao.post_office;
 
 import gov.nysenate.sage.dao.base.BasicSqlQuery;
 import gov.nysenate.sage.dao.base.SqlTable;

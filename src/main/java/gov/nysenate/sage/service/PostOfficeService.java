@@ -2,7 +2,7 @@ package gov.nysenate.sage.service;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import gov.nysenate.sage.dao.data.PostOfficeDao;
+import gov.nysenate.sage.dao.post_office.PostOfficeDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.address.Zip5;

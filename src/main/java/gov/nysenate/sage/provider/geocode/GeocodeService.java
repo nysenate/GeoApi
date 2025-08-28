@@ -3,7 +3,7 @@ package gov.nysenate.sage.provider.geocode;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
-import gov.nysenate.sage.dao.data.PostOfficeDao;
+import gov.nysenate.sage.dao.post_office.PostOfficeDao;
 import gov.nysenate.sage.dao.provider.nysgeo.GeocoderDao;
 import gov.nysenate.sage.dao.stats.geocode.SqlGeocodeStatsDao;
 import gov.nysenate.sage.model.PostOfficeCache;

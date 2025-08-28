@@ -1,4 +1,4 @@
-package gov.nysenate.sage.dao.data;
+package gov.nysenate.sage.dao.post_office;
 
 import com.google.common.collect.Multimap;
 import gov.nysenate.sage.dao.base.BaseDao;
