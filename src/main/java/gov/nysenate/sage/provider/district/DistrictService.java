@@ -4,7 +4,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import gov.nysenate.sage.controller.api.DistrictUtil;
-import gov.nysenate.sage.dao.provider.shapefile.SqlShapefileDao;
+import gov.nysenate.sage.dao.provider.shapefile.ShapefileDao;
 import gov.nysenate.sage.dao.provider.streetfile.StreetfileDao;
 import gov.nysenate.sage.model.PostOfficeCache;
 import gov.nysenate.sage.model.address.Address;
@@ -39,16 +39,16 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 public class DistrictService {
     private static final Logger logger = LoggerFactory.getLogger(DistrictService.class);
     private final StreetfileDao streetfileDao;
-    private final SqlShapefileDao sqlShapefileDao;
+    private final ShapefileDao shapefileDao;
     private final ImmutableList<LocalSource> defaultRanking;
     private final ThreadPoolTaskExecutor executor;
     private final PostOfficeCache<LocalSource, DistrictResult> poBoxCache = PostOfficeCacheManager.getDistrictCache();
 
-    public DistrictService(StreetfileDao streetfileDao, SqlShapefileDao sqlShapefileDao,
+    public DistrictService(StreetfileDao streetfileDao, ShapefileDao shapefileDao,
                            @Value("${district.ranking}") String districtRankingStr,
                            @Value("${num.threads:3}") int numThreads) {
         this.streetfileDao = streetfileDao;
-        this.sqlShapefileDao = sqlShapefileDao;
+        this.shapefileDao = shapefileDao;
 
         List<LocalSource> tempRanking = new ArrayList<>();
         for (String geocoder : districtRankingStr.split(", *")) {
@@ -87,7 +87,7 @@ public class DistrictService {
             if (status == SUCCESS) {
                 districtInfo = switch (provider) {
                     case STREETFILE -> streetfileDao.getDistrictInfo(address);
-                    case SHAPEFILE -> sqlShapefileDao.getDistrictInfo(geocodedAddress.getGeocode(), typesToAssign);
+                    case SHAPEFILE -> shapefileDao.getDistrictInfo(geocodedAddress.getGeocode(), typesToAssign);
                 };
                 typesToAssign.removeAll(districtInfo.getAssignedTypes());
             }

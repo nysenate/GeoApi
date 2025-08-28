@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.model.county.CountyDao;
+import gov.nysenate.sage.dao.provider.DistrictNameDao;
 import gov.nysenate.sage.model.district.*;
 import gov.nysenate.sage.model.geo.*;
 import gov.nysenate.sage.util.Tuple;
@@ -34,7 +35,7 @@ import static gov.nysenate.sage.dao.provider.shapefile.ShapefileQueries.*;
  * overlaps and intersections between districts.
  */
 @Repository
-public class SqlShapefileDao extends BaseDao implements ShapefileDao {
+public class SqlShapefileDao extends BaseDao implements ShapefileDao, DistrictNameDao {
     private static final Logger logger = LoggerFactory.getLogger(SqlShapefileDao.class);
     private static final BigDecimal MIN_INTERSECT_SQ_KM = BigDecimal.ONE;
     private static final String geometrySchema = "districts";

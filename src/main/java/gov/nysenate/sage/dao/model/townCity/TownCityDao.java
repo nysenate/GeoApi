@@ -1,7 +1,7 @@
 package gov.nysenate.sage.dao.model.townCity;
 
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.dao.provider.shapefile.ShapefileDao;
+import gov.nysenate.sage.dao.provider.DistrictNameDao;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.district.TownCity;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,11 +16,11 @@ import java.util.Set;
 
 @Repository
 public class TownCityDao extends BaseDao {
-    private final ShapefileDao shapefileDao;
+    private final DistrictNameDao nameDao;
 
     @Autowired
-    public TownCityDao(ShapefileDao shapefileDao) {
-        this.shapefileDao = shapefileDao;
+    public TownCityDao(DistrictNameDao nameDao) {
+        this.nameDao = nameDao;
     }
 
     public Set<TownCity> townCities() {
@@ -35,7 +35,7 @@ public class TownCityDao extends BaseDao {
         @Override
         public void processRow(@Nonnull ResultSet rs) throws SQLException {
             String code = rs.getString("district_code");
-            String fullName = shapefileDao.getDistrictName(DistrictType.TOWN_CITY, code);
+            String fullName = nameDao.getDistrictName(DistrictType.TOWN_CITY, code);
             results.add(new TownCity(fullName, code, rs.getString("voterfile_code")));
         }
     }
