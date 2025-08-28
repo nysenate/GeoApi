@@ -1,38 +1,42 @@
 package gov.nysenate.sage.dao.model.townCity;
 
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.dao.provider.district.MunicipalityType;
-import org.apache.tomcat.util.collections.CaseInsensitiveKeyMap;
+import gov.nysenate.sage.dao.provider.district.ShapefileDao;
+import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.model.district.TownCity;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Nonnull;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Map;
-
-import static gov.nysenate.sage.dao.provider.district.MunicipalityType.CITY;
-import static gov.nysenate.sage.dao.provider.district.MunicipalityType.TOWN;
+import java.util.HashSet;
+import java.util.Set;
 
 @Repository
 public class TownCityDao extends BaseDao {
-    public Map<MunicipalityType, Map<String, String>> getTypeAndNameToAbbrevMap() {
+    private final ShapefileDao shapefileDao;
+
+    @Autowired
+    public TownCityDao(ShapefileDao shapefileDao) {
+        this.shapefileDao = shapefileDao;
+    }
+
+    public Set<TownCity> townCities() {
         var rch = new NestedMapCallbackHandler();
         jdbcTemplate.query(TownCityQuery.SELECT_ALL.getSql(), rch);
         return rch.results;
     }
 
-    private static class NestedMapCallbackHandler implements RowCallbackHandler {
-        private final Map<MunicipalityType, Map<String, String>> results =
-                Map.of(TOWN, new CaseInsensitiveKeyMap<>(), CITY, new CaseInsensitiveKeyMap<>());
+    private class NestedMapCallbackHandler implements RowCallbackHandler {
+        private final Set<TownCity> results = new HashSet<>();
 
         @Override
         public void processRow(@Nonnull ResultSet rs) throws SQLException {
-            String name = rs.getString("name");
-            String abbrev = rs.getString("abbrev");
-            Map<String, String> currMap = results.get(rs.getInt("ct_type") == 2 ? TOWN : CITY);
-            currMap.put(name, abbrev);
-            currMap.put(name.replaceAll(" ", ""), abbrev);
+            String code = rs.getString("district_code");
+            String fullName = shapefileDao.getDistrictName(DistrictType.TOWN_CITY, code);
+            results.add(new TownCity(fullName, code, rs.getString("voterfile_code")));
         }
     }
 }

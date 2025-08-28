@@ -1,6 +1,6 @@
 package gov.nysenate.sage.dao.model.county;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.district.County;
 import org.slf4j.Logger;
@@ -12,20 +12,20 @@ import org.springframework.stereotype.Repository;
 import javax.annotation.PostConstruct;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
+import java.util.Set;
 
 @Repository
 public class CountyDao extends BaseDao {
     private static final Logger logger = LoggerFactory.getLogger(CountyDao.class);
-    private ImmutableList<County> counties;
+    private ImmutableSet<County> counties;
 
     @PostConstruct
     public void cacheCounties() {
-        this.counties = ImmutableList.copyOf(namedJdbcTemplate.query(
+        this.counties = ImmutableSet.copyOf(namedJdbcTemplate.query(
                 CountyQuery.GET_ALL_COUNTIES.getSql(getPublicSchema()), new CountyHandler()));
     }
 
-    public List<County> getCounties() {
+    public Set<County> getCounties() {
         return counties;
     }
 
@@ -47,7 +47,7 @@ public class CountyDao extends BaseDao {
             );
         }
         catch (Exception ex) {
-            logger.error("Failed to get county by %s: %s%n%s".formatted("senateCode", senateCodeStr, ex.getMessage()));
+            logger.error("Failed to get county by {}: {}%n{}", "senateCode", senateCodeStr, ex.getMessage());
         }
         return null;
     }

@@ -2,19 +2,16 @@ package gov.nysenate.sage.scripts.streetfinder.scripts.utils;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import gov.nysenate.sage.dao.provider.district.MunicipalityType;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
 import gov.nysenate.sage.scripts.streetfinder.model.BuildingRange;
 import gov.nysenate.sage.util.AddressUtil;
-import gov.nysenate.sage.util.Tuple;
 
 import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.regex.Pattern;
 
 /**
  * Class containing information on how to parse a streetfile.
@@ -22,11 +19,10 @@ import java.util.regex.Pattern;
  */
 public class StreetfileDataExtractor {
     private static final int[] emptyIntArray = {};
-    private static final Pattern townCityPattern = Pattern.compile("(TOWN ?|CITY ?)?(OF ?)?(.*?)([ /]?CITY|[ /]TOWN)?");
     private final String sourceName;
     private final Function<String, List<String>> lineParser;
     private final Map<DistrictType, Integer> typeToDistrictIndexMap = new HashMap<>();
-    public static BiMap<Tuple<MunicipalityType, String>, Integer> typeAndNameToIdBiMap = HashBiMap.create();
+    public static BiMap<String, Short> codeToIdBiMap = HashBiMap.create();
     private int[] buildingIndices = emptyIntArray, streetIndices = emptyIntArray;
     private int postalCityIndex = -1, precinctIndex = -1;
     // Maps a line to a county FIPS code
@@ -139,39 +135,12 @@ public class StreetfileDataExtractor {
         return new StreetfileLineData(buildingRange, addressWithoutNum, cell, StreetfileLineType.PROPER);
     }
 
+    // TODO: Perhaps simplify even more?
     private String getTownCityId(String input) {
-        String[] split = input.toUpperCase().split(" ", 2);
-        split[0] = switch (split[0]) {
-            case "N" -> "NORTH";
-            case "ST." -> "ST";
-            case "FT." -> "FORT";
-            default -> split[0];
-        };
-        input = String.join(" ", split);
-        var matcher = townCityPattern.matcher(input.toUpperCase());
-        if (!matcher.matches()) {
-            throw new RuntimeException("Couldn't match TownCity!");
-        }
-
-        MunicipalityType type = null;
-        String prefix = nullToEmpty(matcher.group(1));
-        String townCity = matcher.group(3);
-        String suffix = nullToEmpty(matcher.group(4));
-        if (prefix.contains("TOWN") || suffix.contains("TOWN")) {
-            type = MunicipalityType.TOWN;
-        }
-        else if (prefix.contains("CITY") || suffix.contains("CITY")) {
-            type = MunicipalityType.CITY;
-        }
-        Integer townCityId = typeAndNameToIdBiMap.computeIfAbsent(
-                new Tuple<>(type, townCity), k -> typeAndNameToIdBiMap.size()
+        Short townCityId = codeToIdBiMap.computeIfAbsent(
+                input.toUpperCase(), k -> (short) codeToIdBiMap.size()
         );
         return String.valueOf(townCityId).intern();
-    }
-
-    @Nonnull
-    private static String nullToEmpty(String input) {
-        return input == null ? "" : input;
     }
 
     private static List<String> getStrings(List<String> lineFields, int[] indices, boolean keepBlanks) {

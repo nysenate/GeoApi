@@ -137,7 +137,7 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao {
                 case SENATE -> "NY Senate District " + code;
                 case ASSEMBLY -> "NY Assembly District " + code;
                 case CONGRESSIONAL -> "NY Congressional District " + code;
-                case TOWN_CITY -> (code.startsWith("-") ? "City" : "Town") + " of " + rs.getString("name");
+                case TOWN_CITY -> TownCity.getFullName(rs.getString("name"), code.startsWith("-"));
                 case ZIP -> "Zipcode " + code;
                 case COUNTY -> rs.getString("name") + " County";
                 default -> rs.getString("name");

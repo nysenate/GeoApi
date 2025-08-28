@@ -8,7 +8,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.*;
 
@@ -20,11 +20,11 @@ public class CountyDaoIT extends BaseTests {
 
     @Test
     public void getAllCountiesTest() {
-        List<County> counties = sqlCountyDao.getCounties();
+        Set<County> counties = sqlCountyDao.getCounties();
         assertNotNull(counties);
         assertEquals(TOTAL_NUMBER_OF_COUNTIES, counties.size());
 
-        County county = counties.get(0);
+        County county = counties.iterator().next();
 
         assertNotEquals(0, county.senateCode());
         assertNotNull(county.name());

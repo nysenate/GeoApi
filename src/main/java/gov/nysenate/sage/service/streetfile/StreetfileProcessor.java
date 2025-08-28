@@ -4,7 +4,6 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import gov.nysenate.sage.dao.model.county.CountyDao;
 import gov.nysenate.sage.dao.model.townCity.TownCityDao;
-import gov.nysenate.sage.dao.provider.district.MunicipalityType;
 import gov.nysenate.sage.dao.provider.streetfile.StreetfileDao;
 import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.model.district.DistrictType;
@@ -32,6 +31,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,8 +39,8 @@ public class StreetfileProcessor {
     private static final Logger logger = LoggerFactory.getLogger(StreetfileProcessor.class);
     private final File sourceDir, resultsDir;
     private final Path streetfilePath, conflictPath, improperPath, invalidPath;
-    private final List<County> counties;
-    private final Map<MunicipalityType, Map<String, String>> typeAndNameToAbbrevMap;
+    private final Set<County> counties;
+    private final TownCityDao townCityDao;
     private final StreetfileAddressCorrectionService correctionService;
     private final StreetfileDao streetfileDao;
 
@@ -57,7 +57,7 @@ public class StreetfileProcessor {
         this.improperPath = Path.of(resultsDir.getPath(), "improper.txt");
         this.invalidPath = Path.of(resultsDir.getPath(), "invalid.txt");
         this.counties = countyDao.getCounties();
-        this.typeAndNameToAbbrevMap = townCityDao.getTypeAndNameToAbbrevMap();
+        this.townCityDao = townCityDao;
         this.correctionService = correctionService;
         this.streetfileDao = streetfileDao;
     }
@@ -134,16 +134,7 @@ public class StreetfileProcessor {
             return streetfileDao.nullString();
         }
         if (type == DistrictType.TOWN_CITY) {
-            var townCityTuple = StreetfileDataExtractor.typeAndNameToIdBiMap.inverse().get((int) num);
-            List<MunicipalityType> possibleTypes = townCityTuple.first() == null ?
-                    List.of(MunicipalityType.CITY, MunicipalityType.TOWN) : List.of(townCityTuple.first());
-            for (MunicipalityType possibleType : possibleTypes) {
-                String abbrev = typeAndNameToAbbrevMap.get(possibleType).get(townCityTuple.second());
-                if (abbrev != null) {
-                    return abbrev;
-                }
-            }
-            return townCityTuple.second();
+            return StreetfileDataExtractor.codeToIdBiMap.inverse().get(num);
         }
         return String.valueOf(num);
     }
@@ -153,12 +144,13 @@ public class StreetfileProcessor {
         County county = getCounty(filename);
         if (county == null) {
             if (filename.contains("voter")) {
-                var map = counties.stream().collect(Collectors.toMap(County::voterfileCode, County::senateCode));
-                return new VoterFileParser(file, map);
+                return new VoterFileParser(file, counties, townCityDao.townCities());
             }
             // AddressPoints
             else if (filename.contains("address_points")) {
-                var map = counties.stream().collect(Collectors.toMap(tempCounty -> tempCounty.name().toLowerCase(), County::fipsCode));
+                var map = counties.stream().collect(
+                        Collectors.toMap(tempCounty -> tempCounty.name().toLowerCase(), County::fipsCode)
+                );
                 return new AddressPointsParser(file, map);
             }
             else throw new IllegalArgumentException(file.getName() + " could not be matched with a parser.");

@@ -1,34 +1,53 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import gov.nysenate.sage.model.district.County;
+import gov.nysenate.sage.model.district.TownCity;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetfileType;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.tomcat.util.collections.CaseInsensitiveKeyMap;
 
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static gov.nysenate.sage.model.district.DistrictType.*;
 import static gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLineType.*;
 
 public class VoterFileParser extends BaseParser {
-    private static final List<String> queensNeighborhoods = List.of("Jamaica", "Flushing", "Astoria", "Ridgewood",
-            "Woodside", "(East *)?Elmhurst", "ForestHills", "Queens *Village", "Far *Rockaway", "Jackson *Heights", "Corona",
-            "Fresh *Meadows", "(South *)?Ozone *Park", "Bayside", "Long *Island *City", "Rego *Park", "Whitestone",
-            "Springfield *Gardens", "Richmond *Hill", "Rosedale"),
-            nycBoroughs = List.of("Bronx", "Brooklyn", "Manhattan", "Queens", "Staten *Island", "Kings", "Richmond", "N *Y *C");
-    private static final String nycPattern;
-    static {
-        var totalList = new ArrayList<>(queensNeighborhoods);
-        totalList.addAll(nycBoroughs);
-        nycPattern = "(?i)(%s)".formatted(String.join("|", totalList));
-    }
-    private final Map<Integer, Integer> countyCodeMap;
+    private final ImmutableMap<Integer, Integer> countyCodeMap;
+    private final ImmutableSet<String> nycVoterfileCodes;
+    private final ImmutableMap<Pattern, TownCity> patternToTownCityMap;
+    private final Map<String, TownCity> nameStrToTownCityMap = new CaseInsensitiveKeyMap<>();
 
-    public VoterFileParser(File file, Map<Integer, Integer> countyCodeMap) {
+    public VoterFileParser(File file, Set<County> counties, Set<TownCity> townCities) {
         super(file);
-        this.countyCodeMap = countyCodeMap;
+        this.countyCodeMap = ImmutableMap.copyOf(counties.stream()
+                .collect(Collectors.toMap(County::voterfileCode, County::senateCode))
+        );
+        this.nycVoterfileCodes = ImmutableSet.copyOf(counties.stream().filter(County::inNYC)
+                .map(county -> String.valueOf(county.voterfileCode())).collect(Collectors.toSet())
+        );
+
+        var tempPatternMap = new HashMap<Pattern, TownCity>();
+        var tempDuplicateMap = new HashMap<String, Integer>();
+        for (TownCity townCity : townCities) {
+            tempPatternMap.put(getPatternString(townCity), townCity);
+            tempDuplicateMap.merge(townCity.baseName(), 1, Integer::sum);
+        }
+        this.patternToTownCityMap = ImmutableMap.copyOf(tempPatternMap);
+
+        townCities.stream().filter(tc -> !StringUtils.isBlank(tc.voterfileCode()))
+                .forEach(tc -> nameStrToTownCityMap.put(tc.voterfileCode(), tc));
+        // Empty Strings will never match, and if multiple towns/cities have the same baseName,
+        // that baseName will always match multiple TownCity.
+        nameStrToTownCityMap.put("", null);
+        tempDuplicateMap.entrySet().stream().filter(entry -> entry.getValue() > 1)
+                .map(Map.Entry::getKey).forEach(baseName -> nameStrToTownCityMap.put(baseName, null));
     }
 
     @Nonnull
@@ -55,43 +74,51 @@ public class VoterFileParser extends BaseParser {
     @Override
     protected List<String> parseLine(String line) {
         List<String> tempLine = super.parseLine(line);
-        String townCity = tempLine.get(26);
-        townCity = townCity.replaceAll("[()]| NY", "").replaceAll("\\.", " ")
-                .replaceAll("\\s+", " ").replaceFirst("^T ", "TOWN OF ")
-                .replaceFirst("^C ", "CITY OF").trim();
-        // Richmond is both the county of Staten Island, and a town upstate.
-        if (townCity.matches(nycPattern) &&
-                (!townCity.equalsIgnoreCase("Richmond") || Integer.parseInt(tempLine.get(28)) <= 16)) {
-            townCity = "New York";
+        String townCityStr = tempLine.get(26);
+        // In NYC, this field may contain e.g. the borough or Queens neighborhood, which should be overridden.
+        if (nycVoterfileCodes.contains(tempLine.get(23).replaceFirst("^0+", ""))) {
+            townCityStr = "New York City";
         }
-        townCity = switch (townCity) {
-            case "NH" -> "North Hempstead";
-            case "CKTW" -> "Cheektowaga";
-            case "TTON" -> "Town of Tonawanda";
-            case "CTON" -> "City of Tonawanda";
-            case "HEM" -> "Hempstead";
-            case "BFLO" -> "Buffalo";
-            case "YONK" -> "Yonkers";
-            case "OB" -> "Oyster Bay";
-            case "AMHS" -> "Amherst";
-            case "SARATOGA SPGS" -> "Saratoga Springs";
-            case "LANC" -> "Lancaster";
-            case "CORT" -> "Cortlandt";
-            case "MTVE" -> "Mount Vernon";
-            case "GRIS" -> "Grand Island";
-            case "NEWR" -> "New Rochelle";
-            case "HAMB" -> "Hamburg";
-            case "WSEN" -> "West Seneca";
-            case "CLAR" -> "Clarence";
-            case "YTWN" -> "Yorktown";
-            case "ORPK" -> "Orchard Park";
-            case "RYET" -> "Town of Rye";
-            case "/KNG" -> "Kingston";
-            case "EVNS" -> "Evans";
-            default -> townCity;
-        };
-        tempLine.set(26, townCity);
+        TownCity townCity = null;
+        if (!nameStrToTownCityMap.containsKey(townCityStr)) {
+            var candidates = new HashSet<TownCity>();
+            for (var entry : patternToTownCityMap.entrySet()) {
+                if (entry.getKey().matcher(townCityStr).matches()) {
+                    candidates.add(entry.getValue());
+                }
+            }
+            if (candidates.isEmpty()) {
+                System.err.println("No matches for " + townCityStr);
+            }
+            else if (candidates.size() > 1) {
+                System.err.printf("Multiple matches for %s: %s%n", townCityStr, candidates);
+            }
+            else {
+                townCity = candidates.iterator().next();
+            }
+            // Ensures we don't need to re-calculate the correct code.
+            // TODO: configurable whether to just put null
+            nameStrToTownCityMap.put(townCityStr, townCity);
+        }
+        townCity = nameStrToTownCityMap.get(townCityStr);
+        tempLine.set(26, townCity == null ? townCityStr : townCity.code());
         return tempLine;
+    }
+
+    private static Pattern getPatternString(TownCity townCity) {
+        String patternBase = townCity.isCity() ?
+                "(C |City?( of)? )?%s([ /]City)?" : "(T |Town( of)? )?%s([ /]Town)?";
+        String[] split = townCity.baseName().split("[ .]", 2);
+        if (split[0].matches("(?i)North|South|East|West")) {
+            split[0] = "(" + split[0].charAt(0) + "|" + split[0] + ")";
+        }
+        else if ("Mount".equalsIgnoreCase(split[0])) {
+            split[0] = "(MT|" + split[0] + ")";
+        } else if ("Fort".equalsIgnoreCase(split[0])) {
+            split[0] = "(FT|" + split[0] + ")";
+        }
+
+        return Pattern.compile(patternBase.formatted(String.join("[. ]{0,2}", split), Pattern.CASE_INSENSITIVE));
     }
 
     private static boolean missingStandardAddress(List<String> lineParts) {
