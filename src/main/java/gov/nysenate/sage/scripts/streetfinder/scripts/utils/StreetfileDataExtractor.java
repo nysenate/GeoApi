@@ -136,6 +136,7 @@ public class StreetfileDataExtractor {
     }
 
     // TODO: Perhaps simplify even more?
+
     private String getTownCityId(String input) {
         Short townCityId = codeToIdBiMap.computeIfAbsent(
                 input.toUpperCase(), k -> (short) codeToIdBiMap.size()

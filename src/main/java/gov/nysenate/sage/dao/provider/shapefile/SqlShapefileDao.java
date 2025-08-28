@@ -1,4 +1,4 @@
-package gov.nysenate.sage.dao.provider.district;
+package gov.nysenate.sage.dao.provider.shapefile;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,7 +26,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
-import static gov.nysenate.sage.dao.provider.district.ShapefileQueries.*;
+import static gov.nysenate.sage.dao.provider.shapefile.ShapefileQueries.*;
 
 /**
  * DistrictShapefileDao utilizes a PostGIS database loaded with LATFOR/GIS shapefiles to

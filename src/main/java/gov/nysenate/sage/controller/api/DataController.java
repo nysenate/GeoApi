@@ -4,7 +4,7 @@ import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.dao.model.county.CountyDao;
-import gov.nysenate.sage.dao.provider.district.SqlShapefileDao;
+import gov.nysenate.sage.dao.provider.shapefile.SqlShapefileDao;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;

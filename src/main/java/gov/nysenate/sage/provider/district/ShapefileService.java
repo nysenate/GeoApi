@@ -1,6 +1,6 @@
 package gov.nysenate.sage.provider.district;
 
-import gov.nysenate.sage.dao.provider.district.SqlShapefileDao;
+import gov.nysenate.sage.dao.provider.shapefile.SqlShapefileDao;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.district.IntersectMap;

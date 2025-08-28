@@ -1,7 +1,7 @@
 package gov.nysenate.sage.dao.model.townCity;
 
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.dao.provider.district.ShapefileDao;
+import gov.nysenate.sage.dao.provider.shapefile.ShapefileDao;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.district.TownCity;
 import org.springframework.beans.factory.annotation.Autowired;

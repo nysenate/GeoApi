@@ -5,7 +5,7 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
 import gov.nysenate.sage.controller.api.DistrictUtil;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.base.SqlTable;
-import gov.nysenate.sage.dao.provider.district.ShapefileDao;
+import gov.nysenate.sage.dao.provider.shapefile.ShapefileDao;
 import gov.nysenate.sage.model.address.*;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMatchLevel;

@@ -1,4 +1,4 @@
-package gov.nysenate.sage.dao.provider.district;
+package gov.nysenate.sage.dao.provider.shapefile;
 
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMap;

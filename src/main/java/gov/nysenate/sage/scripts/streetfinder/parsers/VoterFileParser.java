@@ -98,6 +98,7 @@ public class VoterFileParser extends BaseParser {
             }
             // Ensures we don't need to re-calculate the correct code.
             // TODO: configurable whether to just put null
+
             nameStrToTownCityMap.put(townCityStr, townCity);
         }
         townCity = nameStrToTownCityMap.get(townCityStr);
