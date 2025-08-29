@@ -187,11 +187,11 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao, DistrictNa
 
     @Override
     public DistrictMap getDistrictMap(DistrictType type, String code) {
-        if (!districtMapCache.containsKey(type)) {
+        SortedSet<DistrictMap> maps = districtMapCache.get(type);
+        if (maps == null) {
             return null;
         }
-        return districtMapCache.get(type).stream()
-                .filter(dMap -> dMap.getDistrictCode().equalsIgnoreCase(code))
+        return maps.stream().filter(dMap -> dMap.getDistrictCode().equalsIgnoreCase(code))
                 .findFirst().orElse(null);
     }
 

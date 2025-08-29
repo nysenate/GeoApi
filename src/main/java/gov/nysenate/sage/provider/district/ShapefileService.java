@@ -1,9 +1,11 @@
 package gov.nysenate.sage.provider.district;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import gov.nysenate.sage.dao.model.county.CountyDao;
+import gov.nysenate.sage.dao.model.townCity.TownCityDao;
 import gov.nysenate.sage.dao.provider.shapefile.SqlShapefileDao;
-import gov.nysenate.sage.model.district.DistrictMap;
-import gov.nysenate.sage.model.district.DistrictType;
-import gov.nysenate.sage.model.district.IntersectMap;
+import gov.nysenate.sage.model.district.*;
 import gov.nysenate.sage.model.result.IntersectResult;
 import gov.nysenate.sage.model.result.MapListResult;
 import gov.nysenate.sage.model.result.MapResult;
@@ -12,19 +14,27 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
+import java.util.stream.Collectors;
 
+/**
+ * Used to return district maps for state level districts.
+ */
 @Service
-public class ShapefileService implements MapService {
+public class ShapefileService {
     private final SqlShapefileDao sqlShapefileDao;
+    private final CountyDao countyDao;
+    private final TownCityDao townCityDao;
 
     @Autowired
-    public ShapefileService(SqlShapefileDao sqlShapefileDao) {
+    public ShapefileService(SqlShapefileDao sqlShapefileDao, CountyDao countyDao, TownCityDao townCityDao) {
         this.sqlShapefileDao = sqlShapefileDao;
+        this.countyDao = countyDao;
+        this.townCityDao = townCityDao;
     }
 
-    /** {@inheritDoc} */
-    @Override
+    /** Provides a district map given a specific district */
     public MapResult getDistrictMap(DistrictType districtType, String code) {
         if (code == null || code.isBlank()) {
             return new MapResult(ResultStatus.MISSING_DISTRICT_CODE);
@@ -36,8 +46,7 @@ public class ShapefileService implements MapService {
         return new MapResult(map);
     }
 
-    /** {@inheritDoc} */
-    @Override
+    /** Provides a collection of all district maps for a given type */
     public MapListResult getDistrictMaps(DistrictType districtType) {
         SortedSet<DistrictMap> mapSet = sqlShapefileDao.getDistrictMaps(districtType);
         if (mapSet == null) {
@@ -58,5 +67,18 @@ public class ShapefileService implements MapService {
         // We only need the overlap for the specified intersect type
         List<IntersectMap> overlaps = sqlShapefileDao.getDistrictOverlap(sourceType, intersectWith, sourceId);
         return new IntersectResult(sourceMap, intersectWith, overlaps);
+    }
+
+    public Multimap<County, TownCity> getCountyToTownCityMap() {
+        var countySet = countyDao.getCounties();
+        Multimap<County, TownCity> result = HashMultimap.create();
+        for (County county : countySet) {
+            Set<TownCity> currTownCities = sqlShapefileDao.getDistrictOverlap(
+                    DistrictType.COUNTY, DistrictType.TOWN_CITY, String.valueOf(county.senateCode())
+            ).stream().map(DistrictMetadata::getDistrictCode).map(townCityDao::getTownCityByCode)
+                    .collect(Collectors.toSet());
+            result.putAll(county, currTownCities);
+        }
+        return result;
     }
 }

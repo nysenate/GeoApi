@@ -2,11 +2,10 @@ package gov.nysenate.sage.service.streetfile;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import gov.nysenate.sage.dao.model.county.CountyDao;
-import gov.nysenate.sage.dao.model.townCity.TownCityDao;
 import gov.nysenate.sage.dao.provider.streetfile.StreetfileDao;
 import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.provider.district.ShapefileService;
 import gov.nysenate.sage.scripts.streetfinder.model.ResolveConflictConfiguration;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetfileAddressRange;
 import gov.nysenate.sage.scripts.streetfinder.parsers.*;
@@ -31,7 +30,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,15 +37,13 @@ public class StreetfileProcessor {
     private static final Logger logger = LoggerFactory.getLogger(StreetfileProcessor.class);
     private final File sourceDir, resultsDir;
     private final Path streetfilePath, conflictPath, improperPath, invalidPath;
-    private final Set<County> counties;
-    private final TownCityDao townCityDao;
+    private final ShapefileService shapefileService;
     private final StreetfileAddressCorrectionService correctionService;
     private final StreetfileDao streetfileDao;
 
     @Autowired
-    public StreetfileProcessor(@Value("${streetfile.dir}") String streetfileDir, CountyDao countyDao,
-                               TownCityDao townCityDao, StreetfileAddressCorrectionService correctionService,
-                               StreetfileDao streetfileDao) throws IOException {
+    public StreetfileProcessor(@Value("${streetfile.dir}") String streetfileDir, ShapefileService shapefileService,
+                               StreetfileAddressCorrectionService correctionService, StreetfileDao streetfileDao) throws IOException {
         this.sourceDir = Path.of(streetfileDir, "text_files").toFile();
         FileUtils.forceMkdir(sourceDir);
         this.resultsDir = Path.of(streetfileDir, "results").toFile();
@@ -56,8 +52,7 @@ public class StreetfileProcessor {
         this.conflictPath = Path.of(resultsDir.getPath(), "conflicts.txt");
         this.improperPath = Path.of(resultsDir.getPath(), "improper.txt");
         this.invalidPath = Path.of(resultsDir.getPath(), "invalid.txt");
-        this.counties = countyDao.getCounties();
-        this.townCityDao = townCityDao;
+        this.shapefileService = shapefileService;
         this.correctionService = correctionService;
         this.streetfileDao = streetfileDao;
     }
@@ -144,11 +139,11 @@ public class StreetfileProcessor {
         County county = getCounty(filename);
         if (county == null) {
             if (filename.contains("voter")) {
-                return new VoterFileParser(file, counties, townCityDao.townCities());
+                return new VoterFileParser(file, shapefileService.getCountyToTownCityMap());
             }
             // AddressPoints
             else if (filename.contains("address_points")) {
-                var map = counties.stream().collect(
+                var map = shapefileService.getCountyToTownCityMap().keySet().stream().collect(
                         Collectors.toMap(tempCounty -> tempCounty.name().toLowerCase(), County::fipsCode)
                 );
                 return new AddressPointsParser(file, map);
@@ -172,7 +167,7 @@ public class StreetfileProcessor {
 
     private County getCounty(String filename) {
         filename = filename.replaceAll("_", " ");
-        for (County county : counties) {
+        for (County county : shapefileService.getCountyToTownCityMap().keySet()) {
             if (filename.contains(county.streetfileName().toLowerCase())) {
                 return county;
             }

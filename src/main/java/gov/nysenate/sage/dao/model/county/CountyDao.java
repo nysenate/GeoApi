@@ -21,8 +21,9 @@ public class CountyDao extends BaseDao {
 
     @PostConstruct
     public void cacheCounties() {
-        this.counties = ImmutableSet.copyOf(namedJdbcTemplate.query(
-                CountyQuery.GET_ALL_COUNTIES.getSql(getPublicSchema()), new CountyHandler()));
+        this.counties = ImmutableSet.copyOf(
+                namedJdbcTemplate.query(CountyQuery.GET_ALL_COUNTIES.getSql(getPublicSchema()), new CountyHandler())
+        );
     }
 
     public Set<County> getCounties() {

@@ -135,8 +135,6 @@ public class StreetfileDataExtractor {
         return new StreetfileLineData(buildingRange, addressWithoutNum, cell, StreetfileLineType.PROPER);
     }
 
-    // TODO: Perhaps simplify even more?
-
     private String getTownCityId(String input) {
         Short townCityId = codeToIdBiMap.computeIfAbsent(
                 input.toUpperCase(), k -> (short) codeToIdBiMap.size()
