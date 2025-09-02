@@ -4,13 +4,15 @@ import java.util.regex.Pattern;
 
 public class TownCity {
     private final String baseName, code, voterfileCode;
+    private final boolean isCity;
     private final Pattern pattern;
 
     public TownCity(String fullName, String code, String voterfileCode) {
         this.baseName = getBaseName(fullName);
         this.code = code;
         this.voterfileCode = voterfileCode;
-        this.pattern = getPattern(fullName.contains("City"), baseName);
+        this.isCity = fullName.contains("City");
+        this.pattern = getPattern(isCity, baseName);
     }
 
     public static String getBaseName(String fullName) {
@@ -36,13 +38,17 @@ public class TownCity {
         return voterfileCode;
     }
 
+    public boolean isTown() {
+        return !isCity;
+    }
+
     public Pattern pattern() {
         return pattern;
     }
 
     private static Pattern getPattern(boolean isCity, String baseName) {
         String patternBase = isCity ?
-                "(C |City?( of)? )?%s([ /]City)?" : "(T |Town( of)? )?%s([ /]Town)?";
+                "(C |City?( of)? )?%s([ /]City)?" : "(T |Town( of)? )?%s([ /][(]?Town[)]?)?";
         String[] split = baseName.split("[ .]", 2);
         if (split[0].matches("(?i)North|South|East|West")) {
             split[0] = "(" + split[0].charAt(0) + "|" + split[0] + ")";

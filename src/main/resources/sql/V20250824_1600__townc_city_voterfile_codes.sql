@@ -55,7 +55,9 @@ WHERE ptc.district_code = dtc.name;
 INSERT INTO public.town_city(voterfile_code, district_code)
 VALUES ('TTON', 'TONAWA'), ('CTON', '-TONAW'),
        ('RYET', 'RYE'), ('CITY/KNG', '-KINGS'),
-       ('CITY CDGA', '-CANAN'), ('DUNKIRK (TOWN)', 'DUNKIR');
+       ('CITY CDGA', '-CANAN'),
+       --In all cases but this, the name of a town/city by itself would refer to the town.
+       ('LOCKPORT', '-LOCKP');
 
 --Fills out all the town_cities without voterfile codes.
 INSERT INTO public.town_city(voterfile_code, district_code)

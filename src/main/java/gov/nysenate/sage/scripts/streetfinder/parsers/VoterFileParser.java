@@ -7,6 +7,8 @@ import gov.nysenate.sage.scripts.streetfinder.model.StreetfileType;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tomcat.util.collections.CaseInsensitiveKeyMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -19,6 +21,8 @@ import static gov.nysenate.sage.model.district.DistrictType.*;
 import static gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLineType.*;
 
 public class VoterFileParser extends BaseParser {
+    private static final Logger logger = LoggerFactory.getLogger(VoterFileParser.class);
+
     private final ImmutableMap<Integer, Integer> countyCodeMap;
     private final ImmutableSet<Integer> nycVoterfileCodes;
     private final ImmutableSetMultimap<Integer, TownCity> countyVoterfileCodeToTownCityMap;
@@ -45,7 +49,6 @@ public class VoterFileParser extends BaseParser {
                 .forEach(tc -> nameStrToTownCityMap.put(tc.voterfileCode(), tc));
         // Empty Strings will never match.
         nameStrToTownCityMap.put("", null);
-
     }
 
     @Nonnull
@@ -85,23 +88,21 @@ public class VoterFileParser extends BaseParser {
             Set<TownCity> candidates = countyVoterfileCodeToTownCityMap.get(countyCode).stream()
                     .filter(tc -> tc.pattern().matcher(townCityStr).matches())
                     .collect(Collectors.toSet());
-            if (candidates.isEmpty()) {
-                System.err.printf("No matches for %s, %s%n", countyCode, townCityStr);
+            // If just a baseName is given when there is a town and a city with the same name, it refers to the town.
+            if (candidates.size() > 1 && candidates.stream().map(TownCity::baseName).distinct().count() == 1) {
+                candidates = candidates.stream().filter(TownCity::isTown).collect(Collectors.toSet());
             }
-            else if (candidates.size() > 1) {
-                // TODO: try to default to town, if that always works
-                System.err.printf("Multiple matches for %s: %s%n", townCityStr, candidates);
+            if (candidates.size() != 1) {
+                logger.warn("Couldn't match {}. Matched: {}", townCityStr, candidates);
             }
             else {
                 townCity = candidates.iterator().next();
             }
             // Ensures we don't need to re-calculate the correct code.
-            // TODO: configurable whether to just put null
-            // TODO: can improve, with county mapping or assuming unspecified names are towns. Gotta check if true tho
             nameStrToTownCityMap.put(townCityStr, townCity);
         }
         townCity = nameStrToTownCityMap.get(townCityStr);
-        tempLine.set(26, townCity == null ? townCityStr : townCity.code());
+        tempLine.set(26, townCity == null ? "" : townCity.code());
         return tempLine;
     }
 

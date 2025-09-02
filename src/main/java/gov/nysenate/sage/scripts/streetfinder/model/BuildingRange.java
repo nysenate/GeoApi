@@ -2,6 +2,8 @@ package gov.nysenate.sage.scripts.streetfinder.model;
 
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.Intern;
 import gov.nysenate.sage.util.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -9,6 +11,7 @@ import java.util.*;
  * Stores a range of building numbers and their parity.
  */
 public record BuildingRange(int low, int high, StreetParity parity) {
+    private static final Logger logger = LoggerFactory.getLogger(BuildingRange.class);
     private static final Intern<BuildingRange> interned = new Intern<>();
 
     public BuildingRange {
@@ -144,7 +147,7 @@ public record BuildingRange(int low, int high, StreetParity parity) {
             if (data1Ar[1].length() < data2Ar[1].length()) {
                 boolean isEven = Integer.parseInt(data2Ar[1])%2 == 0;
                 int newNum = (int) (Math.pow(10, data1Ar[1].length()) - (isEven ? 2 : 1));
-                System.err.printf("Losing some data on the range: %s to %s%n", data1, data2);
+                logger.warn("Losing some data on the range: {} to {}", data1, data2);
                 data2Ar[1] = Integer.toString(newNum);
             }
             data1 = data1Ar[0] + data1Ar[1];

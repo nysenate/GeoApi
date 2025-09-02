@@ -6,6 +6,7 @@ import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
 import gov.nysenate.sage.scripts.streetfinder.model.BuildingRange;
 import gov.nysenate.sage.util.AddressUtil;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -136,8 +137,11 @@ public class StreetfileDataExtractor {
     }
 
     private String getTownCityId(String input) {
+        if (StringUtils.isEmpty(input)) {
+            return null;
+        }
         Short townCityId = codeToIdBiMap.computeIfAbsent(
-                input.toUpperCase(), k -> (short) codeToIdBiMap.size()
+                input.toUpperCase(), k -> (short) (codeToIdBiMap.size() + 1)
         );
         return String.valueOf(townCityId).intern();
     }
