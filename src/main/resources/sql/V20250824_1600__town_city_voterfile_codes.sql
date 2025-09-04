@@ -56,10 +56,10 @@ INSERT INTO public.town_city(voterfile_code, district_code)
 VALUES ('TTON', 'TONAWA'), ('CTON', '-TONAW'),
        ('RYET', 'RYE'), ('CITY/KNG', '-KINGS'),
        ('CITY CDGA', '-CANAN'),
-       --In all cases but this, the name of a town/city by itself would refer to the town.
-       ('LOCKPORT', '-LOCKP');
+       --In all cases but these, the name of a town/city by itself would refer to the town.
+       ('LOCKPORT', '-LOCKP'), ('RYE', '-RYE');
 
---Fills out all the town_cities without voterfile codes.
+--Fills out all the town_cities without voter file codes.
 INSERT INTO public.town_city(voterfile_code, district_code)
 SELECT NULL, abbrev
 FROM districts.town_city
