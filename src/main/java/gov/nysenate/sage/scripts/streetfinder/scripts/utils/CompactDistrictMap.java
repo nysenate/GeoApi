@@ -18,8 +18,6 @@ import static gov.nysenate.sage.model.district.DistrictType.ZIP;
  * Due to lots of repetition, interning is enforced.
  */
 public class CompactDistrictMap {
-    // Some DistrictTypes can't be stored in a short
-    private static final Set<DistrictType> allTypes = Set.of(DistrictType.values());
     // A few special wards have ward numbers, but data is given in 3-letter codes.
     private static final Map<String, Integer> wardCorrectionMap = Map.of(
             "DEL", 10, "ELL", 20,
@@ -42,7 +40,7 @@ public class CompactDistrictMap {
     private final short[] data;
 
     public static CompactDistrictMap getMap(Function<DistrictType, String> getValue) {
-       return maps.get(new CompactDistrictMap(allTypes, type -> convert(getValue.apply(type))));
+       return maps.get(new CompactDistrictMap(typeToIndexMap.keySet(), type -> convert(getValue.apply(type))));
     }
 
     public static CompactDistrictMap getMap(Map<DistrictType, Short> typeMap) {

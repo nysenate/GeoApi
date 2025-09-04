@@ -3,6 +3,7 @@ package gov.nysenate.sage.model.district;
 import java.util.regex.Pattern;
 
 public class TownCity {
+    private static final String newYork = "New York", nyc = newYork + " City";
     private final String baseName, code, voterFileCode;
     private final boolean isCity;
     private final Pattern pattern;
@@ -16,12 +17,15 @@ public class TownCity {
     }
 
     public static String getBaseName(String fullName) {
+        if (nyc.equals(fullName)) {
+            return newYork;
+        }
         return fullName.replaceFirst("(Town|City) of ", "");
     }
 
     public static String getFullName(String baseName, boolean isCity) {
-        if ("New York".equals(baseName)) {
-            return "New York City";
+        if (newYork.equals(baseName)) {
+            return nyc;
         }
         return (isCity ? "City" : "Town") + " of " + baseName;
     }

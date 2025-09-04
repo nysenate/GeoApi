@@ -74,7 +74,7 @@ public class StreetfileProcessor {
         Multimap<StreetfileLineType, String> fullImproperLineMap = ArrayListMultimap.create();
         Multimap<County, TownCity> countyTownCityMap = shapefileService.getCountyToTownCityMap();
         TownCity nyc = countyTownCityMap.values().stream().filter(tc -> "New York".equals(tc.baseName()))
-                .findFirst().orElse(null);
+                .findFirst().orElseThrow();
         for (File dataFile : dataFiles) {
             if (dataFile.isFile()) {
                 BaseParser parser = getParser(dataFile, countyTownCityMap, nyc);

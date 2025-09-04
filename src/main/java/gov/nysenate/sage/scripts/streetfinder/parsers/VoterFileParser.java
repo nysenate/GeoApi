@@ -93,7 +93,7 @@ public class VoterFileParser extends BaseParser {
                     candidates = candidates.stream().filter(TownCity::isTown).collect(Collectors.toSet());
                 }
                 if (candidates.size() != 1) {
-                    logger.warn("Couldn't match {}. Matched: {}", townCityStr, candidates);
+                    logger.warn("Couldn't get TownCity from '{}'. Matched: {}", townCityStr, candidates);
                 } else {
                     townCity = candidates.iterator().next();
                 }
