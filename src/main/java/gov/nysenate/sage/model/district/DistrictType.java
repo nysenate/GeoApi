@@ -4,7 +4,7 @@ public enum DistrictType {
     // Available as shape files
     ASSEMBLY("district", false), CONGRESSIONAL("district", false), SENATE("district", false),
     SCHOOL("tfcode", true), TOWN_CITY("abbrev", true),
-    COUNTY("fips_code", true), ZIP("zip_code", false), ELECTRIC_UTILITY("gid", true),
+    COUNTY("senate_code", true), ZIP("zip_code", false), ELECTRIC_UTILITY("gid", true),
     // Available only in street files
     ELECTION, WARD, COUNTY_LEG, FIRE, VILLAGE, MUNICIPAL_COURT, CITY_COUNCIL;
 

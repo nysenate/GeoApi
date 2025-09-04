@@ -3,7 +3,7 @@ package gov.nysenate.sage.dao.provider.shapefile;
 import gov.nysenate.sage.dao.base.BasicSqlQuery;
 
 public enum ShapefileQueries implements BasicSqlQuery {
-    GET_DISTRICT_MAP("""
+    GET_DISTRICT_MAPS("""
             SELECT *, ST_AsGeoJson(full_geom) AS map, area_in_sq_km(full_geom) AS area
             FROM (
                 SELECT ${nameColumn} AS name, ${codeColumn} AS code, ST_Union(geom) AS full_geom

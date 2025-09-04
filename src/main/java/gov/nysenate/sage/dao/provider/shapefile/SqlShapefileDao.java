@@ -74,16 +74,13 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao, DistrictNa
         Map<String, String> replacementMap = getReplacements(intersectType, "intersectType");
         replacementMap.put("baseType", baseType.name().toLowerCase());
         replacementMap.put("baseCodeColumn", baseType.codeColumn());
-        if (baseType == DistrictType.COUNTY) {
-            refCode = countyDao.getFipsCode(refCode);
-        }
         var params = new MapSqlParameterSource("districtCode", refCode);
 
         String sql = GET_INTERSECTION.getSql(geometrySchema, replacementMap);
         return namedJdbcTemplate.query(sql, params, (rs, rowNum) -> {
             IntersectMap intersectMap = getDistrictMapFromJson(rs.getString("intersect_geo_json"), new IntersectMap());
             intersectMap.setDistrictType(intersectType);
-            String code = getDistrictCode(rs, intersectType);
+            String code = rs.getString("code");
             intersectMap.setDistrictCode(code);
             intersectMap.setDistrictName(getDistrictName(intersectType, code));
             intersectMap.setArea(rs.getBigDecimal("area"));
@@ -109,7 +106,7 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao, DistrictNa
             } catch (Exception e) {
                 logger.warn("Could not clean {} maps.", districtType);
             }
-            String sql = GET_DISTRICT_MAP.getSql(geometrySchema, getReplacements(districtType, "type"));
+            String sql = GET_DISTRICT_MAPS.getSql(geometrySchema, getReplacements(districtType, "type"));
             SortedSet<DistrictMap> currDistrictMapSet = new TreeSet<>(
                     namedJdbcTemplate.query(sql, new DistrictCacheMapper(districtType))
             );
@@ -132,12 +129,13 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao, DistrictNa
 
         @Override
         public DistrictMap mapRow(@Nonnull ResultSet rs, int rowNum) throws SQLException {
-            String code = getDistrictCode(rs, type);
+            String code = rs.getString("code");
             // This is the place where names are actually assigned: everything else pulls from these cached values.
             String name = switch (type) {
                 case SENATE -> "NY Senate District " + code;
                 case ASSEMBLY -> "NY Assembly District " + code;
                 case CONGRESSIONAL -> "NY Congressional District " + code;
+                // TODO: should maybe only add prefix if there are duplicates?
                 case TOWN_CITY -> TownCity.getFullName(rs.getString("name"), code.startsWith("-"));
                 case ZIP -> "Zipcode " + code;
                 case COUNTY -> rs.getString("name") + " County";
@@ -149,7 +147,7 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao, DistrictNa
             map.setArea(rs.getBigDecimal("area"));
             // For COVID links
             if (type == DistrictType.COUNTY) {
-                map.setLink(countyDao.getLinkBySenateCode(code));
+                map.setLink(countyDao.getCountyByCode(code).link());
             }
             return map;
         }
@@ -164,25 +162,9 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao, DistrictNa
 
         @Override
         public SingleDistrict mapRow(@Nonnull ResultSet rs, int rowNum) throws SQLException {
-            String code = getDistrictCode(rs, type);
+            String code = rs.getString("code");
             return new SingleDistrict(code, getDistrictName(type, code));
         }
-    }
-
-    /**
-     * Retrieves the district code from the result set and performs any necessary corrections.
-     * Requires that the result set contains the 'code' column.
-     */
-    private String getDistrictCode(ResultSet rs, DistrictType type) throws SQLException {
-        if (rs == null) {
-            return null;
-        }
-        // County codes need to be mapped from FIPS code
-        if (type == DistrictType.COUNTY) {
-            return countyDao.getSenateCodeStr(rs.getInt("code"));
-        }
-        // Normal district code
-        return rs.getString("code");
     }
 
     @Override

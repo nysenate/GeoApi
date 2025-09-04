@@ -1,6 +1,8 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.Multimap;
 import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.model.district.TownCity;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetfileType;
@@ -12,9 +14,11 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static gov.nysenate.sage.model.district.DistrictType.*;
@@ -23,32 +27,29 @@ import static gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLin
 public class VoterFileParser extends BaseParser {
     private static final Logger logger = LoggerFactory.getLogger(VoterFileParser.class);
 
-    private final ImmutableMap<Integer, Integer> countyCodeMap;
-    private final ImmutableSet<Integer> nycVoterfileCodes;
-    private final ImmutableSetMultimap<Integer, TownCity> countyVoterfileCodeToTownCityMap;
-    private final Map<String, TownCity> nameStrToTownCityMap = new CaseInsensitiveKeyMap<>();
+    private final ImmutableMap<Integer, County> voterFileCodeToCountyMap;
+    private final ImmutableSetMultimap<County, TownCity> countyToTownCityMap;
+    private final TownCity nyc;
+    private final Map<County, CaseInsensitiveKeyMap<TownCity>> countyToTownCityFieldMap = new HashMap<>();
 
-    public VoterFileParser(File file, Multimap<County, TownCity> countyToTownCityMap) {
+    public VoterFileParser(File file, Multimap<County, TownCity> countyToTownCityMap, TownCity nyc) {
         super(file);
-        this.countyCodeMap = ImmutableMap.copyOf(countyToTownCityMap.keySet().stream()
-                .collect(Collectors.toMap(County::voterfileCode, County::senateCode))
+        this.voterFileCodeToCountyMap = ImmutableMap.copyOf(countyToTownCityMap.keySet().stream()
+                .collect(Collectors.toMap(County::voterfileCode, Function.identity()))
         );
-        this.nycVoterfileCodes = ImmutableSet.copyOf(countyToTownCityMap.keySet().stream().filter(County::inNYC)
-                .map(County::voterfileCode).collect(Collectors.toSet())
-        );
+        this.countyToTownCityMap = ImmutableSetMultimap.copyOf(countyToTownCityMap);
+        this.nyc = nyc;
 
-        Multimap<Integer, TownCity> tempMap = HashMultimap.create();
-        for (County county : countyToTownCityMap.keySet()) {
-            for (TownCity townCity : countyToTownCityMap.get(county)) {
-                tempMap.put(county.voterfileCode(), townCity);
+        // Populate the map.
+        for (var county : countyToTownCityMap.keySet()) {
+            var tempMap = new CaseInsensitiveKeyMap<TownCity>();
+            for (TownCity currTownCity : countyToTownCityMap.get(county)) {
+                if (!StringUtils.isBlank(currTownCity.voterFileCode())) {
+                    tempMap.put(currTownCity.voterFileCode(), currTownCity);
+                }
             }
+            countyToTownCityFieldMap.put(county, tempMap);
         }
-        this.countyVoterfileCodeToTownCityMap = ImmutableSetMultimap.copyOf(tempMap);
-
-        countyToTownCityMap.values().stream().filter(tc -> !StringUtils.isBlank(tc.voterfileCode()))
-                .forEach(tc -> nameStrToTownCityMap.put(tc.voterfileCode(), tc));
-        // Empty Strings will never match.
-        nameStrToTownCityMap.put("", null);
     }
 
     @Nonnull
@@ -68,40 +69,39 @@ public class VoterFileParser extends BaseParser {
                 .addBuildingIndices(4).addStreetIndices(6, 7, 8).addPostalCityIndex(12).addType(ZIP, 13)
                 .addType(COUNTY, 23).addTypesInOrder(ELECTION, COUNTY_LEG, TOWN_CITY, WARD)
                 .addTypesInOrder(CONGRESSIONAL, SENATE, ASSEMBLY)
-                .addCountyFunction(lineParts -> countyCodeMap.get(Integer.parseInt(lineParts.get(23))))
                 .addIdFunction((lineParts, lineNum) -> Long.parseLong(lineParts.get(45).replaceFirst("^NY", "")));
     }
 
     @Override
     protected List<String> parseLine(String line) {
         List<String> tempLine = super.parseLine(line);
-        String townCityStr;
-        int countyCode = Integer.parseInt(tempLine.get(23));
-        // In NYC, this field may contain e.g. the borough or Queens neighborhood, which should be overridden.
-        if (nycVoterfileCodes.contains(countyCode)) {
-            townCityStr = "New York City";
-        } else {
-            townCityStr = tempLine.get(26);
-        }
+        County county = voterFileCodeToCountyMap.get(Integer.parseInt(tempLine.get(23)));
+        tempLine.set(23, String.valueOf(county.senateCode()));
         TownCity townCity = null;
-        if (!nameStrToTownCityMap.containsKey(townCityStr)) {
-            Set<TownCity> candidates = countyVoterfileCodeToTownCityMap.get(countyCode).stream()
-                    .filter(tc -> tc.pattern().matcher(townCityStr).matches())
-                    .collect(Collectors.toSet());
-            // If just a baseName is given when there is a town and a city with the same name, it refers to the town.
-            if (candidates.size() > 1 && candidates.stream().map(TownCity::baseName).distinct().count() == 1) {
-                candidates = candidates.stream().filter(TownCity::isTown).collect(Collectors.toSet());
+        // In NYC, this field may contain e.g. the borough or Queens neighborhood, which should be overridden.
+        if (county.inNYC()) {
+            townCity = nyc;
+        } else {
+            String townCityStr = tempLine.get(26);
+            CaseInsensitiveKeyMap<TownCity> fieldMap = countyToTownCityFieldMap.get(county);
+            if (!fieldMap.containsKey(townCityStr)) {
+                Set<TownCity> candidates = countyToTownCityMap.get(county).stream()
+                        .filter(tc -> tc.pattern().matcher(townCityStr).matches())
+                        .collect(Collectors.toSet());
+                // If just a baseName is given when there is a town and a city with the same name, it refers to the town.
+                if (candidates.size() > 1 && candidates.stream().map(TownCity::baseName).distinct().count() == 1) {
+                    candidates = candidates.stream().filter(TownCity::isTown).collect(Collectors.toSet());
+                }
+                if (candidates.size() != 1) {
+                    logger.warn("Couldn't match {}. Matched: {}", townCityStr, candidates);
+                } else {
+                    townCity = candidates.iterator().next();
+                }
+                // Ensures we don't need to re-calculate the correct code.
+                fieldMap.put(townCityStr, townCity);
             }
-            if (candidates.size() != 1) {
-                logger.warn("Couldn't match {}. Matched: {}", townCityStr, candidates);
-            }
-            else {
-                townCity = candidates.iterator().next();
-            }
-            // Ensures we don't need to re-calculate the correct code.
-            nameStrToTownCityMap.put(townCityStr, townCity);
+            townCity = fieldMap.get(townCityStr);
         }
-        townCity = nameStrToTownCityMap.get(townCityStr);
         tempLine.set(26, townCity == null ? "" : townCity.code());
         return tempLine;
     }

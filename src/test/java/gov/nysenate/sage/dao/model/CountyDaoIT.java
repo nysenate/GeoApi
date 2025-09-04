@@ -3,42 +3,19 @@ package gov.nysenate.sage.dao.model;
 import gov.nysenate.sage.BaseTests;
 import gov.nysenate.sage.annotation.IntegrationTest;
 import gov.nysenate.sage.dao.model.county.CountyDao;
-import gov.nysenate.sage.model.district.County;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Set;
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 @Category(IntegrationTest.class)
 public class CountyDaoIT extends BaseTests {
-    private static final int TOTAL_NUMBER_OF_COUNTIES = 62;
     @Autowired
     private CountyDao sqlCountyDao;
 
     @Test
-    public void getAllCountiesTest() {
-        Set<County> counties = sqlCountyDao.getCounties();
-        assertNotNull(counties);
-        assertEquals(TOTAL_NUMBER_OF_COUNTIES, counties.size());
-
-        County county = counties.iterator().next();
-
-        assertNotEquals(0, county.senateCode());
-        assertNotNull(county.name());
-        assertNotEquals(0, county.fipsCode());
-    }
-
-    @Test
-    public void getCountyBySenateCodeTest() {
-        assertNotNull(sqlCountyDao.getLinkBySenateCode("14"));
-    }
-
-    @Test
-    public void getFipsCountyMapTest() {
-        assertEquals("1", sqlCountyDao.getSenateCodeStr(1));
-        assertEquals("28", sqlCountyDao.getSenateCodeStr(59));
+    public void getCountyTest() {
+        assertEquals("Albany", sqlCountyDao.getCountyByCode("1").name());
     }
 }

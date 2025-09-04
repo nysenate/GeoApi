@@ -70,14 +70,15 @@ public class ShapefileService {
     }
 
     public Multimap<County, TownCity> getCountyToTownCityMap() {
-        var countySet = countyDao.getCounties();
+        Set<String> countyCodes = getDistrictMaps(DistrictType.COUNTY).getDistrictMaps().stream()
+                .map(DistrictMetadata::getDistrictCode).collect(Collectors.toSet());
         Multimap<County, TownCity> result = HashMultimap.create();
-        for (County county : countySet) {
+        for (String countyCode : countyCodes) {
             Set<TownCity> currTownCities = sqlShapefileDao.getDistrictOverlap(
-                    DistrictType.COUNTY, DistrictType.TOWN_CITY, String.valueOf(county.senateCode())
+                    DistrictType.COUNTY, DistrictType.TOWN_CITY, countyCode
             ).stream().map(DistrictMetadata::getDistrictCode).map(townCityDao::getTownCityByCode)
                     .collect(Collectors.toSet());
-            result.putAll(county, currTownCities);
+            result.putAll(countyDao.getCountyByCode(countyCode), currTownCities);
         }
         return result;
     }

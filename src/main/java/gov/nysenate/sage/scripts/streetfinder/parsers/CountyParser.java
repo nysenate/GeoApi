@@ -23,6 +23,6 @@ public abstract class CountyParser extends BaseParser {
 
     @Override
     protected StreetfileDataExtractor getDataExtractor() {
-        return super.getDataExtractor().addCountyFunction(lineParts -> county.senateCode());
+        return super.getDataExtractor().setCounty(county.senateCode());
     }
 }

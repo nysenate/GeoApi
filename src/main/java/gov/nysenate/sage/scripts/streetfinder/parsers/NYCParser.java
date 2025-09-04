@@ -1,6 +1,7 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
 import gov.nysenate.sage.model.district.County;
+import gov.nysenate.sage.model.district.TownCity;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileDataExtractor;
 import gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLineType;
 
@@ -16,13 +17,14 @@ import static gov.nysenate.sage.model.district.DistrictType.*;
  * Also, tons of lines are identifiable buildings, but without building numbers.
  */
 public class NYCParser extends CountyParser {
-    private static final String nyc = "New York";
     private static final String streetNameRegex = "(\\d{1,4} |9/11 )?\\D.+";
+    private final TownCity nyc;
     private final String mailCity;
     private String currStreet;
 
-    public NYCParser(File file, County county) {
+    public NYCParser(File file, County county, TownCity nyc) {
         super(file, county);
+        this.nyc = nyc;
         this.mailCity = switch (county.name()) {
             case "Queens" -> "";
             case "Kings", "Richmond" -> county.streetfileName();
@@ -49,7 +51,7 @@ public class NYCParser extends CountyParser {
     @Override
     protected List<String> parseLine(String line) {
         String[] lineParts = line.replaceAll("\\s+", " ").trim().split(" ");
-        List<String> dataList = new ArrayList<>(List.of(mailCity, currStreet, nyc));
+        List<String> dataList = new ArrayList<>(List.of(mailCity, currStreet, nyc.code()));
         Collections.addAll(dataList, lineParts);
         return dataList;
     }

@@ -12,11 +12,11 @@ import java.util.Map;
 import static gov.nysenate.sage.model.district.DistrictType.*;
 
 public class AddressPointsParser extends BaseParser {
-    private final Map<String, Integer> fipsCodeMap;
+    private final Map<String, Integer> codeMap;
 
-    public AddressPointsParser(File file, Map<String, Integer> fipsCodeMap) {
+    public AddressPointsParser(File file, Map<String, Integer> codeMap) {
         super(file);
-        this.fipsCodeMap = fipsCodeMap;
+        this.codeMap = codeMap;
     }
 
     @Nonnull
@@ -33,8 +33,7 @@ public class AddressPointsParser extends BaseParser {
                         !lineParts.get(14).equalsIgnoreCase("Active"), StreetfileLineType.SKIP)
                 .addIdFunction((lineParts, lineNum) -> Long.valueOf(lineParts.get(0)))
                 .addBuildingIndices(2).addStreetIndices(13).addPostalCityIndex(6).addType(ZIP, 8)
-                .addType(SENATE, 24).addTypesInOrder(ASSEMBLY, CONGRESSIONAL)
-                .addCountyFunction(lineParts -> fipsCodeMap.get(lineParts.get(16).toLowerCase()));
+                .addType(SENATE, 24).addTypesInOrder(ASSEMBLY, CONGRESSIONAL);
     }
 
     @Override
@@ -47,6 +46,7 @@ public class AddressPointsParser extends BaseParser {
         List<String> lineParts = super.parseLine(line);
         lineParts.set(2, lineParts.get(1) + lineParts.get(2));
         lineParts.set(1, "");
+        lineParts.set(16, codeMap.get(lineParts.get(16).toLowerCase()).toString());
         return lineParts;
     }
 }

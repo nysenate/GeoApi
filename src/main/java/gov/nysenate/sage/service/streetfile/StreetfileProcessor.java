@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import gov.nysenate.sage.dao.provider.streetfile.StreetfileDao;
 import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.model.district.TownCity;
 import gov.nysenate.sage.provider.district.ShapefileService;
 import gov.nysenate.sage.scripts.streetfinder.model.ResolveConflictConfiguration;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetfileAddressRange;
@@ -30,6 +31,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -70,9 +72,12 @@ public class StreetfileProcessor {
 
         var fullData = new DistrictingData(config);
         Multimap<StreetfileLineType, String> fullImproperLineMap = ArrayListMultimap.create();
+        Multimap<County, TownCity> countyTownCityMap = shapefileService.getCountyToTownCityMap();
+        TownCity nyc = countyTownCityMap.values().stream().filter(tc -> "New York".equals(tc.baseName()))
+                .findFirst().orElse(null);
         for (File dataFile : dataFiles) {
             if (dataFile.isFile()) {
-                BaseParser parser = getParser(dataFile);
+                BaseParser parser = getParser(dataFile, countyTownCityMap, nyc);
                 fullData.putSource(dataFile.getName(), parser.type());
                 parser.parseFile(fullData);
                 fullImproperLineMap.putAll(parser.getImproperLineMap());
@@ -134,24 +139,24 @@ public class StreetfileProcessor {
         return String.valueOf(num);
     }
 
-    private BaseParser getParser(File file) {
+    private BaseParser getParser(File file, Multimap<County, TownCity> countyToTownCityMap, TownCity nyc) {
         String filename = file.getName().toLowerCase();
-        County county = getCounty(filename);
+        County county = getCounty(countyToTownCityMap.keySet(), filename);
         if (county == null) {
             if (filename.contains("voter")) {
-                return new VoterFileParser(file, shapefileService.getCountyToTownCityMap());
+                return new VoterFileParser(file, countyToTownCityMap, nyc);
             }
             // AddressPoints
             else if (filename.contains("address_points")) {
-                var map = shapefileService.getCountyToTownCityMap().keySet().stream().collect(
-                        Collectors.toMap(tempCounty -> tempCounty.name().toLowerCase(), County::fipsCode)
+                var map = countyToTownCityMap.keySet().stream().collect(
+                        Collectors.toMap(tempCounty -> tempCounty.name().toLowerCase(), County::senateCode)
                 );
                 return new AddressPointsParser(file, map);
             }
             else throw new IllegalArgumentException(file.getName() + " could not be matched with a parser.");
         }
         return switch (county.name()) {
-            case "Bronx", "New York", "Queens", "Kings", "Richmond" -> new NYCParser(file, county);
+            case "Bronx", "New York", "Queens", "Kings", "Richmond" -> new NYCParser(file, county, nyc);
             case "Allegany", "Columbia", "Saratoga" -> new SaratogaParser(file, county);
             case "Erie" -> new ErieParser(file, county);
             case "Essex" -> new EssexParser(file, county);
@@ -165,9 +170,9 @@ public class StreetfileProcessor {
         };
     }
 
-    private County getCounty(String filename) {
+    private County getCounty(Set<County> counties, String filename) {
         filename = filename.replaceAll("_", " ");
-        for (County county : shapefileService.getCountyToTownCityMap().keySet()) {
+        for (County county : counties) {
             if (filename.contains(county.streetfileName().toLowerCase())) {
                 return county;
             }

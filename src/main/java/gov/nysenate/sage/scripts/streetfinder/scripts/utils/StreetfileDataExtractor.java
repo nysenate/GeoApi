@@ -26,8 +26,7 @@ public class StreetfileDataExtractor {
     public static BiMap<String, Short> codeToIdBiMap = HashBiMap.create();
     private int[] buildingIndices = emptyIntArray, streetIndices = emptyIntArray;
     private int postalCityIndex = -1, precinctIndex = -1;
-    // Maps a line to a county FIPS code
-    private Function<List<String>, String> countyFipsFunction;
+    private String defaultCountyCode = null;
     // Could test the line before or after parsing.
     private final List<LineTest<String>> lineTests = new ArrayList<>();
     private final List<LineTest<List<String>>> splitLineTests = new ArrayList<>();
@@ -78,8 +77,8 @@ public class StreetfileDataExtractor {
         return this;
     }
 
-    public StreetfileDataExtractor addCountyFunction(Function<List<String>, Integer> lineToFipsFunction) {
-        this.countyFipsFunction = lineParts -> String.valueOf(lineToFipsFunction.apply(lineParts));
+    public StreetfileDataExtractor setCounty(int countyCode) {
+        this.defaultCountyCode = String.valueOf(countyCode);
         return this;
     }
 
@@ -156,8 +155,8 @@ public class StreetfileDataExtractor {
     }
 
     private String getValue(List<String> lineFields, DistrictType type) {
-        if (type == DistrictType.COUNTY) {
-            return countyFipsFunction.apply(lineFields);
+        if (type == DistrictType.COUNTY && defaultCountyCode != null) {
+            return defaultCountyCode;
         }
         Integer index = typeToDistrictIndexMap.get(type);
         return index == null ? "" : lineFields.get(index);

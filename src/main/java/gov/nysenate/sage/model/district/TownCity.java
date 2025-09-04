@@ -3,14 +3,14 @@ package gov.nysenate.sage.model.district;
 import java.util.regex.Pattern;
 
 public class TownCity {
-    private final String baseName, code, voterfileCode;
+    private final String baseName, code, voterFileCode;
     private final boolean isCity;
     private final Pattern pattern;
 
-    public TownCity(String fullName, String code, String voterfileCode) {
+    public TownCity(String fullName, String code, String voterFileCode) {
         this.baseName = getBaseName(fullName);
         this.code = code;
-        this.voterfileCode = voterfileCode;
+        this.voterFileCode = voterFileCode;
         this.isCity = fullName.contains("City");
         this.pattern = getPattern(isCity, baseName);
     }
@@ -34,8 +34,8 @@ public class TownCity {
         return code;
     }
 
-    public String voterfileCode() {
-        return voterfileCode;
+    public String voterFileCode() {
+        return voterFileCode;
     }
 
     public boolean isTown() {
@@ -63,8 +63,6 @@ public class TownCity {
 
     @Override
     public String toString() {
-        return "TownCity{" +
-                "baseName='" + baseName + '\'' +
-                ", code='" + code + '}';
+        return "TownCity{" + "baseName=" + baseName + ", code=" + code + '}';
     }
 }
