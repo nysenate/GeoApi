@@ -66,10 +66,7 @@ public class SqlJobUserDao extends BaseDao {
                 return jobUserList.get(0);
             }
         }
-        catch (Exception sqlEx) {
-            logger.error("Failed to get JobUser by email in JobUserDao!");
-            logger.error(sqlEx.getMessage());
-        }
+        catch (Exception ignored) {}
         return null;
     }
 
