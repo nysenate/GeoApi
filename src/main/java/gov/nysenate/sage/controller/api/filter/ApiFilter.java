@@ -47,9 +47,6 @@ public class ApiFilter implements Filter {
     @Value("${api.logging.enabled:true}")
     private boolean apiLoggingEnabled;
 
-    /** Available format types */
-    public enum FormatType { JSON, XML }
-
     @Autowired
     public ApiFilter(Environment env, SqlApiRequestLogger sqlApiRequestLogger, ApiUserDao apiUserDao) {
         this.sqlApiRequestLogger = sqlApiRequestLogger;
@@ -81,48 +78,23 @@ public class ApiFilter implements Filter {
         }
         apiRequest.setApiUser(apiUser);
 
-        // Check that the url is formatted correctly
-        if (validateRequest(request)) {
-            // The filter will proceed to the next chain only if the user has a valid key or is the default user.
-            // Otherwise, an error message will be sent. */
-            if (apiRequest.getApiUser() != null) {
-                if (apiRequest.isValid()) {
-                    if (apiLoggingEnabled) {
-                        sqlApiRequestLogger.logApiRequest(apiRequest);
-                    }
-                    filterChain.doFilter(request, response);
+        // The filter will proceed to the next chain only if the user has a valid key or is the default user.
+        // Otherwise, an error message will be sent.
+        if (apiRequest.getApiUser() != null) {
+            if (apiRequest.isValid()) {
+                if (apiLoggingEnabled) {
+                    sqlApiRequestLogger.logApiRequest(apiRequest);
                 }
-                else {
-                    writeErrorResponse(API_REQUEST_INVALID, response);
-                }
+                filterChain.doFilter(request, response);
             }
             else {
-                writeErrorResponse(API_KEY_INVALID, response);
-                logger.warn("Failed to validate request using key: {}", key);
+                writeErrorResponse(API_REQUEST_INVALID, response);
             }
         }
         else {
-            writeErrorResponse(API_OUTPUT_FORMAT_UNSUPPORTED, response);
+            writeErrorResponse(API_KEY_INVALID, response);
+            logger.warn("Failed to validate request using key: {}", key);
         }
-    }
-
-    /**
-     * Parses the URI to obtain the API attributes. Sets them as request attributes so they
-     * can be accessed by the controllers. Also checks to see if the output format is valid.
-     * @return  true if api parsed correctly
-     *          false otherwise
-     */
-    // TODO: ensure XML outputs properly for Bluebird
-    private boolean validateRequest(ServletRequest request) {
-        // Validate the output format only if it is set. It is okay if the format is not specified.
-        FormatType formatType = FormatType.JSON;
-        try {
-            FormatType format = FormatType.valueOf(request.getParameter("format").toUpperCase());
-        } catch (IllegalArgumentException ignored) {
-            return false;
-        }
-        catch (NullPointerException ignored) {}
-        return true;
     }
 
     /**
