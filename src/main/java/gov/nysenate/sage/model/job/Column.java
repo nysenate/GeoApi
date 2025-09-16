@@ -1,50 +1,55 @@
 package gov.nysenate.sage.model.job;
 
-import java.util.List;
+import com.fasterxml.jackson.dataformat.xml.util.CaseInsensitiveNameSet;
+import gov.nysenate.sage.util.FormatUtil;
+
+import java.util.Set;
 
 /** All recognized column names are represented here */
 public enum Column {
-    street(List.of("streetAddress", "street"), Group.address),
-    city(List.of("city"), Group.address),
-    state(List.of("stateProvinceId", "state"), Group.address),
-    zip5(List.of("postalCode", "postal", "zip", "zip5"), Group.address),
-    zip4(List.of("postalCodeSuffix", "postalSuffix", "zip4"), Group.address),
+    street(Set.of("streetAddress", "street"), Group.address),
+    city(Set.of("city"), Group.address),
+    state(Set.of("stateProvinceId", "state"), Group.address),
+    zip5(Set.of("postalCode", "postal", "zip", "zip5"), Group.address),
+    zip4(Set.of("postalCodeSuffix", "postalSuffix", "zip4"), Group.address),
 
-    uspsStreet(List.of("uspsStreetAddress", "uspsStreet"), Group.validateAddress),
-    uspsCity(List.of("uspsCity"), Group.validateAddress),
-    uspsState(List.of("uspsState"), Group.validateAddress),
-    uspsZip5(List.of("uspsZip5", "uspsPostal", "uspsPostalCode"), Group.validateAddress),
-    uspsZip4(List.of("uspsZip4", "uspsPostalSuffix", "uspsPostalCodeSuffix"), Group.validateAddress),
+    uspsStreet(Set.of("uspsStreetAddress", "uspsStreet"), Group.validateAddress),
+    uspsCity(Set.of("uspsCity"), Group.validateAddress),
+    uspsState(Set.of("uspsState"), Group.validateAddress),
+    uspsZip5(Set.of("uspsZip5", "uspsPostal", "uspsPostalCode"), Group.validateAddress),
+    uspsZip4(Set.of("uspsZip4", "uspsPostalSuffix", "uspsPostalCodeSuffix"), Group.validateAddress),
 
-    lat(List.of("lat", "geoCode1", "latitude"), Group.geocode, Type.doubleType),
-    lon(List.of("lon", "lng", "geoCode2", "longitude"), Group.geocode, Type.doubleType),
-    geoMethod(List.of("geoMethod", "geoSource"), Group.geocode),
-    geoQuality(List.of("geoQuality", "accuracy"), Group.geocode),
+    lat(Set.of("lat", "geoCode1", "latitude"), Group.geocode, Type.doubleType),
+    lon(Set.of("lon", "lng", "geoCode2", "longitude"), Group.geocode, Type.doubleType),
+    geoMethod(Set.of("geoMethod", "geoSource"), Group.geocode),
+    geoQuality(Set.of("geoQuality", "accuracy"), Group.geocode),
 
-    town_city(List.of("town52", "townCode", "town"), Group.district),
-    ward(List.of("ward53", "wardCode", "ward"), Group.district),
-    election(List.of("electionDistrict49", "electionDistrict", "ed", "election"), Group.district),
-    congressional(List.of("congressionalDistrict46", "cd", "congressionalDistrict", "congressional"), Group.district),
-    senate(List.of("nySenateDistrict47", "sd", "senateDistrict", "senate"), Group.district),
-    assembly(List.of("nyAssemblyDistrict48", "ad", "assemblyDistrict", "assembly"), Group.district),
-    county(List.of("county50", "countyCode", "county"), Group.district),
-    school(List.of("schoolDistrict54", "schoolDistrict", "school"), Group.district);
+    town_city(Set.of("town52", "townCode", "town"), Group.district),
+    ward(Set.of("ward53", "wardCode", "ward"), Group.district),
+    election(Set.of("electionDistrict49", "electionDistrict", "ed", "election"), Group.district),
+    congressional(Set.of("congressionalDistrict46", "cd", "congressionalDistrict", "congressional"), Group.district),
+    senate(Set.of("nySenateDistrict47", "sd", "senateDistrict", "senate"), Group.district),
+    assembly(Set.of("nyAssemblyDistrict48", "ad", "assemblyDistrict", "assembly"), Group.district),
+    county(Set.of("county50", "countyCode", "county"), Group.district),
+    school(Set.of("schoolDistrict54", "schoolDistrict", "school"), Group.district);
 
     private final Type type;
     private final Group group;
-    private final List<String> aliases;
+    private final CaseInsensitiveNameSet aliases;
 
-    Column(List<String> aliases, Group group) {
+    Column(Set<String> aliases, Group group) {
         this(aliases, group, Type.stringType);
     }
 
-    Column(List<String> aliases, Group group, Type type) {
-        this.aliases = aliases;
+    Column(Set<String> aliases, Group group, Type type) {
+        this.aliases = CaseInsensitiveNameSet.construct(aliases);
         this.group = group;
         this.type = type;
     }
 
     public static Column resolveColumn(String alias) {
+        // Standardizes the alias
+        alias = FormatUtil.toCamelCase(alias);
         for (Column column : Column.values()) {
             if (column.aliases.contains(alias)) {
                 return column;

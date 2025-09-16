@@ -1,7 +1,6 @@
 package gov.nysenate.sage.model.job;
 
 import gov.nysenate.sage.model.district.DistrictType;
-import gov.nysenate.sage.util.FormatUtil;
 import org.supercsv.cellprocessor.Optional;
 import org.supercsv.cellprocessor.ParseBigDecimal;
 import org.supercsv.cellprocessor.ParseInt;
@@ -25,8 +24,7 @@ public class JobFile {
         for (int i = 0; i < header.length; i++) {
             Optional toAdd = null;
             // Try to match column name to a Column
-            String columnAlias = FormatUtil.toCamelCase(header[i]);
-            Column headerColumn = Column.resolveColumn(columnAlias);
+            Column headerColumn = Column.resolveColumn(header[i]);
             if (headerColumn != null) {
                 // Record the index for the column
                 columns.add(headerColumn);
