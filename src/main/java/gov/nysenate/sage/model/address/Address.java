@@ -84,8 +84,9 @@ public sealed class Address permits BuildingAddress, PostOfficeBox {
 
     @Override
     public String toString() {
-        return addr1 + (StringUtils.isBlank(postalCity) ? "" : ", " + postalCity) + (StringUtils.isBlank(state) ? "" : ", " + state)
-                + (zip5 == null ? "" : ", " + zip5) + (zip4 == null ? "" : "-" + zip4);
+        return addr1 + (StringUtils.isBlank(postalCity) ? "" : ", " + postalCity) +
+                (StringUtils.isBlank(state) ? "" : ", " + state) +
+                (zip5 == null ? "" : ", " + zip5) + (zip4 == null ? "" : "-" + zip4);
     }
 
     public String getState() {

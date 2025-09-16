@@ -55,10 +55,6 @@ public class GeocodeController extends BaseController {
                                 @RequestParam(required = false) String zip4) {
         Address address = getAddressFromParams(null, addr1, addr2, city, state, zip5, zip4);
         address = addressService.validateOrDefault(address);
-
-        if (address == null || !address.isValid()) {
-            return new ApiError(this.getClass(), INVALID_ADDRESS);
-        }
         return new GeocodeResponse(geocodeService.geocode(null, address));
     }
 

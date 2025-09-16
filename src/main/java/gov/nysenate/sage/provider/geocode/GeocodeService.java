@@ -69,7 +69,8 @@ public class GeocodeService {
         this.executor = ExecutorUtil.createExecutor("geocode", numThreads);
     }
 
-    // Note that the returned Address will be the input Address unless the input Address isn't validated, and the geocoding succeeds.
+    // Note that the returned Address will be the input Address unless
+    // the input Address isn't validated and the geocoding succeeds.
     public GeocodeResult geocode(List<Geocoder> geocoders, @Nonnull Address address) {
         var geocodedAddress = new GeocodedAddress(address);
         if (!address.isValid()) {

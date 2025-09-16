@@ -58,7 +58,8 @@ public class HttpNYSGeoDao implements GeocoderDao {
         GeocodedAddress geocodedAddress = null;
         try {
             String formattedQuery = String.format(REV_GEOCODE_QUERY, point.lon(), point.lat());
-            formattedQuery = formattedQuery.replaceAll(" ", "%20").replaceAll(" \" ","%22").replaceAll(",","%2C").replaceAll("\\{","%7B").replaceAll("}","%7D");
+            formattedQuery = formattedQuery.replaceAll(" ", "%20").replaceAll(" \" ","%22")
+                    .replaceAll(",","%2C").replaceAll("\\{","%7B").replaceAll("}","%7D");
             logger.info(formattedQuery);
             String url = DEFAULT_BASE_URL + REV_GEOCODE_EXTENSION + formattedQuery + COMMON_PARAMS;
             geocodedAddress = getGeocodedAddress(url, true); // Response is identical to address->geocode response.
