@@ -73,9 +73,6 @@ public class GeocodeService {
     // the input Address isn't validated and the geocoding succeeds.
     public GeocodeResult geocode(List<Geocoder> geocoders, @Nonnull Address address) {
         var geocodedAddress = new GeocodedAddress(address);
-        if (!address.isValid()) {
-            return new GeocodeResult(null, INSUFFICIENT_ADDRESS, geocodedAddress);
-        }
         if (address.isOutOfState()) {
             return new GeocodeResult(null, NON_NY_STATE, geocodedAddress);
         }
