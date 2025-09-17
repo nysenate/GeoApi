@@ -65,14 +65,14 @@ public class DistrictService {
         }
 
         Address address = geocodedAddress.getAddress();
+        if (address.isOutOfState()) {
+            return new DistrictResult(NON_NY_STATE);
+        }
         if (address instanceof PostOfficeBox poBox) {
             if (geocodedAddress instanceof GeocodedPostOfficeBox poBoxGeoAddr) {
                 return getPostOfficeResult(poBox, providers, poBoxGeoAddr);
             }
             else {
-                if (poBox.isOutOfState()) {
-                    return new DistrictResult(NON_NY_STATE);
-                }
                 logger.warn("Error handling PO box {}", poBox);
                 return new DistrictResult(INTERNAL_ERROR);
             }

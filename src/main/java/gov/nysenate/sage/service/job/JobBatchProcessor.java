@@ -4,6 +4,8 @@ import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.model.job.SqlJobProcessDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.model.geo.Geocode;
+import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.job.*;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.DistrictResult;
@@ -32,7 +34,10 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -217,8 +222,9 @@ public class JobBatchProcessor implements JobProcessor {
 
                 boolean interrupted = false;
                 int batchNum = 0, inStateRecords = 0, correctedAddresses = 0;
-                var geocodeAssignments = new EnumMap<Geocoder, Integer>(Geocoder.class);
-                var districtAssignments = new HashMap<Column, Integer>();
+                var geocoderUsage = new CountMap<Geocoder>();
+                var geocodeQualityMap = new CountMap<GeocodeQuality>();
+                var districtAssignments = new CountMap<Column>();
                 while (jobResultsQueue.peek() != null) {
                     try {
                         logger.info("Waiting on batch # {}", batchNum);
@@ -233,11 +239,19 @@ public class JobBatchProcessor implements JobProcessor {
                                 correctedAddresses++;
                             }
                             var geoAddr = record.getGeocodedAddress();
-                            if (geoAddr != null && geoAddr.isValidGeocode()) {
-                                geocodeAssignments.merge(geoAddr.getGeocode().geocoder(), 1, Integer::sum);
+                            Geocoder geocoder = null;
+                            GeocodeQuality quality = null;
+                            if (geoAddr != null) {
+                                Geocode geocode = geoAddr.getGeocode();
+                                if (geocode != null) {
+                                    geocoder = geocode.geocoder();
+                                    quality = geocode.quality();
+                                }
                             }
+                            geocodeQualityMap.put(quality);
+                            geocoderUsage.put(geocoder);
                             for (Column distColumn : record.getAssignedDistricts()) {
-                                districtAssignments.merge(distColumn, 1, Integer::sum);
+                                districtAssignments.put(distColumn);
                             }
                         }
                         jobWriter.flush(); // Ensure records have been written
@@ -275,22 +289,20 @@ public class JobBatchProcessor implements JobProcessor {
                     logger.info("Completed batch processing for job file!");
                 }
 
-                var geoResultBuilder = new StringBuilder();
-                for (var entry : geocodeAssignments.entrySet()) {
-                    geoResultBuilder.append("\t%s: %d%%\n".formatted(entry.getKey(),
-                            Math.round(100.0 * entry.getValue()/inStateRecords)));
-                }
-
-                var distResultBuilder = new StringBuilder();
-                for (var entry : districtAssignments.entrySet()) {
-                    distResultBuilder.append("\t%s: %d%%\n".formatted(entry.getKey(),
-                            Math.round(100.0 * entry.getValue()/inStateRecords)));
-                }
-                logger.info("Batch job results for NY addresses in {}:\n{}% validated\n Geocode assignments:\n{}\nDistrict assignments:\n{}",
+                logger.info("""
+                                Batch job results for NY addresses in {}:
+                                {}% validated
+                                Geocoder usage:
+                                {}
+                                Geocode quality:
+                                {}
+                                District assignments:
+                                {}""",
                         fileName,
                         Math.round(100.0 * correctedAddresses/inStateRecords),
-                        geoResultBuilder,
-                        distResultBuilder
+                        geocoderUsage.toString(inStateRecords, true),
+                        geocodeQualityMap.toString(inStateRecords, true),
+                        districtAssignments.toString(inStateRecords, false)
                 );
             }
         }
