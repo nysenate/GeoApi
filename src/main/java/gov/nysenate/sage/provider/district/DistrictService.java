@@ -51,8 +51,8 @@ public class DistrictService {
         this.shapefileDao = shapefileDao;
 
         List<LocalSource> tempRanking = new ArrayList<>();
-        for (String geocoder : districtRankingStr.split(", *")) {
-            tempRanking.add(LocalSource.valueOf(geocoder.toUpperCase()));
+        for (String districtSource : districtRankingStr.split(", *")) {
+            tempRanking.add(LocalSource.valueOf(districtSource.toUpperCase()));
         }
         this.defaultRanking = ImmutableList.copyOf(tempRanking);
         this.executor = ExecutorUtil.createExecutor("district", numThreads);
@@ -111,6 +111,7 @@ public class DistrictService {
             }
             catch (InterruptedException | ExecutionException ex) {
                 logger.error(ex.getMessage());
+                districtResults.add(new DistrictResult(INTERNAL_ERROR));
             }
         }
         return districtResults;
