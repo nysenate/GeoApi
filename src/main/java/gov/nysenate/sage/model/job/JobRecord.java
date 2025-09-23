@@ -3,6 +3,7 @@ package gov.nysenate.sage.model.job;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictInfo;
+import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.result.AddressResult;
@@ -23,6 +24,7 @@ public class JobRecord {
     private final Address address;
     private Address correctedAddress;
     private GeocodedAddress geocodedAddress;
+    private DistrictMatchLevel matchLevel;
 
     public JobRecord(Map<Column, Integer> indexMap, List<Object> row) {
         this.indexMap = indexMap;
@@ -93,6 +95,7 @@ public class JobRecord {
     public void applyDistrictResult(DistrictResult districtResult) {
         if (districtResult != null && districtResult.isSuccess()) {
             DistrictInfo districtInfo = districtResult.getDistrictInfo();
+            this.matchLevel = districtInfo.matchLevel();
             for (Column column : Column.values()) {
                 if (column.group() != Column.Group.district) {
                     continue;
@@ -113,7 +116,11 @@ public class JobRecord {
     public GeocodedAddress getGeocodedAddress() {
         return geocodedAddress;
     }
-    
+
+    public DistrictMatchLevel getMatchLevel() {
+        return matchLevel;
+    }
+
     public Set<Column> getAssignedDistricts() {
         var assignedDistricts = EnumSet.noneOf(Column.class);
         for (Column column : indexMap.keySet()) {

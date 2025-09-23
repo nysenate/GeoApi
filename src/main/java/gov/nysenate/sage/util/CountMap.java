@@ -13,14 +13,14 @@ public class CountMap<T> {
         put(key, 1);
     }
 
-    public void put(T key, int count) {
-        internalMap.merge(key, count, Integer::sum);
-    }
-
     public void addAll(CountMap<T> otherMap) {
         for (var entry : otherMap.internalMap.entrySet()) {
             put(entry.getKey(), entry.getValue());
         }
+    }
+
+    private void put(T key, int count) {
+        internalMap.merge(key, count, Integer::sum);
     }
 
     public boolean containsOnly(T key) {

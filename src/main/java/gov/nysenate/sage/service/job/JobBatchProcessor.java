@@ -3,6 +3,7 @@ package gov.nysenate.sage.service.job;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.model.job.SqlJobProcessDao;
 import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.GeocodeQuality;
@@ -227,6 +228,7 @@ public class JobBatchProcessor implements JobProcessor {
                 var geocoderUsage = new CountMap<Geocoder>();
                 var geocodeQualityMap = new CountMap<GeocodeQuality>();
                 var districtAssignments = new CountMap<Column>();
+                var matchLevelCount = new CountMap<DistrictMatchLevel>();
                 while (jobResultsQueue.peek() != null) {
                     try {
                         logger.info("Waiting on batch # {}", batchNum);
@@ -255,6 +257,7 @@ public class JobBatchProcessor implements JobProcessor {
                             for (Column distColumn : record.getAssignedDistricts()) {
                                 districtAssignments.put(distColumn);
                             }
+                            matchLevelCount.put(record.getMatchLevel());
                         }
                         jobWriter.flush(); // Ensure records have been written
 
@@ -291,7 +294,6 @@ public class JobBatchProcessor implements JobProcessor {
                     logger.info("Completed batch processing for job file!");
                 }
 
-                // TODO: add match level data?
                 logger.info("""
                                 Batch job results for NY addresses in {}:
                                 {}% validated
@@ -300,12 +302,15 @@ public class JobBatchProcessor implements JobProcessor {
                                 Geocode quality:
                                 {}
                                 District assignments:
+                                {}
+                                Match level:
                                 {}""",
                         fileName,
                         Math.round(100.0 * correctedAddresses/inStateRecords),
                         geocoderUsage.toString(inStateRecords, true),
                         geocodeQualityMap.toString(inStateRecords, true),
-                        districtAssignments.toString(inStateRecords, false)
+                        districtAssignments.toString(inStateRecords, false),
+                        matchLevelCount.toString(inStateRecords, true)
                 );
             }
         }
