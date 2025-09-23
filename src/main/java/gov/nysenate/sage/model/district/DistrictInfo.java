@@ -37,9 +37,10 @@ public record DistrictInfo(ImmutableMap<DistrictType, SingleDistrict> typeToDist
     @Nonnull
     @Override
     public String toString() {
-        var out = new StringBuilder();
+        var out = new StringBuilder().append(matchLevel).append('\n');
         for (DistrictType t : typeToDistrictMap.keySet()) {
-            out.append(t).append(": name = ").append(getDistName(t)).append(" code = ").append(getDistCode(t)).append("\n");
+            out.append(t).append(": name = ").append(getDistName(t))
+                    .append(", code = ").append(getDistCode(t)).append("\n");
         }
         return out.toString();
     }
