@@ -96,6 +96,7 @@ public class StreetfileDao extends BaseDao {
     }
 
     private DistrictInfo getDistrictInfo(Address addr, @Nonnull DistrictMatchLevel matchLevel) {
+        logger.debug("Getting district info for {} at level {}", addr, matchLevel);
         if (addr == null || matchLevel == DistrictMatchLevel.NOMATCH) {
             return DistrictInfo.empty;
         }

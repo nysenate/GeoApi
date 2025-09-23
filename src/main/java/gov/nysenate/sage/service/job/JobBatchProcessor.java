@@ -34,6 +34,8 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -289,6 +291,7 @@ public class JobBatchProcessor implements JobProcessor {
                     logger.info("Completed batch processing for job file!");
                 }
 
+                // TODO: add match level data?
                 logger.info("""
                                 Batch job results for NY addresses in {}:
                                 {}% validated
@@ -412,9 +415,11 @@ public class JobBatchProcessor implements JobProcessor {
         @Override
         public JobBatch call() throws Exception {
             JobBatch finishedBatch = futureJobBatch.get();
-            logger.info("Geocoding for records {}-{}", finishedBatch.fromRecord(), finishedBatch.toRecord());
-
+            LocalDateTime start = LocalDateTime.now();
             List<GeocodeResult> geocodeResults = geocodeService.geocode(finishedBatch.getBestAddresses());
+            long millis = ChronoUnit.MILLIS.between(start, LocalDateTime.now());
+            logger.info("Geocoded records {}-{} in {} milliseconds",
+                    finishedBatch.fromRecord(), finishedBatch.toRecord(), millis);
             finishedBatch.setGeocodeResults(geocodeResults);
             return finishedBatch;
         }
@@ -438,11 +443,13 @@ public class JobBatchProcessor implements JobProcessor {
         @Override
         public JobBatch call() throws Exception {
             JobBatch jobBatch = futureJobBatch.get();
-            logger.info("District assignment for records {}-{}", jobBatch.fromRecord(), jobBatch.toRecord());
-
+            LocalDateTime start = LocalDateTime.now();
             List<DistrictResult> districtResults = districtService.assignDistricts(
                     jobBatch.getGeocodedAddresses(), districtTypes
             );
+            long millis = ChronoUnit.MILLIS.between(start, LocalDateTime.now());
+            logger.info("District assigned records {}-{} in {} milliseconds",
+                    jobBatch.fromRecord(), jobBatch.toRecord(), millis);
             jobBatch.setDistrictResults(districtResults);
             return jobBatch;
         }
