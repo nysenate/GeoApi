@@ -146,17 +146,21 @@ public class GeocodeService {
         return getBatchResults(points, point -> reverseGeocode(null, point));
     }
 
-    private synchronized GeocodeResult getPostOfficeResult(PostOfficeBox poBox, @Nonnull List<Geocoder> geocoders) {
-        GeocodeResult result = poBoxCache.get(poBox, geocoders);
-        if (result == null) {
-            Multimap<String, GeocodeResult> postalCityMap = ArrayListMultimap.create();
-            for (BuildingAddress postOffice : postOfficeDao.getPostOffices(poBox.getZip5())) {
-                postalCityMap.put(postOffice.getPostalCity(), geocode(geocoders, postOffice));
+    private GeocodeResult getPostOfficeResult(PostOfficeBox poBox, @Nonnull List<Geocoder> geocoders) {
+        // This strange monitor ensures we won't geocode the same post office in parallel,
+        // while allowing other post offices to be geocoded at the same time.
+        synchronized (poBox.getZip5().toString().intern()) {
+            GeocodeResult result = poBoxCache.get(poBox, geocoders);
+            if (result == null) {
+                Multimap<String, GeocodeResult> postalCityMap = ArrayListMultimap.create();
+                for (BuildingAddress postOffice : postOfficeDao.getPostOffices(poBox.getZip5())) {
+                    postalCityMap.put(postOffice.getPostalCity(), geocode(geocoders, postOffice));
+                }
+                result = poBoxCache.putAndGet(poBox, geocoders, postalCityMap);
             }
-            result = poBoxCache.putAndGet(poBox, geocoders, postalCityMap);
+            result.setAddress(poBox);
+            return result;
         }
-        result.setAddress(poBox);
-        return result;
     }
 
     private <T> List<GeocodeResult> getBatchResults(List<T> inputs, Function<T, GeocodeResult> resultMapper) {
