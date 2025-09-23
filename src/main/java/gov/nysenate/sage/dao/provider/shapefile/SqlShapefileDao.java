@@ -13,10 +13,10 @@ import gov.nysenate.sage.util.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Nonnull;
@@ -60,11 +60,14 @@ public class SqlShapefileDao extends BaseDao implements ShapefileDao, DistrictNa
                 continue;
             }
             String sql = GET_DISTRICT_FROM_POINT.getSql(geometrySchema, getReplacements(districtType, "type"));
-            SqlParameterSource params = new MapSqlParameterSource("lat", geocode.lat())
-                    .addValue("lon", geocode.lon());
-            SingleDistrict result = namedJdbcTemplate.queryForObject(sql, params,
-                    new SingleDistrictMapper(districtType));
-            typeToDistrictMap.put(districtType, result);
+            var params = new MapSqlParameterSource("lat", geocode.lat()).addValue("lon", geocode.lon());
+            try {
+                SingleDistrict result = namedJdbcTemplate.queryForObject(sql, params,
+                        new SingleDistrictMapper(districtType));
+                typeToDistrictMap.put(districtType, result);
+            } catch (EmptyResultDataAccessException ex) {
+                logger.warn("Could not place {} inside a {} district", geocode.point(), districtType);
+            }
         }
         return new DistrictInfo(typeToDistrictMap, getMatchLevel(geocode.quality()));
     }
