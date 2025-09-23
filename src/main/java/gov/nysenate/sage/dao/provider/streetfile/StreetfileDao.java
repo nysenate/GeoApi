@@ -99,32 +99,38 @@ public class StreetfileDao extends BaseDao {
         if (addr == null || matchLevel == DistrictMatchLevel.NOMATCH) {
             return DistrictInfo.empty;
         }
-        var sqlBuilder = new StringBuilder("SELECT * FROM %s WHERE postal_city = '%s'\n"
-                .formatted(SqlTable.STREETFILE, addr.getPostalCity().toUpperCase()));
-        if (matchLevel.compareTo(DistrictMatchLevel.ZIP5) >= 0) {
-            sqlBuilder.append(" AND zip5 = '%s'\n".formatted(addr.getZip5()));
+        var whereList = new ArrayList<String>();
+        if (matchLevel.compareTo(DistrictMatchLevel.CITY) >= 0 && addr.getPostalCity() != null) {
+            whereList.add("postal_city = '%s'".formatted(addr.getPostalCity().toUpperCase()));
+        }
+        if (matchLevel.compareTo(DistrictMatchLevel.ZIP5) >= 0 && addr.getZip5() != null) {
+            whereList.add("zip5 = '%s'".formatted(addr.getZip5()));
         }
         if (addr instanceof BuildingAddress bldgAddr) {
             if (matchLevel.compareTo(DistrictMatchLevel.STREET) >= 0) {
-                sqlBuilder.append(" AND street = '%s'".formatted(bldgAddr.getStreet().toUpperCase()));
+                whereList.add("street = '%s'".formatted(bldgAddr.getStreet().toUpperCase()));
             }
             if (matchLevel == DistrictMatchLevel.HOUSE) {
                 int bldgNum;
                 try {
-                    bldgNum = Integer.parseInt(bldgAddr.getBldgId().replaceFirst("(?i)[a-z]$", ""));
+                    bldgNum = Integer.parseInt(bldgAddr.getBldgId().replaceFirst("(?i)[a-z-]$", ""));
                 } catch (NumberFormatException ex) {
-                    logger.warn("Could not parse building number from {}", bldgAddr.getBldgId());
+                    logger.warn("Could not parse building number from {}", bldgAddr);
                     return getDistrictInfo(bldgAddr, matchLevel.getNextHighestLevel());
                 }
                 StreetParity parity = bldgNum % 2 == 0 ? EVENS : ODDS;
-                sqlBuilder.append(" AND (bldg_low <= %d AND %d <= bldg_high)".formatted(bldgNum, bldgNum))
-                        .append(" AND (parity = 'ALL' OR parity = '%s')".formatted(parity.name()));
+                whereList.add("(bldg_low <= %d AND %d <= bldg_high)".formatted(bldgNum, bldgNum));
+                whereList.add("(parity = 'ALL' OR parity = '%s')".formatted(parity.name()));
             }
+        }
+        if (whereList.isEmpty()) {
+            return DistrictInfo.empty;
         }
 
         checkLock();
-        List<DistrictedStreetRange> ranges = namedJdbcTemplate.query(sqlBuilder.toString(),
-                new DistrictStreetRangeMapper());
+        String sql = "SELECT * FROM %s\n".formatted(SqlTable.STREETFILE) +
+                " WHERE " + String.join(" AND ", whereList);
+        List<DistrictedStreetRange> ranges = namedJdbcTemplate.query(sql, new DistrictStreetRangeMapper());
         if (ranges.isEmpty()) {
             return getDistrictInfo(addr, matchLevel.getNextHighestLevel());
         }

@@ -53,8 +53,8 @@ public final class PostOfficeCacheManager {
         if (postOffices.isEmpty()) {
             return new GeocodeResult(NON_NY_STATE);
         }
-        List<Geocoder> geocoders = postOffices.stream().map(geoAddr -> geoAddr.getGeocode().originalGeocoder())
-                .toList();
+        List<Geocoder> geocoders = postOffices.stream()
+                .map(geoAddr -> geoAddr.getGeocode().originalGeocoder()).toList();
         var postalGeoAddr = new GeocodedPostOfficeBox(postOffices);
         return new GeocodeResult(geocoders, postalGeoAddr);
     }
