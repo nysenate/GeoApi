@@ -149,22 +149,21 @@ public class HttpUSPSAMSDao implements AddressDao {
         String state = addressNode.get("state").asText();
         String zip5 = addressNode.get("zip5").asText();
         String zip4 = addressNode.get("zip4").asText();
-        // Seems to stand for "non-deliverable"
+        // Seems to stand for "non-deliverable".
         if ("ND".equals(zip4)) {
             zip4 = null;
         }
         var currAddress = new Address(addr1, addr2, city, state, zip5, zip4);
 
-        if (root.get("success").asBoolean(false)) {
+        // Some PO Boxes get corrected, but aren't marked as a success for some reason.
+        if (addr1.matches("(?i)PO BOX \\d+")) {
+            currAddress = new PostOfficeBox(currAddress);
+            addressResult.setStatusCode(SUCCESS);
+        }
+        else if (root.get("success").asBoolean(false)) {
             try {
                 String street = getStreetFromRecord(root.get("records").get(0));
-                if ("PO BOX".equals(street)) {
-                    currAddress = new PostOfficeBox(currAddress);
-                }
-                else {
-                    String streetNumber = addr1.split(" ")[0];
-                    currAddress = new BuildingAddress(currAddress, streetNumber, street);
-                }
+                currAddress = new BuildingAddress(currAddress, addr1.split(" ")[0], street);
                 addressResult.setStatusCode(SUCCESS);
             } catch (Exception ex) {
                 logger.error("Bad address node: {}", addressNode, ex);
@@ -178,7 +177,6 @@ public class HttpUSPSAMSDao implements AddressDao {
         var streetPartList = new ArrayList<String>();
         for (String fieldName : streetParts) {
             streetPartList.add(record.get(fieldName).asText());
-
         }
         return String.join(" ", streetPartList).replaceAll(" +", " ").trim();
     }
