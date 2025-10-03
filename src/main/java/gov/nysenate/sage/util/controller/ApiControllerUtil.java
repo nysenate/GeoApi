@@ -22,6 +22,9 @@ import java.util.List;
 import static gov.nysenate.sage.util.controller.ConstantUtil.ADMIN_USERNAME_ATTR;
 
 public final class ApiControllerUtil {
+    public static final BaseResponse invalidAuthResponse =
+            new GenericResponse(false, "You must be logged in as an administrator to access this API."),
+            successResponse = new BaseResponse(ResultStatus.SUCCESS);
     private static final Logger logger = LogManager.getLogger(ApiControllerUtil.class);
 
     private ApiControllerUtil() {}
@@ -126,19 +129,6 @@ public final class ApiControllerUtil {
             session.setAttribute(ADMIN_USERNAME_ATTR, null);
             session.invalidate();
         }
-    }
-
-    public static BaseResponse successResponse() {
-        return new BaseResponse(ResultStatus.SUCCESS);
-    }
-
-    /**
-     * Creates an error response message for an api user that is not authenticated as an admin trying to
-     * access and admin api
-     * @return GenericResponse
-     */
-    public static GenericResponse invalidAuthResponse() {
-        return new GenericResponse(false, "You must be logged in as an administrator to access this API.");
     }
 
     /**

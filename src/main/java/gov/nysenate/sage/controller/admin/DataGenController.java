@@ -63,7 +63,7 @@ public class DataGenController {
                                      @RequestParam(required = false, defaultValue = "") String key)
             throws SQLException, IOException {
         if (!authenticate(request, username, password, key)) {
-            return invalidAuthResponse();
+            return invalidAuthResponse;
         }
         List<StreetfileType> priorityList = voterFirst ? List.of(StreetfileType.VOTER, StreetfileType.COUNTY) :
                 List.of(StreetfileType.COUNTY, StreetfileType.VOTER);
@@ -73,7 +73,7 @@ public class DataGenController {
             return new BaseResponse(ResultStatus.NO_STREETFILES_TO_PROCESS);
         }
         streetfileDao.replaceStreetfile(streetfilePath);
-        return ApiControllerUtil.successResponse();
+        return ApiControllerUtil.successResponse;
     }
 
     /**
@@ -93,9 +93,9 @@ public class DataGenController {
                                    @RequestParam(required = false, defaultValue = "") String key) throws IOException {
         if (authenticate(request, username, password, key)) {
             dataGenService.generateMetaData(option);
-            return ApiControllerUtil.successResponse();
+            return ApiControllerUtil.successResponse;
         }
-        return invalidAuthResponse();
+        return invalidAuthResponse;
     }
 
     /**
@@ -114,9 +114,9 @@ public class DataGenController {
                                        @RequestParam(required = false, defaultValue = "") String key) {
         if (authenticate(request, username, password, key)) {
             dataGenService.vacantizeSenateData();
-            return ApiControllerUtil.successResponse();
+            return ApiControllerUtil.successResponse;
         }
-        return invalidAuthResponse();
+        return invalidAuthResponse;
     }
 
     @GetMapping(value = "/post-offices")
@@ -126,11 +126,11 @@ public class DataGenController {
                                    @RequestParam(required = false, defaultValue = "") String key) throws IOException {
         if (authenticate(request, username, password, key)) {
             if (postOfficeService.replaceData()) {
-                return ApiControllerUtil.successResponse();
+                return ApiControllerUtil.successResponse;
             }
             return new ApiError(POST_OFFICE_REFRESH_FAILURE);
         }
-        return invalidAuthResponse();
+        return invalidAuthResponse;
     }
 
     private boolean authenticate(HttpServletRequest request, String username, String password, String key) {

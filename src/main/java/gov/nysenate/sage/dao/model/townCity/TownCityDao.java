@@ -1,47 +1,40 @@
 package gov.nysenate.sage.dao.model.townCity;
 
-import com.google.common.collect.ImmutableMap;
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.dao.provider.DistrictNameDao;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.district.TownCity;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Repository
 public class TownCityDao extends BaseDao {
-    private final DistrictNameDao nameDao;
-    private ImmutableMap<String, TownCity> codeToTownCityMap;
-
-    @Autowired
-    public TownCityDao(DistrictNameDao nameDao) {
-        this.nameDao = nameDao;
+    public Set<TownCity> getTownCities() {
+        return new HashSet<>(namedJdbcTemplate.query(TownCityQuery.SELECT_ALL_.getSql(), new TownCityRowMapper()));
     }
 
-    @PostConstruct
-    public void cacheTownCities() {
-        ImmutableMap.Builder<String, TownCity> builder = ImmutableMap.builder();
-        jdbcTemplate.query(TownCityQuery.SELECT_ALL.getSql(), new NestedMapCallbackHandler())
-                .forEach(townCity -> builder.put(townCity.code(), townCity));
-        this.codeToTownCityMap = builder.build();
-    }
+    private class TownCityRowMapper implements RowMapper<TownCity> {
+        private final List<String> repeatNames = namedJdbcTemplate.query(
+                TownCityQuery.SELECT_ALL_REPEAT_NAMES.getSql(), (rs, rowNum) -> rs.getString("name")
+        );
 
-    public TownCity getTownCityByCode(String code) {
-        return codeToTownCityMap.get(code);
-    }
-
-    private class NestedMapCallbackHandler implements RowMapper<TownCity> {
         @Override
         public TownCity mapRow(@Nonnull ResultSet rs, int rowNum) throws SQLException {
-            String code = rs.getString("district_code");
-            String fullName = nameDao.getDistrictName(DistrictType.TOWN_CITY, code);
-            return new TownCity(fullName, code, rs.getString("voterfile_code"));
+            String code = rs.getString(DistrictType.TOWN_CITY.codeColumn());
+            String baseName = rs.getString(DistrictType.TOWN_CITY.nameColumn());
+            String voterFileCode = namedJdbcTemplate.queryForObject(TownCityQuery.SELECT_VOTER_FILE_CODE.getSql(),
+                    Map.of("code", code), new SingleColumnRowMapper<>());
+            return new TownCity(baseName, rs.getString("muni_type"),
+                    repeatNames.contains(baseName), code, voterFileCode,
+                    rs.getString("county"));
         }
     }
 }

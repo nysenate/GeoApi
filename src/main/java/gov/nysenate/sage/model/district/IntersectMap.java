@@ -7,8 +7,8 @@ import java.util.List;
 public class IntersectMap extends DistrictMap {
     private List<Polygon> fullMapPolygons;
 
-    public IntersectMap() {
-        super();
+    public IntersectMap(DistrictType type, String name, String code) {
+        super(type, name, code);
     }
 
     public List<Polygon> getFullMapPolygons() {

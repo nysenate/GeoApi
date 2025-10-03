@@ -1,6 +1,7 @@
 package gov.nysenate.sage.model.district;
 
 import gov.nysenate.sage.model.geo.Polygon;
+import gov.nysenate.services.model.Senator;
 
 import javax.annotation.Nonnull;
 import java.math.BigDecimal;
@@ -8,20 +9,55 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Extends DistrictMetadata with district map geometry information.
+ * Contains district map geometry information.
  */
-public class DistrictMap extends DistrictMetadata implements Comparable<DistrictMap> {
+public class DistrictMap implements Comparable<DistrictMap> {
+    private final DistrictType districtType;
+    private final String districtCode;
+    private final String districtName;
+    private Senator senator;
+    private DistrictMember member;
+    // Only used for County maps.
+    private String link;
+    // TownCity maps also need to know the base name.
+    private String baseName;
     private final List<Polygon> polygons = new ArrayList<>();
     private String geometryType = "";
     // Note that this is only an approximation.
     private BigDecimal area;
 
-    public DistrictMap() {}
+    public DistrictMap(DistrictType type, String name, String code) {
+        this.districtType = type;
+        this.districtName = name;
+        this.districtCode = code;
+    }
 
-    public void setDistrictMetadata(DistrictMetadata dm) {
-        this.setDistrictCode(dm.districtCode);
-        this.setDistrictName(dm.districtName);
-        this.setDistrictType(dm.districtType);
+    public DistrictType getDistrictType() {
+        return districtType;
+    }
+
+    public String getDistrictName() {
+        return districtName;
+    }
+
+    public String getDistrictCode() {
+        return districtCode;
+    }
+
+    public Senator getSenator() {
+        return senator;
+    }
+
+    public void setSenator(Senator senator) {
+        this.senator = senator;
+    }
+
+    public DistrictMember getMember() {
+        return member;
+    }
+
+    public void setMember(DistrictMember member) {
+        this.member = member;
     }
 
     public List<Polygon> getPolygons() {
@@ -48,6 +84,19 @@ public class DistrictMap extends DistrictMetadata implements Comparable<District
         this.area = area;
     }
 
+    public String getLink() {
+        return link;
+    }
+
+    public void setLink(String link) {
+        this.link = link;
+    }
+
+    public void setBaseName(String baseName) {
+        this.baseName = baseName;
+    }
+
+    @Override
     public String toString() {
         var o = new StringBuilder();
         for (Polygon polygon : polygons) {
@@ -59,7 +108,7 @@ public class DistrictMap extends DistrictMetadata implements Comparable<District
     @Override
     public int compareTo(@Nonnull DistrictMap o) {
         if (districtType == DistrictType.TOWN_CITY) {
-            int result = TownCity.getBaseName(districtName).compareTo(TownCity.getBaseName(o.districtName));
+            int result = baseName.compareTo(o.baseName);
             return result == 0 ? districtCode.compareTo(o.districtCode) : result;
         }
         return Integer.parseInt(districtCode) - Integer.parseInt(o.districtCode);

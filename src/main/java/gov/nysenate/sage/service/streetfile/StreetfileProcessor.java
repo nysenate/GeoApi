@@ -1,12 +1,14 @@
 package gov.nysenate.sage.service.streetfile;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import gov.nysenate.sage.dao.model.county.CountyDao;
+import gov.nysenate.sage.dao.model.townCity.TownCityDao;
 import gov.nysenate.sage.dao.provider.streetfile.StreetfileDao;
 import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.district.TownCity;
-import gov.nysenate.sage.provider.district.ShapefileService;
 import gov.nysenate.sage.scripts.streetfinder.model.ResolveConflictConfiguration;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetfileAddressRange;
 import gov.nysenate.sage.scripts.streetfinder.parsers.*;
@@ -39,13 +41,15 @@ public class StreetfileProcessor {
     private static final Logger logger = LoggerFactory.getLogger(StreetfileProcessor.class);
     private final File sourceDir, resultsDir;
     private final Path streetfilePath, conflictPath, improperPath, invalidPath;
-    private final ShapefileService shapefileService;
-    private final StreetfileAddressCorrectionService correctionService;
     private final StreetfileDao streetfileDao;
+    private final CountyDao countyDao;
+    private final TownCityDao townCityDao;
+    private final StreetfileAddressCorrectionService correctionService;
 
     @Autowired
-    public StreetfileProcessor(@Value("${streetfile.dir}") String streetfileDir, ShapefileService shapefileService,
-                               StreetfileAddressCorrectionService correctionService, StreetfileDao streetfileDao) throws IOException {
+    public StreetfileProcessor(@Value("${streetfile.dir}") String streetfileDir, StreetfileDao streetfileDao,
+                               CountyDao countyDao, TownCityDao townCityDao,
+                               StreetfileAddressCorrectionService correctionService) throws IOException {
         this.sourceDir = Path.of(streetfileDir, "text_files").toFile();
         FileUtils.forceMkdir(sourceDir);
         this.resultsDir = Path.of(streetfileDir, "results").toFile();
@@ -54,9 +58,10 @@ public class StreetfileProcessor {
         this.conflictPath = Path.of(resultsDir.getPath(), "conflicts.txt");
         this.improperPath = Path.of(resultsDir.getPath(), "improper.txt");
         this.invalidPath = Path.of(resultsDir.getPath(), "invalid.txt");
-        this.shapefileService = shapefileService;
-        this.correctionService = correctionService;
         this.streetfileDao = streetfileDao;
+        this.countyDao = countyDao;
+        this.townCityDao = townCityDao;
+        this.correctionService = correctionService;
     }
 
     public Path regenerateStreetfile(ResolveConflictConfiguration config) throws IOException {
@@ -72,7 +77,7 @@ public class StreetfileProcessor {
 
         var fullData = new DistrictingData(config);
         Multimap<StreetfileLineType, String> fullImproperLineMap = ArrayListMultimap.create();
-        Multimap<County, TownCity> countyTownCityMap = shapefileService.getCountyToTownCityMap();
+        Multimap<County, TownCity> countyTownCityMap = getCountyToTownCityMap();
         TownCity nyc = countyTownCityMap.values().stream().filter(tc -> "New York".equals(tc.baseName()))
                 .findFirst().orElseThrow();
         for (File dataFile : dataFiles) {
@@ -117,6 +122,21 @@ public class StreetfileProcessor {
         bufferedWriter.close();
         logger.info("Finished writing streetfile data.");
         return streetfilePath;
+    }
+
+    private Multimap<County, TownCity> getCountyToTownCityMap() {
+        Set<County> counties = countyDao.getCounties();
+        Multimap<County, TownCity> results = HashMultimap.create();
+        for (TownCity townCity : townCityDao.getTownCities()) {
+            for (String countyName : townCity.countyNames()) {
+                // Counties have unique names
+                logger.info("Checking county {}", countyName);
+                County county = counties.stream().filter(c -> c.name().equals(countyName))
+                        .findFirst().orElseThrow();
+                results.put(county, townCity);
+            }
+        }
+        return results;
     }
 
     private String toCsvLine(Map.Entry<StreetfileAddressRange, CompactDistrictMap> entry) {

@@ -1,37 +1,40 @@
 package gov.nysenate.sage.model.district;
 
+import org.apache.commons.text.WordUtils;
+
+import java.util.Arrays;
+import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class TownCity {
-    private static final String newYork = "New York", nyc = newYork + " City";
-    private final String baseName, code, voterFileCode;
+    private final String baseName, fullName, code, voterFileCode;
+    private final Set<String> countyNames;
     private final boolean isCity;
     private final Pattern pattern;
 
-    public TownCity(String fullName, String code, String voterFileCode) {
-        this.baseName = getBaseName(fullName);
+    public TownCity(String baseName, String muniType, boolean isRepeat, String code, String voterFileCode,
+                    String countyNames) {
+        this.baseName = baseName;
+        String tempFullName = "New York".equals(baseName) ?
+                "New York City" : WordUtils.capitalizeFully(muniType) + " of " + baseName;
+        if (isRepeat) {
+            tempFullName += ", %s County".formatted(countyNames);
+        }
+        this.fullName = tempFullName;
         this.code = code;
         this.voterFileCode = voterFileCode;
+        this.countyNames = Arrays.stream(countyNames.split(", ")).collect(Collectors.toSet());
         this.isCity = fullName.contains("City");
         this.pattern = getPattern(isCity, baseName);
     }
 
-    public static String getBaseName(String fullName) {
-        if (nyc.equals(fullName)) {
-            return newYork;
-        }
-        return fullName.replaceFirst("(Town|City) of ", "");
-    }
-
-    public static String getFullName(String baseName, boolean isCity) {
-        if (newYork.equals(baseName)) {
-            return nyc;
-        }
-        return (isCity ? "City" : "Town") + " of " + baseName;
-    }
-
     public String baseName() {
         return baseName;
+    }
+
+    public String fullName() {
+        return fullName;
     }
 
     public String code() {
@@ -48,6 +51,10 @@ public class TownCity {
 
     public Pattern pattern() {
         return pattern;
+    }
+
+    public Set<String> countyNames() {
+        return countyNames;
     }
 
     private static Pattern getPattern(boolean isCity, String baseName) {

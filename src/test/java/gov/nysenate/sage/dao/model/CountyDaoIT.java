@@ -15,7 +15,7 @@ public class CountyDaoIT extends BaseTests {
     private CountyDao sqlCountyDao;
 
     @Test
-    public void getCountyTest() {
-        assertEquals("Albany", sqlCountyDao.getCountyByCode("1").name());
+    public void getCountiesTest() {
+        assertEquals(62, sqlCountyDao.getCounties().size());
     }
 }
