@@ -130,7 +130,6 @@ public class StreetfileProcessor {
         for (TownCity townCity : townCityDao.getTownCities()) {
             for (String countyName : townCity.countyNames()) {
                 // Counties have unique names
-                logger.info("Checking county {}", countyName);
                 County county = counties.stream().filter(c -> c.name().equals(countyName))
                         .findFirst().orElseThrow();
                 results.put(county, townCity);

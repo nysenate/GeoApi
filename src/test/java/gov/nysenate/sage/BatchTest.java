@@ -33,6 +33,9 @@ public class BatchTest {
             if (this != SENATE_DISTRICT_ONLY) {
                 tempList.addAll(counties);
             }
+            if (this == ALL) {
+                tempList.add("PO_Box");
+            }
             return ImmutableList.copyOf(tempList);
         }
     }

@@ -48,7 +48,6 @@ public class ResolveConflictConfiguration {
                 Integer currCount = table.get(currStreetfileType, currValue);
                 table.put(currStreetfileType, currValue, currCount == null ? 1 : currCount + 1);
             }
-            // An
             if (table.isEmpty()) {
                 continue;
             }
