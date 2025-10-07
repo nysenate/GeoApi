@@ -1,12 +1,12 @@
 package gov.nysenate.sage.client.response.address;
 
-import gov.nysenate.sage.client.response.base.BaseResponse;
+import gov.nysenate.sage.client.response.base.SourcedResponse;
 import gov.nysenate.sage.client.view.address.AddressView;
 import gov.nysenate.sage.model.result.AddressResult;
 
 import java.util.List;
 
-public class ValidateResponse extends BaseResponse {
+public class ValidateResponse extends SourcedResponse {
     protected AddressView address;
     protected boolean validated = false;
     protected List<String> messages = null;

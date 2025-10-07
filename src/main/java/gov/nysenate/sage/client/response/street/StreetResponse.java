@@ -1,6 +1,6 @@
 package gov.nysenate.sage.client.response.street;
 
-import gov.nysenate.sage.client.response.base.BaseResponse;
+import gov.nysenate.sage.client.response.base.SourcedResponse;
 import gov.nysenate.sage.client.view.street.StreetRangeView;
 import gov.nysenate.sage.model.address.DistrictedStreetRange;
 import gov.nysenate.sage.model.result.StreetResult;
@@ -8,7 +8,7 @@ import gov.nysenate.sage.model.result.StreetResult;
 import java.util.ArrayList;
 import java.util.List;
 
-public class StreetResponse extends BaseResponse {
+public class StreetResponse extends SourcedResponse {
     protected List<StreetRangeView> streets = new ArrayList<>();
 
     public StreetResponse(StreetResult streetResult) {

@@ -1,6 +1,6 @@
 package gov.nysenate.sage.client.response.district;
 
-import gov.nysenate.sage.client.response.base.BaseResponse;
+import gov.nysenate.sage.client.response.base.SourcedResponse;
 import gov.nysenate.sage.client.view.address.AddressView;
 import gov.nysenate.sage.client.view.district.DistrictsView;
 import gov.nysenate.sage.client.view.geo.GeocodeView;
@@ -13,7 +13,7 @@ import gov.nysenate.sage.model.result.DistrictResultWithMembers;
 
 import java.util.Map;
 
-public class DistrictResponse extends BaseResponse {
+public class DistrictResponse extends SourcedResponse {
     protected AddressView address;
     protected GeocodeView geocode;
     protected boolean geocoded = false;
@@ -24,11 +24,13 @@ public class DistrictResponse extends BaseResponse {
     protected String matchLevel;
     protected DistrictsView districts;
 
-    public DistrictResponse(DistrictResultWithMembers districtResult, GeocodedAddress geoAddr, boolean usePunct) {
+    public DistrictResponse(DistrictResultWithMembers districtResult, GeocodedAddress geoAddr,
+                            boolean usePunct) {
         this(districtResult, geoAddr, usePunct, Map.of());
     }
 
-    public DistrictResponse(DistrictResultWithMembers districtResult, GeocodedAddress geoAddr, boolean usePunct, Map<DistrictType, DistrictMap> geomMap) {
+    public DistrictResponse(DistrictResultWithMembers districtResult, GeocodedAddress geoAddr,
+                            boolean usePunct, Map<DistrictType, DistrictMap> geomMap) {
         super(districtResult);
         if (districtResult == null) {
             return;

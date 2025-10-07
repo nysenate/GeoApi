@@ -1,11 +1,11 @@
 package gov.nysenate.sage.client.response.map;
 
-import gov.nysenate.sage.client.response.base.BaseResponse;
+import gov.nysenate.sage.client.response.base.SourcedResponse;
 import gov.nysenate.sage.client.view.map.DistrictMapView;
 import gov.nysenate.sage.client.view.map.PolygonMapView;
 import gov.nysenate.sage.model.result.MapResult;
 
-public class MapResponse extends BaseResponse {
+public class MapResponse extends SourcedResponse {
     protected DistrictMapView map;
 
     public MapResponse(MapResult mapResult, boolean showMaps) {
