@@ -4,7 +4,7 @@ import gov.nysenate.sage.dao.base.BasicSqlQuery;
 import gov.nysenate.sage.dao.base.SqlTable;
 
 public enum SenateQuery implements BasicSqlQuery {
-    INSERT_SENATOR("INSERT INTO ${schema}." + SqlTable.SENATOR + " (district, name, data) VALUES (:district, :name,:data)"),
+    INSERT_SENATOR("INSERT INTO ${schema}." + SqlTable.SENATOR + " (district, name, data) VALUES (:district, :name, :data)"),
 
     DELETE_SENATOR("DELETE FROM ${schema}." + SqlTable.SENATOR + " WHERE district = :district"),
 

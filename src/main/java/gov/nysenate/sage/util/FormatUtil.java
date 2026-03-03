@@ -22,12 +22,8 @@ public final class FormatUtil {
 
     private FormatUtil() {}
 
-    public static boolean isStringEmptyorNull(String string) {
-        return string == null || string.isEmpty();
-    }
-
     public static String cleanString(String string) {
-        if (!isStringEmptyorNull(string)) {
+        if (string != null && string.isEmpty()) {
             return Jsoup.clean(string, Whitelist.basic());
         }
         return string;
@@ -58,9 +54,10 @@ public final class FormatUtil {
     }
 
     /**
-     * Converts each T into a line, writes each line, and flushing periodically.
+     * Converts each T into a line, writes each line, flushing periodically.
      */
-    public static <T> void writeLines(BufferedWriter writer, Collection<T> data, Function<T, String> toLine) throws IOException {
+    public static <T> void writeLines(BufferedWriter writer, Collection<T> data, Function<T, String> toLine)
+            throws IOException {
         int lineCount = 0;
         for (T lineData : data) {
             writer.write(toLine.apply(lineData));
