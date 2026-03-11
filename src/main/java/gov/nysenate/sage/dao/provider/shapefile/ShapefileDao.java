@@ -54,7 +54,7 @@ public class ShapefileDao extends BaseDao implements DistrictNameDao {
     public DistrictInfo getDistrictInfo(Geocode geocode, Set<DistrictType> districtTypes) {
         Map<DistrictType, SingleDistrict> typeToDistrictMap = new HashMap<>();
         for (DistrictType districtType : districtTypes) {
-            if (!districtType.hasShapefile()) {
+            if (districtType.lacksShapefile()) {
                 continue;
             }
             String sql = GET_DISTRICT_FROM_POINT.getSql(geometrySchema, getReplacements(districtType, "type"));
@@ -111,7 +111,7 @@ public class ShapefileDao extends BaseDao implements DistrictNameDao {
     public void cacheDistrictMaps() {
         Map<DistrictType, SortedSet<DistrictMap>> tempCache = new HashMap<>();
         for (DistrictType districtType : DistrictType.values()) {
-            if (!districtType.hasShapefile()) {
+            if (districtType.lacksShapefile()) {
                 continue;
             }
             String sql = GET_DISTRICT_MAPS.getSql(geometrySchema, getReplacements(districtType, "type"));

@@ -33,7 +33,7 @@ public enum DistrictType {
         return code;
     }
 
-    public boolean hasShapefile() {
-        return code != null;
+    public boolean lacksShapefile() {
+        return code == null;
     }
 }

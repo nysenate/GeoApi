@@ -183,7 +183,7 @@ public class AdminApiController {
                              @RequestParam(required = false, defaultValue = "") String key,
                              @RequestParam String type) {
         DistrictType districtType = DistrictType.valueOf(type.toUpperCase());
-        if (!districtType.hasShapefile()) {
+        if (districtType.lacksShapefile()) {
             return new GenericResponse(false, "District type {} does not have shapefiles.");
         }
         String ipAddr = ApiControllerUtil.getIpAddress(request);
