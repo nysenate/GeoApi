@@ -22,7 +22,7 @@ CREATE TABLE public.streetfile (
 );
 
 CREATE INDEX address_no_num_idx
-ON public.streetfile(street, postal_city, zip5);
+    ON public.streetfile(street, postal_city, zip5);
 
 CREATE INDEX num_range_idx
     ON public.streetfile(bldg_low, bldg_high);
