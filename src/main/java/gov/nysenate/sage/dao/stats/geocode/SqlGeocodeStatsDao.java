@@ -39,10 +39,8 @@ public class SqlGeocodeStatsDao extends BaseDao {
         public GeocodeStats extractData(ResultSet rs) throws SQLException, DataAccessException {
             var gs = new GeocodeStats();
             if (rs.next()) {
-                gs.addGeocoderUsage(Geocoder.valueOf(rs.getString("geocoder")), rs.getInt("count"));
-                if (!rs.getBoolean("success")) {
-                    gs.addFailures(rs.getInt("count"));
-                }
+                Geocoder geocoder = Geocoder.valueOf(rs.getString("geocoder"));
+                gs.addGeocoderUsage(geocoder, rs.getBoolean("success"), rs.getInt("count"));
             }
             return gs;
         }

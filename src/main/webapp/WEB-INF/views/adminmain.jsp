@@ -90,6 +90,7 @@
                              ng-show="determineActiveTab('uptime-stats')">
 
                             <div>
+                                <%-- TODO: "max" should be set to current year, at least --%>
                                 <span>The time frame to view stats is between &nbsp;</span>
                                 <input ng-model="fromMonth" style="width:35px;" min="1" max="12" maxlength="2"
                                        type="number"/>/
@@ -114,6 +115,7 @@
 
                             <hr/>
 
+                            <%-- TODO: This doesn't load properly --%>
                             <ul class="horizontal">
                                 <li><label>Last Deployed | </label> {{lastDeployment.deployTime | date:'medium'}}</li>
                                 <li><label>Latest Uptime | </label>{{latestUptime / 3600000 | number:3}} hours</li>

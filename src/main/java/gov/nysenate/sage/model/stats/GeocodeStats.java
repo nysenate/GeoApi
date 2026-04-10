@@ -11,17 +11,13 @@ public class GeocodeStats {
     private int totalGeocodes = 0;
     private int totalCacheHits = 0;
 
-    public void addGeocoderUsage(Geocoder geocoder, int usage) {
+    public void addGeocoderUsage(Geocoder geocoder, boolean succeeded, int usage) {
         geocoderUsage.merge(geocoder, usage, Integer::sum);
-        if (geocoder == Geocoder.GEOCACHE) {
+        if (geocoder == Geocoder.GEOCACHE && succeeded) {
             totalCacheHits += usage;
         }
         totalGeocodes += usage;
         totalRequests += usage;
-    }
-
-    public void addFailures(int numFailures) {
-        totalRequests += numFailures;
     }
 
     public Map<Geocoder, Integer> getGeocoderUsage() {

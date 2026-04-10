@@ -18,7 +18,7 @@ import java.util.Set;
 @Repository
 public class TownCityDao extends BaseDao {
     public Set<TownCity> getTownCities() {
-        return new HashSet<>(namedJdbcTemplate.query(TownCityQuery.SELECT_ALL_.getSql(), new TownCityRowMapper()));
+        return new HashSet<>(namedJdbcTemplate.query(TownCityQuery.SELECT_ALL.getSql(), new TownCityRowMapper()));
     }
 
     private class TownCityRowMapper implements RowMapper<TownCity> {

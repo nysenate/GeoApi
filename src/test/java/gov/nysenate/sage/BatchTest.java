@@ -1,6 +1,7 @@
 package gov.nysenate.sage;
 
 import com.google.common.collect.ImmutableList;
+import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.job.Column;
 
 import java.io.IOException;
@@ -114,6 +115,17 @@ public class BatchTest {
             else {
                 return Difference.SAME;
             }
+        }
+        if (currCol == Column.geoQuality) {
+            GeocodeQuality oldQuality = GeocodeQuality.valueOf(oldFileCell);
+            GeocodeQuality newQuality = GeocodeQuality.valueOf(newFileCell);
+            if (oldQuality.ordinal() > newQuality.ordinal()) {
+                return Difference.REDUCTION;
+            }
+            if (oldQuality.ordinal() == newQuality.ordinal()) {
+                return Difference.SAME;
+            }
+            return Difference.IMPROVEMENT;
         }
         return Difference.MISMATCH;
     }

@@ -3,7 +3,7 @@ package gov.nysenate.sage.dao.model.townCity;
 import gov.nysenate.sage.dao.base.BasicSqlQuery;
 
 public enum TownCityQuery implements BasicSqlQuery {
-    SELECT_ALL_("SELECT * FROM districts.town_city"),
+    SELECT_ALL("SELECT * FROM districts.town_city"),
 
     SELECT_ALL_REPEAT_NAMES("""
             SELECT name FROM districts.town_city
