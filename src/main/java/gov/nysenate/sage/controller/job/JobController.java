@@ -12,10 +12,8 @@ import gov.nysenate.sage.util.FileUtil;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.auth.JobUserAuth;
 import gov.nysenate.sage.util.controller.ApiControllerUtil;
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.FileUploadException;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.fileupload2.core.*;
+import org.apache.commons.fileupload2.jakarta.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.shiro.SecurityUtils;
@@ -27,9 +25,9 @@ import org.springframework.web.bind.annotation.*;
 import org.supercsv.io.CsvListReader;
 import org.supercsv.prefs.CsvPreference;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.Arrays;
 import java.util.Date;
@@ -239,12 +237,12 @@ public class JobController {
 
         /* Check for multi-part upload body if filename was not included as query parameter */
         if (sourceFilename == null || sourceFilename.isEmpty()) {
-            boolean isMultiPart = ServletFileUpload.isMultipartContent(request);
+            boolean isMultiPart = JakartaServletDiskFileUpload.isMultipartContent(request);
             if (isMultiPart) {
-                var factory = new DiskFileItemFactory();
-                var upload = new ServletFileUpload(factory);
+                DiskFileItemFactory factory = DiskFileItemFactory.builder().get();
+                var upload = new JakartaServletDiskFileUpload(factory);
                 try {
-                    List<FileItem> fileItems = upload.parseRequest(request);
+                    List<DiskFileItem> fileItems = upload.parseRequest(request);
                     if (fileItems != null && fileItems.size() == 1) {
                         sourceFilename = fileItems.get(0).getName();
                     }

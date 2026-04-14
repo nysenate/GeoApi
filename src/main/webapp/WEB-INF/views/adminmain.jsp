@@ -4,7 +4,7 @@
 <%@ page import="gov.nysenate.sage.service.geo.SageGeocodeServiceProvider" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="sage" tagdir="/WEB-INF/tags" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <fmt:setLocale value="es_ES"/>
 <%

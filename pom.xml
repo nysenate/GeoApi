@@ -138,16 +138,16 @@
         <junit.version>4.13.2</junit.version>
         <log4j.version>2.22.1</log4j.version>
         <maven-core.version>3.9.6</maven-core.version>
-        <mockito-core.version>4.5.1</mockito-core.version>
+        <mockito-core.version>5.2.0</mockito-core.version>
         <nysenate-java-client.version>2.3</nysenate-java-client.version>
         <openlocationcode.version>1.0.4</openlocationcode.version>
         <postgresql.version>42.5.5</postgresql.version>
-        <shiro.version>2.0.1</shiro.version>
+        <shiro.version>2.0.2</shiro.version>
         <signpost-core.version>2.1.1</signpost-core.version>
         <slf4j.version>1.7.36</slf4j.version>
-        <spring.version>5.3.18</spring.version>
+        <spring.version>6.2.3</spring.version>
         <super-csv.version>2.4.0</super-csv.version>
-        <tomcat.version>9.0.84</tomcat.version>
+        <tomcat.version>10.1.39</tomcat.version>
         <woodstox-core>4.4.1</woodstox-core>
         <xmlrpc-client.version>3.1.3</xmlrpc-client.version>
         <xstream.version>1.4.19</xstream.version>
@@ -282,13 +282,22 @@
         </dependency>
 
         <!-- Core Dependencies -->
+<!--        <dependency>-->
+<!--            <groupId>commons-fileupload</groupId>-->
+<!--            <artifactId>commons-fileupload</artifactId>-->
+<!--            <version>${commons-fileupload.version}</version>-->
+<!--            <type>jar</type>-->
+<!--            <scope>compile</scope>-->
+<!--        </dependency>-->
+
+        <!-- Source: https://mvnrepository.com/artifact/org.apache.commons/commons-fileupload2-jakarta -->
         <dependency>
-            <groupId>commons-fileupload</groupId>
-            <artifactId>commons-fileupload</artifactId>
-            <version>${commons-fileupload.version}</version>
-            <type>jar</type>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-fileupload2-jakarta</artifactId>
+            <version>2.0.0-M1</version>
             <scope>compile</scope>
         </dependency>
+
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
@@ -329,10 +338,56 @@
             <artifactId>jasypt</artifactId>
             <version>${jasypt.version}</version>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/jakarta.servlet/jakarta.servlet-api -->
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>6.1.0</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Source: https://mvnrepository.com/artifact/jakarta.servlet.jsp.jstl/jakarta.servlet.jsp.jstl-api -->
+        <dependency>
+            <groupId>jakarta.servlet.jsp.jstl</groupId>
+            <artifactId>jakarta.servlet.jsp.jstl-api</artifactId>
+            <version>3.0.2</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.glassfish.web</groupId>
+            <artifactId>jakarta.servlet.jsp.jstl</artifactId>
+            <version>3.0.1</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/jakarta.annotation/jakarta.annotation-api -->
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+
+        <!-- Source: https://mvnrepository.com/artifact/org.apache.tomcat.embed/tomcat-embed-jasper -->
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-jasper</artifactId>
+            <version>11.0.21</version>
+            <scope>compile</scope>
+        </dependency>
+
         <dependency>
             <groupId>com.sun.mail</groupId>
-            <artifactId>javax.mail</artifactId>
-            <version>${javamail.version}</version>
+            <artifactId>jakarta.mail</artifactId>
+            <version>2.0.1</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/jakarta.xml.bind/jakarta.xml.bind-api -->
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+            <version>4.0.2</version>
         </dependency>
 
         <dependency>
@@ -345,10 +400,11 @@
             <artifactId>jaxb-impl</artifactId>
             <version>${javax.xml.bind.version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.glassfish.jaxb</groupId>
             <artifactId>jaxb-runtime</artifactId>
-            <version>${javax.xml.bind.version}</version>
+            <version>4.0.6</version>
         </dependency>
         <dependency>
             <groupId>javax.activation</groupId>
@@ -462,11 +518,6 @@
             <artifactId>commons-el</artifactId>
             <version>${commons-el.version}</version>
         </dependency>
-        <dependency>
-            <groupId>jstl</groupId>
-            <artifactId>jstl</artifactId>
-            <version>${jstl.version}</version>
-        </dependency>
 
         <!-- Security Dependencies -->
         <dependency>
@@ -484,18 +535,34 @@
             <groupId>org.apache.shiro</groupId>
             <artifactId>shiro-core</artifactId>
             <version>${shiro.version}</version>
+            <classifier>jakarta</classifier>
         </dependency>
 
         <dependency>
             <groupId>org.apache.shiro</groupId>
             <artifactId>shiro-web</artifactId>
             <version>${shiro.version}</version>
+            <classifier>jakarta</classifier>
         </dependency>
 
         <dependency>
             <groupId>org.apache.shiro</groupId>
             <artifactId>shiro-spring</artifactId>
             <version>${shiro.version}</version>
+            <classifier>jakarta</classifier>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.shiro</groupId>
+            <artifactId>shiro-spring</artifactId>
+            <version>${shiro.version}</version>
+            <classifier>jakarta</classifier>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.shiro</groupId>
+                    <artifactId>shiro-web</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/com.google.openlocationcode/openlocationcode -->

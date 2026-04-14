@@ -5,12 +5,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.mail.Message;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.Message;
+import jakarta.mail.PasswordAuthentication;
+import jakarta.mail.Session;
+import jakarta.mail.Transport;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
@@ -57,7 +57,7 @@ public class Mailer {
         props.put("mail.smtp.socketFactory.fallback", false);
         props.put("mail.smtp.ssl.enable", smtpSslEnable);
 
-        Session session = Session.getDefaultInstance(props,	new javax.mail.Authenticator() {
+        Session session = Session.getDefaultInstance(props,	new jakarta.mail.Authenticator() {
             @Override
             protected PasswordAuthentication getPasswordAuthentication() {
                 return new PasswordAuthentication(smtpAccountUser, smtpAccountPass);
