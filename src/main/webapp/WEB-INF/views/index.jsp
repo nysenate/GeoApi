@@ -238,33 +238,37 @@
                     <div class="search-container-content">
                         <div class="section">
                             <div style="float:left">
-                                <label for="districtTypeMenu" class="menu-overhead">Type</label>
-                                <select id="districtTypeMenu" class="menu" style="width:100px;" ng-model="type"
+                                <label for="districtTypeMenu" class="menu-overhead">Type:</label>
+                                <select id="districtTypeMenu" class="menu" style="width:115px;" ng-model="type"
                                         ng-change="metaLookup();">
-                                    <option value="">Choose</option>
+                                    <option value="" disabled hidden>Choose</option>
                                     <option value="senate">Senate</option>
                                     <option value="congressional">Congressional</option>
                                     <option value="assembly">Assembly</option>
+                                    <option value="zip">Zip</option>
                                     <option value="county">County</option>
                                     <option value="town_city">Town/City</option>
                                     <option value="school">School</option>
-                                    <option value="zip">Zip</option>
                                     <option value="electric_utility">Electric Utility</option>
                                 </select>
                             </div>
                             <div style="position:relative;float:left;">
-                                <label for="districtCodeMenu" class="menu-overhead">District</label>
+                                <label for="districtCodeMenu" class="menu-overhead">District name:
+                                    <a ng-click="districtSearch=''" class="clear-btn">Clear</a>
+                                </label>
                                 <input id="districtCodeMenu" type="text" class="menu" autocomplete="off"
                                        ng-model="districtSearch" placeholder="Type to filter..."
                                        ng-focus="showDistrictDropdown = true"
-                                       ng-change="showDistrictDropdown = true"
+                                       ng-change="showDistrictDropdown = true; highlightIndex = 0"
                                        ng-blur="hideDropdown()"
+                                       ng-keydown="handleKeydown($event)"
                                        style="width:214px;height:30px;font-size:14px;">
                                 <div class="typeahead-dropdown"
                                      ng-show="showDistrictDropdown && districtList.length"
                                      ng-mousedown="$event.preventDefault()">
-                                    <div ng-repeat="d in districtList | filter:{name: districtSearch}"
+                                    <div ng-repeat="d in districtList | filter:matchesSearch"
                                          class="typeahead-item"
+                                         ng-class="{'typeahead-item-default': $index === highlightIndex}"
                                          ng-click="selectDistrict(d)">{{d.name}}</div>
                                 </div>
                             </div>
@@ -272,7 +276,7 @@
                         <div style="padding:5px;" ng-show="showMemberOption">
                             <div style="float:left">
                                 <label for="districtMemberMenu" class="menu-overhead">Member</label>
-                                <select id="districtMemberMenu" class="menu" style="width:325px;" ng-change="lookup()"
+                                <select id="districtMemberMenu" class="menu" style="width:325px;" ng-change="onMemberSelect()"
                                         ng-model="selectedDistrict"
                                         ng-options="d.member.name for d in sortedMemberList">
                                 </select>
@@ -282,14 +286,14 @@
                             <label for="IntersectionMenu" class="menu-overhead">View intersection with:</label>
                             <select id="IntersectionMenu" class="menu" style="width:100px;" ng-model="intersectType"
                                     ng-change="lookup()">
-                                <option value="none">No intersection</option>
+                                <option value="none">None</option>
                                 <option value="senate">Senate</option>
                                 <option value="congressional">Congressional</option>
                                 <option value="assembly">Assembly</option>
+                                <option value="zip">Zip</option>
                                 <option value="county">County</option>
                                 <option value="town_city">Town/City</option>
                                 <option value="school">School</option>
-                                <option value="zip">Zip</option>
                                 <option value="electric_utility">Electric Utility</option>
                             </select>
                         </div>

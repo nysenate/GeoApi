@@ -299,6 +299,25 @@ hr.section-title-hr {
     font-size:14px;
 }
 
+.clear-btn {
+    position:absolute;
+    right:0;
+    top:0;
+    cursor:pointer;
+    padding:0 5px;
+    border:1px solid #ccc;
+    border-radius:2px;
+    background:#f0f0f0;
+    color:#333;
+    font-size:11px;
+    line-height:16px;
+}
+
+.clear-btn:hover {
+    background:#e0e0e0;
+    text-decoration:none !important;
+}
+
 .typeahead-dropdown {
     position:absolute;
     z-index:1000;
@@ -315,6 +334,14 @@ hr.section-title-hr {
     font-size:13px;
 }
 
+.typeahead-item-default {
+    background:#e8e8e8;
+}
+
+.typeahead-dropdown:hover .typeahead-item-default {
+    background:transparent;
+}
+
 .typeahead-item:hover {
     background:#e8e8e8;
 }
@@ -328,6 +355,11 @@ hr.section-title-hr {
 .collapse-search, .expand-search {
     margin-right:10px;
     cursor: pointer;
+}
+
+#districtMapViewSearch, #districtInfoSearch, #reverseGeocodeSearch {
+    transform: scale(1.1);
+    transform-origin: top left;
 }
 
 .options-table {

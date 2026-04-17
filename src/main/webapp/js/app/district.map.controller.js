@@ -3,7 +3,7 @@ var sage = angular.module('sage');
 /**
  * Controller for handling the `District Maps` function.
  */
-sage.controller("DistrictMapController", function($scope, $http, $timeout, mapService, menuService, dataBus, uiBlocker){
+sage.controller("DistrictMapController", function($scope, $http, $timeout, $filter, mapService, menuService, dataBus, uiBlocker){
     $scope.visible = false;
     $scope.id = 2;
     $scope.minimized = false;
@@ -16,6 +16,7 @@ sage.controller("DistrictMapController", function($scope, $http, $timeout, mapSe
     $scope.districtList = [];
     $scope.districtSearch = "";
     $scope.showDistrictDropdown = false;
+    $scope.highlightIndex = 0;
     $scope.showIntersectMenu = false;
 
 
@@ -30,6 +31,34 @@ sage.controller("DistrictMapController", function($scope, $http, $timeout, mapSe
 
     $scope.hideDropdown = function() {
         $timeout(function() { $scope.showDistrictDropdown = false; }, 200);
+    };
+
+    $scope.matchesSearch = function(d) {
+        if (!$scope.districtSearch) return true;
+        var search = $scope.districtSearch.toLowerCase();
+        var name = d.name.toLowerCase();
+        return name.indexOf(search) === 0 || name.indexOf(' ' + search) !== -1;
+    };
+
+    $scope.handleKeydown = function(event) {
+        var matches = $scope.districtList.filter($scope.matchesSearch);
+        if (event.keyCode === 40) {
+            event.preventDefault();
+            if ($scope.highlightIndex < matches.length - 1) $scope.highlightIndex++;
+        } else if (event.keyCode === 38) {
+            event.preventDefault();
+            if ($scope.highlightIndex > 0) $scope.highlightIndex--;
+        } else if (event.keyCode === 13) {
+            if (matches.length && $scope.highlightIndex < matches.length) {
+                $scope.selectDistrict(matches[$scope.highlightIndex]);
+            }
+        }
+    };
+
+    $scope.onMemberSelect = function() {
+        $scope.districtSearch = $scope.selectedDistrict.name;
+        $scope.showDistrictDropdown = false;
+        $scope.lookup();
     };
 
     $scope.selectDistrict = function(d) {
