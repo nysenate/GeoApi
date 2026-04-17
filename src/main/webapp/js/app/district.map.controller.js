@@ -3,7 +3,7 @@ var sage = angular.module('sage');
 /**
  * Controller for handling the `District Maps` function.
  */
-sage.controller("DistrictMapController", function($scope, $http, mapService, menuService, dataBus, uiBlocker){
+sage.controller("DistrictMapController", function($scope, $http, $timeout, mapService, menuService, dataBus, uiBlocker){
     $scope.visible = false;
     $scope.id = 2;
     $scope.minimized = false;
@@ -14,6 +14,8 @@ sage.controller("DistrictMapController", function($scope, $http, mapService, men
     $scope.showOptions = false;
     $scope.sortedMemberList = [];
     $scope.districtList = [];
+    $scope.districtSearch = "";
+    $scope.showDistrictDropdown = false;
     $scope.showIntersectMenu = false;
 
 
@@ -26,10 +28,22 @@ sage.controller("DistrictMapController", function($scope, $http, mapService, men
         console.log("menu toggled for district map. visible? " + $scope.visible);
     });
 
+    $scope.hideDropdown = function() {
+        $timeout(function() { $scope.showDistrictDropdown = false; }, 200);
+    };
+
+    $scope.selectDistrict = function(d) {
+        $scope.selectedDistrict = d;
+        $scope.districtSearch = d.name;
+        $scope.showDistrictDropdown = false;
+        $scope.lookup();
+    };
+
     /**
      * Performs request to district map API to retrieve meta data to populate districtList.
      */
     $scope.metaLookup = function() {
+        $scope.districtSearch = "";
         $http.get(this.getDistrictMapUrl(this.type, null, true))
             .success(function(data) {
                 $scope.showMemberOption = ($scope.type === 'senate' || $scope.type === 'congressional' || $scope.type === 'assembly');

@@ -299,6 +299,26 @@ hr.section-title-hr {
     font-size:14px;
 }
 
+.typeahead-dropdown {
+    position:absolute;
+    z-index:1000;
+    background:#fff;
+    border:1px solid #ccc;
+    max-height:200px;
+    overflow-y:auto;
+    width:220px;
+}
+
+.typeahead-item {
+    padding:4px 8px;
+    cursor:pointer;
+    font-size:13px;
+}
+
+.typeahead-item:hover {
+    background:#e8e8e8;
+}
+
 .search-container button.compact {
     display:block;
     height:30px !important;

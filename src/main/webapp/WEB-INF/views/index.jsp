@@ -211,8 +211,7 @@
                             </table>
                         </div>
                         <div id="districtInfoHelp" ng-show="showHelp">
-                            <p>District lookup can be used to either retrieve district information for a specific street
-                                address or a summary of district overlaps for a street, city, or zip code.
+                            <p>District lookup can be used to retrieve district information for a specific street address.
                                 <br/><br/>
                             <p>A <strong>building match</strong> displays districts for a specific address and is likely
                                 with an input of the following style: </p>
@@ -221,19 +220,6 @@
                             <a ng-click="addr='1222 East 96th St, Brooklyn, NY 11236'">1222 East 96th St, Brooklyn, NY
                                 11236</a>
                             <br/><br/>
-
-
-                            <p>A <strong>street match</strong> will highlight the street and display senate district
-                                ranges within either
-                                the city or zipcode.</p>
-                            <a ng-click="addr='State St, Albany NY 12210'">State St, Albany NY 12210</a><br/>
-                            <a ng-click="addr='Nyroy Dr, 12180'">Nyroy Dr, 12180</a><br/>
-                            <br/>
-
-                            <p>A <strong>city or zip match</strong> will display the percentage of each senate
-                                district's overlap.</p>
-                            <a ng-click="addr='Troy, NY'">Troy, NY</a><br/>
-                            <a ng-click="addr='12210'">12210</a>
                         </div>
                     </div>
                 </form>
@@ -266,10 +252,21 @@
                                     <option value="electric_utility">Electric Utility</option>
                                 </select>
                             </div>
-                            <div>
+                            <div style="position:relative;float:left;">
                                 <label for="districtCodeMenu" class="menu-overhead">District</label>
-                                <select id="districtCodeMenu" class="menu" ng-change="lookup()" style="width:220px;"
-                                        ng-model="selectedDistrict" ng-options="d.name for d in districtList"></select>
+                                <input id="districtCodeMenu" type="text" class="menu" autocomplete="off"
+                                       ng-model="districtSearch" placeholder="Type to filter..."
+                                       ng-focus="showDistrictDropdown = true"
+                                       ng-change="showDistrictDropdown = true"
+                                       ng-blur="hideDropdown()"
+                                       style="width:214px;height:30px;font-size:14px;">
+                                <div class="typeahead-dropdown"
+                                     ng-show="showDistrictDropdown && districtList.length"
+                                     ng-mousedown="$event.preventDefault()">
+                                    <div ng-repeat="d in districtList | filter:{name: districtSearch}"
+                                         class="typeahead-item"
+                                         ng-click="selectDistrict(d)">{{d.name}}</div>
+                                </div>
                             </div>
                         </div>
                         <div style="padding:5px;" ng-show="showMemberOption">
