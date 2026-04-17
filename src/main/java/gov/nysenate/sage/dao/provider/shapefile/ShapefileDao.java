@@ -23,7 +23,6 @@ import org.springframework.stereotype.Repository;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
@@ -33,7 +32,6 @@ import static gov.nysenate.sage.dao.provider.shapefile.ShapefileQueries.*;
 @Repository
 public class ShapefileDao extends BaseDao implements DistrictNameDao {
     private static final Logger logger = LoggerFactory.getLogger(ShapefileDao.class);
-    private static final BigDecimal MIN_INTERSECT_SQ_KM = BigDecimal.ONE;
     private static final String geometrySchema = "districts";
     private final CountyDao countyDao;
     private final TownCityDao townCityDao;
@@ -93,7 +91,7 @@ public class ShapefileDao extends BaseDao implements DistrictNameDao {
             intersectMap.setArea(rs.getBigDecimal("area"));
             intersectMap.setFullMapPolygons(getDistrictMap(intersectType, code).getPolygons());
             return intersectMap;
-        }).stream().filter(dm -> dm.getArea().compareTo(MIN_INTERSECT_SQ_KM) > 0).toList();
+        });
     }
 
     /**

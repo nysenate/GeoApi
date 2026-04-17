@@ -42,14 +42,6 @@ public class AddressService {
 =     * @return AddressResult
      */
     public AddressResult validate(Address address, AddressSource source) {
-        return internalValidate(address, source);
-    }
-
-    public Address validateOrDefault(Address address) {
-        return getOrDefault(validate(address, null), address);
-    }
-
-    private AddressResult internalValidate(Address address, AddressSource source) {
         if (address == null) {
             return new AddressResult(null, ResultStatus.INVALID_ADDRESS);
         }
@@ -61,6 +53,10 @@ public class AddressService {
             return new AddressResult(source, ResultStatus.NO_ADDRESS_VALIDATE_RESULT);
         }
         return result;
+    }
+
+    public Address validateOrDefault(Address address) {
+        return getOrDefault(validate(address, null), address);
     }
 
     /**
