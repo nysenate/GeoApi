@@ -32,7 +32,9 @@ public class ApiRequest {
 
     public ApiRequest(HttpServletRequest request) {
         String forwardedForIp = request.getHeader("x-forwarded-for");
-        String remoteIp = forwardedForIp == null ? request.getRemoteAddr() : forwardedForIp;
+        String remoteIp = forwardedForIp == null ? request.getRemoteAddr() :
+                // May need to get the first (client) address, or else parsing will fail.
+                forwardedForIp.split(",")[0].trim();
         // Resolve IP address into InetAddress
         try {
             this.hostAddress = InetAddress.getByName(remoteIp).getHostAddress();
