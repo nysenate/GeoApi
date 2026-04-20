@@ -46,14 +46,14 @@ public class MapController extends BaseController {
         DistrictType districtType = getValue(distType, DistrictType.class);
         if (district != null) {
             district = FormatUtil.cleanString(district);
-            logger.info("Retrieving {} district {} map.", districtType.name(), district);
+            logger.debug("Retrieving {} district {} map.", districtType.name(), district);
             MapResult mapResult = shapefileService.getDistrictMap(districtType, district);
             if (showMembers || meta) {
                 districtMemberProvider.assignMember(mapResult.getDistrictMap());
             }
             return new MapResponse(mapResult, !meta);
         } else {
-            logger.info("Retrieving all {} district maps.", districtType.name());
+            logger.debug("Retrieving all {} district maps.", districtType.name());
             MapListResult mapListResult = shapefileService.getDistrictMaps(districtType);
             if ((showMembers || meta) && mapListResult.getDistrictMaps() != null) {
                 for (DistrictMap districtMap : mapListResult.getDistrictMaps()) {
