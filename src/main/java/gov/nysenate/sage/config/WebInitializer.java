@@ -57,6 +57,11 @@ public class WebInitializer implements WebApplicationInitializer
         dispatcher.addMapping("/");
         dispatcher.setAsyncSupported(true);
 
+        /** Security response headers (X-Content-Type-Options, X-Frame-Options, etc.) */
+        DelegatingFilterProxy securityHeadersFilter = new DelegatingFilterProxy("securityHeadersFilter", dispatcherContext);
+        servletContext.addFilter("securityHeadersFilter", securityHeadersFilter)
+                .addMappingForUrlPatterns(EnumSet.of(REQUEST, FORWARD, INCLUDE), false, "/*");
+
         /** Register Apache Shiro */
         DelegatingFilterProxy shiroFilter = new DelegatingFilterProxy("shiroFilter", dispatcherContext);
         shiroFilter.setTargetFilterLifecycle(true);
