@@ -6,9 +6,6 @@
 <sage:wrapper>
     <jsp:attribute name="ngApp">sage-job</jsp:attribute>
     <jsp:attribute name="title">SAGE - Batch Services Login</jsp:attribute>
-    <jsp:attribute name="cssIncludes">
-        <link href="${pageContext.request.contextPath}/css/vendor/fileuploader.css" rel="stylesheet" type="text/css"/>
-    </jsp:attribute>
     <jsp:attribute name="jsIncludes">
         <sage:common></sage:common>
         <sage:job></sage:job>
