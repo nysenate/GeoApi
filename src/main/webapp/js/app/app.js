@@ -83,17 +83,11 @@ sage.filter('addressFormat', function(){
                 (notNullOrEmpty(address.state) ? " " + address.state : "") +
                 (notNullOrEmpty(address.zip5) ? " " + address.zip5 : "") +
                 (notNullOrEmpty(address.zip4) ? "-" + address.zip4 : "");
-            return ((line1) ? line1 + ((delim != null && typeof delim != 'undefined') ? delim : "<br>") : "") + line2;
+            return ((line1) ? line1 + ((delim != null && typeof delim != 'undefined') ? delim : "\n") : "") + line2;
         }
     }
 });
 
-/** Used to inject HTML. Taken from https://stackoverflow.com/questions/19415394/with-ng-bind-html-unsafe-removed-how-do-i-inject-html */
-sage.filter('to_trusted', ['$sce', function($sce) {
-    return function(text) {
-        return $sce.trustAsHtml(text);
-    };
-}]);
 
 
 function notNullOrEmpty(input) { return input != null && input != '' && input != 'null'; }

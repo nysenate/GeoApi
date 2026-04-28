@@ -373,8 +373,8 @@
                                 <td>
                                     <div class="icon-location icon-teal"></div>
                                 </td>
-                                <td><p style="font-size: 16px;color:#111;"
-                                       ng-bind-html="address | addressLevel:matchLevel | addressFormat | to_trusted"></p></td>
+                                <td><p style="font-size: 16px;color:#111;white-space: pre-line;"
+                                       ng-bind="address | addressLevel:matchLevel | addressFormat"></p></td>
                                 <td style="text-align:right;"><small ng-show="uspsValidated"
                                                                      style="color:teal;">USPS</small></td>
                             </tr>
@@ -761,8 +761,8 @@
                                         <td>
                                             <div class="icon-location icon-teal"></div>
                                         </td>
-                                        <td><p style="font-size: 16px;color:#111;"
-                                               ng-bind-html="address | addressFormat | to_trusted"></p>
+                                        <td><p style="font-size: 16px;color:#111;white-space: pre-line;"
+                                               ng-bind="address | addressFormat"></p>
                                         </td>
                                     </tr>
                                 </table>
