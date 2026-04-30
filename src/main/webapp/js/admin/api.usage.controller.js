@@ -8,12 +8,11 @@ sageAdmin.controller('ApiUsageController', function($scope, $http, dataBus){
 
     $scope.getUsageStats = function(startTime, endTime) {
         $http.get(baseAdminApi + "/usage?interval=HOUR&from=" + startTime + "&to=" + endTime)
-            .success(function(data){
-                $scope = angular.extend($scope, data);
+            .then(function(response){
+                $scope = angular.extend($scope, response.data);
                 getSeriesData($scope.intervalFrom, $scope.intervalTo, $scope.intervalSizeInMinutes, $scope.intervalUsageCounts);
-            })
-            .error(function(data){
-                console.log("Error retrieving deployment stats! " + data);
+            }, function(response){
+                console.log("Error retrieving deployment stats! " + response.data);
             });
     };
 

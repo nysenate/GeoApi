@@ -40,9 +40,9 @@ sage.controller('DistrictInfoController', function($scope, $http, mapService, me
             uiBlocker.block("Looking up districts for " + this.addr);
             mapService.clearAll();
             $http.get(this.getDistUrl())
-                .success(function(data) {
-                    dataBus.setBroadcastAndView("districtInfo", data, "districtsView");
-                }).error(function(data, status, headers, config) {
+                .then(function(response) {
+                    dataBus.setBroadcastAndView("districtInfo", response.data, "districtsView");
+                }, function(response) {
                 uiBlocker.unBlock();
                 alert("Failed to lookup districts. The application did not return a response.");
             });

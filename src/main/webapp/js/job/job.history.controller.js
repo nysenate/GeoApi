@@ -14,7 +14,8 @@ sageJob.controller('JobHistoryController', function($scope, $http, menuService, 
 
     $scope.getAllProcesses = function() {
         $http.get(statusUrl + "/all")
-            .success(function(data, status, headers, config){
+            .then(function(response){
+                var data = response.data;
                 if (data && data.success) {
                     $scope.allProcesses = data.statuses;
                 }

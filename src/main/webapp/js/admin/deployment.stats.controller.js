@@ -8,11 +8,10 @@ sageAdmin.controller('DeploymentStatsController', function($scope, $http, dataBu
 
     $scope.getDeploymentStats = function() {
         $http.get(baseAdminApi + "/deployment")
-            .success(function(data){
-                $scope = angular.extend($scope, data);
-            })
-            .error(function(data){
-                console.log("Error retrieving deployment stats! " + data);
+            .then(function(response){
+                $scope = angular.extend($scope, response.data);
+            }, function(response){
+                console.log("Error retrieving deployment stats! " + response.data);
             });
     };
 

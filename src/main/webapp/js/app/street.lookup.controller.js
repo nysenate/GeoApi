@@ -17,10 +17,10 @@ sage.controller("StreetLookupController", function($scope, $http, dataBus, mapSe
     $scope.lookup = function () {
         uiBlocker.block("Loading street information.");
         $http.get(this.getStreetLookupUrl())
-            .success(function(data) {
-                dataBus.setBroadcastAndView("street", data, "street");
+            .then(function(response) {
+                dataBus.setBroadcastAndView("street", response.data, "street");
                 $scope.showFilter = true;
-            }).error(function(data) {
+            }, function(response) {
             uiBlocker.unBlock();
         });
     };

@@ -48,7 +48,8 @@ sageJob.controller('JobUploadController', function($scope, $http, $window, menuS
     };
 
     $scope.submitJobRequest = function() {
-        $http.post(submitUrl).success(function(data){
+        $http.post(submitUrl).then(function(response){
+            var data = response.data;
             if (data != null && data.success == true) {
                 alert("Your request has been submitted");
                 $scope.processes = [];
@@ -57,13 +58,14 @@ sageJob.controller('JobUploadController', function($scope, $http, $window, menuS
             else {
                 alert(data.message);
             }
-        }).error(function(){
+        }, function(){
             alert("Failed to submit batch job request!");
         });
     };
 
     $scope.removeFile = function(fileName) {
-        $http.post(removeUrl + "?fileName=" + fileName).success(function(data){
+        $http.post(removeUrl + "?fileName=" + fileName).then(function(response){
+            var data = response.data;
             if (data.success) {
                 for (var i = 0; i < $scope.processes.length; i++) {
                     if ($scope.processes[i].fileName == fileName) {
@@ -73,7 +75,7 @@ sageJob.controller('JobUploadController', function($scope, $http, $window, menuS
                 }
             }
             alert(data.message);
-        }).error(function(){ alert("Failed to remove file from request."); });
+        }, function(){ alert("Failed to remove file from request."); });
     };
 
     $scope.uploadFiles = function(files) {

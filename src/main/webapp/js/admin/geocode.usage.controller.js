@@ -8,12 +8,11 @@ sageAdmin.controller("GeocodeUsageController", function($scope, $http, dataBus){
 
     $scope.getGeocodeStats = function() {
         $http.get(baseAdminApi + "/geocodeUsage?from=" + (+$scope.from) + "&to=" + (+$scope.to))
-            .success(function(data){
-                if (data) {
-                    $scope = angular.extend($scope, data);
+            .then(function(response){
+                if (response.data) {
+                    $scope = angular.extend($scope, response.data);
                 }
-            })
-            .error(function(data){
+            }, function(response){
                 console.log("Failed to retrieve geocode usage response!");
             });
     };

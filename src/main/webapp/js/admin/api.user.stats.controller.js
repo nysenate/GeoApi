@@ -9,10 +9,9 @@ sageAdmin.controller('ApiUserStatsController', function($scope, $http, dataBus) 
 
     $scope.getApiUserStats = function() {
         $http.get(baseAdminApi + "/apiUserUsage?from=" + (+$scope.from) + "&to=" + (+$scope.to))
-            .success(function(data){
-                $scope.apiUserStats = data;
-            })
-            .error(function(){});
+            .then(function(response){
+                $scope.apiUserStats = response.data;
+            }, function(){});
     };
 
     $scope.$on("update", function() {

@@ -51,13 +51,14 @@ sageJob.controller('JobStatusController', function($scope, $http, menuService, d
 
     $scope.getRunningProcesses = function() {
         $http.get(statusUrl + "/running")
-            .success(function(data, status, headers, config) {
+            .then(function(response) {
+                var data = response.data;
                 if (data && data.success) {
                     $scope.runningProcesses = data.statuses;
                     $scope.computeProgress();
                 }
-            }).error(function(data) {
-            console.log("Failed to retrieve running job processes " + data);
+            }, function(response) {
+            console.log("Failed to retrieve running job processes " + response.data);
         });
     };
 
@@ -73,7 +74,8 @@ sageJob.controller('JobStatusController', function($scope, $http, menuService, d
 
     $scope.getActiveProcesses = function() {
         $http.get(statusUrl + "/active")
-            .success(function(data, status, headers, config) {
+            .then(function(response) {
+                var data = response.data;
                 if (data && data.success) {
                     $scope.activeProcesses = data.statuses;
                     $scope.processorRunning = data.processorRunning;
@@ -81,28 +83,30 @@ sageJob.controller('JobStatusController', function($scope, $http, menuService, d
                 else {
                     console.log("Active processes: " + data);
                 }
-            }).error(function(data) {
-            console.log("Error retrieving active processes. " + data);
+            }, function(response) {
+            console.log("Error retrieving active processes. " + response.data);
         });
     };
 
     $scope.getCompletedProcesses = function() {
         $http.get(statusUrl + "/completed")
-            .success(function(data, status, headers, config) {
+            .then(function(response) {
+                var data = response.data;
                 if (data && data.success) {
                     $scope.completedProcesses = data.statuses;
                 }
-            }).error(function(data, status){
+            }, function(){
             console.log("Error retrieving completed processes.");
         });
     };
 
     $scope.cancelJobProcess = function(processId) {
-        $http.post(cancelUrl + "?id=" + processId).success(function(data){
+        $http.post(cancelUrl + "?id=" + processId).then(function(response){
+            var data = response.data;
             if (data) {
                 alert(data.message);
             }
             $scope.getActiveProcesses();
-        }).error(function(){});
+        }, function(){});
     }
 });
