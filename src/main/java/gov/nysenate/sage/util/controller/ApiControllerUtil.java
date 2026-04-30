@@ -11,8 +11,8 @@ import gov.nysenate.sage.util.FormatUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;

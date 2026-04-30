@@ -7,11 +7,11 @@ import org.springframework.web.context.support.AnnotationConfigWebApplicationCon
 import org.springframework.web.filter.DelegatingFilterProxy;
 import org.springframework.web.servlet.DispatcherServlet;
 
-import javax.servlet.ServletContext;
-import javax.servlet.ServletRegistration;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletRegistration;
 import java.util.EnumSet;
 
-import static javax.servlet.DispatcherType.*;
+import static jakarta.servlet.DispatcherType.*;
 
 /**
  * Java based Spring configuration. This implementation is responsible for creating

@@ -4,8 +4,8 @@
 <%@ page import="org.springframework.context.ApplicationContext" %>
 <%@ page import="gov.nysenate.sage.service.geo.SageGeocodeServiceProvider" %>
 <%@ taglib prefix="sage" tagdir="/WEB-INF/tags" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt" %>
+<%@ taglib uri="jakarta.tags.core" prefix="c" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <fmt:setLocale value="es_ES"/>
 <%

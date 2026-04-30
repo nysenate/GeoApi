@@ -3,9 +3,9 @@
 <%@ page import="org.springframework.context.ApplicationContext" %>
 <%@ page import="gov.nysenate.sage.service.geo.SageGeocodeServiceProvider" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%--<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>--%>
 <%@taglib prefix="sage" tagdir="/WEB-INF/tags" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%
     ApplicationContext ac = RequestContextUtils.findWebApplicationContext(request);
     Environment env = (Environment) ac.getBean("environment");

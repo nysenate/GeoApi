@@ -59,10 +59,10 @@ nys.revgeocode.ext = /reverseGeocode
 ###############################
 # Note: All settings in this group require an application restart to take effect.
 
-# Set the default usps implementation. The available options are:
-# usps      -- Utilizes the Native AMS Web Service
-# uspsais   -- Utilizes the Free AIS Web Service
-usps.default = usps
+# Set the default USPS implementation. The available options are:
+# AMS   -- Utilizes the Native AMS Web Service
+# AIS   -- Utilizes the Free AIS Web Service
+usps.default = AMS
 
 ################################
 ## Multi-Threading
