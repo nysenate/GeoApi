@@ -22,4 +22,4 @@ target/
 flyway.conf
 log4j2.xml
 log4j2-cli.xml
-test.log4j2.xml
+log4j2-test.xml
