@@ -4,6 +4,7 @@ import gov.nysenate.sage.config.Environment;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ContentDisposition;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,7 +41,8 @@ public class JobDownloadController {
             if (fileName != null) {
                 File file = new File(downloadDir + fileName);
                 if (file.exists()) {
-                    response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
+                    response.setHeader("Content-Disposition",
+                            ContentDisposition.attachment().filename(fileName).build().toString());
                     try (InputStream inputStream = new FileInputStream(file)) {
                         int c;
                         while ((c = inputStream.read()) != -1) {
