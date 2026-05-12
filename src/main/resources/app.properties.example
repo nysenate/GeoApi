@@ -10,7 +10,7 @@ base.url = http://localhost:8080
 ###############################
 
 # Remote IPs matching (regex) user.ip.filter are not required to specify an API key.
-user.ip.filter = (127.0.0.1)
+user.ip.filter = 127\.0\.0\.1|0:0:0:0:0:0:0:1
 
 # Allow api calls that match the regex to use the default user if no key is supplied.
 # The format of an api request is /api/v2/service/method. The regex should contain an
