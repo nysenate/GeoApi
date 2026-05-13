@@ -6,9 +6,6 @@
 <sage:wrapper>
     <jsp:attribute name="ngApp">sage-job</jsp:attribute>
     <jsp:attribute name="title">SAGE - Batch Services Login</jsp:attribute>
-    <jsp:attribute name="cssIncludes">
-        <link href="${pageContext.request.contextPath}/css/vendor/fileuploader.css" rel="stylesheet" type="text/css"/>
-    </jsp:attribute>
     <jsp:attribute name="jsIncludes">
         <sage:common></sage:common>
         <sage:job></sage:job>
@@ -30,7 +27,7 @@
                 <ol class="input-container" style="width:280px;margin:auto;padding:20px;">
                     <li>
                         <label>Email</label>
-                        <input ng-model="email" type="email" placeholder="example@email.com" id="email" name="email"><br>
+                        <input ng-model="email" type="text" placeholder="example@email.com" id="email" name="email"><br>
                     </li>
                     <li>
                         <label>Password</label>

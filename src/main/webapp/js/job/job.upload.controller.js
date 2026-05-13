@@ -26,10 +26,12 @@ sageJob.filter('conditionFilter', function(){
 sageJob.controller('JobUploadController', function($scope, $http, $window, menuService, dataBus) {
     $scope.id = 1;
     $scope.uploaderId = "fileUploaderBasic";
+    $scope.uploaderInputId = "fileUploaderInput";
     $scope.visible = true;
     $scope.empty = true;
     $scope.processes = [];
     $scope.uploadProgress = 0;
+    var allowedExtensions = ['tsv', 'txt', 'csv'];
 
     $scope.addProcess = function(process) {
         this.empty = false;
@@ -46,7 +48,8 @@ sageJob.controller('JobUploadController', function($scope, $http, $window, menuS
     };
 
     $scope.submitJobRequest = function() {
-        $http.post(submitUrl).success(function(data){
+        $http.post(submitUrl).then(function(response){
+            var data = response.data;
             if (data != null && data.success == true) {
                 alert("Your request has been submitted");
                 $scope.processes = [];
@@ -55,13 +58,14 @@ sageJob.controller('JobUploadController', function($scope, $http, $window, menuS
             else {
                 alert(data.message);
             }
-        }).error(function(){
+        }, function(){
             alert("Failed to submit batch job request!");
         });
     };
 
     $scope.removeFile = function(fileName) {
-        $http.post(removeUrl + "?fileName=" + fileName).success(function(data){
+        $http.post(removeUrl + "?fileName=" + fileName).then(function(response){
+            var data = response.data;
             if (data.success) {
                 for (var i = 0; i < $scope.processes.length; i++) {
                     if ($scope.processes[i].fileName == fileName) {
@@ -71,54 +75,99 @@ sageJob.controller('JobUploadController', function($scope, $http, $window, menuS
                 }
             }
             alert(data.message);
-        }).error(function(){ alert("Failed to remove file from request."); });
+        }, function(){ alert("Failed to remove file from request."); });
     };
 
-    $window.onload = function() {
-        var uploader = new qq.FileUploaderBasic({
-            button: document.getElementById($scope.uploaderId),
-            action: uploadUrl,
-            debug: true,
-            allowedExtensions: ['tsv', 'txt', 'csv'],
-            hideShowDropArea: true,
+    $scope.uploadFiles = function(files) {
+        for (var i = 0; i < files.length; i++) {
+            uploadFile(files[i]);
+        }
+    };
 
-            onSubmit: function(id, fileName){
-                //console.log('Submit: ' + id + " " + fileName);
-            },
-            onProgress: function(id, fileName, loaded, total){
-                //console.log("Progress: " + fileName + " " + loaded + "/" + total);
-                var scope = angular.element("#upload-container").scope();
-                scope.$apply(function(){
-                    scope.uploadProgress = (loaded / total < 1) ? loaded / total : 0;
+    function uploadFile(file) {
+        if (!isAllowedFile(file.name)) {
+            alert("Sorry, only " + allowedExtensions.join(", ") + " files are allowed for batch processing.");
+            return;
+        }
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", uploadUrl + "?qqfile=" + encodeURIComponent(file.name), true);
+        xhr.setRequestHeader("Content-Type", "application/octet-stream");
+
+        xhr.upload.onprogress = function(event) {
+            if (event.lengthComputable) {
+                $scope.$apply(function(){
+                    $scope.uploadProgress = (event.loaded / event.total < 1) ? event.loaded / event.total : 0;
                 });
-            },
-            onComplete: function(id, fileName, responseJSON){
-                //console.log("Complete: " + fileName + " " + responseJSON);
-                if (responseJSON.success) {
-                    var scope = angular.element($("#upload-container")).scope();
-                    scope.$apply(function(){
-                        scope.addProcess(responseJSON.jobProcess);
-                    });
+            }
+        };
+
+        xhr.onload = function() {
+            var responseJSON = parseUploadResponse(xhr.responseText);
+            $scope.$apply(function(){
+                $scope.uploadProgress = 0;
+                if (xhr.status >= 200 && xhr.status < 300 && responseJSON && responseJSON.success) {
+                    $scope.addProcess(responseJSON.jobProcess);
                 }
-                else if (responseJSON.message) {
+                else if (responseJSON && responseJSON.error) {
+                    alert(responseJSON.error);
+                }
+                else if (responseJSON && responseJSON.message) {
                     alert(responseJSON.message);
                 }
                 else {
                     alert("Server did not respond to upload request.");
                 }
-            },
-            onCancel: function(id, fileName){
-                //console.log("Cancel: " + fileName);
-            },
-            onUpload: function(id, fileName, xhr){
-                //console.log("Upload: " + fileName + " " + xhr);
-            },
-            onError: function(id, fileName, xhr) {
-                //console.log("Error: " + fileName + " " + xhr);
-            },
-            messages: {
-                typeError: "Sorry, only {extensions} files are allowed for batch processing."
+            });
+        };
+
+        xhr.onerror = function() {
+            $scope.$apply(function(){
+                $scope.uploadProgress = 0;
+            });
+            alert("Failed to upload file.");
+        };
+
+        xhr.send(file);
+    }
+
+    function isAllowedFile(fileName) {
+        var extension = "";
+        var extensionIndex = fileName.lastIndexOf(".");
+        if (extensionIndex > -1) {
+            extension = fileName.substring(extensionIndex + 1).toLowerCase();
+        }
+        for (var i = 0; i < allowedExtensions.length; i++) {
+            if (allowedExtensions[i] == extension) {
+                return true;
             }
-        });
+        }
+        return false;
+    }
+
+    function parseUploadResponse(responseText) {
+        try {
+            return JSON.parse(responseText);
+        }
+        catch (e) {
+            return null;
+        }
+    }
+
+    function initNativeUploader() {
+        var input = document.getElementById($scope.uploaderInputId);
+        if (input) {
+            input.addEventListener('change', function() {
+                $scope.uploadFiles(input.files);
+                input.value = "";
+            });
+        }
+    }
+
+    if ($window.document.readyState == "complete") {
+        initNativeUploader();
+    }
+    else {
+        $window.addEventListener('load', initNativeUploader);
     }
 });

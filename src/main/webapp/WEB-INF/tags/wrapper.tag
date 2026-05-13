@@ -17,9 +17,6 @@
         <link rel="shortcut icon" href="${pageContext.request.contextPath}/static/img/icons/favicon.ico" />
         <jsp:invoke fragment="cssIncludes"/>
         <script>contextPath = "<%=request.getContextPath()%>";</script>
-    <!--[if lte IE 8]>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js/json2.js"></script>
-    <![endif]-->
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/vendor/jquery.min.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/vendor/angular.min.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/common/common.js"></script>

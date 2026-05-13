@@ -74,7 +74,8 @@ sage.controller("DistrictMapController", function($scope, $http, $timeout, $filt
     $scope.metaLookup = function() {
         $scope.districtSearch = "";
         $http.get(this.getDistrictMapUrl(this.type, null, true))
-            .success(function(data) {
+            .then(function(response) {
+                var data = response.data;
                 $scope.showMemberOption = ($scope.type === 'senate' || $scope.type === 'congressional' || $scope.type === 'assembly');
                 if ($scope.showMemberOption) {
                     // Filter out null members.
@@ -111,8 +112,7 @@ sage.controller("DistrictMapController", function($scope, $http, $timeout, $filt
                 if ($scope.type !== "") {
                     $scope.districtList.unshift({district:null, name:'All districts'});
                 }
-            })
-            .error(function(data){});
+            }, function(response){});
     };
 
     /**
@@ -123,11 +123,11 @@ sage.controller("DistrictMapController", function($scope, $http, $timeout, $filt
         // If there is no intersection type specified, we can just retrieve the map
         if ($scope.intersectType === "none" || $scope.type === $scope.intersectType || $scope.selectedDistrict.district === null) {
             $http.get(this.getDistrictMapUrl(this.type, this.selectedDistrict.district, false))
-                .success(function(data) {
+                .then(function(response) {
                     mapService.clearAll();
                     $scope.showIntersectMenu = $scope.selectedDistrict.name !== "All districts";
-                    dataBus.setBroadcast("districtMap", data);
-                }).error(function(data) {
+                    dataBus.setBroadcast("districtMap", response.data);
+                }, function(response) {
                 mapService.clearAll();
                 uiBlocker.unBlock();
                 alert("Failed to retrieve district maps.");
@@ -137,10 +137,10 @@ sage.controller("DistrictMapController", function($scope, $http, $timeout, $filt
         else {
             mapService.clearAll();
             $http.get(this.getIntersectUrl())
-                .success(function(data) {
+                .then(function(response) {
                     mapService.clearAll();
-                    dataBus.setBroadcastAndView("districtInfo", data, "districtsView");
-                }).error(function(data, status, headers, config) {
+                    dataBus.setBroadcastAndView("districtInfo", response.data, "districtsView");
+                }, function(response) {
                 mapService.clearAll();
                 uiBlocker.unBlock();
                 alert("You must select the type and district / member first. Same source and Intersection type is not supported");

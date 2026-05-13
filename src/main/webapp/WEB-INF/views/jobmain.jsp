@@ -10,12 +10,10 @@
     <jsp:attribute name="title">SAGE - Batch Services Main</jsp:attribute>
     <jsp:attribute name="cssIncludes">
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/vendor/jquery.dataTables-1.9.4.css">
-        <link href="${pageContext.request.contextPath}/css/vendor/fileuploader.css" rel="stylesheet" type="text/css"/>
     </jsp:attribute>
     <jsp:attribute name="jsIncludes">
         <sage:common></sage:common>
         <sage:job></sage:job>
-        <script src="${pageContext.request.contextPath}/js/vendor/fileuploader.js" type="text/javascript"></script>
         <script src="${pageContext.request.contextPath}/js/vendor/jquery.dataTables-1.9.4.min.js" type="text/javascript"></script>
         <script>
             downloadBaseUrl = "${downloadBaseUrl}";
@@ -70,9 +68,10 @@
                                         </table>
                                     </div>
                                     <div style="margin-top:10px;">
-                                        <div id="fileUploaderBasic" class="qq-upload-button">
+                                        <label id="fileUploaderBasic">
                                             <div class="icon-upload icon-teal"></div> Upload a file
-                                        </div>
+                                            <input id="fileUploaderInput" type="file" multiple accept=".tsv,.txt,.csv"/>
+                                        </label>
                                         <div id="fileUploadProgress" ng-style="getProgressStyle()">&nbsp;</div>
                                     </div>
                                 </div>

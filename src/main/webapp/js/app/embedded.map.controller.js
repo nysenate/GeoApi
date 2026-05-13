@@ -8,7 +8,8 @@ sage.controller("EmbeddedMapController", function($scope, $http, $window, dataBu
         if (this.districtType) {
             uiBlocker.block("Loading maps..");
             $http.get(this.getDistrictMapUrl())
-                .success(function(data) {
+                .then(function(response) {
+                    var data = response.data;
                     if (this.districtType === "county") {
                         // console.log($window);
                         // console.log("District type is county");
@@ -17,8 +18,7 @@ sage.controller("EmbeddedMapController", function($scope, $http, $window, dataBu
                     else {
                         dataBus.setBroadcast("embeddedMap", data);
                     }
-                })
-                .error(function(data){});
+                }, function(response){});
         }
     };
 

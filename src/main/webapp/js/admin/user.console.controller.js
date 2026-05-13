@@ -11,19 +11,19 @@ sageAdmin.controller('UserConsoleController', function($scope, $http, menuServic
     });
 
     $scope.getCurrentApiUsers = function() {
-        $http.get(baseAdminApi + "/currentApiUsers").success(function(data){
-            $scope.currentApiUsers = data;
+        $http.get(baseAdminApi + "/currentApiUsers").then(function(response){
+            $scope.currentApiUsers = response.data;
             $scope.resetApiUser();
-        }).error(function(data){
+        }, function(response){
             console.log("Failed to retrieve list of current Api users!");
         });
     };
 
     $scope.getCurrentJobUsers = function() {
-        $http.get(baseAdminApi + "/currentJobUsers").success(function(data){
-            $scope.currentJobUsers = data;
+        $http.get(baseAdminApi + "/currentJobUsers").then(function(response){
+            $scope.currentJobUsers = response.data;
             $scope.resetJobUser();
-        }).error(function(data){
+        }, function(response){
             console.log("Failed to retrieve list of current Job users!")
         });
     };
@@ -34,7 +34,8 @@ sageAdmin.controller('UserConsoleController', function($scope, $http, menuServic
         }
         else {
             $http.post(baseAdminApi + "/createApiUser?name=" + this.apiUserName + "&desc=" + this.apiUserDesc + "&admin=" + this.apiUserAdmin)
-                .success(function(data){
+                .then(function(response){
+                    var data = response.data;
                     if (data) {
                         alert(data.message);
                         if (data.success) {
@@ -46,7 +47,7 @@ sageAdmin.controller('UserConsoleController', function($scope, $http, menuServic
                     else {
                         alert("Failed to add Api User!")
                     }
-                }).error(function(data){
+                }, function(response){
                 console.log("Failed to add Api User, invalid response from Admin Api.");
             });
         }
@@ -61,12 +62,13 @@ sageAdmin.controller('UserConsoleController', function($scope, $http, menuServic
     $scope.deleteApiUser = function(id) {
         if (id != null && confirm("Are you sure you want to delete this user?")) {
             $http.post(baseAdminApi + "/deleteApiUser?id=" + id)
-                .success(function(data){
+                .then(function(response){
+                    var data = response.data;
                     if (data) {
                         alert(data.message);
                         if (data.success) $scope.getCurrentApiUsers();
                     }
-                }).error(function(data){
+                }, function(response){
                 console.log("Failed to delete Api User, invalid response from Admin Api");
             });
         }
@@ -79,7 +81,8 @@ sageAdmin.controller('UserConsoleController', function($scope, $http, menuServic
         else {
             $http.post(baseAdminApi + "/createJobUser?email=" + this.jobEmail + "&password=" + this.jobPassword
                 + "&firstname=" + this.jobFirstName + "&lastname=" + this.jobLastName + "&admin=" + (this.jobAdmin ? "true" : "false"))
-                .success(function(data){
+                .then(function(response){
+                    var data = response.data;
                     if (data) {
                         alert(data.message);
                         if (data.success) {
@@ -87,7 +90,7 @@ sageAdmin.controller('UserConsoleController', function($scope, $http, menuServic
                             $scope.resetJobUser();
                         }
                     }
-                }).error(function(data){
+                }, function(response){
                 console.log("Failed to create Job User, invalid response from Admin Api");
             });
         }
@@ -103,12 +106,13 @@ sageAdmin.controller('UserConsoleController', function($scope, $http, menuServic
 
     $scope.deleteJobUser = function(id) {
         if (id != null && confirm("Are you sure you want to delete this user?")) {
-            $http.post(baseAdminApi + "/deleteJobUser?id=" + id).success(function(data){
+            $http.post(baseAdminApi + "/deleteJobUser?id=" + id).then(function(response){
+                var data = response.data;
                 if (data) {
                     alert(data.message);
                     if (data.success) $scope.getCurrentJobUsers();
                 }
-            }).error(function(data){
+            }, function(response){
                 console.log("Failed to delete Job User, invalid response from Admin Api");
             });
         }

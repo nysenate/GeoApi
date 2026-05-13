@@ -9,12 +9,12 @@ sageAdmin.controller('JobStatusController', function($scope, $http, dataBus){
 
     $scope.getJobStatuses = function() {
         $http.get(baseAdminApi + "/jobStatuses?from=" + (+$scope.from) + "&to=" + (+$scope.to))
-            .success(function(data){
+            .then(function(response){
+                var data = response.data;
                 if (data) {
                     $scope.jobStatuses = data;
                 }
-            })
-            .error(function(){
+            }, function(){
                 console.log("Failed to retrieve job statuses!")
             });
     };

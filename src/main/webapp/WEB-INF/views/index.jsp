@@ -95,7 +95,7 @@
                                 district codes.</p>
                             <p>You can begin your search by entering the Zip 5 code to obtain a listing of street
                                 records.</p><br/>
-                            <form id="streetLookupForm" action="" method="post">
+                            <form id="streetLookupForm" method="post">
                                 <label>Zip 5</label>
                                 <div style='margin-top:2px'>
                                     <input type="text" ng-model="zip5" style="width:175px" maxlength="5"
@@ -306,7 +306,7 @@
             </div>
             <div id="reverseGeocodeSearch" ng-show="visible" class="search-container small"
                  ng-controller="RevGeoController">
-                <form id="revGeoForm" action="" method="post">
+                <form id="revGeoForm" method="post">
                     <div class="icon-target icon-teal"></div>
                     <label ng-hide="minimized">Enter geo-coordinate</label>
                     <label ng-show="minimized" ng-click="minimized=false;" class="expand-search">Show search</label>
@@ -373,8 +373,8 @@
                                 <td>
                                     <div class="icon-location icon-teal"></div>
                                 </td>
-                                <td><p style="font-size: 16px;color:#111;"
-                                       ng-bind-html="address | addressLevel:matchLevel | addressFormat | to_trusted"></p></td>
+                                <td><p style="font-size: 16px;color:#111;white-space: pre-line;"
+                                       ng-bind="address | addressLevel:matchLevel | addressFormat"></p></td>
                                 <td style="text-align:right;"><small ng-show="uspsValidated"
                                                                      style="color:teal;">USPS</small></td>
                             </tr>
@@ -761,8 +761,8 @@
                                         <td>
                                             <div class="icon-location icon-teal"></div>
                                         </td>
-                                        <td><p style="font-size: 16px;color:#111;"
-                                               ng-bind-html="address | addressFormat | to_trusted"></p>
+                                        <td><p style="font-size: 16px;color:#111;white-space: pre-line;"
+                                               ng-bind="address | addressFormat"></p>
                                         </td>
                                     </tr>
                                 </table>

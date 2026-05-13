@@ -118,7 +118,8 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
                 "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&provider=shapefile&uspsValidate=" + $scope.uspsValidate;
         }
         $http.get($scope.district_assign_shape_url)
-            .success(function(data){
+            .then(function(response){
+                var data = response.data;
                 if (data) {
                     $scope.district_assign_shape_json = data;
                     $scope.district_assign_shape_status = true;
@@ -130,8 +131,7 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
                         $scope.district_assign_shape_district_status = true;
                     }
                 }
-            })
-            .error(function(data){
+            }, function(response){
                 console.log("Failed to district assign submitted address - check Input / Google Geocodes / Server Status ");
             });
     };
@@ -145,7 +145,8 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
                 "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&provider=streetfile&uspsValidate=" + $scope.uspsValidate;
         }
         $http.get($scope.district_assign_street_url)
-            .success(function(data){
+            .then(function(response){
+                var data = response.data;
                 if (data) {
                     $scope.district_assign_street_json = data;
                     $scope.district_assign_street_status = true;
@@ -157,8 +158,7 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
                         $scope.district_assign_street_district_status = true;
                     }
                 }
-            })
-            .error(function(data){
+            }, function(response){
                 console.log("Failed to district assign submitted address - check Input / Google Geocodes / Server Status ");
             });
     };
@@ -173,7 +173,8 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
                 "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&bypassCache=true&provider=google&useFallback=false&doNotCache=true&uspsValidate=" + $scope.uspsValidate;
         }
         $http.get($scope.geo_google_url)
-            .success(function(data){
+            .then(function(response){
+                var data = response.data;
                 if (data) {
                     $scope.geo_google_json = data;
 
@@ -185,8 +186,7 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
                         $scope.setMarker($scope.geo_google_json.geocode.lat,$scope.geo_google_json.geocode.lon,"Google",false,true);
                     }
                 }
-            })
-            .error(function(data){
+            }, function(response){
                 console.log("Failed to geocache submitted address - check Input / Google Geocodes / Server Status ");
             });
 
@@ -202,7 +202,8 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
                 "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&bypassCache=true&provider=tiger&useFallback=false&doNotCache=true&uspsValidate=" + $scope.uspsValidate;
         }
         $http.get($scope.geo_tiger_url)
-            .success(function(data){
+            .then(function(response){
+                var data = response.data;
                 if (data) {
                     $scope.geo_tiger_json = data;
 
@@ -216,8 +217,7 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
                         $scope.setMarker($scope.geo_tiger_json.geocode.lat,$scope.geo_tiger_json.geocode.lon,"Tiger",false,true);
                     }
                 }
-            })
-            .error(function(data){
+            }, function(response){
                 console.log("Failed to geocache submitted address - check Input / Server Status ");
             });
 
@@ -233,7 +233,8 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
                 "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&bypassCache=true&provider=nysgeo&useFallback=false&doNotCache=true&uspsValidate=" + $scope.uspsValidate;
         }
         $http.get($scope.geo_nys_url)
-            .success(function(data){
+            .then(function(response){
+                var data = response.data;
                 if (data) {
                     $scope.geo_nys_json = data;
 
@@ -247,8 +248,7 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
                         $scope.setMarker($scope.geo_nys_json.geocode.lat,$scope.geo_nys_json.geocode.lon,"NYSGeo",false,true);
                     }
                 }
-            })
-            .error(function(data){
+            }, function(response){
                 console.log("Failed to geocache submitted address - check Input / NYS Geocoder / Server Status ");
             });
 
@@ -264,7 +264,8 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
                 "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&provider=geocache&useFallback=false&uspsValidate=" + $scope.uspsValidate;
         }
         $http.get($scope.geocache_url)
-            .success(function(data){
+            .then(function(response){
+                var data = response.data;
                 if (data) {
                     $scope.geocache_json = data;
 
@@ -277,8 +278,7 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
                     }
                     console.log($scope.geocache_status);
                 }
-            })
-            .error(function(data){
+            }, function(response){
                 console.log("Failed to geocache submitted address - check Input / Google Geocodes / Server Status ");
             });
 
@@ -294,7 +294,8 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
                 "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&bypassCache=true&doNotCache=false&provider=" + $scope.selected_provider + "&uspsValidate=" + $scope.uspsValidate;
         }
         $http.get($scope.geocache_result_url)
-            .success(function(data){
+            .then(function(response){
+                var data = response.data;
                 if (data) {
                     $scope.geocache_result_json = data;
                     $scope.geocache_result_status = true;
@@ -305,8 +306,7 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
                         $scope.geocode_result_status = true;
                     }
                 }
-            })
-            .error(function(data){
+            }, function(response){
                 console.log("Failed to geocache submitted address - check Input / Google Geocodes / Server Status ");
             });
     };
