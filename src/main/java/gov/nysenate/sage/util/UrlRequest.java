@@ -10,7 +10,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 public abstract class UrlRequest {
-    private static Logger logger = LoggerFactory.getLogger(UrlRequest.class);
+    private static final Logger logger = LoggerFactory.getLogger(UrlRequest.class);
     private static final int CONNECTION_TIMEOUT = 10000;
     private static final int RESPONSE_TIMEOUT = 30000;
 
@@ -106,24 +106,4 @@ public abstract class UrlRequest {
         return uc;
     }
 
-    public static String convertStreamToString(InputStream is) {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-        StringBuilder sb = new StringBuilder();
-
-        String line;
-        try {
-            while ((line = reader.readLine()) != null) {
-                sb.append(line).append("\n");
-            }
-        } catch (IOException e) {
-            System.err.println(e.getMessage());
-        } finally {
-            try {
-                is.close();
-            } catch (IOException e) {
-                System.err.println(e.getMessage());
-            }
-        }
-        return sb.toString();
-    }
 }

@@ -21,8 +21,6 @@ import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 
 import java.time.LocalDateTime;
 
-import static gov.nysenate.sage.model.notification.NotificationType.EVENT_BUS_EXCEPTION;
-
 @Configuration
 public class ApplicationConfig implements SchedulingConfigurer, AsyncConfigurer {
     private static final Logger logger = LoggerFactory.getLogger(ApplicationConfig.class);
@@ -76,7 +74,8 @@ public class ApplicationConfig implements SchedulingConfigurer, AsyncConfigurer 
      * @param context SubscriberExceptionContext
      */
     private void handleEventBusException(Throwable exception, SubscriberExceptionContext context) {
-        logger.error("Event Bus Exception thrown during event handling within {}", context.getSubscriberMethod(), exception);
+        logger.error("Event Bus Exception thrown during event handling within {}",
+                context.getSubscriberMethod(), exception);
 
         LocalDateTime occurred = LocalDateTime.now();
         String summary = "Event Bus Exception within " + context.getSubscriberMethod() +
@@ -84,8 +83,7 @@ public class ApplicationConfig implements SchedulingConfigurer, AsyncConfigurer 
         String message = "\nThe following exception occurred during event handling within " +
                 context.getSubscriberMethod() + " at " + occurred + ":\n" +
                 ExceptionUtils.getStackTrace(exception);
-        Notification notification = new Notification(EVENT_BUS_EXCEPTION, occurred, summary, message);
 
-        eventBus().post(notification);
+        eventBus().post(new Notification(occurred, summary, message));
     }
 }
