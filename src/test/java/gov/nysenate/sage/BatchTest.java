@@ -76,7 +76,7 @@ public class BatchTest {
             }
 
             var currDataMap = new DifferenceDataMap();
-            List<Column> columns = Arrays.stream(oldFileLines.get(0).split("\t"))
+            List<Column> columns = Arrays.stream(oldFileLines.getFirst().split("\t"))
                     .map(Column::resolveColumn).toList();
             for (int lineNum = 0; lineNum < oldFileLines.size(); lineNum++) {
                 String[] oldFileRow = oldFileLines.get(lineNum).split("\t");

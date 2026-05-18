@@ -6,7 +6,7 @@ public class GeocodedPostOfficeBox extends GeocodedAddress {
     private final List<GeocodedAddress> postOffices;
 
     public GeocodedPostOfficeBox(List<GeocodedAddress> postOffices) {
-        super(postOffices.size() == 1 ? postOffices.get(0).getGeocode() : null);
+        super(postOffices.size() == 1 ? postOffices.getFirst().getGeocode() : null);
         this.postOffices = postOffices;
     }
 

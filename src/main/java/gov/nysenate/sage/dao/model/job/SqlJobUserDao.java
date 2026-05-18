@@ -44,8 +44,8 @@ public class SqlJobUserDao extends BaseDao {
                     JobUserQuery.GET_JOB_USER_BY_ID.getSql(getJobSchema()),
                     params, new JobUserHandler());
 
-            if (!jobUserList.isEmpty() && jobUserList.get(0) != null) {
-                return jobUserList.get(0);
+            if (!jobUserList.isEmpty() && jobUserList.getFirst() != null) {
+                return jobUserList.getFirst();
             }
         }
         catch (Exception sqlEx) {
@@ -62,8 +62,8 @@ public class SqlJobUserDao extends BaseDao {
                     JobUserQuery.GET_JOB_USER_BY_EMAIL.getSql(getJobSchema()),
                     params, new JobUserHandler());
 
-            if (jobUserList.get(0) != null) {
-                return jobUserList.get(0);
+            if (jobUserList.getFirst() != null) {
+                return jobUserList.getFirst();
             }
         }
         catch (Exception ignored) {}

@@ -24,7 +24,7 @@ public class CongressionalDaoIT extends BaseTests {
         List<DistrictMember> congressionalList = memberDao.getMembers(DistrictType.CONGRESSIONAL);
         assertNotNull(congressionalList);
 
-        DistrictMember c = congressionalList.get(0);
+        DistrictMember c = congressionalList.getFirst();
         assertEquals(DistrictType.CONGRESSIONAL, c.districtType());
         assertNotNull(c.memberName());
         assertNotNull(c.memberUrl());

@@ -246,7 +246,7 @@ public class JobController {
                 try {
                     List<DiskFileItem> fileItems = upload.parseRequest(request);
                     if (fileItems != null && fileItems.size() == 1) {
-                        sourceFilename = fileItems.get(0).getName();
+                        sourceFilename = fileItems.getFirst().getName();
                     }
                 } catch (FileUploadException ex) {
                     logger.error("File upload exception using Apache FileUpload!", ex);

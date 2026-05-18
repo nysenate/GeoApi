@@ -35,7 +35,7 @@ public final class DistrictUtil {
             List<SingleDistrict> singleDistricts = districtInfoList.stream()
                     .map(info -> info.getDistrict(distType)).filter(Objects::nonNull).distinct().toList();
             if (singleDistricts.size() == 1) {
-                typeToDistrictMap.put(distType, singleDistricts.get(0));
+                typeToDistrictMap.put(distType, singleDistricts.getFirst());
             }
         }
         return new DistrictInfo(typeToDistrictMap, matchLevel);
@@ -46,7 +46,7 @@ public final class DistrictUtil {
      * The first valid code in the List is used, if it exists.
      */
     public static DistrictResult consolidateResults(List<DistrictResult> results) {
-        DistrictResult first = results.get(0);
+        DistrictResult first = results.getFirst();
         results = results.stream().filter(BaseResult::isSuccess).toList();
         if (results.size() <= 1) {
             return first;

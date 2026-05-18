@@ -31,7 +31,7 @@ public class AddressPointsParser extends BaseParser {
                 .addSplitTest(lineParts -> !lineParts.get(7).equals("NY") ||
                         !lineParts.get(9).matches("[123]") ||
                         !lineParts.get(14).equalsIgnoreCase("Active"), StreetfileLineType.SKIP)
-                .addIdFunction((lineParts, lineNum) -> Long.valueOf(lineParts.get(0)))
+                .addIdFunction((lineParts, lineNum) -> Long.valueOf(lineParts.getFirst()))
                 .addBuildingIndices(2).addStreetIndices(13).addPostalCityIndex(6).addType(ZIP, 8)
                 .addType(SENATE, 24).addTypesInOrder(ASSEMBLY, CONGRESSIONAL);
     }

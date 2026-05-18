@@ -37,7 +37,7 @@ public class CongressScraper {
 
             for (Element member : memberRows) {
                 Elements memberInfo = member.children();
-                String districtNumber = memberInfo.get(0).text();
+                String districtNumber = memberInfo.getFirst().text();
                 int distNum = Integer.parseInt( districtNumber.replace("st","").replace("nd","")
                         .replace("rd","").replace("th","") );
                 String memberName = "";

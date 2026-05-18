@@ -39,8 +39,8 @@ public class SqlAdminUserDao extends BaseDao implements AdminUserDao {
             var params = new MapSqlParameterSource("username", username);
             List<AdminUser> adminUserList = namedJdbcTemplate.query(
                     AdminUserQuery.GET_ADMIN.getSql(getPublicSchema()), params, new AdminUserHandler());
-            if (!adminUserList.isEmpty() && adminUserList.get(0) != null) {
-                adminUser = adminUserList.get(0);
+            if (!adminUserList.isEmpty()) {
+                adminUser = adminUserList.getFirst();
             }
         }
         catch (Exception ex) {

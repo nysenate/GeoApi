@@ -33,7 +33,7 @@ public class GeoCache extends BaseDao implements GeocoderDao {
             List<GeocodedAddress> geoAddrs = namedJdbcTemplate.query(SELECT_CACHE_ENTRY.getSql(),
                     getIdParams(address), new GeocodedStreetAddressMapper());
             if (!geoAddrs.isEmpty()) {
-                return geoAddrs.get(0);
+                return geoAddrs.getFirst();
             }
         }
         return null;

@@ -48,7 +48,7 @@ public class ApiUserDao extends BaseDao {
             var params = new MapSqlParameterSource(fieldName, fieldValue);
             List<ApiUser> apiUserList = namedJdbcTemplate.query(
                     query.getSql(getPublicSchema()), params, new ApiUserHandler());
-            return apiUserList.get(0);
+            return apiUserList.getFirst();
         }
         catch (Exception sqlEx) {
             logger.error("Failed to get ApiUser by {} in ApiUserDAO!", fieldName);

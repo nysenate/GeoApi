@@ -24,7 +24,7 @@ public class AssemblyDaoIT extends BaseTests {
         assertNotNull(assemblyList);
         assertEquals(150, assemblyList.size());
 
-        DistrictMember a = assemblyList.get(0);
+        DistrictMember a = assemblyList.getFirst();
         assertEquals(DistrictType.ASSEMBLY, a.districtType());
         assertNotNull(a.memberName());
         assertNotNull(a.memberUrl());

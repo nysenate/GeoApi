@@ -17,7 +17,7 @@ public interface AddressDao {
         if (resultList == null) {
             return null;
         }
-        return resultList.get(0);
+        return resultList.getFirst();
     }
 
     List<AddressResult> validate(List<Address> addresses);
@@ -27,7 +27,7 @@ public interface AddressDao {
         if (resultList == null) {
             return null;
         }
-        return resultList.get(0);
+        return resultList.getFirst();
     }
 
     List<CityStateResult> lookupCityStates(List<Zip5> zips);

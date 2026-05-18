@@ -54,8 +54,8 @@ public class SqlJobProcessDao extends BaseDao implements JobProcessDao {
             List<Integer> jobProcessIdList = namedJdbcTemplate.query(
                     JobProcessQuery.INSERT_JOB_PROCESS.getSql(getJobSchema()), params, new JobProcessIdHandler());
 
-            if (jobProcessIdList.get(0) != null) {
-                return jobProcessIdList.get(0);
+            if (jobProcessIdList.getFirst() != null) {
+                return jobProcessIdList.getFirst();
             }
         } catch (Exception ex) {
             logger.error("Failed to add job process!", ex);
@@ -102,8 +102,8 @@ public class SqlJobProcessDao extends BaseDao implements JobProcessDao {
             List<JobProcessStatus> jobProcessStatusList = namedJdbcTemplate.query(
                     JobProcessQuery.GET_JOB_PROCESS_STATUS.getSql(getJobSchema()), params, new JobStatusHandler());
 
-            if (jobProcessStatusList.get(0) != null) {
-                return jobProcessStatusList.get(0);
+            if (jobProcessStatusList.getFirst() != null) {
+                return jobProcessStatusList.getFirst();
             }
         } catch (Exception ex) {
             logger.error("Failed to retrieve job process status for process {}", processId, ex);
