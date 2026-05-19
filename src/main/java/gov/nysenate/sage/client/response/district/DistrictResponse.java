@@ -2,15 +2,21 @@ package gov.nysenate.sage.client.response.district;
 
 import gov.nysenate.sage.client.response.base.SourcedResponse;
 import gov.nysenate.sage.client.view.address.AddressView;
-import gov.nysenate.sage.client.view.district.DistrictsView;
+import gov.nysenate.sage.client.view.district.DistrictView;
+import gov.nysenate.sage.client.view.district.MemberDistrictView;
+import gov.nysenate.sage.client.view.district.SenateDistrictView;
 import gov.nysenate.sage.client.view.geo.GeocodeView;
+import gov.nysenate.sage.client.view.map.PolygonMapView;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
+import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.result.DistrictResultWithMembers;
+import org.apache.commons.text.CaseUtils;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class DistrictResponse extends SourcedResponse {
@@ -22,7 +28,7 @@ public class DistrictResponse extends SourcedResponse {
     protected boolean uspsValidated = false;
     protected boolean isMultiMatch = false;
     protected String matchLevel;
-    protected DistrictsView districts;
+    protected Map<String, DistrictView> districts = new LinkedHashMap<>();
 
     public DistrictResponse(DistrictResultWithMembers districtResult, GeocodedAddress geoAddr,
                             boolean usePunct) {
@@ -38,7 +44,9 @@ public class DistrictResponse extends SourcedResponse {
         this.districtAssigned = !districtResult.getAssignedDistricts().isEmpty();
         this.senateAssigned = districtResult.getAssignedDistricts().contains(DistrictType.SENATE);
         this.matchLevel = districtResult.getDistrictInfo().matchLevel().name();
-        this.districts = new DistrictsView(districtResult, geomMap);
+        for (DistrictType districtType : DistrictType.values()) {
+            districts.put(getFieldName(districtType), viewFrom(districtType, districtResult, geomMap.get(districtType)));
+        }
         if (geoAddr == null) {
             return;
         }
@@ -52,6 +60,29 @@ public class DistrictResponse extends SourcedResponse {
             this.geocode = new GeocodeView(realGeocode);
             this.geocoded = realGeocode.isValidGeocode();
         }
+    }
+
+    private static String getFieldName(DistrictType type) {
+        return switch (type) {
+            case TOWN_CITY -> "town";
+            case COUNTY_LEG -> "cleg";
+            default -> CaseUtils.toCamelCase(type.name(), false, '_');
+        };
+    }
+
+    private static DistrictView viewFrom(DistrictType type, DistrictResultWithMembers result, DistrictMap districtMap) {
+        DistrictInfo info = result.getDistrictInfo();
+        if (!info.getAssignedTypes().contains(type)) {
+            return null;
+        }
+        var baseView = new DistrictView(info.getDistName(type), info.getDistCode(type),
+                type.getDisplayName(), districtMap == null ? null : new PolygonMapView(districtMap));
+        return switch (type) {
+            case SENATE -> new SenateDistrictView(baseView, result.getSenator());
+            case ASSEMBLY -> new MemberDistrictView(baseView, result.getAssemblyMember());
+            case CONGRESSIONAL -> new MemberDistrictView(baseView, result.getCongressionalMember());
+            default -> baseView;
+        };
     }
 
     public AddressView getAddress() {
@@ -82,11 +113,11 @@ public class DistrictResponse extends SourcedResponse {
         return matchLevel;
     }
 
-    public Boolean getMultiMatch() {
+    public boolean getMultiMatch() {
         return isMultiMatch;
     }
 
-    public DistrictsView getDistricts() {
+    public Map<String, DistrictView> getDistricts() {
         return districts;
     }
 }

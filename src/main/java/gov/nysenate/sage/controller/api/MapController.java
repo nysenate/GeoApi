@@ -1,6 +1,8 @@
 package gov.nysenate.sage.controller.api;
 
 import gov.nysenate.sage.client.response.base.BaseResponse;
+import gov.nysenate.sage.client.response.base.BatchResponse;
+import gov.nysenate.sage.client.response.district.DistrictTypeResponse;
 import gov.nysenate.sage.client.response.map.MapResponse;
 import gov.nysenate.sage.client.response.map.MultipleMapResponse;
 import gov.nysenate.sage.model.district.DistrictMap;
@@ -15,6 +17,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Function;
 
 @RestController
 @RequestMapping(value = ConstantUtil.REST_PATH + "map")
@@ -62,5 +68,12 @@ public class MapController extends BaseController {
             }
             return new MultipleMapResponse(mapListResult, !meta);
         }
+    }
+
+    @GetMapping("/types")
+    public BatchResponse<DistrictTypeResponse> districtTypes() {
+        List<DistrictTypeResponse> responses = Arrays.stream(DistrictType.values())
+                .filter(type -> !type.lacksShapefile()).map(DistrictTypeResponse::new).toList();
+        return new BatchResponse<>(responses, Function.identity());
     }
 }

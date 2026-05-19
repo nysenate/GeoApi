@@ -6,7 +6,7 @@ public class MemberDistrictView extends DistrictView {
     protected MemberView member;
 
     public MemberDistrictView(DistrictView baseView, DistrictMember districtMember) {
-        super(baseView.getName(), baseView.getDistrict(), baseView.getMap());
+        super(baseView.getName(), baseView.getDistrict(), baseView.getDisplayName(), baseView.getMap());
         this.member = new MemberView(districtMember);
     }
 

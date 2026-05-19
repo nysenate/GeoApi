@@ -598,12 +598,7 @@ table.light-table tr {
     height: 70px;
 }
 
-.member-name.senator {
-    color:#444;
-    font-size:18px;
-}
-
-.member-name {
+.member-name, .district-name, .member-name.senator {
     color:#444;
     font-size:18px;
 }

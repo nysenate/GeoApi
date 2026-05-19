@@ -32,7 +32,7 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
         dataBus.setBroadcast("expandResults", true);
         mapService.toggleMap(true);
 
-        if ($scope.multiMatch || $scope.overlaps) {
+        if ($scope.overlaps) {
             $scope.drawIntersect();
             /** Display senate street lines if available */
             if ($scope.matchLevel == "STREET") {

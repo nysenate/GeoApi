@@ -1,10 +1,12 @@
 package gov.nysenate.sage.model.district;
 
+import org.apache.commons.lang.WordUtils;
+
 public enum DistrictType {
     // Available as shape files
-    ASSEMBLY("district", false), CONGRESSIONAL("district", false), SENATE("district", false),
-    SCHOOL("tfcode", true), TOWN_CITY("abbrev", true),
-    COUNTY("senate_code", true), ZIP("zip_code", false), ELECTRIC_UTILITY("gid", true),
+    SENATE("district", false), ASSEMBLY("district", false), CONGRESSIONAL("district", false),
+    ZIP("zip_code", false), COUNTY("senate_code", true), TOWN_CITY("abbrev", true),
+    SCHOOL("tfcode", true), ELECTRIC_UTILITY("gid", true),
     // Available only in street files
     ELECTION, WARD, COUNTY_LEG, FIRE, VILLAGE, MUNICIPAL_COURT, CITY_COUNCIL;
 
@@ -35,5 +37,12 @@ public enum DistrictType {
 
     public boolean lacksShapefile() {
         return code == null;
+    }
+
+    public String getDisplayName() {
+        if (this == TOWN_CITY) {
+            return "Town/City";
+        }
+        return WordUtils.capitalizeFully(name().replace('_', ' '));
     }
 }

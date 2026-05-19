@@ -43,17 +43,10 @@ sage.filter("senatorPic", function() {
 sage.filter("addressLevel", function(){
     return function(address, level) {
         switch (level) {
-            case "POINT" :
-            case "HOUSE" :
-            case "STREET" :
-                return address;
-                break;
             case "CITY" :
                 return {city: address.city, state: address.state};
-                break;
             case "ZIP5" :
                 return {state: address.state, zip5: address.zip5};
-                break;
             default:
                 return address;
         }
@@ -87,8 +80,6 @@ sage.filter('addressFormat', function(){
         }
     }
 });
-
-
 
 function notNullOrEmpty(input) { return input != null && input != '' && input != 'null'; }
 
@@ -243,14 +234,4 @@ $(document).ready(function(){
         });
         return bounds;
     };
-
-    function getBoundsForMultiPolyLine(lines) {
-        var bounds = new google.maps.LatLngBounds();
-        $.each(lines, function(i,v) {
-            v.getPath().forEach(function(e) {
-                bounds.extend(e);
-            });
-        });
-        return bounds;
-    }
 });

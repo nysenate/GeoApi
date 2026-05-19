@@ -15,7 +15,6 @@ public class AddressView {
     protected String state;
     protected String zip5 = null;
     protected String zip4 = null;
-    protected Integer id;
 
     public AddressView(Address address, boolean usePunct) {
         this.addr1 = address.getAddr1();
@@ -31,8 +30,6 @@ public class AddressView {
         if (address.getZip4() != null) {
             this.zip4 = address.getZip4().toString();
         }
-        // TODO: add back?
-        this.id = -1;
     }
 
     public String getAddr1() {
@@ -57,9 +54,5 @@ public class AddressView {
 
     public String getZip4() {
         return zip4;
-    }
-
-    public Integer getId() {
-        return id;
     }
 }

@@ -6,7 +6,7 @@ public class SenateDistrictView extends DistrictView {
     protected Senator senator;
 
     public SenateDistrictView(DistrictView baseView, Senator senator) {
-        super(baseView.getName(), baseView.getDistrict(), baseView.getMap());
+        super(baseView.getName(), baseView.getDistrict(), baseView.getDisplayName(), baseView.getMap());
         this.senator = senator;
     }
 

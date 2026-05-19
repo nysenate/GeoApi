@@ -18,6 +18,21 @@ sage.controller("DistrictMapController", function($scope, $http, $timeout, $filt
     $scope.showDistrictDropdown = false;
     $scope.highlightIndex = 0;
     $scope.showIntersectMenu = false;
+    $scope.districtTypes = [];
+
+    /**
+     * Loads the selectable district types (those backed by shapefiles) from the map API
+     * so the Type and intersection menus stay in sync with the backend DistrictType enum.
+     */
+    $scope.loadDistrictTypes = function() {
+        $http.get(contextPath + baseApi + "/map/types")
+            .then(function(response) {
+                $scope.districtTypes = response.data.results.map(function(t) {
+                    return { value: t.enumName.toLowerCase(), label: t.displayName };
+                });
+            }, function(response) {});
+    };
+    $scope.loadDistrictTypes();
 
 
     $scope.$on(menuService.menuToggleEvent, function() {
@@ -73,6 +88,7 @@ sage.controller("DistrictMapController", function($scope, $http, $timeout, $filt
      */
     $scope.metaLookup = function() {
         $scope.districtSearch = "";
+        $scope.intersectType = "none";
         $http.get(this.getDistrictMapUrl(this.type, null, true))
             .then(function(response) {
                 var data = response.data;

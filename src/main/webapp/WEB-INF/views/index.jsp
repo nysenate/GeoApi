@@ -240,16 +240,9 @@
                             <div style="float:left">
                                 <label for="districtTypeMenu" class="menu-overhead">Type:</label>
                                 <select id="districtTypeMenu" class="menu" style="width:115px;" ng-model="type"
-                                        ng-change="metaLookup();">
+                                        ng-change="metaLookup();"
+                                        ng-options="t.value as t.label for t in districtTypes">
                                     <option value="" disabled hidden>Choose</option>
-                                    <option value="senate">Senate</option>
-                                    <option value="congressional">Congressional</option>
-                                    <option value="assembly">Assembly</option>
-                                    <option value="zip">Zip</option>
-                                    <option value="county">County</option>
-                                    <option value="town_city">Town/City</option>
-                                    <option value="school">School</option>
-                                    <option value="electric_utility">Electric Utility</option>
                                 </select>
                             </div>
                             <div style="position:relative;float:left;">
@@ -284,21 +277,14 @@
                         </div>
                         <div style="margin-top:10px;padding:5px;" ng-show="showIntersectMenu">
                             <label for="IntersectionMenu" class="menu-overhead">View intersection with:</label>
-                            <select id="IntersectionMenu" class="menu" style="width:100px;" ng-model="intersectType"
+                            <select id="IntersectionMenu" class="menu" style="width:115px;" ng-model="intersectType"
                                     ng-change="lookup()">
                                 <option value="none">None</option>
-                                <option value="senate">Senate</option>
-                                <option value="congressional">Congressional</option>
-                                <option value="assembly">Assembly</option>
-                                <option value="zip">Zip</option>
-                                <option value="county">County</option>
-                                <option value="town_city">Town/City</option>
-                                <option value="school">School</option>
-                                <option value="electric_utility">Electric Utility</option>
+                                <option ng-repeat="t in districtTypes" ng-if="type !== t.value"
+                                        value="{{t.value}}">{{t.label}}</option>
                             </select>
                         </div>
                     </div>
-                    </form>
                 </div>
             </div>
             <div id="uspsLookupView" ng-show="visible" ng-controller="UspsLookupController">
@@ -352,7 +338,7 @@
                 <div id="district-results" ng-show="visible" ng-controller="DistrictsViewController"
                      class="scrollable-content">
                     <!-- District lookup error message -->
-                    <div id="failed-district-result" ng-hide="districtAssigned || multiMatch || overlaps">
+                    <div id="failed-district-result" ng-hide="districtAssigned || overlaps">
                         <div class="info-container">
                             <p class="member-name" style="color:orangered;">No District Lookup Result</p>
                             <hr/>
@@ -361,7 +347,7 @@
                     </div>
                     <!-- Geocoded location information -->
                     <div class="info-container title" ng-switch="matchLevel"
-                         ng-show="geocoded && (districtAssigned || multiMatch)">
+                         ng-show="geocoded && districtAssigned">
                         <p ng-switch-when="HOUSE">Showing matching results for address</p>
                         <p ng-switch-when="STREET">Showing matching results for street</p>
                         <p ng-switch-when="CITY">Showing matching results for city</p>
@@ -388,7 +374,6 @@
                                     <small style="color:teal;">{{geocode.method | remove:'Dao'}}</small>
                                     <p ng-show="geocode.cached" class="icon-database icon-teal" style="color:teal;"></p>
                                 </td>
-                                    <%--                            <td><p style="font-size: 16px;color:teal;">({{geocode.openLocCode}})</p></td>--%>
                             </tr>
                             <tr>
                                 <td>
@@ -401,13 +386,6 @@
 
                             </tr>
                         </table>
-                    </div>
-                    <div style="color:#444;font-size:13px;border-bottom:1px solid #ddd" ng-switch="matchLevel"
-                         ng-show="multiMatch" class="info-container connected slim">
-                        <span style="color:orangered">Note: </span>
-                        <span ng-switch-when="STREET">Street boundary may be incomplete.</span>
-                        <span ng-switch-when="ZIP5">Zip code boundary is approximated.</span>
-                        <span ng-switch-when="CITY">City boundary is approximated.</span>
                     </div>
                     <div class="info-container connected-top slim">
                         <a style="font-size:13px;" ng-hide="viewSuggestions || overlaps" ng-click="viewSuggestions=true">Did you
@@ -503,12 +481,10 @@
                         </div>
                     </div>
 
-                    <div id="multi-senate-results" ng-show="(multiMatch || overlaps) && (visible || overlaps.length > 1)">
+                    <div id="multi-senate-results" ng-show="overlaps && (visible || overlaps.length > 1)">
                         <div class="info-container title connected-bottom">
                             <p class="member-name" ng-click="drawIntersect()">{{overlaps.length + " " +
-                                (intersectType.charAt(0) +
-                                intersectType.slice(1).toLowerCase()).replace("Town_city", "Town/City")
-                                .replace("Electric_utility", "Electric Utility")}} District Matches &nbsp; <a title="Show Map"
+                                intersectTypeDisplayName + " District Matches"}} &nbsp; <a title="Show Map"
                                                                                     class="icon-map"></a></p>
                         </div>
                         <div class="info-container title connected" ng-show="id == 1">
@@ -546,7 +522,7 @@
                                         <div ng-show="intersectType != 'SENATE'">
                                             <p style="font-size:16px;padding-left: 10px;" class="senate district"
                                                ng-style="getColorStyle(d.district)">
-                                                {{(intersectType.charAt(0) + intersectType.slice(1).toLowerCase()).replace("Town_city", "Town/City").replace("Electric_utility", "Electric Utility")}}
+                                                {{intersectTypeDisplayName}}
                                                 District {{d.district}}
                                             </p>
                                         </div>
@@ -561,146 +537,35 @@
                         </div>
                     </div>
 
-                    <div class="info-container title" ng-show="multiMatch && streets">
-                        <p class="member-name">Street ranges for <span style="text-transform: capitalize">{{streets[0].street | lowercase}}</span>
-                        </p>
-                    </div>
-                    <div id="multi-street-results" class="info-container connected-top" ng-show="multiMatch && streets">
-                        <table class="light-table">
-                            <tr>
-                                <th>Bldg From</th>
-                                <th>Bldg To</th>
-                                <th>E/O</th>
-                                <th>Zip5</th>
-                                <th>Senate District</th>
-                            </tr>
-                            <tr ng-repeat="(i,v) in streets">
-                                <td>{{v.bldgLoNum}}</td>
-                                <td>{{v.bldgHiNum}}</td>
-                                <td>{{v.parity | parityFilter}}</td>
-                                <td>{{v.zip5}}</td>
-                                <td ng-style="getColorStyle(v.senate)">{{v.senate}}</td>
-                            </tr>
-                        </table>
-                        <hr/>
-                        <span style="font-size: 13px;color:#333;">If you are looking for more detailed street range information, try the Street Finder option located on the
-                    top menu.</span>
-                    </div>
                     <div id="success-district-results" ng-show="districtAssigned">
                         <div class="info-container title connected-bottom">
                             <p class="member-name success-color">Matched New York State Districts</p>
                         </div>
-                        <div class="info-container connected slim" ng-show="multiMatch">
-                        <span class="message">Any districts listed below are confirmed since there are no other overlapping districts within the outlined
-                            geographic area.</span>
-                        </div>
-                        <div class="info-container clickable connected congressional"
-                             ng-show="districts.congressional.district" title="Show Congressional District Map"
-                             ng-click="showDistrict('congressional');">
+                        <div ng-repeat="(districtType, district) in districts"
+                             ng-if="district && district.district && districtType != 'senate'"
+                             class="info-container connected"
+                             ng-class="{'clickable': district.map, 'congressional': districtType == 'congressional', 'assembly': districtType == 'assembly'}"
+                             title="{{district.map ? 'Show ' + district.displayName + ' Map' : ''}}"
+                             ng-click="district.map && showDistrict(districtType);">
                             <table style="width:100%">
                                 <tr>
                                     <td>
-                                        <p class="member-name"><a target="_blank"
-                                                                  ng-href="{{districts.congressional.member.url}}">{{districts.congressional.member.name}}</a>
+                                        <p class="member-name" ng-if="district.member">
+                                            <a target="_blank"
+                                               ng-href="{{district.member.url}}">{{district.member.name}}
+                                            </a>
                                         </p>
-                                        <p class="district">Congressional District
-                                            {{districts.congressional.district}}</p>
+                                        <p class="district-name" ng-if="district.name && !district.member">{{district.name}}</p>
+                                        <p class="district" ng-if="district.name && district.member">{{district.name}}</p>
+                                        <p class="district" ng-if="!district.member">{{district.displayName}} Code: {{district.district}}</p>
                                     </td>
-                                    <td class="right-icon-placeholder">
-                                        <a title="Show Map" ng-show="districts.congressional.map"
-                                           ng-click="showDistrict('congressional');">
+                                    <td class="right-icon-placeholder" ng-if="district.map">
+                                        <a title="Show Map" ng-click="showDistrict(districtType);">
                                             <div class="icon-map"></div>
                                         </a>
                                     </td>
                                 </tr>
                             </table>
-                        </div>
-                        <div class="info-container clickable connected assembly" title="Show Assembly Map"
-                             ng-show="districts.assembly.district" ng-click="showDistrict('assembly');">
-                            <table style="width:100%">
-                                <tr>
-                                    <td>
-                                        <p class="member-name"><a target="_blank"
-                                                                  ng-href="{{districts.assembly.member.url}}">{{districts.assembly.member.name}}</a>
-                                        </p>
-                                        <p class="district">Assembly District {{districts.assembly.district}}</p>
-                                    </td>
-                                    <td class="right-icon-placeholder">
-                                        <a title="Show Map" ng-show="districts.assembly.map"
-                                           ng-click="showDistrict('assembly');">
-                                            <div class="icon-map"></div>
-                                        </a>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div class="info-container clickable connected" title="Show County Map"
-                             ng-show="districts.county.district" ng-click="showDistrict('county');">
-                            <table style="width:100%">
-                                <tr>
-                                    <td>
-                                        <p class="member-name">{{districts.county.name}}</p>
-                                        <p class="district">County Code: {{districts.county.district}}</p>
-                                    </td>
-                                    <td class="right-icon-placeholder">
-                                        <a title="Show Map" ng-show="districts.county.map"
-                                           ng-click="showDistrict('county');">
-                                            <div class="icon-map"></div>
-                                        </a>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div class="info-container clickable connected" ng-show="districts.town.district"
-                             title="Show Town Map" ng-click="showDistrict('town');">
-                            <table style="width:100%">
-                                <tr>
-                                    <td>
-                                        <p class="member-name" ng-show="districts.town.name">{{districts.town.name}}</p>
-                                        <p class="district">Town/City Code: {{districts.town.district}}</p></td>
-                                    <td class="right-icon-placeholder">
-                                        <a title="Show Map" ng-show="districts.town.map"
-                                           ng-click="showDistrict('town');">
-                                            <div class="icon-map"></div>
-                                        </a>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div class="info-container clickable connected" ng-show="districts.school.district"
-                             title="Show School District Map" ng-click="showDistrict('school');">
-                            <table style="width:100%">
-                                <tr>
-                                    <td>
-                                        <p class="member-name">{{districts.school.name}}</p>
-                                        <p class="district">School District Code: {{districts.school.district}}</p>
-                                    </td>
-                                    <td class="right-icon-placeholder">
-                                        <a title="Show Map" ng-show="districts.school.map"
-                                           ng-click="showDistrict('school');">
-                                            <div class="icon-map"></div>
-                                        </a>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div class="info-container clickable connected" title="Show Zip Map"
-                             ng-show="districts.zip.district" ng-click="showDistrict('zip');">
-                            <table style="width:100%">
-                                <tr>
-                                    <td>
-                                        <p class="district">Zip Code {{districts.zip.district}}</p>
-                                    </td>
-                                    <td class="right-icon-placeholder">
-                                        <a title="Show Map" ng-show="districts.zip.map" ng-click="showDistrict('zip');">
-                                            <div class="icon-map"></div>
-                                        </a>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div class="info-container connected" ng-show="districts.election.district">
-                            <p class="district">Election District: {{districts.election.district}}</p>
                         </div>
                     </div>
                 </div>
