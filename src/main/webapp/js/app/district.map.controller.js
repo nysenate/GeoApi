@@ -7,7 +7,7 @@ sage.controller("DistrictMapController", function($scope, $http, $timeout, $filt
     $scope.visible = false;
     $scope.id = 2;
     $scope.minimized = false;
-    $scope.type = "";
+    $scope.type = null;
     $scope.selectedDistrict = "";
     $scope.intersectType = "none";
     $scope.showMemberOption = false;
