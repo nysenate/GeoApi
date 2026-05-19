@@ -138,7 +138,7 @@ public class ProdReadinessTest {
         return convertObjToJson(this.testPoints);
     }
 
-    private String convertObjToJson(ArrayList arrayList) {
+    private String convertObjToJson(ArrayList<?> arrayList) {
         Gson prettyGson = new GsonBuilder().setPrettyPrinting().create();
         return prettyGson.toJson(arrayList);
     }
@@ -335,7 +335,7 @@ public class ProdReadinessTest {
 
         HttpURLConnection standardUIDistAssignValidate = prodReadinessTest.createHttpRequest(
                 baseUrl,
-                "/api/v2/district/assign?addr=200 State Street,Albany,NY,USA&uspsValidate=true&showMaps=true&showMembers=true&showMultiMatch=true");
+                "/api/v2/district/assign?addr=200 State Street,Albany,NY,USA&uspsValidate=true&showMaps=true&showMembers=true");
         jsonResponse = prodReadinessTest.getResponseAndCloseStream(standardUIDistAssignValidate);
         assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
 
@@ -349,14 +349,14 @@ public class ProdReadinessTest {
 
         HttpURLConnection providerStreetfileDistAssignValidate = prodReadinessTest.createHttpRequest(
                 baseUrl,
-                "/api/v2/district/assign?addr=200%20State%20Street,%20Albany,%20NY,%20USA&provider=streetfile&uspsValidate=true&showMaps=true&showMembers=true&showMultiMatch=true" );
+                "/api/v2/district/assign?addr=200%20State%20Street,%20Albany,%20NY,%20USA&provider=streetfile&uspsValidate=true&showMaps=true&showMembers=true");
         jsonResponse = prodReadinessTest.getResponseAndCloseStream(providerStreetfileDistAssignValidate);
         assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
 
 
         HttpURLConnection providerShapefileDistAssignValidate = prodReadinessTest.createHttpRequest(
                 baseUrl,
-                "/api/v2/district/assign?addr=200%20State%20Street,%20Albany,%20NY,%20USA&provider=shapefile&uspsValidate=true&showMaps=true&showMembers=true&showMultiMatch=true");
+                "/api/v2/district/assign?addr=200%20State%20Street,%20Albany,%20NY,%20USA&provider=shapefile&uspsValidate=true&showMaps=true&showMembers=true");
         jsonResponse = prodReadinessTest.getResponseAndCloseStream(providerShapefileDistAssignValidate);
         assertEquals(0, prodReadinessTest.standardSuccessResponseCheck(jsonResponse));
 

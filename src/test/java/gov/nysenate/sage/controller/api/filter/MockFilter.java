@@ -42,21 +42,20 @@ public class MockFilter {
         mockServletResponse = mock(HttpServletResponse.class);
 
         try {
-            /** Mock getWriter() method for ServletResponse */
+            /* Mock getWriter() method for ServletResponse */
             when(mockServletResponse.getWriter()).thenReturn(this.pWriter);
 
-            /** Mock setAttribute() method for ServletRequest */
+            /* Mock setAttribute() method for ServletRequest */
             doAnswer(invocationOnMock -> {
                 Object[] args = invocationOnMock.getArguments();
                 attributes.put((String) args[0], args[1]);
                 return null;
             }).when(mockServletRequest).setAttribute(isA(String.class), isA(Object.class));
 
-            /** Mock getAttribute(String) method for ServletRequest */
-            when(mockServletRequest.getAttribute(isA(String.class))).thenAnswer((Answer) invocationOnMock -> attributes.get(invocationOnMock.getArguments()[0]));
+            /* Mock getAttribute(String) method for ServletRequest */
+            when(mockServletRequest.getAttribute(isA(String.class))).thenAnswer((Answer<?>) invocationOnMock -> attributes.get(invocationOnMock.getArguments()[0]));
         }
-        catch (Exception ex)
-        {
+        catch (Exception ex) {
             System.err.println(ex.getMessage());
         }
     }

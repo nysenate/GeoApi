@@ -151,9 +151,9 @@ public class ShapefileDao extends BaseDao implements DistrictNameDao {
                         .findFirst().orElseThrow();
             }
             String name = switch (type) {
-                case SENATE -> "NY Senate District " + code;
-                case ASSEMBLY -> "NY Assembly District " + code;
-                case CONGRESSIONAL -> "NY Congressional District " + code;
+                case SENATE -> "Senate District " + code;
+                case ASSEMBLY -> "Assembly District " + code;
+                case CONGRESSIONAL -> "Congressional District " + code;
                 case TOWN_CITY -> townCity.fullName();
                 case ZIP -> "Zipcode " + code;
                 case COUNTY -> rs.getString("name") + " County";

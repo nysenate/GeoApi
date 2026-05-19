@@ -3,7 +3,7 @@ package gov.nysenate.sage.dao.model.job;
 import gov.nysenate.sage.dao.base.BasicSqlQuery;
 import gov.nysenate.sage.dao.base.SqlTable;
 
-public enum JobUserQuery implements BasicSqlQuery { //${schema}." + SqlTable.USER
+public enum JobUserQuery implements BasicSqlQuery {
 
     GET_ALL_JOB_USERS("SELECT * FROM ${schema}." + SqlTable.USER),
 
@@ -16,7 +16,7 @@ public enum JobUserQuery implements BasicSqlQuery { //${schema}." + SqlTable.USE
     REMOVE_JOB_USER("DELETE FROM ${schema}." + SqlTable.USER + " WHERE id = :id"),
     ;
 
-    private String sql;
+    private final String sql;
 
     JobUserQuery(String sql) {
         this.sql = sql;

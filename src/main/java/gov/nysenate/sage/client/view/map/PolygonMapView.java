@@ -11,7 +11,7 @@ import java.util.List;
 public class PolygonMapView {
     private static final int precision = 8;
     protected List<List<Double[]>> geom;
-    protected String type = "";
+    protected String type;
 
     public PolygonMapView(List<Polygon> polygons, String type) {
         this.type = type;
