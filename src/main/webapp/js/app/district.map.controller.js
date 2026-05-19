@@ -136,12 +136,12 @@ sage.controller("DistrictMapController", function($scope, $http, $timeout, $filt
      */
     $scope.lookup = function () {
         uiBlocker.block("Loading " + this.type.replace("_", "/") + " maps...");
+        $scope.showIntersectMenu = $scope.selectedDistrict.name !== "All districts";
         // If there is no intersection type specified, we can just retrieve the map
         if ($scope.intersectType === "none" || $scope.type === $scope.intersectType || $scope.selectedDistrict.district === null) {
             $http.get(this.getDistrictMapUrl(this.type, this.selectedDistrict.district, false))
                 .then(function(response) {
                     mapService.clearAll();
-                    $scope.showIntersectMenu = $scope.selectedDistrict.name !== "All districts";
                     dataBus.setBroadcast("districtMap", response.data);
                 }, function(response) {
                 mapService.clearAll();
