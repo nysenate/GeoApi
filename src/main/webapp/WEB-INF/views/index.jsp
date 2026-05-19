@@ -501,8 +501,8 @@
                                 <tr>
                                     <td>
                                         <div ng-show="matchLevel != 'STREET'"
-                                             style="line-height:42px;height:42px;margin-right:0;" class="small-box"
-                                             ng-style="getBgStyle(i)">{{(d.areaPercentage).toFixed(0) || '<1'}}%
+                                             class="small-box"
+                                             ng-style="getBgStyle(i)">{{ d.areaPercentage >= 1 ? (d.areaPercentage).toFixed(0) : '<1' }}%
                                         </div>
                                         <div class="senator" style="height:56px;" ng-show="intersectType == 'SENATE'">
                                             <div class="senator-pic-holder" style="width:50px;height:50px;">
@@ -520,11 +520,11 @@
                                             </div>
                                         </div>
                                         <div ng-show="intersectType != 'SENATE'">
-                                            <p style="font-size:16px;padding-left: 10px;" class="senate district"
-                                               ng-style="getColorStyle(d.district)">
-                                                {{intersectTypeDisplayName}}
-                                                District {{d.district}}
-                                            </p>
+                                            <div style="padding-left: 10px;" class="">
+                                                <p class="district-name" ng-style="getColorStyle(d.district)" ng-if="d.name">{{d.name}}</p>
+                                                <p class="district" ng-style="getColorStyle(d.district)" ng-if="displayCode(intersectType)">Code: {{d.district}}</p>
+                                            </div>
+
                                         </div>
                                     </td>
                                     <td class="right-icon-placeholder">
@@ -557,7 +557,7 @@
                                         </p>
                                         <p class="district-name" ng-if="district.name && !district.member">{{district.name}}</p>
                                         <p class="district" ng-if="district.name && district.member">{{district.name}}</p>
-                                        <p class="district" ng-if="!district.member">{{district.displayName}} Code: {{district.district}}</p>
+                                        <p class="district" ng-if="displayCode(districtType)">{{district.displayName}} Code: {{district.district}}</p>
                                     </td>
                                     <td class="right-icon-placeholder" ng-if="district.map">
                                         <a title="Show Map" ng-click="showDistrict(districtType);">

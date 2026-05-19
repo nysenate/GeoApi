@@ -625,13 +625,16 @@ table.light-table tr {
 
 .small-box {
     font-weight:600;
-    padding: 4px 5px 4px 6px;
-    height:20px;
-    width:30px;
+    padding: 5px;
+    height:40px;
+    width:35px;
+    margin-right:5px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    white-space:nowrap;
     float:left;
-    margin-right:10px;
     color:white;
-    overflow: hidden;
 }
 
 /*-------------------------------------------------------

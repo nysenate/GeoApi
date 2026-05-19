@@ -37,15 +37,7 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
             /** Display senate street lines if available */
             if ($scope.matchLevel == "STREET") {
                 fillOpacity = 0.2;
-                if ($scope.streetLine && $scope.streetLine.geom) {
-                    mapService.setLines($scope.streetLine.geom, true, false, "#555", {
-                        path: 'M 0 0 L 0 1 L 1 1 L 1 0 z', strokeWeight: 1, strokeOpacity: 0,
-                        scale: 9, fillOpacity: 0.5, fillColor: "yellow"
-                    });
-                }
-                else {
-                    mapService.setMarker($scope.geocode.lat, $scope.geocode.lon, '', true, true);
-                }
+                mapService.setMarker($scope.geocode.lat, $scope.geocode.lon, '', true, true);
             }
             else {
                 /** Set region (city / zip) dashed line boundary for multi-matches */
@@ -141,6 +133,19 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
             $scope.placeSuggestions = {};
         }
     });
+
+    /**
+     * Whether to show the generic "Code: {district}" line for a type. False for types that
+     * already render their district number via a dedicated labeled line. Case-insensitive so
+     * it works with both the uppercase intersectType and the lowercase districts map keys.
+     */
+    $scope.displayCode = function(type) {
+        if (type == null) {
+            return true;
+        }
+        var upperType = type.toUpperCase();
+        return upperType !== 'SENATE' && upperType !== 'ASSEMBLY' && upperType !== 'CONGRESSIONAL' && upperType !== 'ZIP';
+    };
 
     /** Show the specified district map */
     $scope.showDistrict = function(districtType) {
