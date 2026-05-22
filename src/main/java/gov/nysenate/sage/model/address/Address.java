@@ -12,12 +12,8 @@ public sealed class Address permits BuildingAddress, PostOfficeBox {
     private final Zip4 zip4;
 
     public Address(String addr1, String addr2, String postalCity, String state, String zip5, String zip4) {
-        this.addr1 = addr1;
-        this.addr2 = addr2;
-        this.postalCity = postalCity;
-        this.state = state;
-        this.zip5 = StringUtils.isBlank(zip5) ? null : new Zip5(zip5);
-        this.zip4 = StringUtils.isBlank(zip4) ? null : new Zip4(zip4);
+        this(addr1, addr2, postalCity, state,
+                StringUtils.isBlank(zip5) ? null : new Zip5(zip5), StringUtils.isBlank(zip4) ? null : new Zip4(zip4));
     }
 
     public Address(String addr1, String postalCity, String state, String zip5) {
@@ -25,12 +21,21 @@ public sealed class Address permits BuildingAddress, PostOfficeBox {
     }
 
     protected Address(Address addrToCopy) {
-        this.addr1 = addrToCopy.getAddr1();
-        this.addr2 = addrToCopy.getAddr2();
-        this.postalCity = addrToCopy.getPostalCity();
-        this.state = addrToCopy.getState();
-        this.zip5 = addrToCopy.getZip5();
-        this.zip4 = addrToCopy.getZip4();
+        this(addrToCopy.addr1, addrToCopy.addr2, addrToCopy.postalCity,
+                addrToCopy.state, addrToCopy.zip5, addrToCopy.zip4);
+    }
+
+    private Address(String addr1, String addr2, String postalCity, String state, Zip5 zip5, Zip4 zip4) {
+        this.addr1 = addr1;
+        this.addr2 = addr2;
+        // "The Bronx" is sometimes used, but "Bronx" is official and validates properly.
+        if (postalCity != null) {
+            postalCity = postalCity.replaceAll("(?i)\\bThe Bronx", "Bronx");
+        }
+        this.postalCity = postalCity;
+        this.state = state;
+        this.zip5 = zip5;
+        this.zip4 = zip4;
     }
 
     public static Address getAddress(String addr) {
