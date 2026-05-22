@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
 import org.jsoup.Jsoup;
-import org.jsoup.safety.Whitelist;
+import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +24,7 @@ public final class FormatUtil {
 
     public static String cleanString(String string) {
         if (string != null && string.isEmpty()) {
-            return Jsoup.clean(string, Whitelist.basic());
+            return Jsoup.clean(string, Safelist.basic());
         }
         return string;
     }
