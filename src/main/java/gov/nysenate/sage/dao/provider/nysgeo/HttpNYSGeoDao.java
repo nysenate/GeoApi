@@ -83,10 +83,10 @@ public class HttpNYSGeoDao implements GeocoderDao {
 
             if (isRevGeocode && node.has("address") && node.get("address") != null) {
                 JsonNode addressNode = node.get("address");
-                address = new Address(addressNode.get("Street").toString().trim().replaceAll("\"", ""), "",
-                        addressNode.get("City").toString().trim().replaceAll("\"", ""),
-                        addressNode.get("State").toString().trim().replaceAll("\"", ""),
-                        addressNode.get("ZIP").toString().trim().replaceAll("\"", ""), null);
+                address = new Address(addressNode.get("Street").toString().trim().replace("\"", ""),
+                        addressNode.get("City").toString().trim().replace("\"", ""),
+                        addressNode.get("State").toString().trim().replace("\"", ""),
+                        addressNode.get("ZIP").toString().trim().replace("\"", ""));
             }
             else if (node.has("candidates") && node.get("candidates").get(0) != null) {
                 JsonNode bestNode = node.get("candidates").get(0);
@@ -104,7 +104,7 @@ public class HttpNYSGeoDao implements GeocoderDao {
                     candidateAddress[i] = candidateAddress[i].trim().replaceAll("\"", "");
                 }
 
-                address = new Address(candidateAddress[0], "", candidateAddress[1], candidateAddress[2], candidateAddress[3], null);
+                address = new Address(candidateAddress[0], candidateAddress[1], candidateAddress[2], candidateAddress[3]);
             }
             else {
                 return null;

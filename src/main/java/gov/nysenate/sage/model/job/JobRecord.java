@@ -46,9 +46,9 @@ public class JobRecord {
         } catch (Exception ex) {
             logger.warn(ex.getMessage());
             try {
-                tempAddr = new Address(street, "", city, state, zip5, "");
+                tempAddr = new Address(street, city, state, zip5);
             } catch (Exception ex2) {
-                tempAddr = new Address(street, "", city, state, "", "");
+                tempAddr = new Address(street, city, state, null);
             }
         }
         this.address = tempAddr;

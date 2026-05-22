@@ -22,7 +22,7 @@ public record AddressWithoutNum(String street, String postalCity, Zip5 zip5) {
     }
 
     public Address toAddress(int num) {
-        return new Address(num + " " + street, "", postalCity, "NY", zip5.toString(), null);
+        return new Address(num + " " + street, postalCity, "NY", zip5.toString());
     }
 
     public AddressWithoutNum intern() {

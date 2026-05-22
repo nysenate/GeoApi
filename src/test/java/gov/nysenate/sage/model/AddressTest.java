@@ -26,26 +26,26 @@ public class AddressTest {
 
     @Test
     public void isEmptyTest() {
-        var a = new Address("", "", "", "", "", "");
+        var a = new Address("", "", "", "");
         assertFalse(a.isValid());
     }
 
     @Test
     public void isEligibleForValidationTest() {
-        var eligibile1 = new Address("100 N Drive", "Troy", "NY", "12180");
-        var eligibile2 = new Address("100 N Drive", "", "", "12180");
-        var eligibile3 = new Address("100 N Drive", "Troy", "NY", "");
+        var eligible1 = new Address("100 N Drive", "Troy", "NY", "12180");
+        var eligible2 = new Address("100 N Drive", "", "", "12180");
+        var eligible3 = new Address("100 N Drive", "Troy", "NY", "");
         var eligible4 = new Address("100 N Drive", "Troy", "", "");
-        var notEligibile1 = new Address("100 N Drive", "", "", "");
-        var notEligibile2 = new Address("100 N Drive", "", "NY", "");
-        var notEligibile4 = new Address("", "Troy", "NY", "12180");
+        var notEligible1 = new Address("100 N Drive", "", "", "");
+        var notEligible2 = new Address("100 N Drive", "", "NY", "");
+        var notEligible4 = new Address("", "Troy", "NY", "12180");
 
-        assertTrue(eligibile1.isValid());
-        assertTrue(eligibile2.isValid());
-        assertTrue(eligibile3.isValid());
+        assertTrue(eligible1.isValid());
+        assertTrue(eligible2.isValid());
+        assertTrue(eligible3.isValid());
         assertTrue(eligible4.isValid());
-        assertFalse(notEligibile1.isValid());
-        assertFalse(notEligibile2.isValid());
-        assertFalse(notEligibile4.isValid());
+        assertFalse(notEligible1.isValid());
+        assertFalse(notEligible2.isValid());
+        assertFalse(notEligible4.isValid());
     }
 }
