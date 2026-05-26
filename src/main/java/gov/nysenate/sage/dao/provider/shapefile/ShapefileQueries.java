@@ -1,6 +1,7 @@
 package gov.nysenate.sage.dao.provider.shapefile;
 
 import gov.nysenate.sage.dao.base.BasicSqlQuery;
+import gov.nysenate.sage.dao.base.SqlTable;
 
 public enum ShapefileQueries implements BasicSqlQuery {
     GET_DISTRICT_MAPS("""
@@ -49,7 +50,15 @@ public enum ShapefileQueries implements BasicSqlQuery {
     DELETE_REDUNDANT_MAPS("""
             DELETE FROM ${schema}.${type}
             WHERE ${codeColumn} = :code AND gid != :mainGid
-            """);
+            """),
+
+    GET_ALL_TYPE_INFO("""
+            SELECT * FROM ${schema}.%s
+            """.formatted(SqlTable.TYPE_INFO)),
+    GET_SINGLE_TYPE_INFO("""
+            SELECT * FROM ${schema}.%s
+            WHERE type_name ILIKE :typeName
+            """.formatted(SqlTable.TYPE_INFO));
 
 
     private final String query;

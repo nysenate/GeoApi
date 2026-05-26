@@ -1,5 +1,6 @@
 package gov.nysenate.sage.controller.admin;
 
+import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.client.view.job.JobProcessStatusView;
 import gov.nysenate.sage.dao.model.api.ApiUserDao;
@@ -28,6 +29,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+import static gov.nysenate.sage.model.result.ResultStatus.UNSUPPORTED_DISTRICT_MAP;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 
 @RestController
@@ -183,17 +185,18 @@ public class AdminApiController {
                              @RequestParam(required = false, defaultValue = "") String key,
                              @RequestParam String type) {
         DistrictType districtType = DistrictType.valueOf(type.toUpperCase());
-        if (districtType.lacksShapefile()) {
-            return new GenericResponse(false, "District type {} does not have shapefiles.");
-        }
         String ipAddr = ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
-        if (subject.hasRole("ADMIN") ||
-                adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
-                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
-            shapefileDao.cleanMaps(districtType);
+        if (!subject.hasRole("ADMIN") &&
+                !adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) &&
+                !apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
+            return invalidAuthResponse;
         }
-        return invalidAuthResponse;
+        boolean succeeded = shapefileDao.cleanMaps(districtType);
+        if (succeeded) {
+            return new GenericResponse(true, "Maps cleaned.");
+        }
+        return new ApiError(UNSUPPORTED_DISTRICT_MAP);
     }
 
     /**

@@ -5,8 +5,7 @@ public enum SqlTable {
      * Geoapi Database table names
      */
     //Districts Schema
-    DISTRICT_TOWN ("town"),
-    DISTRICT_ZIP ("zip"),
+    TYPE_INFO("type_info"),
 
     //Job Schema
     PROCESS ("process"),

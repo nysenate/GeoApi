@@ -28,8 +28,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-import static gov.nysenate.sage.model.result.ResultStatus.BAD_OVERLAY;
-import static gov.nysenate.sage.model.result.ResultStatus.INVALID_BATCH_ADDRESSES;
+import static gov.nysenate.sage.model.result.ResultStatus.*;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 
 /**
@@ -207,6 +206,9 @@ public class DistrictController extends BaseController {
         }
         IntersectResult intersectResult = shapefileService.getIntersectionResult(
                 getValue(sourceType, DistrictType.class), sourceId, getValue(intersectType, DistrictType.class));
+        if (intersectResult == null) {
+            return new BaseResponse(UNSUPPORTED_DISTRICT_MAP);
+        }
         intersectResult.getOverlaps().forEach(memberProvider::assignMember);
         return IntersectResponse.from(intersectResult);
     }

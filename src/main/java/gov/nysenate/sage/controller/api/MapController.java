@@ -72,8 +72,6 @@ public class MapController extends BaseController {
 
     @GetMapping("/types")
     public BatchResponse<DistrictTypeResponse> districtTypes() {
-        List<DistrictTypeResponse> responses = Arrays.stream(DistrictType.values())
-                .filter(type -> !type.lacksShapefile()).map(DistrictTypeResponse::new).toList();
-        return new BatchResponse<>(responses, Function.identity());
+        return new BatchResponse<>(shapefileService.getTypes(), DistrictTypeResponse::new);
     }
 }

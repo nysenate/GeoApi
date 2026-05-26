@@ -56,8 +56,14 @@ public class ShapefileService {
      */
     public IntersectResult getIntersectionResult(DistrictType sourceType, String sourceId, DistrictType intersectWith) {
         DistrictMap sourceMap = shapefileDao.getDistrictMap(sourceType, sourceId);
-        // We only need the overlap for the specified intersect type
         List<IntersectMap> overlaps = shapefileDao.getDistrictOverlap(sourceType, intersectWith, sourceId);
+        if (overlaps == null) {
+            return null;
+        }
         return new IntersectResult(sourceMap, intersectWith, overlaps);
+    }
+
+    public List<DistrictType> getTypes() {
+        return shapefileDao.getTypes().stream().toList();
     }
 }
