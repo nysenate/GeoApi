@@ -1,8 +1,8 @@
 package gov.nysenate.sage.controller.admin;
 
-import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.client.view.job.JobProcessStatusView;
+import gov.nysenate.sage.controller.api.BaseController;
 import gov.nysenate.sage.dao.model.api.ApiUserDao;
 import gov.nysenate.sage.dao.model.job.SqlJobProcessDao;
 import gov.nysenate.sage.dao.provider.shapefile.ShapefileDao;
@@ -29,13 +29,12 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
-import static gov.nysenate.sage.model.result.ResultStatus.UNSUPPORTED_DISTRICT_MAP;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 
 @RestController
 // TODO: change to use common method in DataGenController
 @RequestMapping(value = ConstantUtil.ADMIN_REST_PATH + "/api")
-public class AdminApiController {
+public class AdminApiController extends BaseController {
     private final SqlApiUsageStatsDao sqlApiUsageStatsDao;
     private final SqlDeploymentStatsDao sqlDeploymentStatsDao;
     private final ApiUserDao apiUserDao;
@@ -192,11 +191,8 @@ public class AdminApiController {
                 !apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
             return invalidAuthResponse;
         }
-        boolean succeeded = shapefileDao.cleanMaps(districtType);
-        if (succeeded) {
-            return new GenericResponse(true, "Maps cleaned.");
-        }
-        return new ApiError(UNSUPPORTED_DISTRICT_MAP);
+        shapefileDao.cleanMaps(districtType);
+        return new GenericResponse(true, "Maps cleaned.");
     }
 
     /**

@@ -54,8 +54,10 @@ public class ShapefileDao extends BaseDao implements DistrictNameDao {
     public DistrictInfo getDistrictInfo(Geocode geocode, Set<DistrictType> districtTypes) {
         Map<DistrictType, SingleDistrict> typeToDistrictMap = new HashMap<>();
         for (DistrictType districtType : districtTypes) {
-            Map<String, String> replacementMap = getReplacements(districtType, "type");
-            if (replacementMap == null) {
+            Map<String, String> replacementMap;
+            try {
+                replacementMap = getReplacements(districtType, "type");
+            } catch (NoShapefileForDistrictTypeException ignored) {
                 continue;
             }
             String sql = GET_DISTRICT_FROM_POINT.getSql(geometrySchema, replacementMap);
@@ -82,10 +84,10 @@ public class ShapefileDao extends BaseDao implements DistrictNameDao {
      */
     public List<IntersectMap> getDistrictOverlap(DistrictType baseType, DistrictType intersectType, String refCode) {
         DistrictTypeInfo baseTypeInfo = typeInfoCache.get(baseType);
-        Map<String, String> replacementMap = getReplacements(intersectType, "intersectType");
-        if (baseTypeInfo == null || replacementMap == null) {
-            return null;
+        if (baseTypeInfo == null) {
+            throw new NoShapefileForDistrictTypeException(baseType);
         }
+        Map<String, String> replacementMap = getReplacements(intersectType, "intersectType");
         replacementMap.put("baseType", baseType.name().toLowerCase());
         replacementMap.put("baseCodeColumn", baseTypeInfo.codeColumn());
         var params = new MapSqlParameterSource("districtCode", refCode);
@@ -129,7 +131,7 @@ public class ShapefileDao extends BaseDao implements DistrictNameDao {
     private Map<String, String> getReplacements(DistrictType type, String typeReplacementName) {
         DistrictTypeInfo typeInfo = typeInfoCache.get(type);
         if (typeInfo == null) {
-            return null;
+            throw new NoShapefileForDistrictTypeException(type);
         }
         return new HashMap<>(Map.of(typeReplacementName, type.name().toLowerCase(),
                 "codeColumn", typeInfo.codeColumn(), "nameColumn", typeInfo.nameColumn()));
@@ -212,11 +214,8 @@ public class ShapefileDao extends BaseDao implements DistrictNameDao {
         return map == null ? null : map.getDistrictName();
     }
 
-    public boolean cleanMaps(DistrictType type) {
+    public void cleanMaps(DistrictType type) {
         Map<String, String> replacementMap = getReplacements(type, "type");
-        if (replacementMap == null) {
-            return false;
-        }
         // Leading zeroes are meaningful only in zip codes.
         if (type != DistrictType.ZIP) {
             namedJdbcTemplate.update(CLEAN_CODES.getSql(geometrySchema, replacementMap), Map.of());
@@ -228,7 +227,6 @@ public class ShapefileDao extends BaseDao implements DistrictNameDao {
             namedJdbcTemplate.update(SET_UNION.getSql(geometrySchema, replacementMap), params);
             namedJdbcTemplate.update(DELETE_REDUNDANT_MAPS.getSql(geometrySchema, replacementMap), params);
         }
-        return true;
     }
 
     public SortedSet<DistrictType> getTypes() {

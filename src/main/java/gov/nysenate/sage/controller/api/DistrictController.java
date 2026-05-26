@@ -198,17 +198,15 @@ public class DistrictController extends BaseController {
      * Usage:
      * (GET)    /api/v2/district/intersect
      */
+    //TODO: this really shouldn't be under "district"
     @GetMapping(value = "/intersect")
     public Object districtIntersect(@RequestParam String sourceType, @RequestParam String sourceId,
                                     @RequestParam String intersectType) {
-        if (sourceId == null || sourceId.equals("null") || sourceId.isEmpty() || sourceType.equals(intersectType)) {
+        if (sourceType.equalsIgnoreCase(intersectType)) {
             return new BaseResponse(BAD_OVERLAY);
         }
         IntersectResult intersectResult = shapefileService.getIntersectionResult(
                 getValue(sourceType, DistrictType.class), sourceId, getValue(intersectType, DistrictType.class));
-        if (intersectResult == null) {
-            return new BaseResponse(UNSUPPORTED_DISTRICT_MAP);
-        }
         intersectResult.getOverlaps().forEach(memberProvider::assignMember);
         return IntersectResponse.from(intersectResult);
     }

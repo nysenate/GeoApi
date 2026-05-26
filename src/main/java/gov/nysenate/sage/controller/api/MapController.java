@@ -18,10 +18,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.function.Function;
-
 @RestController
 @RequestMapping(value = ConstantUtil.REST_PATH + "map")
 public class MapController extends BaseController {
