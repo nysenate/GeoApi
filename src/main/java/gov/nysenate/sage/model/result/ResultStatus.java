@@ -4,16 +4,11 @@ public enum ResultStatus {
     SUCCESS(0, "Success."),
 
     PROVIDER_NOT_SUPPORTED(3, "The requested provider is unsupported."),
-    ADDRESS_PROVIDER_NOT_SUPPORTED(4, "The requested address provider is unsupported."),
-    GEOCODE_PROVIDER_NOT_SUPPORTED(5, "The requested geocoding provider is unsupported."),
-    DISTRICT_PROVIDER_NOT_SUPPORTED(6, "The requested district assignment provider is unsupported."),
 
     API_KEY_INVALID(10, "The supplied API key could not be authenticated."),
     API_KEY_MISSING(11, "An API key is required."),
 
     API_REQUEST_INVALID(20, "The request is not in a valid format. Check the documentation for proper usage."),
-    API_OUTPUT_FORMAT_UNSUPPORTED(22, "The requested output format is currently not supported."),
-    JSONP_CALLBACK_NOT_SPECIFIED(23, "A callback signature must be specified as a parameter e.g &callback=method"),
 
     RESPONSE_PARSE_ERROR(31, "Error parsing response from service provider."),
 
@@ -21,7 +16,6 @@ public enum ResultStatus {
     MISSING_POINT(45, "A coordinate pair is required."),
     MISSING_GEOCODED_ADDRESS(46, "The address was unable to be matched using the geocoding service. Please ensure that the address is valid " +
                                   "or try using a different geocoder."),
-    MISSING_PO_BOX_ZIP5(47, "The PO box does not have a zipcode."),
     POST_OFFICE_REFRESH_FAILURE(48, "Failed to refresh post office data."),
 
     INVALID_GEOCODE(52, "The geocoding process did not yield a successful response. Please ensure that you have entered a valid address or try selecting a different geocoding provider."),
@@ -33,7 +27,6 @@ public enum ResultStatus {
     INSUFFICIENT_ADDRESS(61, "The supplied address does not contain enough information to continue processing. Try adding a city, state, or zip."),
     INSUFFICIENT_GEOCODE(62, "The supplied geocode does not contain enough information to continue processing."),
 
-    NO_DISTRICT_RESULT(70, "District assignment returned no results."),
     NO_GEOCODE_RESULT(71, "Geocode service returned no results."),
     NO_REVERSE_GEOCODE_RESULT(72, "Reverse Geocode service returned no results."),
     NO_ADDRESS_VALIDATE_RESULT(73, "The address could not be validated."),
@@ -42,7 +35,7 @@ public enum ResultStatus {
     NO_MAP_RESULT(80, "Map request returned no results"),
     UNSUPPORTED_DISTRICT_MAP(81, "Maps for the requested district type are not available"),
     MISSING_DISTRICT_CODE(82, "A district code is required"),
-    BAD_OVERLAY(83, "All districts overlay and same type overlay is not supported"),
+    BAD_OVERLAY(83, "Same type overlay is not supported"),
 
     NO_STREETFILES_TO_PROCESS(90, "There were no streetfiles to process. No action was taken."),
 
@@ -50,8 +43,7 @@ public enum ResultStatus {
 
     /** Unexpected errors */
     INTERNAL_ERROR(500, "Internal Server Error."),
-    RESPONSE_ERROR(502, "Application failed to provide a response."),
-    RESPONSE_SERIALIZATION_ERROR(503, "Failed to serialize response.");
+    RESPONSE_ERROR(502, "Application failed to provide a response.");
 
     private final int code;
     private final String desc;
