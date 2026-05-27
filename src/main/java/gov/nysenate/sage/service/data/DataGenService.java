@@ -66,6 +66,7 @@ public class DataGenService implements SageDataGenService {
     }
 
     public synchronized void generateMetaData(String option) throws IOException {
+        option = option.toLowerCase();
         if (option.matches("a|assembly|all")) {
             memberProvider.updateDistrictMembers(DistrictType.ASSEMBLY);
         }

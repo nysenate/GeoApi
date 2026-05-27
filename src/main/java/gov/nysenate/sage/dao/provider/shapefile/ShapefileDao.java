@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -115,8 +116,12 @@ public class ShapefileDao extends BaseDao implements DistrictNameDao {
      * Caches all the district maps from the database.
      */
     @PostConstruct
-    public void cacheDistrictMaps() {
+    public void cacheDistrictGeometryData() {
         this.typeInfoCache = ImmutableSortedMap.copyOf(typeDao.getTypeInfoMap());
+        cacheDistrictMaps();
+    }
+
+    private void cacheDistrictMaps() {
         Map<DistrictType, SortedSet<DistrictMap>> tempCache = new HashMap<>();
         for (DistrictType districtType : typeInfoCache.keySet()) {
             String sql = GET_DISTRICT_MAPS.getSql(geometrySchema, getReplacements(districtType, "type"));
@@ -214,11 +219,21 @@ public class ShapefileDao extends BaseDao implements DistrictNameDao {
         return map == null ? null : map.getDistrictName();
     }
 
-    public void cleanMaps(DistrictType type) {
+    public void updateMapData(DistrictType type, String codeColumn, String nameColumn) {
+        var typeInfoParams = new MapSqlParameterSource("typeName", type.name().toLowerCase())
+                .addValue("codeColumn", codeColumn)
+                .addValue("nameColumn", nameColumn);
+        namedJdbcTemplate.update(UPSERT_TYPE_INFO.getSql(geometrySchema), typeInfoParams);
+        this.typeInfoCache = ImmutableSortedMap.copyOf(typeDao.getTypeInfoMap());
+
         Map<String, String> replacementMap = getReplacements(type, "type");
         // Leading zeroes are meaningful only in zip codes.
         if (type != DistrictType.ZIP) {
-            namedJdbcTemplate.update(CLEAN_CODES.getSql(geometrySchema, replacementMap), Map.of());
+            try {
+                namedJdbcTemplate.update(TRIM_CODES.getSql(geometrySchema, replacementMap), Map.of());
+            } catch (BadSqlGrammarException ex) {
+                logger.warn("The code appears to be numeric. Skipping trimming...");
+            }
         }
         var callbackHandler = new CodeCallbackHandler();
         namedJdbcTemplate.query(GET_CODES.getSql(geometrySchema, replacementMap), callbackHandler);
@@ -227,6 +242,7 @@ public class ShapefileDao extends BaseDao implements DistrictNameDao {
             namedJdbcTemplate.update(SET_UNION.getSql(geometrySchema, replacementMap), params);
             namedJdbcTemplate.update(DELETE_REDUNDANT_MAPS.getSql(geometrySchema, replacementMap), params);
         }
+        cacheDistrictMaps();
     }
 
     public SortedSet<DistrictType> getTypes() {

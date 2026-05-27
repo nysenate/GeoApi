@@ -28,7 +28,7 @@ public enum ShapefileQueries implements BasicSqlQuery {
                 WHERE ${baseType}.${baseCodeColumn}::varchar = :districtCode AND ST_Intersects(${baseType}.geom, ${intersectType}.geom)
             ) as temp ORDER BY area DESC"""),
 
-    CLEAN_CODES("""
+    TRIM_CODES("""
             UPDATE ${schema}.${type}
             SET ${codeColumn} = TRIM(TRIM(LEADING '0' FROM ${codeColumn}))
             """),
@@ -55,9 +55,18 @@ public enum ShapefileQueries implements BasicSqlQuery {
     GET_ALL_TYPE_INFO("""
             SELECT * FROM ${schema}.%s
             """.formatted(SqlTable.TYPE_INFO)),
+
     GET_SINGLE_TYPE_INFO("""
             SELECT * FROM ${schema}.%s
             WHERE type_name ILIKE :typeName
+            """.formatted(SqlTable.TYPE_INFO)),
+
+    UPSERT_TYPE_INFO("""
+            INSERT INTO ${schema}.%s (type_name, code_column, name_column)
+            VALUES (:typeName, :codeColumn, :nameColumn)
+            ON CONFLICT (type_name) DO UPDATE SET
+                code_column = EXCLUDED.code_column,
+                name_column = EXCLUDED.name_column
             """.formatted(SqlTable.TYPE_INFO));
 
 

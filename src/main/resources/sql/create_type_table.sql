@@ -5,6 +5,19 @@ CREATE TABLE districts.type_info (
     updated TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE OR REPLACE FUNCTION districts.set_type_info_updated()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER type_info_set_updated
+BEFORE UPDATE ON districts.type_info
+FOR EACH ROW
+EXECUTE FUNCTION districts.set_type_info_updated();
+
 INSERT INTO districts.type_info VALUES
     ('senate', 'district'), ('assembly', 'district'),
     ('congressional', 'district'), ('zip', 'zip_code');

@@ -1,5 +1,7 @@
 package gov.nysenate.sage.controller.admin;
 
+import gov.nysenate.sage.client.response.base.ApiError;
+import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.client.view.job.JobProcessStatusView;
 import gov.nysenate.sage.controller.api.BaseController;
@@ -16,6 +18,7 @@ import gov.nysenate.sage.util.auth.AdminUserAuth;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
 import gov.nysenate.sage.util.controller.ApiControllerUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +32,8 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+import static gov.nysenate.sage.model.result.ResultStatus.INTERNAL_ERROR;
+import static gov.nysenate.sage.model.result.ResultStatus.SUCCESS;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 
 @RestController
@@ -177,22 +182,43 @@ public class AdminApiController extends BaseController {
         return invalidAuthResponse;
     }
 
-    @GetMapping(value = "/cleanMaps")
-    public Object cleanMaps(HttpServletRequest request,
-                             @RequestParam(required = false, defaultValue = "defaultUser") String username,
-                             @RequestParam(required = false, defaultValue = "defaultPass") String password,
-                             @RequestParam(required = false, defaultValue = "") String key,
-                             @RequestParam String type) {
-        DistrictType districtType = DistrictType.valueOf(type.toUpperCase());
+    @GetMapping(value = "/updateMap")
+    public Object updateMap(HttpServletRequest request,
+                            @RequestParam(required = false, defaultValue = "defaultUser") String username,
+                            @RequestParam(required = false, defaultValue = "defaultPass") String password,
+                            @RequestParam(required = false, defaultValue = "") String key,
+                            @RequestParam String type, @RequestParam String codeColumn,
+                            @RequestParam(required = false, defaultValue = "") String nameColumn) {
         String ipAddr = ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
         if (!subject.hasRole("ADMIN") &&
-                !adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) &&
+                !adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) &&
                 !apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
             return invalidAuthResponse;
         }
-        shapefileDao.cleanMaps(districtType);
+        DistrictType districtType = DistrictType.valueOf(type.toUpperCase());
+        if (StringUtils.isBlank(nameColumn)) {
+            nameColumn = null;
+        }
+        shapefileDao.updateMapData(districtType, codeColumn, nameColumn);
         return new GenericResponse(true, "Maps cleaned.");
+    }
+
+    /**
+     * Cache Shape Files Api
+     * -------------------------------
+     * Re-cache district maps.
+     * Usage:
+     * (GET)    /api/v2/data/recache
+     */
+    @GetMapping(value = "/recache")
+    public BaseResponse updateCaches() {
+        try {
+            shapefileDao.cacheDistrictGeometryData();
+            return new GenericResponse(true,  SUCCESS.getCode() + ": " + SUCCESS.getDesc());
+        } catch (Exception e) {
+            return new ApiError(this.getClass(), INTERNAL_ERROR);
+        }
     }
 
     /**
@@ -213,5 +239,4 @@ public class AdminApiController extends BaseController {
         }
         return statusViews;
     }
-
 }
