@@ -15,21 +15,25 @@ if [ $# -ne 2 ]; then
 fi
 
 ZIPFILE="$1"
-
 if [ ! -f "$ZIPFILE" ]; then
   echo "$PROG: ERROR: $ZIPFILE not found." >&2
   exit 1
 fi
 
-for cmd in ogr2ogr ogrinfo jq psql; do
+for cmd in ogr2ogr ogrinfo jq psql curl; do
   if ! command -v "$cmd" >/dev/null 2>&1; then
     echo "$PROG: ERROR: $cmd not found." >&2
     exit 1
   fi
 done
 
-ZIPFILE_ABS=$(readlink -f "$ZIPFILE")
+source "$(dirname "$0")/admin.script.properties"
+if ! curl -fsS "${baseUrl}/ping" >/dev/null; then
+  echo "$PROG: ERROR: server at ${baseUrl} is not responding." >&2
+  exit 1
+fi
 
+ZIPFILE_ABS=$(readlink -f "$ZIPFILE")
 # GDAL's /vsizip/ doesn't recurse into subdirectories, so if the geospatial
 # file is nested, point at it explicitly. Match common OGR-readable formats.
 INNER=$(unzip -Z1 "$ZIPFILE_ABS" \
@@ -42,15 +46,16 @@ fi
 
 echo "Available fields:"
 ogrinfo -json -so -al "$DATA_SOURCE" | jq -r '.layers[0].fields[].name'
+echo
 
 read -r -p "Code column in file: " FILE_CODE_COLUMN
 read -r -p "Name column in file (blank to skip): " FILE_NAME_COLUMN
+read -r -p "Additional columns to keep (comma-separated, blank to skip): " FILE_EXTRA_COLUMNS
 
-if [ -z "$FILE_NAME_COLUMN" ]; then
-  SELECT_COLS="$FILE_CODE_COLUMN"
-else
-  SELECT_COLS="$FILE_CODE_COLUMN,$FILE_NAME_COLUMN"
-fi
+SELECT_COLS="$FILE_CODE_COLUMN,$FILE_NAME_COLUMN,$FILE_EXTRA_COLUMNS"
+# Fixes string in case of skipped fields.
+SELECT_COLS="${SELECT_COLS//,,/,}"
+SELECT_COLS="${SELECT_COLS%,}"
 
 DISTRICT_TYPE="$2"
 OGR_ARGS=(
@@ -66,7 +71,7 @@ OGR_ARGS=(
   # Simplifies column names.
   -lco GEOMETRY_NAME=geom
   -lco FID=gid
-  # Drop every attribute column except the code (and optional name) column.
+  # Drop every attribute column except these.
   -select "$SELECT_COLS"
 )
 ogr2ogr "${OGR_ARGS[@]}"
@@ -94,7 +99,6 @@ if [ -n "$NAME_RENAME" ]; then
 fi
 
 # Calls an API endpoint to finish setup, pretty-printing the response.
-source "$(dirname "$0")/admin.script.properties"
 echo "Calling /updateMap to refresh districts.${DISTRICT_TYPE}..."
 curl -sS -G "${baseUrl}/admin/api/updateMap" \
   --data-urlencode "key=${adminKey}" \
