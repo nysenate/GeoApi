@@ -12,4 +12,8 @@ public enum DistrictType {
         }
         return WordUtils.capitalizeFully(name().replace('_', ' '));
     }
+
+    public boolean lacksMember() {
+        return this != SENATE && this != ASSEMBLY && this != CONGRESSIONAL;
+    }
 }

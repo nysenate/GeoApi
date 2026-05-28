@@ -41,6 +41,10 @@ public class DistrictMemberProvider {
     }
 
     public void updateDistrictMembers(DistrictType type) {
+        // Senators are handled elsewhere.
+        if (type.lacksMember() || type == SENATE) {
+            return;
+        }
         List<DistrictMember> newMembers = switch (type) {
             case CONGRESSIONAL -> CongressScraper.getCongressionals();
             case ASSEMBLY -> AssemblyScraper.getAssemblies();
@@ -61,7 +65,7 @@ public class DistrictMemberProvider {
      * Adds the senator, congressional, and/or assembly member data to the map result.
      */
     public void assignMember(DistrictMap map) {
-        if (map == null || map.getDistrictType() == DistrictType.TOWN_CITY) {
+        if (map == null || map.getDistrictType().lacksMember()) {
             return;
         }
         int code = Integer.parseInt(map.getDistrictCode());
@@ -74,7 +78,10 @@ public class DistrictMemberProvider {
 
     public DistrictResultWithMembers assignMembers(DistrictResult baseResult) {
         var codeMap = new HashMap<DistrictType, Integer>();
-        for (DistrictType type : List.of(SENATE, ASSEMBLY, CONGRESSIONAL)) {
+        for (DistrictType type : baseResult.getAssignedDistricts()) {
+            if (type.lacksMember()) {
+                continue;
+            }
             String codeStr = baseResult.getDistrictInfo().getDistCode(type);
             if (codeStr == null) {
                 continue;
