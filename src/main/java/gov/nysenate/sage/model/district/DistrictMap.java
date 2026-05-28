@@ -6,6 +6,7 @@ import gov.nysenate.services.model.Senator;
 import javax.annotation.Nonnull;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -109,8 +110,21 @@ public class DistrictMap implements Comparable<DistrictMap> {
     public int compareTo(@Nonnull DistrictMap o) {
         if (districtType == DistrictType.TOWN_CITY) {
             int result = baseName.compareTo(o.baseName);
-            return result == 0 ? districtCode.compareTo(o.districtCode) : result;
+            if (result != 0) {
+                return result;
+            }
         }
-        return Integer.parseInt(districtCode) - Integer.parseInt(o.districtCode);
+        int i = Arrays.mismatch(districtName.toCharArray(), o.districtName.toCharArray());
+        if (i < 0) {
+            return 0;
+        }
+        // It's common for names to have a common form, e.g. District x, where x is the code.
+        // These should be sorted by the code.
+        String a = districtName.substring(i), b = o.districtName.substring(i);
+        try {
+            return Long.compare(Long.parseLong(a), Long.parseLong(b));
+        } catch (NumberFormatException ex) {
+            return a.compareTo(b);
+        }
     }
 }

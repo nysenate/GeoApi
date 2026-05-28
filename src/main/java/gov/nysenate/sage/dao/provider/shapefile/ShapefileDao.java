@@ -170,9 +170,11 @@ public class ShapefileDao extends BaseDao implements DistrictNameDao {
                 case SENATE -> "Senate District " + code;
                 case ASSEMBLY -> "Assembly District " + code;
                 case CONGRESSIONAL -> "Congressional District " + code;
-                case TOWN_CITY -> townCity.fullName();
                 case ZIP -> "Zipcode " + code;
                 case COUNTY -> rs.getString("name") + " County";
+                case TOWN_CITY -> townCity.fullName();
+                case CITY_COUNCIL -> "Council District " + code;
+                case VILLAGE -> "Village of " + rs.getString("name");
                 default -> rs.getString("name");
             };
             DistrictMap map = getDistrictMapFromJson(rs.getString("map"), new DistrictMap(type, name, code));
