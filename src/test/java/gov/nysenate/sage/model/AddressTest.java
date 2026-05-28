@@ -9,7 +9,6 @@ import static org.junit.Assert.*;
 
 @Category(UnitTest.class)
 public class AddressTest {
-
     @Test
     public void testParser() {
         Address result = Address.getAddress("529 Columbia Turnpike, Rensselaer, NY, USA");
@@ -47,5 +46,11 @@ public class AddressTest {
         assertFalse(notEligible1.isValid());
         assertFalse(notEligible2.isValid());
         assertFalse(notEligible4.isValid());
+    }
+
+    @Test
+    public void bronxTest() {
+        var bronxAddr = new Address("1 1st street", "the bronx", "NY", "12123");
+        assertEquals("Bronx", bronxAddr.getPostalCity());
     }
 }
