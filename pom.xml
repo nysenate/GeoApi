@@ -146,7 +146,7 @@
         <nysenate-java-client.version>2.3</nysenate-java-client.version>
         <openlocationcode.version>1.0.4</openlocationcode.version>
         <postgresql.version>42.5.5</postgresql.version>
-        <shiro.version>2.0.2</shiro.version>
+        <shiro.version>2.1.0</shiro.version>
         <signpost-core.version>2.1.1</signpost-core.version>
         <slf4j.version>2.0.18</slf4j.version>
         <spring.version>6.2.18</spring.version>
