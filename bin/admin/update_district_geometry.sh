@@ -98,10 +98,20 @@ if [ -n "$NAME_RENAME" ]; then
   SQL_NAME_COLUMN="$NAME_RENAME"
 fi
 
+# The name column is nullable, which requires some extra care.
+if [ -n "$SQL_NAME_COLUMN" ]; then
+  NAME_VALUE="'$SQL_NAME_COLUMN'"
+else
+  NAME_VALUE="NULL"
+fi
+psql -d geoapi -c "INSERT INTO districts.type_info (type_name, code_column, name_column)
+VALUES ('${DISTRICT_TYPE,,}', '$SQL_CODE_COLUMN', $NAME_VALUE)
+ON CONFLICT (type_name) DO UPDATE SET
+    code_column = EXCLUDED.code_column,
+    name_column = EXCLUDED.name_column;" || exit 1
+
 # Calls an API endpoint to finish setup, pretty-printing the response.
-echo "Calling /updateMap to refresh districts.${DISTRICT_TYPE}..."
-curl -sS -G "${baseUrl}/admin/api/updateMap" \
+echo "Calling /cleanMaps to clean districts.${DISTRICT_TYPE}..."
+curl -sS -G "${baseUrl}/admin/api/cleanMaps" \
   --data-urlencode "key=${adminKey}" \
-  --data-urlencode "type=${DISTRICT_TYPE}" \
-  --data-urlencode "codeColumn=${SQL_CODE_COLUMN}" \
-  --data-urlencode "nameColumn=${SQL_NAME_COLUMN}" | jq .
+  --data-urlencode "type=${DISTRICT_TYPE}" | jq .

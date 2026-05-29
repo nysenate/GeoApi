@@ -32,8 +32,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
-import static gov.nysenate.sage.model.result.ResultStatus.INTERNAL_ERROR;
-import static gov.nysenate.sage.model.result.ResultStatus.SUCCESS;
+import static gov.nysenate.sage.model.result.ResultStatus.*;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 
 @RestController
@@ -182,13 +181,12 @@ public class AdminApiController extends BaseController {
         return invalidAuthResponse;
     }
 
-    @GetMapping(value = "/updateMap")
-    public Object updateMap(HttpServletRequest request,
+    @GetMapping(value = "/cleanMaps")
+    public Object cleanMaps(HttpServletRequest request,
                             @RequestParam(required = false, defaultValue = "defaultUser") String username,
                             @RequestParam(required = false, defaultValue = "defaultPass") String password,
                             @RequestParam(required = false, defaultValue = "") String key,
-                            @RequestParam String type, @RequestParam String codeColumn,
-                            @RequestParam(required = false, defaultValue = "") String nameColumn) {
+                            @RequestParam String type) {
         String ipAddr = ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
         if (!subject.hasRole("ADMIN") &&
@@ -197,11 +195,12 @@ public class AdminApiController extends BaseController {
             return invalidAuthResponse;
         }
         DistrictType districtType = DistrictType.valueOf(type.toUpperCase());
-        if (StringUtils.isBlank(nameColumn)) {
-            nameColumn = null;
+        Boolean validGeometry = shapefileDao.cleanMaps(districtType);
+        if (validGeometry == null) {
+            return new ApiError(EMPTY_GEOMETRY_TABLE);
         }
-        shapefileDao.updateMapData(districtType, codeColumn, nameColumn);
-        return new GenericResponse(true, "Maps cleaned.");
+        return new GenericResponse(validGeometry, validGeometry ? "Cleaned maps" :
+                "Cleaned maps, but some geometries are invalid. Manual fixes are required.");
     }
 
     /**

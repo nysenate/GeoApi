@@ -64,11 +64,14 @@ public class ShapefileDao extends BaseDao implements DistrictNameDao {
             String sql = GET_DISTRICT_FROM_POINT.getSql(geometrySchema, replacementMap);
             var params = new MapSqlParameterSource("lat", geocode.lat()).addValue("lon", geocode.lon());
             try {
-                SingleDistrict result = namedJdbcTemplate.queryForObject(sql, params,
-                        new SingleDistrictMapper(districtType));
+                SingleDistrict result = namedJdbcTemplate.queryForObject(
+                        sql, params, new SingleDistrictMapper(districtType)
+                );
                 typeToDistrictMap.put(districtType, result);
             } catch (EmptyResultDataAccessException ex) {
-                logger.warn("Could not place {} inside a {} district", geocode.point(), districtType);
+                if (districtType.coversState()) {
+                    logger.warn("Could not place {} inside a {} district", geocode.point(), districtType);
+                }
             }
         }
         return new DistrictInfo(typeToDistrictMap, getMatchLevel(geocode.quality()));
@@ -221,13 +224,14 @@ public class ShapefileDao extends BaseDao implements DistrictNameDao {
         return map == null ? null : map.getDistrictName();
     }
 
-    public void updateMapData(DistrictType type, String codeColumn, String nameColumn) {
-        var typeInfoParams = new MapSqlParameterSource("typeName", type.name().toLowerCase())
-                .addValue("codeColumn", codeColumn)
-                .addValue("nameColumn", nameColumn);
-        namedJdbcTemplate.update(UPSERT_TYPE_INFO.getSql(geometrySchema), typeInfoParams);
+    /**
+     * Cleans the maps for a specific type. Note that the update_district_geometry.sh script handles
+     * the initial insert of new geometry data.
+     * @return null if the type's table is empty, true if all of type's geometry is valid, and false otherwise.
+     */
+    public Boolean cleanMaps(DistrictType type) {
+        // Need to recache this first, since it's used in getReplacements()
         this.typeInfoCache = ImmutableSortedMap.copyOf(typeDao.getTypeInfoMap());
-
         Map<String, String> replacementMap = getReplacements(type, "type");
         // Leading zeroes are meaningful only in zip codes.
         if (type != DistrictType.ZIP) {
@@ -245,6 +249,9 @@ public class ShapefileDao extends BaseDao implements DistrictNameDao {
             namedJdbcTemplate.update(DELETE_REDUNDANT_MAPS.getSql(geometrySchema, replacementMap), params);
         }
         cacheDistrictMaps();
+        return namedJdbcTemplate.getJdbcOperations().queryForObject(
+                IS_TYPE_VALID.getSql(geometrySchema, replacementMap), Boolean.class
+        );
     }
 
     public SortedSet<DistrictType> getTypes() {

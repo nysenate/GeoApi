@@ -52,6 +52,11 @@ public enum ShapefileQueries implements BasicSqlQuery {
             WHERE ${codeColumn} = :code AND gid != :mainGid
             """),
 
+    IS_TYPE_VALID("""
+            SELECT bool_and(ST_IsValid(geom)) AS valid
+            FROM ${schema}.${type}
+            """),
+
     GET_ALL_TYPE_INFO("""
             SELECT * FROM ${schema}.%s
             """.formatted(SqlTable.TYPE_INFO)),
@@ -59,14 +64,6 @@ public enum ShapefileQueries implements BasicSqlQuery {
     GET_SINGLE_TYPE_INFO("""
             SELECT * FROM ${schema}.%s
             WHERE type_name ILIKE :typeName
-            """.formatted(SqlTable.TYPE_INFO)),
-
-    UPSERT_TYPE_INFO("""
-            INSERT INTO ${schema}.%s (type_name, code_column, name_column)
-            VALUES (:typeName, :codeColumn, :nameColumn)
-            ON CONFLICT (type_name) DO UPDATE SET
-                code_column = EXCLUDED.code_column,
-                name_column = EXCLUDED.name_column
             """.formatted(SqlTable.TYPE_INFO));
 
 

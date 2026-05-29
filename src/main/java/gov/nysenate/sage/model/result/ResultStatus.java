@@ -3,6 +3,7 @@ package gov.nysenate.sage.model.result;
 public enum ResultStatus {
     SUCCESS(0, "Success."),
 
+    EMPTY_GEOMETRY_TABLE(1, "The new geometry table is empty."),
     PROVIDER_NOT_SUPPORTED(3, "The requested provider is unsupported."),
 
     API_KEY_INVALID(10, "The supplied API key could not be authenticated."),
