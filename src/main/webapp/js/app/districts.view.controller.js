@@ -96,8 +96,14 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
                         );
                     }
                 });
-                mapService.setCenter(42.440510, -76.495460); // Centers the map nicely over NY
-                mapService.setZoom(7);
+                /** City council districts are NYC-only, so frame the boroughs instead of the whole state. */
+                if (data.districts[0] && data.districts[0].type === "CITY_COUNCIL") {
+                    mapService.map.fitBounds(google.maps.getBoundsForPolygons(mapService.polygons));
+                }
+                else {
+                    mapService.setCenter(42.440510, -76.495460); // Centers the map nicely over NY
+                    mapService.setZoom(7);
+                }
             }
             /** Show the individual district map */
             else if (data.map != null) {
