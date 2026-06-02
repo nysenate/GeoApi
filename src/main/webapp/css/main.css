@@ -582,7 +582,8 @@ table.light-table tr {
 }
 
 .senator-info-district-result {
-    width: 220px;
+    width: 100%;
+    table-layout: fixed;
 }
 
 .mini-senator-pic-holder {

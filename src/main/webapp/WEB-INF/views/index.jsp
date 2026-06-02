@@ -411,7 +411,7 @@
                                     <img ng-src="{{districts.senate.senator.imageUrl}}"  class="senator-pic">
                                 </a>
                             </div>
-                            <div style='margin-top:10px'>
+                            <div style='margin-top:10px;overflow:hidden'>
                                 <table class="senator-info-district-result">
                                     <tr>
                                         <td>
