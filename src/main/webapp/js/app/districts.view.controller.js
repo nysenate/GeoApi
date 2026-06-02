@@ -46,11 +46,9 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
         }
         else {
             /** Update the marker location to point to the geocode */
-            if ($scope.districtAssigned) {
-                if ($scope.districts.senate.map) {
-                    mapService.setOverlay($scope.districts.senate.map.geom,
-                        formatDistrictName($scope.districts.senate, "Senate"), true, true, null);
-                }
+            if ($scope.districts?.senate?.map?.geom) {
+                mapService.setOverlay($scope.districts.senate.map.geom,
+                    formatDistrictName($scope.districts.senate, "Senate"), true, true, null);
             }
             if ($scope.geocoded) {
                 mapService.setMarker($scope.geocode.lat, $scope.geocode.lon,
@@ -84,8 +82,6 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
                                 /** Draw the office markers */
                                 mapService.clearMarkers();
                                 $.each(v.member.offices, function(i, office){
-                                    console.log(office);
-
                                     if (office && office.name != null && office.name != "") {
                                         mapService.setMarker(office.latitude, office.longitude, office.name + ' - ' + office.street, false, false);
                                     }
