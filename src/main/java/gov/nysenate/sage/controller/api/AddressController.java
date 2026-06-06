@@ -4,7 +4,6 @@ import gov.nysenate.sage.client.response.address.BatchCityStateResponse;
 import gov.nysenate.sage.client.response.address.BatchValidateResponse;
 import gov.nysenate.sage.client.response.address.CityStateResponse;
 import gov.nysenate.sage.client.response.address.ValidateResponse;
-import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.Zip5;
 import gov.nysenate.sage.provider.address.AddressSource;
@@ -46,7 +45,7 @@ public final class AddressController extends BaseController {
      * (GET)    /api/v2/address/validate
      */
     @GetMapping(value = "/validate")
-    public BaseResponse addressValidate(
+    public ValidateResponse addressValidate(
             @RequestParam(required = false) String provider,
             @RequestParam(required = false) boolean punct,
             @RequestParam(required = false) String addr,
@@ -69,7 +68,7 @@ public final class AddressController extends BaseController {
      * (GET)    /api/v2/address/citystate
      */
     @GetMapping(value = "/citystate")
-    public BaseResponse addressCityState(@RequestParam String zip5, @RequestParam(required = false) String provider) {
+    public CityStateResponse addressCityState(@RequestParam String zip5, @RequestParam(required = false) String provider) {
         var validZip5 = new Zip5(zip5);
         AddressSource source = getValueOrNull(provider, AddressSource.class);
         return new CityStateResponse(addressService.lookupCityState(validZip5, source));
@@ -83,7 +82,7 @@ public final class AddressController extends BaseController {
      * (GET)    /api/v2/address/validate/batch
      */
     @PostMapping(value = "/validate/batch")
-    public BaseResponse addressBatchValidate(HttpServletRequest request,
+    public BatchValidateResponse addressBatchValidate(HttpServletRequest request,
                                      @RequestParam(required = false) String provider,
                                      @RequestParam(required = false) boolean punct) throws IOException {
         AddressSource source = getValueOrNull(provider, AddressSource.class);
@@ -100,7 +99,7 @@ public final class AddressController extends BaseController {
      * (GET)    /api/v2/address/citystate/batch
      */
     @PostMapping(value = "/citystate/batch")
-    public BaseResponse addressBatchCityState(HttpServletRequest request,
+    public BatchCityStateResponse addressBatchCityState(HttpServletRequest request,
                                               @RequestParam(required = false) String provider) throws IOException {
         AddressSource source = getValueOrNull(provider, AddressSource.class);
         String batchJsonPayload = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);

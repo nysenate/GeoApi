@@ -1,6 +1,5 @@
 package gov.nysenate.sage.controller.api;
 
-import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.client.response.street.StreetResponse;
 import gov.nysenate.sage.dao.provider.streetfile.StreetfileDao;
 import gov.nysenate.sage.model.address.DistrictedStreetRange;
@@ -36,7 +35,7 @@ public class StreetController extends BaseController {
      * (GET)    /api/v2/street/lookup
      */
     @GetMapping(value = "/lookup")
-    public BaseResponse addressBatchCityState(@RequestParam int zip5) {
+    public StreetResponse addressBatchCityState(@RequestParam int zip5) {
         logger.info("Getting street data for zip5 {}", zip5);
         var zip5Obj = new Zip5(zip5);
         List<DistrictedStreetRange> streets = streetfile.getRanges(zip5Obj);

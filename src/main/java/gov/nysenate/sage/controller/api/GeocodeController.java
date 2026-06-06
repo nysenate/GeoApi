@@ -47,7 +47,8 @@ public class GeocodeController extends BaseController {
      * (GET)    /api/v2/geo/geocode
      */
     @GetMapping(value = "/geocode")
-    public BaseResponse geocode(@RequestParam(required = false) String addr1,
+    public GeocodeResponse geocode(@RequestParam(required = false) String geocoder,
+                                @RequestParam(required = false) String addr1,
                                 @RequestParam(required = false) String addr2,
                                 @RequestParam(required = false) String city,
                                 @RequestParam(required = false) String state,
@@ -55,7 +56,11 @@ public class GeocodeController extends BaseController {
                                 @RequestParam(required = false) String zip4) {
         Address address = getAddressFromParams(null, addr1, addr2, city, state, zip5, zip4);
         address = addressService.validateOrDefault(address);
-        return new GeocodeResponse(geocodeService.geocode(null, address));
+        List<Geocoder> currGeocoders = null;
+        if (geocoder != null) {
+            currGeocoders = List.of(getValue(geocoder, Geocoder.class));
+        }
+        return new GeocodeResponse(geocodeService.geocode(currGeocoders, address));
     }
 
     /**
@@ -70,14 +75,8 @@ public class GeocodeController extends BaseController {
                                    @RequestParam String lat, @RequestParam String lon) {
         List<Geocoder> currGeocoders = null;
         if (geocoder != null) {
-            try {
-                currGeocoders = List.of(getValue(geocoder, Geocoder.class));
-            }
-            catch (IllegalArgumentException e) {
-                return new ApiError(DistrictController.class, PROVIDER_NOT_SUPPORTED);
-            }
+            currGeocoders = List.of(getValue(geocoder, Geocoder.class));
         }
-
         Point point = getPointFromParams(lat, lon);
         if (point == null) {
             return new ApiError(this.getClass(), MISSING_POINT);

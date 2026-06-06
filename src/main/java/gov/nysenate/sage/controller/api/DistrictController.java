@@ -62,7 +62,7 @@ public class DistrictController extends BaseController {
      * (GET)    /api/v2/district/assign
      */
     @GetMapping(value = "/assign")
-    public BaseResponse districtAssign(
+    public DistrictResponse districtAssign(
             @RequestParam(required = false) String districtSource,
             @RequestParam(required = false) String geocoder,
             @RequestParam(required = false, defaultValue = "true") boolean uspsValidate,
@@ -162,7 +162,7 @@ public class DistrictController extends BaseController {
      * (GET)    /api/v2/district/bluebird
      */
     @GetMapping(value = "/bluebird")
-    public BaseResponse bluebirdAssign(
+    public DistrictResponse bluebirdAssign(
             @RequestParam(required = false) boolean usePunct,
             @RequestParam(required = false) String lat,
             @RequestParam(required = false) String lon,

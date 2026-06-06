@@ -3,7 +3,7 @@ package gov.nysenate.sage.client.response.base;
 import gov.nysenate.sage.model.result.ResultStatus;
 
 public class ApiError extends BaseResponse {
-    private String className = "";
+    private String className = null;
 
     public ApiError(ResultStatus resultStatus) {
         super(resultStatus);

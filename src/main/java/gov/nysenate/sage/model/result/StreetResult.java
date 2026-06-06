@@ -14,7 +14,7 @@ public class StreetResult extends BaseResult<LocalSource> {
     public StreetResult(List<DistrictedStreetRange> districtedStreetRanges) {
         super(LocalSource.STREETFILE);
         this.districtedStreetRanges = districtedStreetRanges;
-        this.statusCode = districtedStreetRanges == null ?
+        this.statusCode = districtedStreetRanges == null || districtedStreetRanges.isEmpty() ?
                 ResultStatus.NO_STREET_LOOKUP_RESULT : ResultStatus.SUCCESS;
     }
 
