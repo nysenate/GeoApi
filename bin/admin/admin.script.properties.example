@@ -1,2 +1,4 @@
 baseUrl="https://url.nysenate.gov"
 adminKey="" #This key is obtained by the admin panel in sage itself
+database=geoapi
+db_user=admin

@@ -60,7 +60,7 @@ SELECT_COLS="${SELECT_COLS%,}"
 DISTRICT_TYPE="$2"
 OGR_ARGS=(
   -f PostgreSQL
-  "PG:dbname=geoapi"
+  "PG:dbname=${database} user=${db_user}"
   "$DATA_SOURCE"
   -overwrite
   -nln "districts.${DISTRICT_TYPE}"
@@ -89,12 +89,12 @@ TABLE="districts.${DISTRICT_TYPE}"
 # ogr2ogr's LAUNDER lowercases column names, so convert this to lowercase too.
 SQL_CODE_COLUMN="${FILE_CODE_COLUMN,,}"
 if [ -n "$CODE_RENAME" ]; then
-  psql -d geoapi -c "ALTER TABLE $TABLE RENAME COLUMN \"$SQL_CODE_COLUMN\" TO $CODE_RENAME;" || exit 1
+  psql -d "$database" -U "$db_user" -c "ALTER TABLE $TABLE RENAME COLUMN \"$SQL_CODE_COLUMN\" TO $CODE_RENAME;" || exit 1
   SQL_CODE_COLUMN="$CODE_RENAME"
 fi
 SQL_NAME_COLUMN="${FILE_NAME_COLUMN,,}"
 if [ -n "$NAME_RENAME" ]; then
-  psql -d geoapi -c "ALTER TABLE $TABLE RENAME COLUMN \"$SQL_NAME_COLUMN\" TO $NAME_RENAME;" || exit 1
+  psql -d "$database" -U "$db_user" -c "ALTER TABLE $TABLE RENAME COLUMN \"$SQL_NAME_COLUMN\" TO $NAME_RENAME;" || exit 1
   SQL_NAME_COLUMN="$NAME_RENAME"
 fi
 
@@ -104,7 +104,7 @@ if [ -n "$SQL_NAME_COLUMN" ]; then
 else
   NAME_VALUE="NULL"
 fi
-psql -d geoapi -c "INSERT INTO districts.type_info (type_name, code_column, name_column)
+psql -d "$database" -U "$db_user" -c "INSERT INTO districts.type_info (type_name, code_column, name_column)
 VALUES ('${DISTRICT_TYPE,,}', '$SQL_CODE_COLUMN', $NAME_VALUE)
 ON CONFLICT (type_name) DO UPDATE SET
     code_column = EXCLUDED.code_column,
