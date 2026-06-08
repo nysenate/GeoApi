@@ -28,7 +28,7 @@ public class DistrictMapView {
                 this.member = districtMap.getSenator();
             }
             else if (districtType == DistrictType.CONGRESSIONAL || districtType == DistrictType.ASSEMBLY) {
-                this.member = new MemberView(districtMap.getMember());
+                this.member = MemberView.from(districtMap.getMember());
             }
             else if (districtType == DistrictType.COUNTY) {
                 this.link = districtMap.getLink();

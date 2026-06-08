@@ -1,33 +1,47 @@
 package gov.nysenate.sage.client.view.district;
 
 import gov.nysenate.sage.client.view.map.PolygonMapView;
+import gov.nysenate.sage.model.district.DistrictInfo;
+import gov.nysenate.sage.model.district.DistrictMap;
+import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.model.district.SingleDistrict;
+import gov.nysenate.sage.model.result.DistrictResultWithMembers;
 
 public class DistrictView {
-    private final String name;
-    private final String district;
-    private final String displayName;
+    private final SingleDistrict district;
+    private final DistrictType type;
     private final PolygonMapView map;
 
-    public DistrictView(String name, String code, String displayName, PolygonMapView mapView) {
-        this.name = name;
-        this.district = code;
-        this.displayName = displayName;
-        this.map = mapView;
+    protected DistrictView(SingleDistrict data, DistrictType type, DistrictMap map) {
+        this.district = data;
+        this.type = type;
+        this.map = map == null ? null : new PolygonMapView(map);
+    }
+
+    public static DistrictView from(DistrictType type, DistrictResultWithMembers result, DistrictMap districtMap) {
+        DistrictInfo info = result.getDistrictInfo();
+        SingleDistrict singleDistrict = info.getDistrict(type);
+        if (singleDistrict == null) {
+            return null;
+        }
+        return switch (type) {
+            case SENATE -> new SenateDistrictView(singleDistrict, type, districtMap, result.getSenator());
+            case ASSEMBLY -> new MemberDistrictView(singleDistrict, type, districtMap, result.getAssemblyMember());
+            case CONGRESSIONAL -> new MemberDistrictView(singleDistrict, type, districtMap, result.getCongressionalMember());
+            default -> new DistrictView(singleDistrict, type, districtMap);
+        };
     }
 
     public String getName() {
-        return name;
-    }
-
-    public String getDisplayName() {
-        return displayName;
+        return district.name();
     }
 
     public String getDistrict() {
-        if (district == null || district.isBlank()) {
-            return null;
-        }
-        return district;
+        return district.code();
+    }
+
+    public String getDisplayName() {
+        return type.getDisplayName();
     }
 
     public PolygonMapView getMap() {

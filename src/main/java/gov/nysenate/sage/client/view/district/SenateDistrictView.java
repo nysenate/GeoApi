@@ -1,12 +1,15 @@
 package gov.nysenate.sage.client.view.district;
 
+import gov.nysenate.sage.model.district.DistrictMap;
+import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.model.district.SingleDistrict;
 import gov.nysenate.services.model.Senator;
 
 public class SenateDistrictView extends DistrictView {
-    protected Senator senator;
+    private final Senator senator;
 
-    public SenateDistrictView(DistrictView baseView, Senator senator) {
-        super(baseView.getName(), baseView.getDistrict(), baseView.getDisplayName(), baseView.getMap());
+    public SenateDistrictView(SingleDistrict data, DistrictType type, DistrictMap map, Senator senator) {
+        super(data, type, map);
         this.senator = senator;
     }
 

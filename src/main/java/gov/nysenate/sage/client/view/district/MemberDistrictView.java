@@ -1,16 +1,19 @@
 package gov.nysenate.sage.client.view.district;
 
+import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictMember;
+import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.model.district.SingleDistrict;
 
 public class MemberDistrictView extends DistrictView {
-    protected MemberView member;
+    private final MemberView member;
 
-    public MemberDistrictView(DistrictView baseView, DistrictMember districtMember) {
-        super(baseView.getName(), baseView.getDistrict(), baseView.getDisplayName(), baseView.getMap());
-        this.member = new MemberView(districtMember);
+    public MemberDistrictView(SingleDistrict data, DistrictType type, DistrictMap map, DistrictMember member) {
+        super(data, type, map);
+        this.member = MemberView.from(member);
     }
 
     public MemberView getMember() {
-        return (member != null && member.name != null) ? member : null;
+        return member;
     }
 }

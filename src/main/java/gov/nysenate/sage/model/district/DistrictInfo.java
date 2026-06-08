@@ -16,11 +16,6 @@ public record DistrictInfo(ImmutableMap<DistrictType, SingleDistrict> typeToDist
         this(ImmutableMap.copyOf(typeToDistrictMap), matchLevel);
     }
 
-    public String getDistName(DistrictType districtType) {
-        SingleDistrict singleDistrict = typeToDistrictMap.get(districtType);
-        return singleDistrict == null ? null : singleDistrict.name();
-    }
-
     public String getDistCode(DistrictType districtType) {
         SingleDistrict singleDistrict = typeToDistrictMap.get(districtType);
         return singleDistrict == null ? null : singleDistrict.code();
@@ -39,8 +34,7 @@ public record DistrictInfo(ImmutableMap<DistrictType, SingleDistrict> typeToDist
     public String toString() {
         var out = new StringBuilder().append(matchLevel).append('\n');
         for (DistrictType t : typeToDistrictMap.keySet()) {
-            out.append(t).append(": name = ").append(getDistName(t))
-                    .append(", code = ").append(getDistCode(t)).append("\n");
+            out.append(t).append(": ").append(getDistrict(t)).append("\n");
         }
         return out.toString();
     }
