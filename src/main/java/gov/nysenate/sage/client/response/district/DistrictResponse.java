@@ -16,15 +16,14 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class DistrictResponse extends SourcedResponse {
-    protected AddressView address;
-    protected GeocodeView geocode;
-    protected boolean geocoded = false;
-    protected boolean districtAssigned = false;
-    protected boolean senateAssigned = false;
-    protected boolean uspsValidated = false;
-    protected boolean isMultiMatch = false;
-    protected String matchLevel;
-    protected Map<String, DistrictView> districts = new LinkedHashMap<>();
+    private AddressView address;
+    private GeocodeView geocode;
+    private boolean geocoded = false;
+    private boolean districtAssigned = false;
+    private boolean senateAssigned = false;
+    private boolean uspsValidated = false;
+    private String matchLevel;
+    private final Map<String, DistrictView> districts = new LinkedHashMap<>();
 
     public DistrictResponse(DistrictResultWithMembers districtResult, GeocodedAddress geoAddr,
                             boolean usePunct) {
@@ -95,7 +94,7 @@ public class DistrictResponse extends SourcedResponse {
     }
 
     public boolean getMultiMatch() {
-        return isMultiMatch;
+        return false;
     }
 
     public Map<String, DistrictView> getDistricts() {

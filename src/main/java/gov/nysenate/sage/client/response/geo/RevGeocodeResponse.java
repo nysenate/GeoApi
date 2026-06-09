@@ -1,30 +1,13 @@
 package gov.nysenate.sage.client.response.geo;
 
-import gov.nysenate.sage.client.response.base.SourcedResponse;
-import gov.nysenate.sage.client.view.address.AddressView;
-import gov.nysenate.sage.client.view.geo.GeocodeView;
 import gov.nysenate.sage.model.result.GeocodeResult;
 
-public class RevGeocodeResponse extends SourcedResponse {
-    protected AddressView address;
-    protected GeocodeView geocode;
-    protected boolean isRevGeocoded = false;
+public class RevGeocodeResponse extends BaseGeocodeResponse {
+    private final boolean isRevGeocoded;
 
     public RevGeocodeResponse(GeocodeResult geocodeResult) {
         super(geocodeResult);
-        if (geocodeResult != null && geocodeResult.isSuccess()) {
-            this.address = new AddressView(geocodeResult.getGeocodedAddress().getAddress(), false);
-            this.geocode = new GeocodeView(geocodeResult.getGeocode());
-            this.isRevGeocoded = true;
-        }
-    }
-
-    public AddressView getAddress() {
-        return address;
-    }
-
-    public GeocodeView getGeocode() {
-        return geocode;
+        this.isRevGeocoded = geocodeResult != null && geocodeResult.isSuccess();
     }
 
     public boolean isRevGeocoded() {
