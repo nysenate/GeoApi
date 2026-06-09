@@ -23,3 +23,7 @@ flyway.conf
 log4j2.xml
 log4j2-cli.xml
 log4j2-test.xml
+
+# Sphinx docs build artifacts
+docs/_build/
+docs/.venv/

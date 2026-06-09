@@ -91,9 +91,9 @@ The available providers are:
 +-------------+---------------------------------------------+
 | Provider    | Description                                 |
 +=============+=============================================+
-| AMS        | USPS AMS Address Correction                 |
+| AMS         | USPS AMS Address Correction                 |
 +-------------+---------------------------------------------+
-| AIS        | USPS AIS Address Correction                 |
+| AIS         | USPS AIS Address Correction                 |
 +-------------+---------------------------------------------+
 
 The usage of ``validate`` with an address input::
@@ -188,7 +188,7 @@ The following methods are implemented for the geo_ service:
 The available providers are:
 
 +-------------+---------------------------------------------+
-| Provider    | Description
+| Provider    | Description                                 |
 +=============+=============================================+
 | GEOCACHE    | Cached geocodes                             |
 +-------------+---------------------------------------------+
@@ -861,7 +861,7 @@ Map
 ---
 
 The map_ service provides geometry information for certain district types. The methods for this service
-actually represent the district type to retrieve maps for. The available types are listed at /api/v2/geo/types.
+actually represent the district type to retrieve maps for. The available types are listed at ``/api/v2/map/types`` (see Types_ below).
 
 The parameters are:
 
@@ -872,7 +872,7 @@ The parameters are:
 +---------------+------------------------------------------------------------------------------------+
 | showMembers   | If true: senator, assembly member, and congressional member data will be appended. |
 +---------------+------------------------------------------------------------------------------------+
-| meta          | If true, doesn't return map geometry data.        |
+| meta          | If true, doesn't return map geometry data.                                         |
 +---------------+------------------------------------------------------------------------------------+
 
 To retrieve map and member data for all senate districts::
@@ -902,6 +902,59 @@ The response of the second query is::
     }
 
 The member data for senate, assembly, and congressional districts will have the same senator output as in district assignment.
+
+.. _Types:
+
+Types
+^^^^^
+
+The ``types`` method lists the district types that the map_ service can return geometry for. These are the district
+types that have shapefiles loaded, and any one of the returned ``enumName`` values may be used as the ``<method>``
+segment of a map request (e.g. ``/api/v2/map/senate``). The method takes no parameters::
+
+    /api/v2/map/types
+
+The response::
+
+    {
+      "status" : "SUCCESS",
+      "description" : "Success.",
+      "statusCode" : 0,
+      "results" : [ {
+        "status" : "SUCCESS",
+        "description" : "Success.",
+        "statusCode" : 0,
+        "enumName" : "SENATE",
+        "displayName" : "Senate"
+      }, {
+        "status" : "SUCCESS",
+        "description" : "Success.",
+        "statusCode" : 0,
+        "enumName" : "ASSEMBLY",
+        "displayName" : "Assembly"
+      },
+      ... ],
+      "total" : 9
+    }
+
+Each entry exposes the ``enumName`` (the value to use when building a map request) and a human-readable ``displayName``.
+The ``total`` field indicates the number of types returned.
+
+Ping
+----
+
+The ``ping`` endpoint is a lightweight health check used to verify that the service is up and responding. Unlike the
+other methods it is not part of the ``/api/v2`` group and does not require an API key. It takes no parameters::
+
+    /ping
+
+The response::
+
+    {
+      "status" : "SUCCESS",
+      "description" : "Success.",
+      "statusCode" : 0
+    }
 
 Status Codes
 ~~~~~~~~~~~~
