@@ -10,7 +10,7 @@ public class DistrictResultWithMembers extends DistrictResult {
 
     public DistrictResultWithMembers(DistrictResult baseResult, Senator senator, DistrictMember assemblyMember,
                                      DistrictMember congressionalMember) {
-        super(baseResult.getSources(), baseResult.getDistrictInfo());
+        super(baseResult.getSources().stream().toList(), baseResult.getDistrictInfo());
         this.senator = senator;
         this.assemblyMember = assemblyMember;
         this.congressionalMember = congressionalMember;

@@ -91,7 +91,7 @@ public class DistrictService {
                 };
                 typesToAssign.removeAll(districtInfo.getAssignedTypes());
             }
-            results.add(new DistrictResult(new LinkedHashSet<>(Set.of(provider)), status, districtInfo));
+            results.add(new DistrictResult(List.of(provider), status, districtInfo));
         }
         return DistrictUtil.consolidateResults(results);
     }
@@ -156,10 +156,8 @@ public class DistrictService {
                 return INSUFFICIENT_GEOCODE;
             }
         }
-        else if (geoAddress.isValidAddress()) {
-            if (geoAddress.getAddress().isOutOfState()) {
-                return NON_NY_STATE;
-            }
+        else if (geoAddress.isValidAddress() && geoAddress.getAddress().isOutOfState()) {
+            return NON_NY_STATE;
         }
         return SUCCESS;
     }

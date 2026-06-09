@@ -5,7 +5,6 @@ import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.provider.geocode.Geocoder;
 
-import java.util.LinkedHashSet;
 import java.util.List;
 
 public class GeocodeResult extends BaseResult<Geocoder> {
@@ -16,17 +15,13 @@ public class GeocodeResult extends BaseResult<Geocoder> {
     }
 
     public GeocodeResult(Geocoder geocoder, ResultStatus resultStatus, GeocodedAddress geocodedAddress) {
-        super(geocoder);
+        super(geocoder, resultStatus);
         this.geocodedAddress = geocodedAddress;
-        if (resultStatus != null) {
-            setStatusCode(resultStatus);
-        }
     }
 
     public GeocodeResult(List<Geocoder> geocoders, GeocodedAddress geocodedAddress) {
-        super(new LinkedHashSet<>(geocoders));
+        super(geocoders, ResultStatus.SUCCESS);
         this.geocodedAddress = geocodedAddress;
-        setStatusCode(ResultStatus.SUCCESS);
     }
 
     /** Convenience accessor */

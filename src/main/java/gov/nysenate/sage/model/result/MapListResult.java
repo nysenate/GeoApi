@@ -9,8 +9,7 @@ public class MapListResult extends BaseResult<LocalSource> {
     private final SortedSet<DistrictMap> districtMaps;
 
     public MapListResult(ResultStatus statusCode) {
-        super(LocalSource.SHAPEFILE);
-        setStatusCode(statusCode);
+        super(LocalSource.SHAPEFILE, statusCode);
         this.districtMaps = null;
     }
 

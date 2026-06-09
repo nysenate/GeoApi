@@ -8,8 +8,7 @@ public class CityStateResult extends BaseResult<AddressSource> {
     private Integer zip5 = null;
 
     public CityStateResult(AddressSource source, ResultStatus status) {
-        super(source);
-        setStatusCode(status);
+        super(source, status);
     }
 
     public CityStateResult(AddressSource source, String postalCity, String state, Integer zip5) {

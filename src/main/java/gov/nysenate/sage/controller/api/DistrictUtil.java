@@ -22,7 +22,7 @@ public final class DistrictUtil {
                 districtResults.stream().map(DistrictResult::getDistrictInfo).toList(), consolidatedMatchLevel);
         List<LocalSource> sources  = districtResults.stream().map(BaseResult::getSources)
                 .flatMap(Collection::stream).toList();
-        return new DistrictResult(new LinkedHashSet<>(sources), consolidatedInfo);
+        return new DistrictResult(sources, consolidatedInfo);
     }
 
     /**
@@ -52,7 +52,7 @@ public final class DistrictUtil {
             return first;
         }
         var typeToDistrictMap = new HashMap<DistrictType, SingleDistrict>();
-        var sourcesUsed = new LinkedHashSet<LocalSource>();
+        var sourcesUsed = new ArrayList<LocalSource>();
         for (DistrictType distType : DistrictType.values()) {
             for (DistrictResult result : results) {
                 SingleDistrict singleDistrict = result.getDistrictInfo().getDistrict(distType);

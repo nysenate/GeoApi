@@ -14,7 +14,7 @@ public class ValidateResponse extends SourcedResponse {
     public ValidateResponse(AddressResult addressResult, boolean usePunct) {
         super(addressResult);
         if (addressResult != null) {
-            this.validated = addressResult.isValidated();
+            this.validated = addressResult.isSuccess();
             if (addressResult.getAddress() != null) {
                 this.address = new AddressView(addressResult.getAddress(), usePunct);
             }

@@ -10,9 +10,8 @@ public class MapResult extends BaseResult<LocalSource> {
     private final DistrictMap districtMap;
 
     public MapResult(ResultStatus statusCode) {
-        super(LocalSource.SHAPEFILE);
+        super(LocalSource.SHAPEFILE, statusCode);
         this.districtMap = null;
-        setStatusCode(statusCode);
     }
 
     public MapResult(DistrictMap districtMap) {

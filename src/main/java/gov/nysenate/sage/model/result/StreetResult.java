@@ -12,10 +12,9 @@ public class StreetResult extends BaseResult<LocalSource> {
     protected List<DistrictedStreetRange> districtedStreetRanges;
 
     public StreetResult(List<DistrictedStreetRange> districtedStreetRanges) {
-        super(LocalSource.STREETFILE);
+        super(LocalSource.STREETFILE, districtedStreetRanges == null || districtedStreetRanges.isEmpty() ?
+                ResultStatus.NO_STREET_LOOKUP_RESULT : ResultStatus.SUCCESS);
         this.districtedStreetRanges = districtedStreetRanges;
-        this.statusCode = districtedStreetRanges == null || districtedStreetRanges.isEmpty() ?
-                ResultStatus.NO_STREET_LOOKUP_RESULT : ResultStatus.SUCCESS;
     }
 
     public List<DistrictedStreetRange> getDistrictedStreetRanges() {

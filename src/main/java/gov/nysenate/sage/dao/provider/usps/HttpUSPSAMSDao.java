@@ -36,8 +36,7 @@ import static gov.nysenate.sage.model.result.ResultStatus.SUCCESS;
 import static gov.nysenate.sage.util.AddressUtil.initCapStreetLine;
 
 /**
- * Data abstraction layer for querying the USPS AMS web service to perform address and city/state
- * lookups.
+ * Data abstraction layer for querying the USPS AMS web service to perform address and city/state lookups.
  */
 @Repository
 public class HttpUSPSAMSDao implements AddressDao {
@@ -131,16 +130,17 @@ public class HttpUSPSAMSDao implements AddressDao {
         if (root == null) {
             return null;
         }
-        var addressResult = new AddressResult(source(), NO_ADDRESS_VALIDATE_RESULT);
+        ResultStatus status = SUCCESS;
         JsonNode addressNode = root.get("address");
         JsonNode footnotesNode = root.get("footnotes");
-        addressResult.addMessage(String.format("Status: %s", root.get("status").get("shortDesc").asText()));
+        List<String> messages = new ArrayList<>();
+        messages.add(String.format("Status: %s", root.get("status").get("shortDesc").asText()));
 
         for (int i = 0; i < footnotesNode.size(); i++) {
             JsonNode footnoteNode = footnotesNode.get(i);
             String ftName = footnoteNode.get("shortDesc").asText();
             String ftDesc = footnoteNode.get("longDesc").asText();
-            addressResult.addMessage(String.format("%s - %s", ftName, ftDesc));
+            messages.add(String.format("%s - %s", ftName, ftDesc));
         }
 
         String addr1 = initCapStreetLine(addressNode.get("addr1").asText());
@@ -158,19 +158,19 @@ public class HttpUSPSAMSDao implements AddressDao {
         // Some PO Boxes get corrected, but aren't marked as a success for some reason.
         if (addr1.matches("(?i)PO BOX \\d+")) {
             currAddress = new PostOfficeBox(currAddress);
-            addressResult.setStatusCode(SUCCESS);
         }
         else if (root.get("success").asBoolean(false)) {
             try {
                 String street = getStreetFromRecord(root.get("records").get(0));
                 currAddress = new BuildingAddress(currAddress, addr1.split(" ")[0], street);
-                addressResult.setStatusCode(SUCCESS);
             } catch (Exception ex) {
                 logger.error("Bad address node: {}", addressNode, ex);
             }
         }
-        addressResult.setAddress(currAddress);
-        return addressResult;
+        else {
+            status = NO_ADDRESS_VALIDATE_RESULT;
+        }
+        return new AddressResult(source(), status, currAddress, messages);
     }
 
     private static String getStreetFromRecord(JsonNode record) {

@@ -63,7 +63,7 @@ public class JobRecord {
     }
 
     public void applyAddressResult(AddressResult addressResult) {
-        if (addressResult != null && addressResult.isValidated() && addressResult.getAddress() != null) {
+        if (addressResult != null && addressResult.isSuccess() && addressResult.getAddress() != null) {
             this.correctedAddress = addressResult.getAddress();
 
             dataMap.put(Column.uspsStreet, correctedAddress.getAddr1());

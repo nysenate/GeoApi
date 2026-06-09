@@ -47,7 +47,7 @@ public final class StreetfileAddressCorrectionService {
             for (int addrIndex = 0; addrIndex < validationResults.size(); addrIndex++) {
                 AddressResult result = validationResults.get(addrIndex);
                 AddressWithoutNum uncorrectedAwn = awns.get(addrIndex);
-                if (!result.isValidated() || !(result.getAddress() instanceof BuildingAddress)) {
+                if (!result.isSuccess() || !(result.getAddress() instanceof BuildingAddress)) {
                     continue;
                 }
                 // We want to first try a correction without changing components.
