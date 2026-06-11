@@ -507,7 +507,7 @@
                                         <div class="senator" style="height:56px;" ng-show="intersectType == 'SENATE'">
                                             <div class="senator-pic-holder" style="width:50px;height:50px;">
                                                 <a target="_blank" ng-href="{{d.member.url}}"><img
-                                                        ng-src="{{d.member.imageUrl | senatorPic}}" class="senator-pic"></a>
+                                                        ng-src="{{d.member.imageUrl}}" class="senator-pic"></a>
                                             </div>
                                             <div style="line-height: 25px;">
                                                 <p class="senator member-name" style="font-size:16px;">
@@ -574,7 +574,7 @@
                         <div>
                             <div class="info-container" style="height:70px;">
                                 <div class="senator-pic-holder">
-                                    <img ng-src="{{member.imageUrl | senatorPic}}" ng-show="member.imageUrl" class="senator-pic">
+                                    <img ng-src="{{member.imageUrl}}" ng-show="member.imageUrl" class="senator-pic">
                                 </div>
                                 <div style="margin-top:10px">
                                     <p class="senator member-name">

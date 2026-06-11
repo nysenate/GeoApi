@@ -78,7 +78,7 @@
                         </table>
                         <div ng-show="showInfo" id="senator-view" style="padding-top:10px;border-top:1px solid #ddd">
                             <div class="mini-senator-pic-holder">
-                                <a ng-href="{{senator.url}}" target="_top"><img ng-src="{{senator.imageUrl | senatorPic}}" class="senator-pic" /></a>
+                                <a ng-href="{{senator.url}}" target="_top"><img ng-src="{{senator.imageUrl}}" class="senator-pic" /></a>
                             </div>
                             <div>
                                 <p class="senator member-name">

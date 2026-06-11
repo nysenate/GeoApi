@@ -28,18 +28,6 @@ sage.filter("capitalize", function() {
     }
 });
 
-sage.filter("districtName", function() {
-    return function(input) {
-        return formatDistrictName(input, type);
-    }
-});
-
-sage.filter("senatorPic", function() {
-    return function(input) {
-        return input;
-    }
-});
-
 sage.filter("addressLevel", function(){
     return function(address, level) {
         switch (level) {
