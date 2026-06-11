@@ -3,22 +3,26 @@ var sageAdmin = angular.module('sage-admin');
 sageAdmin.controller('DashboardController', function($scope, $http, menuService, dataBus) {
     $scope.id = 1;
     $scope.visible = true;
-    $scope.now = new Date();
-    $scope.lastWeek = new Date(new Date().setDate(new Date().getDate() - 7));
 
-    $scope.from = $scope.lastWeek;
-    $scope.to = $scope.now;
+    var now = new Date();
+    var lastWeek = new Date(new Date().setDate(now.getDate() - 7));
 
-    // Bound to the date picker inputs. Kept on an object (rather than bare $scope
-    // primitives) so edits made from a child tab's scope mutate these shared values
-    // instead of shadowing them.
+    // Format a Date as a local yyyy-MM-dd string (as <input type="date"> expects).
+    var toIsoDate = function(d) {
+        return [d.getFullYear(),
+                String(d.getMonth() + 1).padStart(2, '0'),
+                String(d.getDate()).padStart(2, '0')].join('-');
+    };
+
+    // Upper bound for the pickers: stats can't extend past today.
+    $scope.maxDate = toIsoDate(now);
+
+    // Bound to the date picker inputs (native <input type="date">, so these are
+    // Date objects). Kept on an object rather than bare $scope properties so edits
+    // made from a child tab's scope mutate these shared values instead of shadowing them.
     $scope.dateRange = {
-        fromMonth: $scope.lastWeek.getMonth() + 1,
-        fromDate: $scope.lastWeek.getDate(),
-        fromYear: $scope.lastWeek.getFullYear(),
-        toMonth: $scope.now.getMonth() + 1,
-        toDate: $scope.now.getDate(),
-        toYear: $scope.now.getFullYear()
+        from: lastWeek,
+        to: now
     };
 
     $scope.$on(menuService.menuToggleEvent, function(){
@@ -33,16 +37,14 @@ sageAdmin.controller('DashboardController', function($scope, $http, menuService,
         $scope.init();
     });
 
+    // Derive the query bounds from the picked dates, widening them to cover the full
+    // first and last day.
     $scope.init = function() {
-        $scope.from.setMonth($scope.dateRange.fromMonth - 1);
-        $scope.from.setDate($scope.dateRange.fromDate);
-        $scope.from.setFullYear($scope.dateRange.fromYear);
-        $scope.from.setHours(0);
-        $scope.from.setMinutes(0);
-        $scope.to.setMonth($scope.dateRange.toMonth - 1);
-        $scope.to.setDate($scope.dateRange.toDate);
-        $scope.to.setFullYear($scope.dateRange.toYear);
-        $scope.to.setHours(23);
-        $scope.to.setMinutes(59);
+        $scope.from = new Date($scope.dateRange.from);
+        $scope.from.setHours(0, 0, 0, 0);
+        $scope.to = new Date($scope.dateRange.to);
+        $scope.to.setHours(23, 59, 59, 999);
     };
+
+    $scope.init();
 });
