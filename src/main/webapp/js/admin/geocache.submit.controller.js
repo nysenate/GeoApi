@@ -47,12 +47,6 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
     $scope.geo_google_geocode_status = false;
     $scope.geo_google_show_json = false;
 
-    $scope.geo_tiger_url = "";
-    $scope.geo_tiger_json = "";
-    $scope.geo_tiger_status = false;
-    $scope.geo_tiger_geocode_status = false;
-    $scope.geo_tiger_show_json = false;
-
     $scope.geo_nys_url = "";
     $scope.geo_nys_json = "";
     $scope.geo_nys_status = false;
@@ -86,9 +80,6 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
         $scope.geo_google_show_json = !$scope.geo_google_show_json;
     };
 
-    $scope.toggleTigerJson = function() {
-        $scope.geo_tiger_show_json = !$scope.geo_tiger_show_json;
-    };
     $scope.toggleNYSJson = function() {
         $scope.geo_nys_show_json = !$scope.geo_nys_show_json;
     };
@@ -192,37 +183,6 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
 
     };
 
-    $scope.callTiger = function() {
-
-        if (!$scope.separatedInput) {
-            $scope.geo_tiger_url = baseApi + "geo/geocode?addr=" + $scope.input_addr + "&bypassCache=true&provider=tiger&useFallback=false&doNotCache=true&uspsValidate=" + $scope.uspsValidate;
-        }
-        else {
-            $scope.geo_tiger_url = baseApi + "geo/geocode?addr1=" + $scope.input_addr1 +
-                "&city=" + $scope.input_city + "&state=NY&zip5=" + $scope.input_zip5 + "&bypassCache=true&provider=tiger&useFallback=false&doNotCache=true&uspsValidate=" + $scope.uspsValidate;
-        }
-        $http.get($scope.geo_tiger_url)
-            .then(function(response){
-                var data = response.data;
-                if (data) {
-                    $scope.geo_tiger_json = data;
-
-                    console.log($scope.geo_tiger_json.geocode);
-                    console.log($scope.geo_tiger_json.status);
-                    //NO_GEOCODE_RESULT
-
-                    if (($scope.geo_tiger_json.geocode !== null) && ($scope.geo_tiger_json.status !== "NO_GEOCODE_RESULT")) {
-                        $scope.geo_tiger_status = true;
-                        $scope.geo_tiger_geocode_status = true;
-                        $scope.setMarker($scope.geo_tiger_json.geocode.lat,$scope.geo_tiger_json.geocode.lon,"Tiger",false,true);
-                    }
-                }
-            }, function(response){
-                console.log("Failed to geocache submitted address - check Input / Server Status ");
-            });
-
-    };
-
     $scope.callNYS = function() {
 
         if (!$scope.separatedInput) {
@@ -317,7 +277,6 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
         $scope.callGeocache();
         $scope.callGoogle();
         $scope.callNYS();
-        $scope.callTiger();
         $scope.geo_comparison_status = true;
         $scope.activeComparisonTab = "geocache"
     };
@@ -349,7 +308,6 @@ sageAdmin.controller('GeocacheSubmitController', function($scope, $http, dataBus
     $scope.resetOnChange = function() {
         $scope.district_assign_status = false;
         $scope.geocache_status = false;
-        $scope.geo_tiger_status = false;
         $scope.geo_nys_status = false;
         $scope.geo_google_status = false;
         $scope.geo_comparison_status = false;
