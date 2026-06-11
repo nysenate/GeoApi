@@ -13,12 +13,7 @@ import gov.nysenate.sage.util.auth.AdminUserAuth;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
 import gov.nysenate.sage.util.controller.ApiControllerUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
-import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.subject.Subject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,16 +22,12 @@ import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.List;
 
-import static gov.nysenate.sage.model.result.ResultStatus.INTERNAL_ERROR;
 import static gov.nysenate.sage.model.result.ResultStatus.POST_OFFICE_REFRESH_FAILURE;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.invalidAuthResponse;
 
 @RestController
 @RequestMapping(value = ConstantUtil.ADMIN_REST_PATH + "/api/datagen")
-public class DataGenController {
-    private static final Logger logger = LoggerFactory.getLogger(DataGenController.class);
-    private final AdminUserAuth adminUserAuth;
-    private final ApiUserAuth apiUserAuth;
+public class DataGenController extends BaseAdminApiController {
     private final DataGenService dataGenService;
     private final PostOfficeService postOfficeService;
     private final StreetfileProcessor streetfileProcessor;
@@ -46,8 +37,7 @@ public class DataGenController {
     public DataGenController(AdminUserAuth adminUserAuth, ApiUserAuth apiUserAuth,
                              DataGenService dataGenService, StreetfileProcessor streetfileProcessor,
                              PostOfficeService postOfficeService, StreetfileDao streetfileDao) {
-        this.adminUserAuth = adminUserAuth;
-        this.apiUserAuth = apiUserAuth;
+        super(adminUserAuth, apiUserAuth);
         this.dataGenService = dataGenService;
         this.postOfficeService = postOfficeService;
         this.streetfileProcessor = streetfileProcessor;
@@ -131,20 +121,5 @@ public class DataGenController {
             return new ApiError(POST_OFFICE_REFRESH_FAILURE);
         }
         return invalidAuthResponse;
-    }
-
-    private boolean authenticate(HttpServletRequest request, String username, String password, String key) {
-        String ipAddr = ApiControllerUtil.getIpAddress(request);
-        Subject subject = SecurityUtils.getSubject();
-        return subject.hasRole("ADMIN") ||
-                adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) ||
-                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key);
-    }
-
-    @ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ApiError handleException(Exception ex) {
-        logger.error("Error during admin API call", ex);
-        return new ApiError(getClass(), INTERNAL_ERROR);
     }
 }

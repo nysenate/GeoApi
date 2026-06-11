@@ -42,11 +42,6 @@
             <sage:logo></sage:logo>
             <ul class="top-method-header">
                 <li>
-                    <a ng-class="{'active': activeTab=='exceptions'}" id="defaultOpen"
-                       ng-click="changeTab('exceptions')">
-                        <div class=" icon-new"></div>&nbsp;Exceptions</a></li>
-
-                <li>
                     <a ng-class="{'active': activeTab=='api-usage'}" ng-click="changeTab('api-usage')">
                         <div class=" icon-graph"></div>&nbsp;Api Usage</a></li>
 
@@ -61,10 +56,6 @@
                 <li>
                     <a ng-class="{'active': activeTab=='geocode-usage'}" ng-click="changeTab('geocode-usage')">
                         <div class=" icon-compass"></div>&nbsp;Geocode Usage</a></li>
-
-                <li>
-                    <a ng-class="{'active': activeTab=='geocaching'}" ng-click="changeTab('geocaching')">
-                        <div class=" icon-location"></div>&nbsp;Geocaching</a></li>
 
                 <li>
                     <a ng-class="{'active': activeTab=='user-console'}" ng-click="changeTab('user-console')">
@@ -89,29 +80,7 @@
                         <div ng-controller="DeploymentStatsController" id="uptime-stats" class="highlight-section fixed"
                              ng-show="determineActiveTab('uptime-stats')">
 
-                            <div>
-                                <%-- TODO: "max" should be set to current year, at least --%>
-                                <span>The time frame to view stats is between &nbsp;</span>
-                                <input ng-model="fromMonth" style="width:35px;" min="1" max="12" maxlength="2"
-                                       type="number"/>/
-                                <input ng-model="fromDate" style="width:35px;" min="1" max="31" maxlength="2"
-                                       type="number"/>/
-                                <input ng-model="fromYear" style="width:70px;" min="2013" max="2020" maxlength="4"
-                                       type="number"/>
-
-                                <span>&nbsp; and &nbsp;</span>
-
-                                <input ng-model="toMonth" style="width:35px;" min="1" max="12" maxlength="2"
-                                       type="number"/>/
-                                <input ng-model="toDate" style="width:35px;" min="1" max="31" maxlength="2"
-                                       type="number"/>/
-                                <input ng-model="toYear" style="width:70px;" min="2013" max="2020" maxlength="4"
-                                       type="number"/>
-
-                                <button ng-click="update()" class="submit" style="width:auto; padding:5px 10px;">
-                                    <span>Update</span>
-                                </button>
-                            </div>
+                            <sage:datepicker></sage:datepicker>
 
                             <hr/>
 
@@ -126,6 +95,8 @@
                         <div ng-controller="ApiUsageController" id="api-usage" class="highlight-section fixed"
                              ng-show="determineActiveTab('api-usage')">
                             <p class="blue-header">Api Hourly Usage</p>
+                            <sage:datepicker></sage:datepicker>
+                            <hr/>
                             <div id="api-usage-stats"></div>
                         </div>
 
@@ -237,305 +208,6 @@
                                 </tr>
                                 </tbody>
                             </table>
-                        </div>
-
-
-                        <div ng-controller="GeocacheSubmitController" id="geocaching" class="highlight-section fixed"
-                             ng-show="determineActiveTab('geocaching')">
-                            <p class="blue-header">Geocache Address</p>
-                            <hr/>
-                            <p ng-show="!separatedInput">Be sure to separate input with commas, (i.e. 200 State Street,
-                                Albany, NY, 12210)</p>
-                            <p ng-show="separatedInput">The state is assumed to be NY</p>
-                            <hr/>
-                            <button class="toggle" style="width: auto;padding: 5px 10px;"
-                                    ng-click="toggleInputSeparation()">Toggle Input Separation
-                            </button>
-                            <br>
-                            <br>
-
-                            <form>
-
-                                <div ng-show="!separatedInput">
-                                    <label for="input_addr_input">Address: </label>
-                                    <input id="input_addr_input" ng-model="input_addr" type="text" size="50"
-                                           ng-change="resetOnChange()">
-                                </div>
-
-                                <div ng-show="separatedInput">
-                                    <label for="input_addr1_input">Addr1: </label>
-                                    <input id="input_addr1_input" ng-model="input_addr1" type="text" size="28"
-                                           ng-change="resetOnChange()">
-
-                                    <label for="input_city_input">City: </label>
-                                    <input id="input_city_input" ng-model="input_city" type="text"
-                                           ng-change="resetOnChange()">
-
-                                    <label for="input_zip5_input">Zip5: </label>
-                                    <input id="input_zip5_input" ng-model="input_zip5" type="text"
-                                           ng-change="resetOnChange()">
-                                </div>
-
-                                <br>
-
-                                <div>
-                                    <label for="input_usps">USPS Validate: </label>
-                                    <input id="input_usps" ng-model="uspsValidate" type="checkbox"/>
-                                </div>
-
-                                <br>
-
-                                <button type="submit" name="lookup" class="submit"
-                                        style="width: auto;padding: 5px 10px;"
-                                        ng-click="look_up()" ng-disabled="!isValidInfo()">Look Up
-                                </button>
-                            </form>
-                            <hr/>
-
-                            <div id="geocache_map"
-                                 style="width: 850px; height: 450px; margin-left: auto; margin-right: auto; margin-top: 20px !important;"></div>
-
-                            <div>
-                                <hr ng-show="geo_comparison_status"/>
-                                <form ng-show="geo_comparison_status">
-                                    <div>
-                                        <p ng-show="geocache_status">Geocache: <br>Lat: {{geocache_json.geocode.lat ||
-                                            ""}}
-                                            Lon: {{geocache_json.geocode.lon || ""}} <br>
-                                            Quality: {{geocache_json.geocode.quality || ""}}
-                                            Method: {{geocache_json.geocode.method || ""}} </p>
-                                    </div>
-
-                                    <br>
-
-                                    <div>
-                                        <label for="google_coords" ng-show="geo_google_status">Google:
-                                            <p ng-show="geo_google_status">Lat: {{geo_google_json.geocode.lat || ""}}
-                                                Lon:
-                                                {{geo_google_json.geocode.lon || ""}} <br>
-                                                Quality: {{geo_google_json.geocode.quality || ""}}
-                                                Method: {{geo_google_json.geocode.method || ""}} </p>
-                                        </label>
-                                        <input ng-show="geo_google_status" type="radio" id="google_coords"
-                                               ng-model="selected_provider" value="Google">
-                                    </div>
-
-                                    <br>
-
-                                    <div>
-                                    <label for="nysgeo_coords" ng-show="geo_nys_status">NYS Geo:
-                                        <p ng-show="geo_nys_status">Lat: {{geo_nys_json.geocode.lat || ""}} Lon:
-                                            {{geo_nys_json.geocode.lon || ""}} <br>
-                                            Quality: {{geo_nys_json.geocode.quality || ""}}
-                                            Method: {{geo_nys_json.geocode.method || ""}} </p>
-                                    </label>
-                                    <input ng-show="geo_nys_status" type="radio" ng-model="selected_provider"
-                                           id="nysgeo_coords" value="NYSGeo">
-                                    </div>
-
-                                    <br>
-                                    <button type="submit" name="update_geocache" class="geocache"
-                                            style="width: auto;padding: 5px 10px;"
-                                            ng-click="updateGeocache()" ng-disabled="!isProviderSelected()">Update
-                                        Geocache
-                                    </button>
-                                </form>
-                            </div>
-
-                                <%--Geocache result status--%>
-
-                            <div ng-show="geocache_result_status">
-                                <hr ng-show="geocache_result_status"/>
-                                <strong>Updated Geocache</strong>
-                                <p>{{geocache_result_json.status}}</p>
-                                <p>{{geocache_result_url}}</p>
-                                <br>
-                                <p ng-show="geocode_result_status">The address was inserted into the geocache as: <br>
-                                    Lat: {{geocache_result_json.geocode.lat}} Lon: {{geocache_result_json.geocode.lon}}
-                                    <br>
-                                    Quality: {{geocache_result_json.geocode.quality}}
-                                    Method: {{geocache_result_json.geocode.method}}</p>
-                                <br>
-                                <button ng-click="toggleGeocacheResultJson()" class="toggle"
-                                        style="width: auto;padding: 5px 10px;">Toggle Json
-                                </button>
-                                <p ng-show="geocache_result_show_json" class="panel" style="word-wrap: break-word">
-                                    {{geocache_result_json}}</p>
-                            </div>
-
-                            <hr ng-show="geo_comparison_status"/>
-                            <div ng-show="geo_comparison_status">
-                                <button ng-click="changeCompTab('geocache')" class="toggle"
-                                        style="width: auto;padding: 5px 10px;">Geocache
-                                </button>
-                                <button ng-click="changeCompTab('google')" class="toggle"
-                                        style="width: auto;padding: 5px 10px;">Google
-                                </button>
-                                <button ng-click="changeCompTab('nysgeo')" class="toggle"
-                                        style="width: auto;padding: 5px 10px;">NYS Geo
-                                </button>
-                                <button ng-click="changeCompTab('street')" class="toggle"
-                                        style="width: auto;padding: 5px 10px;">Street District Assign
-                                </button>
-                            </div>
-
-
-                            <div class="row">
-                                    <%--Geocache status--%>
-                                <div ng-show="determineActiveCompTab('geocache')" id="geocache_status" class="column">
-                                    <hr ng-show="determineActiveCompTab('geocache')"/>
-                                    <strong>Current Geocache Status</strong>
-                                    <p>{{geocache_json.status}}</p>
-                                    <p>{{geocache_url}}</p>
-                                    <p ng-show="geocode_status"><br>
-                                        Lat: {{geocache_json.geocode.lat}} Lon: {{geocache_json.geocode.lon}} <br>
-                                        Quality: {{geocache_json.geocode.quality}}
-                                        Method:{{geocache_json.geocode.method}}
-                                    </p>
-                                    <br>
-                                    <button ng-click="toggleGeocacheJson()" class="toggle"
-                                            style="width: auto;padding: 5px 10px;">Toggle Json
-                                    </button>
-                                    <p ng-show="geocache_show_json" style="word-wrap: break-word">{{geocache_json}}</p>
-                                </div>
-
-                                    <%--Google status--%>
-
-                                <div ng-show="determineActiveCompTab('google')" id="google" class="column">
-                                    <hr ng-show="geo_google_status"/>
-                                    <strong>Google Coordinates</strong>
-                                    <p>{{geo_google_json.status}}</p>
-                                    <p>{{geo_google_url}}</p>
-                                    <p ng-show="geo_google_geocode_status"><br>
-                                        Lat: {{geo_google_json.geocode.lat}} Lon: {{geo_google_json.geocode.lon}} <br>
-                                        Quality: {{geo_google_json.geocode.quality}}
-                                        Method:{{geo_google_json.geocode.method}}</p>
-                                    <br>
-                                    <button ng-click="toggleGoogleJson()" class="toggle"
-                                            style="width: auto;padding: 5px 10px;">Toggle Json
-                                    </button>
-                                    <p ng-show="geo_google_show_json" style="word-wrap: break-word">
-                                        {{geo_google_json}}</p>
-                                </div>
-
-                                        <%--NYS Geocoder result status--%>
-
-                                <div ng-show="determineActiveCompTab('nysgeo')" id="nysgeo" class="column">
-                                    <hr ng-show="geo_nys_status"/>
-                                    <strong>NYSGeo Coordinates</strong>
-                                    <p>{{geo_nys_json.status}}</p>
-                                    <p>{{geo_nys_url}}</p>
-                                    <br>
-                                    <p ng-show="geo_nys_geocode_status">
-                                        Lat: {{geo_nys_json.geocode.lat}} Lon: {{geo_nys_json.geocode.lon}} <br>
-                                        Quality: {{geo_nys_json.geocode.quality}}
-                                        Method:{{geo_nys_json.geocode.method}}
-                                    </p>
-                                    <br>
-                                    <button ng-click="toggleNYSJson()" class="toggle"
-                                            style="width: auto;padding: 5px 10px;">Toggle Json
-                                    </button>
-                                    <p ng-show="geo_nys_show_json" style="word-wrap: break-word">
-                                        {{geo_nys_json}}</p>
-                                </div>
-
-                                    <%--STREEET DISTRICT ASSIGNMENT--%>
-
-                                <div ng-show="determineActiveCompTab('street')" id="street_district_assign"
-                                     class="column">
-                                    <hr ng-show="district_assign_street_status"/>
-                                    <strong>Street District Assignment</strong>
-                                    <p>{{district_assign_street_json.status}} </p>
-                                    <p>{{district_assign_street_url}}</p>
-                                    <br>
-                                    <p ng-show="district_assign_street_geocode_status">Lat:
-                                        {{district_assign_street_json.geocode.lat}} Lon:
-                                        {{district_assign_street_json.geocode.lon}}
-                                        <br>
-                                        Quality: {{district_assign_street_json.geocode.quality}}
-                                        Method:{{district_assign_street_json.geocode.method}}</p></p>
-                                    <br>
-                                    <p ng-show="district_assign_street_district_status">Senate District:
-                                        {{(district_assign_street_json.districts.senate.district || "" )}} <br>
-                                        Congressional District:
-                                        {{(district_assign_street_json.districts.congressional.district || "" )}} <br>
-                                        Assembly District: {{(district_assign_street_json.districts.assembly.district ||
-                                        "" )}} <br>
-                                        County District: {{(district_assign_street_json.districts.county.district || ""
-                                        )}}
-                                        <br>
-                                        Election District: {{(district_assign_street_json.districts.election.district ||
-                                        "" )}} <br>
-                                        School District: {{(district_assign_street_json.districts.school.district || ""
-                                        )}}
-                                        <br>
-                                        Town District: {{(district_assign_street_json.districts.town.district || "" )}}
-                                        <br>
-                                        Zip District: {{(district_assign_street_json.districts.zip.district || "" )}}
-                                        <br>
-                                        Cleg: {{(district_assign_street_json.districts.cleg.district || "" )}} <br>
-                                        Ward: {{(district_assign_street_json.districts.ward.district || "" )}} <br>
-                                        Village: {{(district_assign_street_json.districts.village.district || "" )}}
-                                        <br>
-
-                                    </p>
-                                    <br>
-                                    <button ng-click="toggleStreetDistAssignJson()" class="toggle"
-                                            style="width: auto;padding: 5px 10px;">Toggle Json
-                                    </button>
-                                    <p ng-show="district_assign_street_show_json" style="word-wrap: break-word">
-                                        {{district_assign_street_json}}</p>
-                                </div>
-
-                                    <%--SHAPE DISTRICT ASSIGNMENT--%>
-
-                                <div ng-show="district_assign_shape_district_status" id="shape_district_assign"
-                                     class="column-right">
-                                    <hr ng-show="district_assign_shape_district_status"/>
-                                    <strong>Shape District Assignment</strong>
-                                    <p>{{district_assign_shape_json.status}} </p>
-                                    <p>{{district_assign_shape_url}}</p>
-                                    <br>
-                                    <p ng-show="district_assign_shape_geocode_status">Lat:
-                                        {{district_assign_shape_json.geocode.lat}} Lon:
-                                        {{district_assign_shape_json.geocode.lon}}
-                                        <br>
-                                        Quality: {{district_assign_shape_json.geocode.quality}}
-                                        Method:{{district_assign_shape_json.geocode.method}}</p></p>
-                                    <br>
-                                    <p ng-show="district_assign_shape_district_status">Senate District:
-                                        {{(district_assign_shape_json.districts.senate.district || "" )}} <br>
-                                        Congressional District:
-                                        {{(district_assign_shape_json.districts.congressional.district || "" )}} <br>
-                                        Assembly District: {{(district_assign_shape_json.districts.assembly.district ||
-                                        "" )}} <br>
-                                        County District: {{(district_assign_shape_json.districts.county.district || ""
-                                        )}}
-                                        <br>
-                                        Election District: {{(district_assign_shape_json.districts.election.district ||
-                                        "" )}} <br>
-                                        School District: {{(district_assign_shape_json.districts.school.district || ""
-                                        )}}
-                                        <br>
-                                        Town District: {{(district_assign_shape_json.districts.town.district || "" )}}
-                                        <br>
-                                        Zip District: {{(district_assign_shape_json.districts.zip.district || "" )}}
-                                        <br>
-                                        Cleg: {{(district_assign_shape_json.districts.cleg.district || "" )}} <br>
-                                        Ward: {{(district_assign_shape_json.districts.ward.district || "" )}} <br>
-                                        Village: {{(district_assign_shape_json.districts.village.district || "" )}} <br>
-
-                                    </p>
-                                    <br>
-                                    <button ng-click="toggleShapeDistAssignJson()" class="toggle"
-                                            style="width: auto;padding: 5px 10px;">Toggle Json
-                                    </button>
-                                    <p ng-show="district_assign_shape_show_json" style="word-wrap: break-word">
-                                        {{district_assign_shape_json}}</p>
-                                </div>
-
-                            </div>
-
                         </div>
 
 

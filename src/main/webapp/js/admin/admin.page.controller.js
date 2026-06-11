@@ -1,9 +1,7 @@
 var sageAdmin = angular.module('sage-admin');
 
 sageAdmin.controller('AdminPageController', function($scope, $http, dataBus) {
-    $scope.activeTab = "exceptions";
-
-    $scope.exceptionTab = true;
+    $scope.activeTab = "api-usage";
 
     $scope.changeTab = function(newTab) {
         $scope.activeTab = newTab;

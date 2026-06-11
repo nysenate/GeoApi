@@ -7,26 +7,26 @@ sageAdmin.controller('ApiUsageController', function($scope, $http, dataBus){
     };
 
     $scope.getUsageStats = function(startTime, endTime) {
-        $http.get(baseAdminApi + "/usage?interval=HOUR&from=" + startTime + "&to=" + endTime)
+        $http.get(baseAdminApi + "/usage?from=" + startTime + "&to=" + endTime)
             .then(function(response){
                 $scope = angular.extend($scope, response.data);
-                getSeriesData($scope.intervalFrom, $scope.intervalTo, $scope.intervalSizeInMinutes, $scope.intervalUsageCounts);
+                getSeriesData($scope.rangeFrom, $scope.rangeTo, $scope.usageCounts);
             }, function(response){
                 console.log("Error retrieving deployment stats! " + response.data);
             });
     };
 
-    var getSeriesData = function(startDate, endDate, interval, data) {
+    var getSeriesData = function(startDate, endDate, data) {
         var seriesData = [];
-        var intervalMilli = interval * 60000;
+        const hourMillis = 60 * 60000;
         var next = startDate;
         $.each(data, function(i, v) {
             while (next < v.time && next < endDate) {
                 seriesData.push(0);
-                next += intervalMilli;
+                next += hourMillis;
             }
             seriesData.push(v.count);
-            next += intervalMilli;
+            next += hourMillis;
         });
         makeApiUsageChart(startDate, seriesData);
     };

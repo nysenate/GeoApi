@@ -35,31 +35,27 @@ import static gov.nysenate.sage.model.result.ResultStatus.*;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
 
 @RestController
-// TODO: change to use common method in DataGenController
 @RequestMapping(value = ConstantUtil.ADMIN_REST_PATH + "/api")
-public class AdminApiController extends BaseController {
+public class AdminApiController extends BaseAdminApiController {
     private final SqlApiUsageStatsDao sqlApiUsageStatsDao;
     private final SqlDeploymentStatsDao sqlDeploymentStatsDao;
     private final ApiUserDao apiUserDao;
     private final SqlGeocodeStatsDao sqlGeocodeStatsDao;
     private final SqlJobProcessDao sqlJobProcessDao;
     private final ShapefileDao shapefileDao;
-    private final ApiUserAuth apiUserAuth;
-    private final AdminUserAuth adminUserAuth;
 
     @Autowired
     public AdminApiController(SqlApiUsageStatsDao sqlApiUsageStatsDao, SqlDeploymentStatsDao sqlDeploymentStatsDao,
                               ApiUserDao apiUserDao, SqlGeocodeStatsDao sqlGeocodeStatsDao,
                               SqlJobProcessDao sqlJobProcessDao, ShapefileDao shapefileDao,
-                              ApiUserAuth apiUserAuth, AdminUserAuth adminUserAuth) {
+                              AdminUserAuth adminUserAuth, ApiUserAuth apiUserAuth) {
+        super(adminUserAuth,  apiUserAuth);
         this.sqlApiUsageStatsDao = sqlApiUsageStatsDao;
         this.sqlDeploymentStatsDao = sqlDeploymentStatsDao;
         this.apiUserDao = apiUserDao;
         this.sqlGeocodeStatsDao = sqlGeocodeStatsDao;
         this.sqlJobProcessDao = sqlJobProcessDao;
         this.shapefileDao = shapefileDao;
-        this.apiUserAuth = apiUserAuth;
-        this.adminUserAuth = adminUserAuth;
     }
 
     /**
@@ -75,11 +71,7 @@ public class AdminApiController extends BaseController {
                                 @RequestParam(required = false, defaultValue = "defaultUser") String username,
                                 @RequestParam(required = false, defaultValue = "defaultPass") String password,
                                 @RequestParam(required = false, defaultValue = "") String key) {
-        String ipAddr = ApiControllerUtil.getIpAddress(request);
-        Subject subject = SecurityUtils.getSubject();
-        if (subject.hasRole("ADMIN") ||
-                adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
-                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
+        if (authenticate(request, username, password, key)) {
             return apiUserDao.getApiUsers();
         }
         return invalidAuthResponse;
@@ -98,13 +90,8 @@ public class AdminApiController extends BaseController {
                       @RequestParam(required = false, defaultValue = "defaultUser") String username,
                       @RequestParam(required = false, defaultValue = "defaultPass") String password,
                       @RequestParam(required = false, defaultValue = "") String key) {
-        String ipAddr = ApiControllerUtil.getIpAddress(request);
-        Subject subject = SecurityUtils.getSubject();
-        if (subject.hasRole("ADMIN") ||
-                adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) ||
-                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
-            return sqlApiUsageStatsDao.getApiUsageStats(getBeginTimestamp(request), getEndTimestamp(request),
-                    request.getParameter("interval"));
+        if (authenticate(request, username, password, key)) {
+            return sqlApiUsageStatsDao.getApiUsageStats(getBeginTimestamp(request), getEndTimestamp(request));
         }
         return invalidAuthResponse;
 
@@ -123,11 +110,7 @@ public class AdminApiController extends BaseController {
                              @RequestParam(required = false, defaultValue = "defaultUser") String username,
                              @RequestParam(required = false, defaultValue = "defaultPass") String password,
                              @RequestParam(required = false, defaultValue = "") String key) {
-        String ipAddr= ApiControllerUtil.getIpAddress(request);
-        Subject subject = SecurityUtils.getSubject();
-        if (subject.hasRole("ADMIN") ||
-                adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
-                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key) ) {
+        if (authenticate(request, username, password, key)) {
             return sqlGeocodeStatsDao.getGeocodeStats(getBeginTimestamp(request), getEndTimestamp(request));
         }
         return invalidAuthResponse;
@@ -147,12 +130,17 @@ public class AdminApiController extends BaseController {
                             @RequestParam(required = false, defaultValue = "defaultUser") String username,
                             @RequestParam(required = false, defaultValue = "defaultPass") String password,
                             @RequestParam(required = false, defaultValue = "") String key) {
-        String ipAddr= ApiControllerUtil.getIpAddress(request);
-        Subject subject = SecurityUtils.getSubject();
-        if (subject.hasRole("ADMIN") ||
-                adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
-                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key) ) {
-            return getJobProcessStatusList(request);
+        if (authenticate(request, username, password, key)) {
+            List<JobProcessStatusView> statusViews = new ArrayList<>();
+            Timestamp from = getBeginTimestamp(request);
+            Timestamp to = getEndTimestamp(request);
+            List<JobProcessStatus> statuses = sqlJobProcessDao.getJobStatusesByConditions(
+                    List.of(JobProcessStatus.Condition.values()), null, from, to
+            );
+            for (JobProcessStatus jobProcessStatus : statuses) {
+                statusViews.add(new JobProcessStatusView(jobProcessStatus));
+            }
+            return statusViews;
         }
         return invalidAuthResponse;
     }
@@ -170,11 +158,7 @@ public class AdminApiController extends BaseController {
                            @RequestParam(required = false, defaultValue = "defaultUser") String username,
                            @RequestParam(required = false, defaultValue = "defaultPass") String password,
                            @RequestParam(required = false, defaultValue = "") String key) {
-        String ipAddr = ApiControllerUtil.getIpAddress(request);
-        Subject subject = SecurityUtils.getSubject();
-        if (subject.hasRole("ADMIN") ||
-                adminUserAuth.authenticateAdmin(request,username, password, subject, ipAddr) ||
-                apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
+        if (authenticate(request, username, password, key)) {
             return new DeploymentStats(sqlDeploymentStatsDao.getDeploymentStats());
         }
         return invalidAuthResponse;
@@ -186,20 +170,16 @@ public class AdminApiController extends BaseController {
                             @RequestParam(required = false, defaultValue = "defaultPass") String password,
                             @RequestParam(required = false, defaultValue = "") String key,
                             @RequestParam String type) {
-        String ipAddr = ApiControllerUtil.getIpAddress(request);
-        Subject subject = SecurityUtils.getSubject();
-        if (!subject.hasRole("ADMIN") &&
-                !adminUserAuth.authenticateAdmin(request, username, password, subject, ipAddr) &&
-                !apiUserAuth.authenticateAdmin(request, subject, ipAddr, key)) {
-            return invalidAuthResponse;
+        if (authenticate(request, username, password, key)) {
+            DistrictType districtType = DistrictType.valueOf(type.toUpperCase());
+            Boolean validGeometry = shapefileDao.cleanMaps(districtType);
+            if (validGeometry == null) {
+                return new ApiError(EMPTY_GEOMETRY_TABLE);
+            }
+            return new GenericResponse(validGeometry, validGeometry ? "Cleaned maps" :
+                    "Cleaned maps, but some geometries are invalid. Manual fixes are required.");
         }
-        DistrictType districtType = DistrictType.valueOf(type.toUpperCase());
-        Boolean validGeometry = shapefileDao.cleanMaps(districtType);
-        if (validGeometry == null) {
-            return new ApiError(EMPTY_GEOMETRY_TABLE);
-        }
-        return new GenericResponse(validGeometry, validGeometry ? "Cleaned maps" :
-                "Cleaned maps, but some geometries are invalid. Manual fixes are required.");
+        return invalidAuthResponse;
     }
 
     /**
@@ -210,31 +190,18 @@ public class AdminApiController extends BaseController {
      * (GET)    /api/v2/data/recache
      */
     @GetMapping(value = "/recache")
-    public BaseResponse updateCaches() {
+    public BaseResponse updateCaches(HttpServletRequest request,
+                                     @RequestParam(required = false, defaultValue = "defaultUser") String username,
+                                     @RequestParam(required = false, defaultValue = "defaultPass") String password,
+                                     @RequestParam(required = false, defaultValue = "") String key) {
+        if (!authenticate(request, username, password, key)) {
+            return invalidAuthResponse;
+        }
         try {
             shapefileDao.cacheDistrictGeometryData();
             return new GenericResponse(true,  SUCCESS.getCode() + ": " + SUCCESS.getDesc());
         } catch (Exception e) {
             return new ApiError(this.getClass(), INTERNAL_ERROR);
         }
-    }
-
-    /**
-     * Returns a List of JobProcessStatus objects within the given 'from' and 'to' request time range.
-     * @param request HttpServletRequest, Optional Params: 'from' (Start timestamp value for job requestTime)
-     *                                                     'to' (End timestamp value for job requestTime)
-     * @return List<JobProcessStatus>
-     */
-    private List<JobProcessStatusView> getJobProcessStatusList(HttpServletRequest request) {
-        List<JobProcessStatusView> statusViews = new ArrayList<>();
-        Timestamp from = getBeginTimestamp(request);
-        Timestamp to = getEndTimestamp(request);
-        List<JobProcessStatus> statuses = sqlJobProcessDao.getJobStatusesByConditions(
-                List.of(JobProcessStatus.Condition.values()), null, from, to
-        );
-        for (JobProcessStatus jobProcessStatus : statuses) {
-            statusViews.add(new JobProcessStatusView(jobProcessStatus));
-        }
-        return statusViews;
     }
 }
