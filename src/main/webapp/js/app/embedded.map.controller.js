@@ -9,21 +9,12 @@ sage.controller("EmbeddedMapController", function($scope, $http, $window, dataBu
             uiBlocker.block("Loading maps..");
             $http.get(this.getDistrictMapUrl())
                 .then(function(response) {
-                    var data = response.data;
-                    if (this.districtType === "county") {
-                        // console.log($window);
-                        // console.log("District type is county");
-                        dataBus.setBroadcast("embeddedCountyMap", data);
-                    }
-                    else {
-                        dataBus.setBroadcast("embeddedMap", data);
-                    }
+                    dataBus.setBroadcast("embeddedMap", response.data);
                 }, function(response){});
         }
     };
 
     $scope.getDistrictMapUrl = function () {
-        // console.log(contextPath + baseApi + "/map/" + this.districtType + "?showMembers=true" + ((this.districtCode) ? ("&district=" + this.districtCode) : ""));
         return contextPath + baseApi + "/map/" + this.districtType + "?showMembers=true" + ((this.districtCode) ? ("&district=" + this.districtCode) : "");
     };
 

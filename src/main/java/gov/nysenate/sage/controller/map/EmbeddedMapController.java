@@ -16,7 +16,6 @@ import java.io.IOException;
 @Controller
 public class EmbeddedMapController {
     private static final String MAPS_JSP = "/WEB-INF/views/maps.jsp";
-    private static final String COUNTY_COVID_JSP = "/WEB-INF/views/countydoh.jsp";
 
     /**
      * Embedded Map Api
@@ -40,6 +39,7 @@ public class EmbeddedMapController {
 
         setCommonRequestAttributes(request, width, height, customMapStyle, saturation, hue, lightness,
                 customPolyStyle, polyHue);
+        request.setAttribute("doh", false);
 
         request.getRequestDispatcher(MAPS_JSP).forward(request, response);
     }
@@ -69,14 +69,9 @@ public class EmbeddedMapController {
                 customPolyStyle, polyHue);
 
         request.setAttribute("districtType", districtType);
+        request.setAttribute("doh", districtType.equalsIgnoreCase("county") && doh);
 
-        if (districtType.equalsIgnoreCase("county") && doh) {
-            request.getRequestDispatcher(COUNTY_COVID_JSP).forward(request, response);
-        }
-        else {
-            request.getRequestDispatcher(MAPS_JSP).forward(request, response);
-        }
-
+        request.getRequestDispatcher(MAPS_JSP).forward(request, response);
     }
 
     /**
@@ -106,6 +101,7 @@ public class EmbeddedMapController {
 
         request.setAttribute("districtType", districtType);
         request.setAttribute("districtCode", districtCode);
+        request.setAttribute("doh", false);
 
         request.getRequestDispatcher(MAPS_JSP).forward(request, response);
     }

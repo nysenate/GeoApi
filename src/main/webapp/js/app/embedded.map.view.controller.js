@@ -1,8 +1,13 @@
 var sage = angular.module('sage');
 
-sage.controller("EmbeddedMapViewController", function($scope, dataBus, uiBlocker, mapService){
+sage.controller("EmbeddedMapViewController", function($scope, $window, dataBus, uiBlocker, mapService){
     $scope.showPrompt = false;
     $scope.viewInfo = false;
+    /** County DoH embeds show DoH info on county clicks instead of senator info */
+    $scope.isDoh = $window.doh === true;
+    $scope.infoTitle = $scope.isDoh ? "DoH Information" : "Senator Information";
+
+    var clickableType = $scope.isDoh ? "county" : "senate";
 
     $scope.$on("embeddedMap", function() {
         var data = dataBus.data;
@@ -14,9 +19,9 @@ sage.controller("EmbeddedMapViewController", function($scope, dataBus, uiBlocker
                 $.each(data.districts, function(i, v){
                     if (v.map != null) {
                         mapService.setOverlay(v.map.geom, formatDistrictName(v), false, false,
-                            (v.type.toLowerCase() == "senate") ?
+                            (v.type.toLowerCase() == clickableType) ?
                                 function() {
-                                    dataBus.setBroadcast("showEmbedSenator", v);
+                                    dataBus.setBroadcast("showEmbedDistrict", v);
                                 }
                                 : null, mapService.colors[0]);
                     }
@@ -26,11 +31,12 @@ sage.controller("EmbeddedMapViewController", function($scope, dataBus, uiBlocker
             }
             /** Show the individual district map */
             else if (data.map != null) {
-                $scope.senator = data.member;
-                $scope.district = data.district;
+                $scope.setDistrictInfo(data);
                 mapService.setOverlay(data.map.geom, formatDistrictName(data), true, true, null, mapService.colors[0]);
-                if (data.type.toLowerCase() == "senate") {
-                    $scope.setOfficeMarkers(data.member.offices);
+                if (data.type.toLowerCase() == clickableType) {
+                    if (data.member && data.member.offices) {
+                        $scope.setOfficeMarkers(data.member.offices);
+                    }
                     $scope.showPrompt = false;
                     $scope.showInfo = false;
                 }
@@ -40,71 +46,27 @@ sage.controller("EmbeddedMapViewController", function($scope, dataBus, uiBlocker
         uiBlocker.unBlock();
     });
 
-    $scope.$on("showEmbedSenator", function(){
+    $scope.$on("showEmbedDistrict", function(){
         var data = dataBus.data;
         if (data) {
             $scope.$apply(function(){
                 $scope.showPrompt = true;
                 $scope.showInfo = true;
-                $scope.senator = data.member;
-                $scope.district = data.district;
+                $scope.setDistrictInfo(data);
                 mapService.clearMarkers();
-                $scope.setOfficeMarkers(data.member.offices);
-            });
-        }
-    });
-
-
-    //COUNTY SECTION
-    $scope.$on("embeddedCountyMap", function() {
-        var data = dataBus.data;
-        if (data.statusCode == 0) {
-            mapService.clearMarkers();
-            /** Show all the district map boundaries */
-            if (data != null && data.districts != null) {
-                mapService.clearPolygons();
-                $.each(data.districts, function(i, v){
-                    if (v.map != null) {
-                        mapService.setOverlay(v.map.geom, formatDistrictName(v), false, false,
-                            (v.type.toLowerCase() == "county") ?
-                                function() {
-                                    dataBus.setBroadcast("showEmbedCounty", v);
-                                }
-                                : null, mapService.colors[0]);
-                    }
-                });
-                mapService.setCenter(42.440510, -76.495460); // Centers the map nicely over NY
-                mapService.setZoom(7);
-            }
-            /** Show the individual district map */
-            else if (data.map != null) {
-                $scope.link = data.link;
-                $scope.district = data.district;
-                mapService.setOverlay(data.map.geom, formatDistrictName(data), true, true, null, mapService.colors[0]);
-                if (data.type.toLowerCase() == "county") {
+                if (data.member && data.member.offices) {
                     $scope.setOfficeMarkers(data.member.offices);
-                    $scope.showCountyPrompt = false;
-                    $scope.showInfo = false;
                 }
-            }
-        }
-        mapService.toggleMap(true);
-        uiBlocker.unBlock();
-    });
-
-    $scope.$on("showEmbedCounty", function(){
-        var data = dataBus.data;
-        if (data) {
-            $scope.$apply(function(){
-                $scope.showCountyPrompt = true;
-                $scope.showInfo = true;
-                $scope.link = data.link;
-                $scope.district = data.district;
-                $scope.distName = data.name;
-                mapService.clearMarkers();
             });
         }
     });
+
+    $scope.setDistrictInfo = function(data) {
+        $scope.senator = data.member;
+        $scope.district = data.district;
+        $scope.link = data.link;
+        $scope.distName = data.name;
+    };
 
     $scope.setOfficeMarkers = function(offices) {
         /** Clicking an office marker will open info pane with details */

@@ -229,8 +229,8 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
                     }
                     if (mapService.mouseEventName != null) {
 
-                        var currentUrl = window.location.href;
-                        if (currentUrl.includes("doh=true")) {
+                        /** County DoH embeds label districts by county name only */
+                        if (window.doh === true) {
                             name = name.split("-")[0].trim();
                         }
 

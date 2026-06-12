@@ -60,6 +60,7 @@
                         districtCode = "${districtCode}";
                         width = ${width};
                         height = ${height};
+                        doh = ${doh};
                     </script>
                 </div>
                 <div id="mapView" ng-controller="EmbeddedMapViewController">
@@ -67,8 +68,8 @@
                         <table style="width:100%">
                             <tr>
                                 <td>
-                                    <a ng-hide="showInfo" ng-click="showInfo=true;">Senator Information</a>
-                                    <a ng-show="showInfo" ng-click="showInfo=false;">Senator Information</a>
+                                    <a ng-hide="showInfo" ng-click="showInfo=true;">{{infoTitle}}</a>
+                                    <a ng-show="showInfo" ng-click="showInfo=false;">{{infoTitle}}</a>
                                 </td>
                                 <td class="right-icon-placeholder">
                                     <a ng-hide="showInfo" ng-click="showInfo=true;"><div class="icon-arrow-down4"></div></a>
@@ -77,14 +78,20 @@
                             </tr>
                         </table>
                         <div ng-show="showInfo" id="senator-view" style="padding-top:10px;border-top:1px solid #ddd">
-                            <div class="mini-senator-pic-holder">
+                            <div class="mini-senator-pic-holder" ng-if="!isDoh">
                                 <a ng-href="{{senator.url}}" target="_top"><img ng-src="{{senator.imageUrl}}" class="senator-pic" /></a>
                             </div>
-                            <div>
+                            <div ng-if="!isDoh">
                                 <p class="senator member-name">
                                     <a target="_blank" ng-href="{{senator.url}}">{{senator.name}}</a>
                                 </p>
                                 <p class="senate district">Senate District {{district}}</p>
+                            </div>
+                            <div ng-if="isDoh">
+                                <p class="senator district">
+                                    <a target="_blank" ng-href="{{link}}">Department of Health</a>
+                                </p>
+                                <p class="senate member-name">{{distName}}</p>
                             </div>
                         </div>
                     </div>
