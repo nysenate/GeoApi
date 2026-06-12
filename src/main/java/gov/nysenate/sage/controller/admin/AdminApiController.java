@@ -3,16 +3,13 @@ package gov.nysenate.sage.controller.admin;
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.client.response.base.GenericResponse;
-import gov.nysenate.sage.client.view.job.JobProcessStatusView;
 import gov.nysenate.sage.controller.api.BaseController;
 import gov.nysenate.sage.dao.model.api.ApiUserDao;
-import gov.nysenate.sage.dao.model.job.SqlJobProcessDao;
 import gov.nysenate.sage.dao.provider.shapefile.ShapefileDao;
 import gov.nysenate.sage.dao.stats.api.SqlApiUsageStatsDao;
 import gov.nysenate.sage.dao.stats.deployment.SqlDeploymentStatsDao;
 import gov.nysenate.sage.dao.stats.geocode.SqlGeocodeStatsDao;
 import gov.nysenate.sage.model.district.DistrictType;
-import gov.nysenate.sage.model.job.JobProcessStatus;
 import gov.nysenate.sage.model.stats.DeploymentStats;
 import gov.nysenate.sage.util.auth.AdminUserAuth;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
@@ -27,8 +24,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpServletRequest;
-import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.List;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
@@ -41,20 +36,18 @@ public class AdminApiController extends BaseAdminApiController {
     private final SqlDeploymentStatsDao sqlDeploymentStatsDao;
     private final ApiUserDao apiUserDao;
     private final SqlGeocodeStatsDao sqlGeocodeStatsDao;
-    private final SqlJobProcessDao sqlJobProcessDao;
     private final ShapefileDao shapefileDao;
 
     @Autowired
     public AdminApiController(SqlApiUsageStatsDao sqlApiUsageStatsDao, SqlDeploymentStatsDao sqlDeploymentStatsDao,
                               ApiUserDao apiUserDao, SqlGeocodeStatsDao sqlGeocodeStatsDao,
-                              SqlJobProcessDao sqlJobProcessDao, ShapefileDao shapefileDao,
+                              ShapefileDao shapefileDao,
                               AdminUserAuth adminUserAuth, ApiUserAuth apiUserAuth) {
         super(adminUserAuth,  apiUserAuth);
         this.sqlApiUsageStatsDao = sqlApiUsageStatsDao;
         this.sqlDeploymentStatsDao = sqlDeploymentStatsDao;
         this.apiUserDao = apiUserDao;
         this.sqlGeocodeStatsDao = sqlGeocodeStatsDao;
-        this.sqlJobProcessDao = sqlJobProcessDao;
         this.shapefileDao = shapefileDao;
     }
 
@@ -115,34 +108,6 @@ public class AdminApiController extends BaseAdminApiController {
         }
         return invalidAuthResponse;
 
-    }
-
-    /**
-     * Job Statuses Api
-     * ---------------------
-     * Returns current job statuses
-     * Usage:
-     * (GET)    /admin/api/jobStatuses
-     *
-     */
-    @GetMapping(value = "/jobStatuses")
-    public Object jobStatuses(HttpServletRequest request,
-                            @RequestParam(required = false, defaultValue = "defaultUser") String username,
-                            @RequestParam(required = false, defaultValue = "defaultPass") String password,
-                            @RequestParam(required = false, defaultValue = "") String key) {
-        if (authenticate(request, username, password, key)) {
-            List<JobProcessStatusView> statusViews = new ArrayList<>();
-            Timestamp from = getBeginTimestamp(request);
-            Timestamp to = getEndTimestamp(request);
-            List<JobProcessStatus> statuses = sqlJobProcessDao.getJobStatusesByConditions(
-                    List.of(JobProcessStatus.Condition.values()), null, from, to
-            );
-            for (JobProcessStatus jobProcessStatus : statuses) {
-                statusViews.add(new JobProcessStatusView(jobProcessStatus));
-            }
-            return statusViews;
-        }
-        return invalidAuthResponse;
     }
 
     /**

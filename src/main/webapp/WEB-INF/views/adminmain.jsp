@@ -50,10 +50,6 @@
                         <div class=" icon-users"></div>&nbsp;Api User Stats</a></li>
 
                 <li>
-                    <a ng-class="{'active': activeTab=='job-status'}" ng-click="changeTab('job-status')">
-                        <div class=" icon-map"></div>&nbsp;Job Status</a></li>
-
-                <li>
                     <a ng-class="{'active': activeTab=='geocode-usage'}" ng-click="changeTab('geocode-usage')">
                         <div class=" icon-compass"></div>&nbsp;Geocode Usage</a></li>
 
@@ -84,7 +80,6 @@
 
                             <hr/>
 
-                            <%-- TODO: This doesn't load properly --%>
                             <ul class="horizontal">
                                 <li><label>Last Deployed | </label> {{lastDeployment.deployTime | date:'medium'}}</li>
                                 <li><label>Latest Uptime | </label>{{latestUptime / 3600000 | number:3}} hours</li>
@@ -98,34 +93,6 @@
                             <sage:datepicker></sage:datepicker>
                             <hr/>
                             <div id="api-usage-stats"></div>
-                        </div>
-
-                        <div ng-controller="JobStatusController" id="job-status" class="highlight-section fixed"
-                             ng-show="determineActiveTab('job-status')">
-                            <p class="blue-header">Batch Job Usage</p>
-                            <hr/>
-                            <div>
-                                <table class="light-table">
-                                    <tr>
-                                        <th>Job Id</th>
-                                        <th>Requestor</th>
-                                        <th>File Name</th>
-                                        <th>Record Count</th>
-                                        <th>Start Time</th>
-                                        <th>End Time</th>
-                                        <th>Condition</th>
-                                    </tr>
-                                    <tr ng-repeat="jobStatus in jobStatuses">
-                                        <td>{{jobStatus.processId}}</td>
-                                        <td>{{jobStatus.process.requestorEmail}}</td>
-                                        <td>{{jobStatus.process.sourceFileName}}</td>
-                                        <td>{{jobStatus.process.recordCount}}</td>
-                                        <td>{{jobStatus.startTime | date:'medium'}}</td>
-                                        <td>{{jobStatus.completeTime | date:'medium'}}</td>
-                                        <td>{{jobStatus.condition}}</td>
-                                    </tr>
-                                </table>
-                            </div>
                         </div>
 
                         <div ng-controller="ApiUserStatsController" id="api-user-stats" class="highlight-section fixed"

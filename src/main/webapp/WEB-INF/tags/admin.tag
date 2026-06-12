@@ -8,5 +8,4 @@
 <script src="${pageContext.request.contextPath}/js/admin/dashboard.controller.js" type="text/javascript"></script>
 <script src="${pageContext.request.contextPath}/js/admin/deployment.stats.controller.js" type="text/javascript"></script>
 <script src="${pageContext.request.contextPath}/js/admin/geocode.usage.controller.js" type="text/javascript"></script>
-<script src="${pageContext.request.contextPath}/js/admin/job.status.controller.js" type="text/javascript"></script>
 <script src="${pageContext.request.contextPath}/js/admin/user.console.controller.js" type="text/javascript"></script>
