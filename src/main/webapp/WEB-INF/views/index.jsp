@@ -5,9 +5,7 @@
 <%@ page import="gov.nysenate.sage.service.geo.SageGeocodeServiceProvider" %>
 <%@ taglib prefix="sage" tagdir="/WEB-INF/tags" %>
 <%@ taglib uri="jakarta.tags.core" prefix="c" %>
-<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
-<fmt:setLocale value="es_ES"/>
 <%
     ApplicationContext ac = RequestContextUtils.findWebApplicationContext(request);
     Environment env = (Environment) ac.getBean("environment");

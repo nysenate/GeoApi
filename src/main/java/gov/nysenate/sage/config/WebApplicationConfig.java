@@ -14,11 +14,14 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.i18n.FixedLocaleResolver;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
+import java.util.Locale;
 
 @Configuration
 @EnableWebMvc
@@ -81,5 +84,13 @@ public class WebApplicationConfig implements WebMvcConfigurer {
         viewResolver.setPrefix("/WEB-INF/views/");
         viewResolver.setSuffix(".jsp");
         return viewResolver;
+    }
+
+    /**
+     * Sets a fixed locale for the whole application.
+     */
+    @Bean(name = "localeResolver")
+    public LocaleResolver localeResolver() {
+        return new FixedLocaleResolver(Locale.forLanguageTag("en-US"));
     }
 }

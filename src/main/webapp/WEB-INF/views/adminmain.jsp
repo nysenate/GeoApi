@@ -4,9 +4,7 @@
 <%@ page import="gov.nysenate.sage.service.geo.SageGeocodeServiceProvider" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="sage" tagdir="/WEB-INF/tags" %>
-<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
-<fmt:setLocale value="es_ES"/>
 <%
     ApplicationContext ac = RequestContextUtils.findWebApplicationContext(request);
     Environment env = (Environment) ac.getBean("environment");
@@ -58,8 +56,8 @@
                         <div class=" icon-user-add"></div>&nbsp;User Console</a></li>
 
                 <li>
-                    <a ng-class="{'active': activeTab=='uptime-stats'}" ng-click="changeTab('uptime-stats')">
-                        <div class=" icon-statistics"></div>&nbsp;Uptime Stats</a></li>
+                    <a ng-class="{'active': activeTab=='deployment-stats'}" ng-click="changeTab('deployment-stats')">
+                        <div class=" icon-statistics"></div>&nbsp;Deployment Stats</a></li>
 
                 <li><a ng-href="${pageContext.request.contextPath}/admindocs/html/index.html" target="_blank">Admin Docs</a></li>
 
@@ -73,18 +71,29 @@
 
                     <div ng-controller='DashboardController' ng-show='visible'>
 
-                        <div ng-controller="DeploymentStatsController" id="uptime-stats" class="highlight-section fixed"
-                             ng-show="determineActiveTab('uptime-stats')">
-
-                            <sage:datepicker></sage:datepicker>
-
-                            <hr/>
+                        <div ng-controller="DeploymentStatsController" id="deployment-stats" class="highlight-section fixed"
+                             ng-show="determineActiveTab('deployment-stats')">
 
                             <ul class="horizontal">
                                 <li><label>Last Deployed | </label> {{lastDeployment.deployTime | date:'medium'}}</li>
-                                <li><label>Latest Uptime | </label>{{latestUptime / 3600000 | number:3}} hours</li>
                                 <li><label>API Requests Since Deployment | </label>{{requestsSinceLatest}}</li>
                             </ul>
+
+                            <p class="blue-header">Deployment History</p>
+                            <table class="light-table" style="width:650px;margin:auto;text-align: left;">
+                                <thead>
+                                <tr>
+                                    <th>Deployed</th>
+                                    <th>API Request Count</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr ng-repeat="deployment in deployments | orderBy:'-deployTime'">
+                                    <td>{{deployment.deployTime | date:'medium'}}</td>
+                                    <td>{{deployment.apiRequestsSince}}</td>
+                                </tr>
+                                </tbody>
+                            </table>
                         </div>
 
                         <div ng-controller="ApiUsageController" id="api-usage" class="highlight-section fixed"

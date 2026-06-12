@@ -1,9 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="sage" tagdir="/WEB-INF/tags" %>
 <% request.setAttribute("contextPath", request.getContextPath()); %>
-<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
-
-<fmt:setLocale value = "es_ES"/>
 
 <sage:wrapper>
     <jsp:attribute name="ngApp">sage-job</jsp:attribute>
