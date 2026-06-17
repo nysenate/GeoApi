@@ -9,7 +9,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 
@@ -21,16 +21,14 @@ public class CongressionalDaoIT extends BaseTests {
 
     @Test
     public void getCongressionalsTest() {
-        List<DistrictMember> congressionalList = memberDao.getMembers(DistrictType.CONGRESSIONAL);
-        assertNotNull(congressionalList);
+        Map<Long, DistrictMember> congressionalMap = memberDao.getMembers(DistrictType.CONGRESSIONAL);
+        assertNotNull(congressionalMap);
 
-        DistrictMember c = congressionalList.getFirst();
-        assertEquals(DistrictType.CONGRESSIONAL, c.districtType());
-        assertNotNull(c.memberName());
-        assertNotNull(c.memberUrl());
-        assertFalse(c.memberName().isEmpty());
-        assertFalse(c.memberUrl().isEmpty());
-        assertTrue(c.district() > 0);
+        DistrictMember c = congressionalMap.get(14L);
+        assertNotNull(c.info().name());
+        assertNotNull(c.info().url());
+        assertFalse(c.info().name().isEmpty());
+        assertFalse(c.info().url().isEmpty());
     }
 }
 

@@ -1,30 +1,27 @@
 package gov.nysenate.sage.model.result;
 
 import gov.nysenate.sage.model.district.DistrictMember;
-import gov.nysenate.services.model.Senator;
+import gov.nysenate.sage.model.district.DistrictType;
+
+import java.util.Map;
 
 public class DistrictResultWithMembers extends DistrictResult {
-    private final Senator senator;
-    private final DistrictMember assemblyMember;
-    private final DistrictMember congressionalMember;
+    private final Map<DistrictType, DistrictMember> memberMap;
 
-    public DistrictResultWithMembers(DistrictResult baseResult, Senator senator, DistrictMember assemblyMember,
-                                     DistrictMember congressionalMember) {
+    public DistrictResultWithMembers(DistrictResult baseResult, Map<DistrictType, DistrictMember> memberMap) {
         super(baseResult.getSources().stream().toList(), baseResult.getDistrictInfo());
-        this.senator = senator;
-        this.assemblyMember = assemblyMember;
-        this.congressionalMember = congressionalMember;
+        this.memberMap = memberMap;
     }
 
-    public Senator getSenator() {
-        return senator;
+    public DistrictMember getSenator() {
+        return memberMap.get(DistrictType.SENATE);
     }
 
     public DistrictMember getAssemblyMember() {
-        return assemblyMember;
+        return memberMap.get(DistrictType.ASSEMBLY);
     }
 
     public DistrictMember getCongressionalMember() {
-        return congressionalMember;
+        return memberMap.get(DistrictType.CONGRESSIONAL);
     }
 }

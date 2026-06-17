@@ -6,10 +6,12 @@ import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.district.SingleDistrict;
 import gov.nysenate.sage.model.result.DistrictResultWithMembers;
+import lombok.Getter;
 
 public class DistrictView {
     private final SingleDistrict district;
     private final DistrictType type;
+    @Getter
     private final PolygonMapView map;
 
     protected DistrictView(SingleDistrict data, DistrictType type, DistrictMap map) {
@@ -25,7 +27,7 @@ public class DistrictView {
             return null;
         }
         return switch (type) {
-            case SENATE -> new SenateDistrictView(singleDistrict, type, districtMap, result.getSenator());
+            case SENATE -> new MemberDistrictView(singleDistrict, type, districtMap, result.getSenator());
             case ASSEMBLY -> new MemberDistrictView(singleDistrict, type, districtMap, result.getAssemblyMember());
             case CONGRESSIONAL -> new MemberDistrictView(singleDistrict, type, districtMap, result.getCongressionalMember());
             default -> new DistrictView(singleDistrict, type, districtMap);
@@ -42,9 +44,5 @@ public class DistrictView {
 
     public String getDisplayName() {
         return type.getDisplayName();
-    }
-
-    public PolygonMapView getMap() {
-        return map;
     }
 }

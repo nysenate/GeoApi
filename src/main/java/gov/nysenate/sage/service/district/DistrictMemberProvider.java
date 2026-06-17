@@ -2,23 +2,29 @@ package gov.nysenate.sage.service.district;
 
 import com.google.common.collect.ImmutableMap;
 import gov.nysenate.sage.dao.model.member.MemberDao;
-import gov.nysenate.sage.dao.model.senate.SqlSenateDao;
+import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictMember;
 import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.model.district.OfficeInfo;
+import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.DistrictResultWithMembers;
+import gov.nysenate.sage.model.result.GeocodeResult;
+import gov.nysenate.sage.provider.geocode.GeocodeService;
+import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.util.AssemblyScraper;
 import gov.nysenate.sage.util.CongressScraper;
-import gov.nysenate.services.model.Senator;
+import gov.nysenate.services.NYSenateJSONClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.function.Function;
-
-import static gov.nysenate.sage.model.district.DistrictType.*;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Typically when the district service providers return a DistrictInfo, only the district codes
@@ -28,36 +34,75 @@ import static gov.nysenate.sage.model.district.DistrictType.*;
  */
 @Component
 public class DistrictMemberProvider {
-    private final SqlSenateDao sqlSenateDao;
+    private static final Logger logger = LoggerFactory.getLogger(DistrictMemberProvider.class);
+    private static final Address LOB = new Address("198 State St", "Albany", "NY", "12247");
+
     private final MemberDao memberDao;
-    private ImmutableMap<Integer, Senator> senatorCache;
-    private ImmutableMap<Integer, DistrictMember> assemblyCache, congressionalCache;
+    private final AddressService addressService;
+    private final GeocodeService geocodeService;
+    private final EnumMap<DistrictType, ImmutableMap<Long, DistrictMember>> caches = new EnumMap<>(DistrictType.class);
+    @Value("${nysenate.domain:https://www.nysenate.gov}")
+    private String nysenateDomain;
 
     @Autowired
-    public DistrictMemberProvider(SqlSenateDao sqlSenateDao, MemberDao memberDao) {
-        this.sqlSenateDao = sqlSenateDao;
+    public DistrictMemberProvider(MemberDao memberDao, AddressService addressService, GeocodeService geocodeService) {
         this.memberDao = memberDao;
-        recreateCaches();
+        this.addressService = addressService;
+        this.geocodeService = geocodeService;
+        Arrays.stream(DistrictType.values()).forEach(type ->
+                {
+                    Map<Long, DistrictMember> memberMap = memberDao.getMembers(type);
+                    if (memberMap != null) {
+                        caches.put(type, ImmutableMap.copyOf(memberMap));
+                    }
+                }
+        );
     }
 
-    public void updateDistrictMembers(DistrictType type) {
-        // Senators are handled elsewhere.
-        if (type.lacksMember() || type == SENATE) {
-            return;
-        }
-        List<DistrictMember> newMembers = switch (type) {
-            case CONGRESSIONAL -> CongressScraper.getCongressionals();
+    public void updateDistrictMembers(DistrictType type) throws IOException {
+        Map<Long, DistrictMember> newMemberMap = switch (type) {
+            case SENATE -> new NYSenateJSONClient(nysenateDomain).getSenators().stream().collect(
+                    Collectors.toMap(senator -> Long.valueOf(senator.getDistrict().getNumber()),
+                            senator -> new DistrictMember(senator, senator.getOffices()))
+            );
             case ASSEMBLY -> AssemblyScraper.getAssemblies();
-            default -> List.of();
+            case CONGRESSIONAL -> CongressScraper.getCongressionals();
+            default -> Map.of();
         };
-        if (newMembers.isEmpty()) {
+        if (newMemberMap.isEmpty()) {
             throw new RuntimeException("No %s members found!".formatted(type));
         }
 
-        for (DistrictMember newMember : newMembers) {
-            if (newMember != null) {
-                memberDao.insertOrReplaceDistrictMember(newMember);
+        for (var entry :  newMemberMap.entrySet()) {
+            if (entry.getValue().offices() == null) {
+                continue;
             }
+            for (OfficeInfo info : entry.getValue().offices()) {
+                Address addressToGeocode = info.getAddress().getRealAddress();
+                if (addressToGeocode.getAddr1().matches("(\\d+ )?Legislative Office (Bldg|Building).*")) {
+                    addressToGeocode = LOB;
+                }
+                // Offices within the Capitol are corrected poorly by AMS, since it's a unique zipcode.
+                // TODO: improve?
+                if (!"12247".equals(info.getAddress().zip5())) {
+                    addressToGeocode = addressService.validateOrDefault(addressToGeocode);
+                }
+                info.setPoint(getPoint(addressToGeocode));
+            }
+        }
+
+        memberDao.refreshMemberData(type, newMemberMap);
+        caches.put(type, ImmutableMap.copyOf(memberDao.getMembers(type)));
+    }
+
+    private Point getPoint(Address officeAddress) {
+        GeocodeResult result = geocodeService.geocode(null, officeAddress);
+        if (result.isSuccess()) {
+            return result.getGeocode().point();
+        }
+        else {
+            logger.error("Unable to geocode this office address: {}", officeAddress);
+            return null;
         }
     }
 
@@ -65,44 +110,29 @@ public class DistrictMemberProvider {
      * Adds the senator, congressional, and/or assembly member data to the map result.
      */
     public void assignMember(DistrictMap map) {
-        if (map == null || map.getDistrictType().lacksMember()) {
+        if (map == null) {
             return;
         }
-        int code = Integer.parseInt(map.getDistrictCode());
-        switch (map.getDistrictType()) {
-            case SENATE -> map.setSenator(senatorCache.get(code));
-            case ASSEMBLY -> map.setMember(assemblyCache.get(code));
-            case CONGRESSIONAL -> map.setMember(congressionalCache.get(code));
+        Map<Long, DistrictMember> cache = caches.get(map.getDistrictType());
+        long code = Long.parseLong(map.getDistrictCode());
+        if (cache != null) {
+            map.setMember(cache.get(code));
         }
     }
 
     public DistrictResultWithMembers assignMembers(DistrictResult baseResult) {
-        var codeMap = new HashMap<DistrictType, Integer>();
+        var memberMap = new HashMap<DistrictType, DistrictMember>();
         for (DistrictType type : baseResult.getAssignedDistricts()) {
-            if (type.lacksMember()) {
+            ImmutableMap<Long, DistrictMember> cache = caches.get(type);
+            if (cache == null) {
                 continue;
             }
             String codeStr = baseResult.getDistrictInfo().getDistCode(type);
             if (codeStr == null) {
                 continue;
             }
-            codeMap.put(type, Integer.parseInt(codeStr));
+            memberMap.put(type, cache.get(Long.parseLong(codeStr)));
         }
-        return new DistrictResultWithMembers(baseResult, senatorCache.get(codeMap.get(SENATE)),
-                assemblyCache.get(codeMap.get(ASSEMBLY)), congressionalCache.get(codeMap.get(CONGRESSIONAL)));
-    }
-
-    public void recreateCaches() {
-        this.senatorCache = getCache(sqlSenateDao.getSenators(), sen -> sen.getDistrict().getNumber());
-        this.assemblyCache = getCache(memberDao.getMembers(DistrictType.ASSEMBLY), DistrictMember::district);
-        this.congressionalCache = getCache(memberDao.getMembers(DistrictType.CONGRESSIONAL), DistrictMember::district);
-    }
-
-    private static <T> ImmutableMap<Integer, T> getCache(List<T> members, Function<T, Integer> getDistrict) {
-        var tempMap = new HashMap<Integer, T>();
-        for (T member : members) {
-            tempMap.put(getDistrict.apply(member), member);
-        }
-        return ImmutableMap.copyOf(tempMap);
+        return new DistrictResultWithMembers(baseResult, memberMap);
     }
 }

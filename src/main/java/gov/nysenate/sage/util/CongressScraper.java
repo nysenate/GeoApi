@@ -1,7 +1,7 @@
 package gov.nysenate.sage.util;
 
 import gov.nysenate.sage.model.district.DistrictMember;
-import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.model.district.MemberInfo;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -10,8 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -21,8 +21,8 @@ public class CongressScraper {
     private static final Logger logger = LoggerFactory.getLogger(CongressScraper.class);
     private static final String HOUSE_MEM_URL = "https://www.house.gov/representatives";
 
-    public static List<DistrictMember> getCongressionals() {
-        List<DistrictMember> ret = new ArrayList<>();
+    public static Map<Long, DistrictMember> getCongressionals() {
+        var ret = new HashMap<Long, DistrictMember>();
 
         try {
             // Each state's representatives are in a separate HTML table.
@@ -38,7 +38,7 @@ public class CongressScraper {
             for (Element member : memberRows) {
                 Elements memberInfo = member.children();
                 String districtNumber = memberInfo.getFirst().text();
-                int distNum = Integer.parseInt( districtNumber.replace("st","").replace("nd","")
+                long distNum = Long.parseLong( districtNumber.replace("st","").replace("nd","")
                         .replace("rd","").replace("th","") );
                 String memberName = "";
                 try {
@@ -56,8 +56,7 @@ public class CongressScraper {
                     logger.warn("member {} does not appear to have a URL", memberName);
                 }
 
-                logger.info("Retrieved member [{}], CD={}", memberName, distNum);
-                ret.add(new DistrictMember(DistrictType.CONGRESSIONAL, distNum, memberName, memberUrl));
+                ret.put(distNum, new DistrictMember(new MemberInfo(memberName, null, memberUrl, null), null));
             }
 
             return ret;

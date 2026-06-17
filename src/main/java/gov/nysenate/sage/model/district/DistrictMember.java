@@ -1,17 +1,15 @@
 package gov.nysenate.sage.model.district;
 
-import java.util.Objects;
+import gov.nysenate.services.model.Office;
+import gov.nysenate.services.model.Senator;
+
+import java.util.List;
 
 /**
- * Represents a generic member associated with a district number
+ * Represents a generic member associated with a district number.
  */
-public record DistrictMember(DistrictType districtType, int district, String memberName, String memberUrl) {
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        DistrictMember that = (DistrictMember) o;
-        return district == that.district && districtType == that.districtType &&
-                Objects.equals(memberName, that.memberName) && Objects.equals(memberUrl, that.memberUrl);
+public record DistrictMember(MemberInfo info, List<OfficeInfo> offices) {
+    public DistrictMember(Senator senator, List<Office> senateOffices) {
+        this(new MemberInfo(senator), senateOffices.stream().map(OfficeInfo::new).toList());
     }
 }

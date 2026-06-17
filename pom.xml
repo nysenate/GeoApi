@@ -66,6 +66,13 @@
                     <parameters>true</parameters>
                     <!-- avoid possible encoding issues -->
                     <encoding>utf-8</encoding>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
             <!-- Surefire Plugin -->
@@ -140,6 +147,7 @@
         <jsoup.version>1.22.2</jsoup.version>
         <junit.version>4.13.2</junit.version>
         <log4j.version>2.26.0</log4j.version>
+        <lombok.version>1.18.38</lombok.version>
         <maven-core.version>3.9.6</maven-core.version>
         <mockito-core.version>5.2.0</mockito-core.version>
         <nysenate-java-client.version>2.3</nysenate-java-client.version>
@@ -178,6 +186,14 @@
     </dependencyManagement>
 
     <dependencies>
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- NY Senate Dependencies -->
         <dependency>
             <groupId>gov.nysenate</groupId>
@@ -472,6 +488,10 @@
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-json-org</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-parameter-names</artifactId>
         </dependency>
         <dependency>
             <groupId>net.sf.supercsv</groupId>

@@ -1,19 +1,21 @@
 package gov.nysenate.sage.client.view.map;
 
-import gov.nysenate.sage.client.view.district.MemberView;
 import gov.nysenate.sage.model.district.DistrictMap;
+import gov.nysenate.sage.model.district.DistrictMember;
 import gov.nysenate.sage.model.district.DistrictType;
+import lombok.Getter;
 
 import java.math.BigDecimal;
 
+@Getter
 public class DistrictMapView {
-    protected String type;
-    protected String district;
-    protected String name;
-    protected PolygonMapView map;
-    protected Object member;
-    protected String link;
-    protected BigDecimal area;
+    private String type;
+    private String district;
+    private String name;
+    private PolygonMapView map;
+    private DistrictMember member;
+    private String link;
+    private BigDecimal area;
 
     public DistrictMapView(DistrictMap districtMap, boolean showMaps) {
         if (districtMap != null) {
@@ -24,44 +26,11 @@ public class DistrictMapView {
             this.district = districtMap.getDistrictCode();
             this.name = districtMap.getDistrictName();
             this.map = (showMaps) ? new PolygonMapView(districtMap) : null;
-            if (districtType == DistrictType.SENATE) {
-                this.member = districtMap.getSenator();
-            }
-            else if (districtType == DistrictType.CONGRESSIONAL || districtType == DistrictType.ASSEMBLY) {
-                this.member = MemberView.from(districtMap.getMember());
-            }
-            else if (districtType == DistrictType.COUNTY) {
+            this.member = districtMap.getMember();
+            if (districtType == DistrictType.COUNTY) {
                 this.link = districtMap.getLink();
             }
             this.area = districtMap.getArea();
         }
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public String getDistrict() {
-        return district;
-    }
-
-    public PolygonMapView getMap() {
-        return map;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public Object getMember() {
-        return member;
-    }
-
-    public String getLink() {
-        return link;
-    }
-
-    public BigDecimal getArea() {
-        return area;
     }
 }

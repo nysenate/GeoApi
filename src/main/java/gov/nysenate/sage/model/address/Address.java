@@ -1,17 +1,22 @@
 package gov.nysenate.sage.model.address;
 
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Getter
 public sealed class Address permits BuildingAddress, PostOfficeBox {
     private static final Pattern zipPattern = Pattern.compile("(\\d{5})(-\\d{4})?");
-    private final String addr1, addr2, postalCity, state;
+    private final String addr1, addr2, postalCity,
+    // TODO: Should maybe default to NY/exclude it as a parameter
+            state;
     private final Zip5 zip5;
     private final Zip4 zip4;
 
-    public Address(String addr1, String addr2, String postalCity, String state, String zip5, String zip4) {
+    public Address(String addr1, String addr2, String postalCity,
+                   String state, String zip5, String zip4) {
         this(addr1, addr2, postalCity, state,
                 StringUtils.isBlank(zip5) ? null : new Zip5(zip5), StringUtils.isBlank(zip4) ? null : new Zip4(zip4));
     }
@@ -63,28 +68,8 @@ public sealed class Address permits BuildingAddress, PostOfficeBox {
         return new Address(csv[0], "", postalCity, state, zip5, zip4);
     }
 
-    public String getAddr1() {
-        return addr1;
-    }
-
     public String getPrimaryAddr1() {
         return addr1;
-    }
-
-    public String getAddr2() {
-        return addr2;
-    }
-
-    public String getPostalCity() {
-        return postalCity;
-    }
-
-    public Zip5 getZip5() {
-        return zip5;
-    }
-
-    public Zip4 getZip4() {
-        return zip4;
     }
 
     @Override
@@ -92,10 +77,6 @@ public sealed class Address permits BuildingAddress, PostOfficeBox {
         return addr1 + (StringUtils.isBlank(postalCity) ? "" : ", " + postalCity) +
                 (StringUtils.isBlank(state) ? "" : ", " + state) +
                 (zip5 == null ? "" : ", " + zip5) + (zip4 == null ? "" : "-" + zip4);
-    }
-
-    public String getState() {
-        return state;
     }
 
     /** Indicates if address has been marked USPS validated. */

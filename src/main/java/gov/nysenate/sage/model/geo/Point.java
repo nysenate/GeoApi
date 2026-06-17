@@ -1,5 +1,7 @@
 package gov.nysenate.sage.model.geo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.annotation.Nonnull;
 import java.math.BigDecimal;
 
@@ -11,6 +13,7 @@ public record Point(BigDecimal lat, BigDecimal lon) {
         this(new BigDecimal(lat), new BigDecimal(lon));
     }
 
+    @JsonIgnore
     public boolean isValid() {
         return lat != null && lon != null && !lat.equals(BigDecimal.ZERO) && !lon.equals(BigDecimal.ZERO);
     }

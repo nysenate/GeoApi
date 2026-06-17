@@ -124,7 +124,7 @@ district.ranking = streetfile, shapefile
 job.process.cron = 0 * * * * *
 
 # Specify when the senator data is refreshed
-senator.refresh.cron = 0 0 0/12 * * *
+member.refresh.cron = 0 0 0/12 * * *
 
 #####################################
 ## Streetfile Script Config

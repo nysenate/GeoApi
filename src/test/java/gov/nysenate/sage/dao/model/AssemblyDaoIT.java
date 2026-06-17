@@ -9,7 +9,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 
@@ -20,16 +20,14 @@ public class AssemblyDaoIT extends BaseTests {
 
     @Test
     public void getAssembliesTest() {
-        List<DistrictMember> assemblyList = memberDao.getMembers(DistrictType.ASSEMBLY);
-        assertNotNull(assemblyList);
-        assertEquals(150, assemblyList.size());
+        Map<Long, DistrictMember> assemblyMap = memberDao.getMembers(DistrictType.ASSEMBLY);
+        assertNotNull(assemblyMap);
+        assertEquals(150, assemblyMap.size());
 
-        DistrictMember a = assemblyList.getFirst();
-        assertEquals(DistrictType.ASSEMBLY, a.districtType());
-        assertNotNull(a.memberName());
-        assertNotNull(a.memberUrl());
-        assertFalse(a.memberName().isEmpty());
-        assertFalse(a.memberUrl().isEmpty());
-        assertTrue(a.district() > 0);
+        DistrictMember a = assemblyMap.get(1L);
+        assertNotNull(a.info().name());
+        assertNotNull(a.info().url());
+        assertFalse(a.info().name().isEmpty());
+        assertFalse(a.info().url().isEmpty());
     }
 }
