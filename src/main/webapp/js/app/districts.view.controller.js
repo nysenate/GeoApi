@@ -72,20 +72,16 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
             mapService.clearMarkers();
 
             /** Show all the district map boundaries */
-            if (data != null && data.districts != null) {
+            if (data?.districts) {
                 mapService.clearPolygons();
                 $.each(data.districts, function(i, v){
-                    if (v.map != null) {
+                    if (v.map) {
                         mapService.setOverlay(v.map.geom, formatDistrictName(v), false, false,
                             (v.type == "SENATE") ? function() {
 
                                 /** Draw the office markers */
                                 mapService.clearMarkers();
-                                $.each(v.member.offices, function(i, office){
-                                    if (office && office.name != null && office.name != "") {
-                                        mapService.setMarker(office.latitude, office.longitude, office.name + ' - ' + office.street, false, false);
-                                    }
-                                });
+                                mapService.setOfficeMarkers(v.member.offices);
                                 dataBus.setBroadcastAndView("member", v.member, "member");
                                 $scope.$apply();
                             } : null
@@ -109,13 +105,8 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
 
                     /** Draw the office markers */
                     mapService.clearMarkers();
-                    if (data.member && data.member.offices) {
-                        $.each(data.member.offices, function(i, office){
-                            if (office && office.name != null && office.name != "") {
-                                mapService.setMarker(office.latitude, office.longitude, office.name + ' - ' + office.street, false, false);
-                            }
-                        });
-                    }
+                    mapService.setOfficeMarkers(data?.members?.offices);
+
                 }
                 else {
                     dataBus.setBroadcast("hideResultTab");
@@ -163,11 +154,7 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
         mapService.setOverlay(overlap.fullMap.geom, overlap.name, false, true, null, this.colors[index % this.colors.length]);
     };
 
-    $scope.setOfficeMarker = function(office) {
-        if (office != null) {
-            mapService.setMarker(office.latitude, office.longitude, office.name + ' - ' + office.street, true, true, null);
-        }
-    };
+    $scope.setOfficeMarker = mapService.setOfficeMarker;
 
     $scope.requestDistrictInfo = function(addr) {
         dataBus.setBroadcast("requestDistrictInfo", addr);

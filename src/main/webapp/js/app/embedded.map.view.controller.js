@@ -14,7 +14,7 @@ sage.controller("EmbeddedMapViewController", function($scope, $window, dataBus, 
         if (data.statusCode == 0) {
             mapService.clearMarkers();
             /** Show all the district map boundaries */
-            if (data != null && data.districts != null) {
+            if (data?.districts) {
                 mapService.clearPolygons();
                 $.each(data.districts, function(i, v){
                     if (v.map != null) {
@@ -34,9 +34,7 @@ sage.controller("EmbeddedMapViewController", function($scope, $window, dataBus, 
                 $scope.setDistrictInfo(data);
                 mapService.setOverlay(data.map.geom, formatDistrictName(data), true, true, null, mapService.colors[0]);
                 if (data.type.toLowerCase() == clickableType) {
-                    if (data.member && data.member.offices) {
-                        $scope.setOfficeMarkers(data.member.offices);
-                    }
+                    mapService.setOfficeMarkers(data?.member?.offices);
                     $scope.showPrompt = false;
                     $scope.showInfo = false;
                 }
@@ -54,9 +52,7 @@ sage.controller("EmbeddedMapViewController", function($scope, $window, dataBus, 
                 $scope.showInfo = true;
                 $scope.setDistrictInfo(data);
                 mapService.clearMarkers();
-                if (data.member && data.member.offices) {
-                    $scope.setOfficeMarkers(data.member.offices);
-                }
+                mapService.setOfficeMarkers(data?.member?.offices);
             });
         }
     });
@@ -67,20 +63,4 @@ sage.controller("EmbeddedMapViewController", function($scope, $window, dataBus, 
         $scope.link = data.link;
         $scope.distName = data.name;
     };
-
-    $scope.setOfficeMarkers = function(offices) {
-        /** Clicking an office marker will open info pane with details */
-        $.each(offices, function(i, office){
-            if (office && office.name != null && office.name != "") {
-                mapService.setMarker(office.latitude, office.longitude, office.name, false, false,
-                    "<div style='width:160px;'>" +
-                    "<p style='color:teal;font-size:18px;'>" + office.name + "</p>" +
-                    "<p>" + office.street + "</p>" +
-                    "<p>" + office.additional+ "</p>" +
-                    "<p>" + office.city + ", " + office.province + " " + office.postalCode +"</p>" +
-                    "<p>Phone " + office.phone + "</p>" +
-                    "</div>");
-            }
-        });
-    }
 });

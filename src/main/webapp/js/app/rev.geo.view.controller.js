@@ -9,7 +9,6 @@ sage.controller("RevGeoViewController", function($scope, $filter, dataBus, mapSe
         $scope = angular.extend($scope, dataBus.data);
         $scope.revGeocoded = ($scope.statusCode == 0);
         if ($scope.revGeocoded) {
-            mapService
             var markerTitle = $filter('addressFormat')($scope.address, '');
             mapService.setMarker($scope.geocode.lat, $scope.geocode.lon, markerTitle , true, true, null);
         }

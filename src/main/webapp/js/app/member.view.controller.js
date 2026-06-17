@@ -21,9 +21,5 @@ sage.controller("MemberViewController", function($scope, dataBus, mapService) {
         }
     });
 
-    $scope.setOfficeMarker = function(office) {
-        if (office != null) {
-            mapService.setMarker(office.latitude, office.longitude, office.name + ' - ' + office.street, true, true, null);
-        }
-    }
+    $scope.setOfficeMarker = mapService.setOfficeMarker;
 });

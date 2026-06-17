@@ -168,6 +168,38 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
     };
 
     /**
+     * Draw a marker for a senator/DoH office.
+     * It shows the office name and street on hover and the
+     * full office contact details in a popup when clicked. A single office is
+     * treated as a "locate" action: other markers are cleared and the map centers
+     * on it.
+     */
+    const setOfficeMarkerHelper = function (office, focus) {
+        if (!office?.name || !office.point) {
+            return;
+        }
+        mapService.setMarker(office.point.lat, office.point.lon,
+            office.name + ' - ' + office.street, focus, focus,
+            focus ? null :
+                "<div style='width:160px;'>" +
+                "<p style='color:teal;font-size:18px;'>" + office.name + "</p>" +
+                "<p>" + office.street + "</p>" +
+                "<p>" + office.city + ", NY " + office.postalCode + "</p>" +
+                "<p>Phone " + office.phone + "</p>" +
+                "</div>");
+    };
+
+    mapService.setOfficeMarker = function(office) {
+        setOfficeMarkerHelper(office, true);
+    };
+
+    mapService.setOfficeMarkers = function(offices) {
+        if (offices) {
+            $.each(offices, function(i, office) {setOfficeMarkerHelper(office, false);})
+        }
+    };
+
+    /**
      * Sets a polygon overlay on the map with hover and click functionality
      * @param geom          Nested array of point arrays, e.g [[43.1,-73],[43.2,-73],[43.2,-73]]
      * @param name          The name of the polygon to display on the info header bar
