@@ -10,11 +10,13 @@ import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.result.DistrictResultWithMembers;
+import lombok.Getter;
 import org.apache.commons.text.CaseUtils;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+@Getter
 public class DistrictResponse extends SourcedResponse {
     private AddressView address;
     private GeocodeView geocode;
@@ -65,39 +67,8 @@ public class DistrictResponse extends SourcedResponse {
         };
     }
 
-    public AddressView getAddress() {
-        return address;
-    }
-
-    public GeocodeView getGeocode() {
-        return geocode;
-    }
-
-    public boolean isGeocoded() {
-        return geocoded;
-    }
-
-    public boolean isSenateAssigned() {
-        return senateAssigned;
-    }
-
-    public boolean isDistrictAssigned() {
-        return districtAssigned;
-    }
-
-    public boolean isUspsValidated() {
-        return uspsValidated;
-    }
-
-    public String getMatchLevel() {
-        return matchLevel;
-    }
-
     public boolean getMultiMatch() {
         return false;
     }
 
-    public Map<String, DistrictView> getDistricts() {
-        return districts;
-    }
 }

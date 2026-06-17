@@ -3,7 +3,6 @@ package gov.nysenate.sage.controller.admin;
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.client.response.base.GenericResponse;
-import gov.nysenate.sage.controller.api.BaseController;
 import gov.nysenate.sage.dao.model.api.ApiUserDao;
 import gov.nysenate.sage.dao.provider.shapefile.ShapefileDao;
 import gov.nysenate.sage.dao.stats.api.SqlApiUsageStatsDao;
@@ -13,10 +12,7 @@ import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.stats.DeploymentStats;
 import gov.nysenate.sage.util.auth.AdminUserAuth;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
-import gov.nysenate.sage.util.controller.ApiControllerUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
-import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,7 +20,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.List;
 
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
@@ -107,7 +102,6 @@ public class AdminApiController extends BaseAdminApiController {
             return sqlGeocodeStatsDao.getGeocodeStats(getBeginTimestamp(request), getEndTimestamp(request));
         }
         return invalidAuthResponse;
-
     }
 
     /**

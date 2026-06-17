@@ -13,10 +13,6 @@ public enum DistrictType {
         return WordUtils.capitalizeFully(name().replace('_', ' '));
     }
 
-    public boolean lacksMember() {
-        return this != SENATE && this != ASSEMBLY && this != CONGRESSIONAL;
-    }
-
     public boolean coversState() {
         return this != WARD && this != CITY_COUNCIL && this != COUNTY_LEG && this != VILLAGE;
     }

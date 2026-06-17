@@ -2,7 +2,7 @@ package gov.nysenate.sage.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.text.WordUtils;
+import org.apache.commons.text.WordUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
@@ -18,6 +18,7 @@ import java.util.function.Function;
 */
 public final class FormatUtil {
     private static final Logger logger = LoggerFactory.getLogger(FormatUtil.class);
+    private static final ObjectMapper mapper = new ObjectMapper();
     private static final int PRINT_BATCH_SIZE = 10000;
 
     private FormatUtil() {}
@@ -31,7 +32,7 @@ public final class FormatUtil {
 
     public static String toCamelCase(String s) {
         if (s != null && s.contains("_")) {
-            return StringUtils.uncapitalize(WordUtils.capitalizeFully(s, '_').replaceAll("_", ""));
+            return StringUtils.uncapitalize(WordUtils.capitalizeFully(s, '_').replace("_", ""));
         }
         return s;
     }
@@ -43,13 +44,12 @@ public final class FormatUtil {
      * @return String   JSON string
      * */
     public static String toJsonString(Object o) {
-        var om = new ObjectMapper();
         try {
-            return om.writeValueAsString(o);
+            return mapper.writeValueAsString(o);
         }
         catch(Exception ex) {
             logger.error("Object to JSON Error: ".concat(ex.getMessage()));
-            return "";
+            throw new RuntimeException(ex);
         }
     }
 
