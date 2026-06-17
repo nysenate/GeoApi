@@ -9,7 +9,14 @@ sageAdmin.controller('DeploymentStatsController', function($scope, $http, dataBu
     $scope.getDeploymentStats = function() {
         $http.get(baseAdminApi + "/deployment")
             .then(function(response){
-                $scope = angular.extend($scope, response.data);
+                var deployments = response.data.deployments || [];
+                // Deployments are returned ordered by deploy time ascending, so the latest is last.
+                $scope.deployments = deployments;
+                if (deployments.length > 0) {
+                    var latest = deployments[deployments.length - 1];
+                    $scope.lastDeployment = latest;
+                    $scope.requestsSinceLatest = latest.apiRequestsSince;
+                }
             }, function(response){
                 console.log("Error retrieving deployment stats! " + response.data);
             });
