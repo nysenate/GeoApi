@@ -76,11 +76,11 @@
                         </table>
                         <div ng-show="showInfo" id="senator-view" style="padding-top:10px;border-top:1px solid #ddd">
                             <div class="mini-senator-pic-holder" ng-if="!isDoh">
-                                <a ng-href="{{senator.url}}" target="_top"><img ng-src="{{senator.imageUrl}}" class="senator-pic" /></a>
+                                <a ng-href="{{senator.info.url}}" target="_top"><img ng-src="{{senator.info.imageUrl}}" class="senator-pic" /></a>
                             </div>
                             <div ng-if="!isDoh">
                                 <p class="senator member-name">
-                                    <a target="_blank" ng-href="{{senator.url}}">{{senator.name}}</a>
+                                    <a target="_blank" ng-href="{{senator.info.url}}">{{senator.info.name}}</a>
                                 </p>
                                 <p class="senate district">Senate District {{district}}</p>
                             </div>

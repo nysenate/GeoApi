@@ -179,12 +179,12 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
             return;
         }
         mapService.setMarker(office.point.lat, office.point.lon,
-            office.name + ' - ' + office.street, focus, focus,
+            office.name + ' - ' + office.address.addr1, focus, focus,
             focus ? null :
                 "<div style='width:160px;'>" +
                 "<p style='color:teal;font-size:18px;'>" + office.name + "</p>" +
-                "<p>" + office.street + "</p>" +
-                "<p>" + office.city + ", NY " + office.postalCode + "</p>" +
+                "<p>" + office.address.addr1 + "</p>" +
+                "<p>" + office.address.city + ", NY " + office.address.zip5 + "</p>" +
                 "<p>Phone " + office.phone + "</p>" +
                 "</div>");
     };
@@ -422,8 +422,7 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
 
     mapService.formatDistrictName = function(dist) {
         return ((dist.name) ? dist.name + " " : capitalize(dist.type) + " District ")  + dist.district +
-            ((dist.member) ? " - " + dist.member.name : "") +
-            ((dist.senator) ? " - " + dist.senator.name : "");
+            ((dist.member) ? " - " + dist.member.info.name : "");
     };
 
     return mapService;

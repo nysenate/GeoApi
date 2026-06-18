@@ -269,7 +269,7 @@
                                 <label for="districtMemberMenu" class="menu-overhead">Member</label>
                                 <select id="districtMemberMenu" class="menu" style="width:325px;" ng-change="onMemberSelect()"
                                         ng-model="selectedDistrict"
-                                        ng-options="d.member.name for d in sortedMemberList">
+                                        ng-options="d.member.info.name for d in sortedMemberList">
                                 </select>
                             </div>
                         </div>
@@ -404,9 +404,9 @@
                     <div ng-show="senateAssigned">
                         <div class="info-container clickable connected senator" title="Show Senate District Map"
                              ng-click="showDistrict('senate');">
-                            <div class="senator-pic-holder" ng-show="districts.senate.senator.imageUrl">
-                                <a target="_blank" ng-href="{{districts.senate.senator.url}}">
-                                    <img ng-src="{{districts.senate.senator.imageUrl}}"  class="senator-pic">
+                            <div class="senator-pic-holder" ng-show="districts.senate.member.info.imageUrl">
+                                <a target="_blank" ng-href="{{districts.senate.member.info.url}}">
+                                    <img ng-src="{{districts.senate.member.info.imageUrl}}"  class="senator-pic">
                                 </a>
                             </div>
                             <div style='margin-top:10px;overflow:hidden'>
@@ -414,7 +414,7 @@
                                     <tr>
                                         <td>
                                             <p class="senator member-name">
-                                                <a target="_blank" ng-href="{{districts.senate.senator.url}}">{{districts.senate.senator.name}}</a>
+                                                <a target="_blank" ng-href="{{districts.senate.member.info.url}}">{{districts.senate.member.info.name}}</a>
                                             </p>
                                             <p class="senate district">Senate District {{districts.senate.district}}</p>
                                         </td>
@@ -433,7 +433,7 @@
                         <div class="info-container connected slim" style="border-bottom:1px solid #ddd;">
                             <p class="member-email">
                             <div class="icon-mail icon-teal" style="margin-right: 5px;"></div>
-                            <span style='font-size:15px'>{{districts.senate.senator.email}}</span>
+                            <span style='font-size:15px'>{{districts.senate.member.info.email}}</span>
                             </p>
                         </div>
 
@@ -456,7 +456,7 @@
                                     </td>
                                 </tr>
                             </table>
-                            <div ng-show="showOffices" ng-repeat="office in districts.senate.senator.offices">
+                            <div ng-show="showOffices" ng-repeat="office in districts.senate.member.offices">
                                 <div style="padding:5px;border-top:1px solid #ddd;font-size:14px;"
                                      ng-show="office.name">
                                     <table style="width:100%">
@@ -470,9 +470,9 @@
                                         </tr>
                                     </table>
 
-                                    <p>{{office.street}}</p>
-                                    <p>{{office.additional}}</p>
-                                    <p>{{office.city}}, {{office.province}} {{office.postalCode}}</p>
+                                    <p>{{office.address.addr1}}</p>
+                                    <p>{{office.address.addr2}}</p>
+                                    <p>{{office.address.city}}, {{office.address.state}} {{office.address.zip5}}</p>
                                     <p>Phone {{office.phone}}</p>
                                 </div>
                             </div>
@@ -504,12 +504,12 @@
                                         </div>
                                         <div class="senator" style="height:56px;" ng-show="intersectType == 'SENATE'">
                                             <div class="senator-pic-holder" style="width:50px;height:50px;">
-                                                <a target="_blank" ng-href="{{d.member.url}}"><img
-                                                        ng-src="{{d.member.imageUrl}}" class="senator-pic"></a>
+                                                <a target="_blank" ng-href="{{d.member.info.url}}"><img
+                                                        ng-src="{{d.member.info.imageUrl}}" class="senator-pic"></a>
                                             </div>
                                             <div style="line-height: 25px;">
                                                 <p class="senator member-name" style="font-size:16px;">
-                                                    <a target="_blank" ng-href="{{d.member.url}}">{{d.member.name}}</a>
+                                                    <a target="_blank" ng-href="{{d.member.info.url}}">{{d.member.info.name}}</a>
                                                 </p>
                                                 <p style="font-size:16px;" class="senate district"
                                                    ng-style="getColorStyle(d.district)">
@@ -550,7 +550,7 @@
                                     <td>
                                         <p class="member-name" ng-if="district.member">
                                             <a target="_blank"
-                                               ng-href="{{district.member.url}}">{{district.member.name}}
+                                               ng-href="{{district.member.info.url}}">{{district.member.info.name}}
                                             </a>
                                         </p>
                                         <p class="district-name" ng-if="district.name && !district.member">{{district.name}}</p>
@@ -572,20 +572,20 @@
                         <div>
                             <div class="info-container" style="height:70px;">
                                 <div class="senator-pic-holder">
-                                    <img ng-src="{{member.imageUrl}}" ng-show="member.imageUrl" class="senator-pic">
+                                    <img ng-src="{{member.info.imageUrl}}" ng-show="member.info.imageUrl" class="senator-pic">
                                 </div>
                                 <div style="margin-top:10px">
                                     <p class="senator member-name">
-                                        <a target="_blank" ng-href="{{member.url}}">{{member.name}}</a>
+                                        <a target="_blank" ng-href="{{member.info.url}}">{{member.info.name}}</a>
                                     </p>
-                                    <p class="senate district">Senate District {{member.district.number}}</p><br/>
+                                    <p class="senate district">Senate District {{district}}</p><br/>
                                 </div>
                             </div>
 
                             <div class="info-container slim">
                                 <p class="member-email">
                                 <div class="icon-mail icon-teal" style="margin-right:10px;"></div>
-                                {{member.email}}
+                                {{member.info.email}}
                                 </p>
                             </div>
 
@@ -602,9 +602,9 @@
                                         </tr>
                                     </table>
 
-                                    <p>{{office.street}}</p>
-                                    <p>{{office.additional}}</p>
-                                    <p>{{office.city}}, {{office.province}} {{office.postalCode}}</p>
+                                    <p>{{office.address.addr1}}</p>
+                                    <p>{{office.address.addr2}}</p>
+                                    <p>{{office.address.city}}, {{office.address.state}} {{office.address.zip5}}</p>
                                     <p>Phone {{office.phone}}</p>
                                 </div>
                             </div>

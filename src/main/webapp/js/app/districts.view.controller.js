@@ -82,7 +82,7 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
                                 /** Draw the office markers */
                                 mapService.clearMarkers();
                                 mapService.setOfficeMarkers(v.member.offices);
-                                dataBus.setBroadcastAndView("member", v.member, "member");
+                                dataBus.setBroadcastAndView("member", v, "member");
                                 $scope.$apply();
                             } : null
                         );
@@ -101,11 +101,11 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
             else if (data.map != null) {
                 mapService.setOverlay(data.map.geom, formatDistrictName(data), true, true, null, null);
                 if (data.type == "SENATE") {
-                    dataBus.setBroadcastAndView("member", data.member, "member");
+                    dataBus.setBroadcastAndView("member", data, "member");
 
                     /** Draw the office markers */
                     mapService.clearMarkers();
-                    mapService.setOfficeMarkers(data?.members?.offices);
+                    mapService.setOfficeMarkers(data?.member?.offices);
 
                 }
                 else {

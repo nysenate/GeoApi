@@ -96,8 +96,7 @@ function formatDistrictName(district, type) {
         districtName += " - (" + district.district + ")";
     }
     else {
-        districtName += (district.senator) ? " - " + district.senator.name : "";
-        districtName += (district.member) ? " - " + district.member.name : "";
+        districtName += (district.member) ? " - " + district.member.info.name : "";
     }
     return districtName;
 }

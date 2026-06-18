@@ -97,14 +97,8 @@ sage.controller("DistrictMapController", function($scope, $http, $timeout, $filt
                     // Filter out null members.
                     $scope.sortedMemberList = data.districts.filter(function(resp) { return resp.member != null });
                     $scope.sortedMemberList = $scope.sortedMemberList.sort(function(a, b){
-                        return (a.type == "SENATE") ? a.member.shortName.localeCompare(b.member.shortName)
-                            : a.member.name.localeCompare(b.member.name);
+                        return a.member.info.name.localeCompare(b.member.info.name);
                     });
-                    if ($scope.type == "senate") {
-                        $.each($scope.sortedMemberList, function(i,v) {
-                            v.member.name = v.member.lastName + ", " + v.member.name.replace(v.member.lastName, '');
-                        });
-                    }
                 }
                 /** Sort school, town, and county districts by name */
                 if ($scope.type == "school" || $scope.type == "town" || $scope.type == "county") {
