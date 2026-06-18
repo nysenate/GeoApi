@@ -25,9 +25,9 @@ public class AssemblyDaoIT extends BaseTests {
         assertEquals(150, assemblyMap.size());
 
         DistrictMember a = assemblyMap.get(1L);
-        assertNotNull(a.info().name());
+        assertNotNull(a.info().invertedName());
         assertNotNull(a.info().url());
-        assertFalse(a.info().name().isEmpty());
+        assertFalse(a.info().invertedName().isEmpty());
         assertFalse(a.info().url().isEmpty());
     }
 }
