@@ -14,7 +14,7 @@ import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.provider.geocode.GeocodeService;
 import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.util.AssemblyScraper;
-import gov.nysenate.sage.util.CongressScraper;
+import gov.nysenate.sage.util.HouseScraper;
 import gov.nysenate.services.NYSenateJSONClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,8 +65,8 @@ public class DistrictMemberProvider {
                     Collectors.toMap(senator -> Long.valueOf(senator.getDistrict().getNumber()),
                             senator -> new DistrictMember(senator, senator.getOffices()))
             );
-            case ASSEMBLY -> AssemblyScraper.getAssemblies();
-            case CONGRESSIONAL -> CongressScraper.getCongressionals();
+            case ASSEMBLY -> AssemblyScraper.getAssemblyMembers();
+            case CONGRESSIONAL -> HouseScraper.getHouseMembers();
             default -> Map.of();
         };
         if (newMemberMap.isEmpty()) {

@@ -35,15 +35,9 @@ public class AssemblyScraper {
     private static final Pattern CITY_STATE_ZIP =
             Pattern.compile("^(.+), NY (\\d{5})(?:-(\\d{4}))?$");
 
-    public static Map<Long, DistrictMember> getAssemblies() {
-        Document doc;
-        try {
-            logger.info("Connecting to {}/mem/", ASSEMBLY_URL);
-            doc = Jsoup.connect(ASSEMBLY_URL + "/mem/").get();
-        } catch (IOException ioe) {
-            logger.error("{}", String.valueOf(ioe));
-            return Map.of();
-        }
+    public static Map<Long, DistrictMember> getAssemblyMembers() throws IOException {
+        logger.info("Connecting to {}/mem/", ASSEMBLY_URL);
+        Document doc = Jsoup.connect(ASSEMBLY_URL + "/mem/").get();
 
         var ret = new HashMap<Long, DistrictMember>();
         for (Element member : doc.select("section.mem-item")) {

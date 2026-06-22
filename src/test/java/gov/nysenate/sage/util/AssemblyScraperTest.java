@@ -5,6 +5,7 @@ import gov.nysenate.sage.model.district.DistrictMember;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import java.io.IOException;
 import java.util.Map;
 
 import static org.junit.Assert.*;
@@ -12,8 +13,8 @@ import static org.junit.Assert.*;
 @Category(UnitTest.class)
 public class AssemblyScraperTest {
     @Test
-    public void testScraper() {
-        Map<Long, DistrictMember> memberMap = AssemblyScraper.getAssemblies();
+    public void testScraper() throws IOException {
+        Map<Long, DistrictMember> memberMap = AssemblyScraper.getAssemblyMembers();
         assertFalse(memberMap.isEmpty());
     }
 
