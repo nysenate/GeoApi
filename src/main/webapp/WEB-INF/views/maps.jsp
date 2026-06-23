@@ -3,7 +3,6 @@
 <%@ page import="org.springframework.context.ApplicationContext" %>
 <%@ page import="gov.nysenate.sage.service.geo.SageGeocodeServiceProvider" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%--<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>--%>
 <%@taglib prefix="sage" tagdir="/WEB-INF/tags" %>
 <%
     ApplicationContext ac = RequestContextUtils.findWebApplicationContext(request);
@@ -24,25 +23,6 @@
     <jsp:attribute name="title">SAGE Map Viewer</jsp:attribute>
 
     <jsp:attribute name="jsIncludes">
-        <!-- Custom Map Styles -->
-        <script>
-            <c:if test="${customMapStyle == true}">
-                var customMapStyle = {
-                    "stylers" : [
-                        { "hue" : "${hue}" },
-                        { "saturation" : ${saturation}},
-                        { "lightness" : ${lightness}}
-                    ]
-                };
-            </c:if>
-
-            <c:if test="${customPolyStyle == true}">
-                var customPolyStyle = {
-                    "hue": "${polyHue}"
-                };
-            </c:if>
-        </script>
-
         <script type="text/javascript" src="${googleMapsUrl}"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/vendor/blockui.js"></script>
         <sage:sage></sage:sage>
@@ -80,7 +60,7 @@
                             </div>
                             <div ng-if="!isDoh">
                                 <p class="senator member-name">
-                                    <a target="_blank" ng-href="{{senator.info.url}}">{{senator.info.name}}</a>
+                                    <a target="_blank" ng-href="{{senator.info.url}}">{{senator.info | memberName}}</a>
                                 </p>
                                 <p class="senate district">Senate District {{district}}</p>
                             </div>

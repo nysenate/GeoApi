@@ -61,7 +61,8 @@ public class HouseScraper {
 
             String websiteLink = memberLinks.get(distNum);
             // namelist is already in inverted form
-            var memberInfo = new MemberInfo(tagText(info, "namelist"), imageUrl, websiteLink, null);
+            String[] nameParts = Objects.requireNonNull(tagText(info, "namelist")).split(",", 2);
+            var memberInfo = new MemberInfo(nameParts[0], nameParts[1], imageUrl, websiteLink, null);
             ret.put(distNum, new DistrictMember(memberInfo, List.of(parseOffice(info))));
         }
         return ret;

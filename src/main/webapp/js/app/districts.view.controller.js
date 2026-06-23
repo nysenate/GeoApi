@@ -48,7 +48,7 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
             /** Update the marker location to point to the geocode */
             if ($scope.districts?.senate?.map?.geom) {
                 mapService.setOverlay($scope.districts.senate.map.geom,
-                    formatDistrictName($scope.districts.senate, "Senate"), true, true, null);
+                    getMapName($scope.districts.senate), true, true, null);
             }
             if ($scope.geocoded) {
                 mapService.setMarker($scope.geocode.lat, $scope.geocode.lon,
@@ -76,7 +76,7 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
                 mapService.clearPolygons();
                 $.each(data.districts, function(i, v){
                     if (v.map) {
-                        mapService.setOverlay(v.map.geom, formatDistrictName(v), false, false,
+                        mapService.setOverlay(v.map.geom, getMapName(v), false, false,
                             (v.type == "SENATE") ? function() {
 
                                 /** Draw the office markers */
@@ -99,7 +99,7 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
             }
             /** Show the individual district map */
             else if (data.map != null) {
-                mapService.setOverlay(data.map.geom, formatDistrictName(data), true, true, null, null);
+                mapService.setOverlay(data.map.geom, getMapName(data), true, true, null, null);
                 if (data.type == "SENATE") {
                     dataBus.setBroadcastAndView("member", data, "member");
 
@@ -146,7 +146,7 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
             var district = $scope.districts[districtType];
             district.type = districtType; // Set the type for the formatDistrictName method
             mapService.resizeMap();
-            mapService.setOverlay(district.map.geom, formatDistrictName(district), true, true, null);
+            mapService.setOverlay(district.map.geom, getMapName(district), true, true, null);
         }
     };
 

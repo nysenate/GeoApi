@@ -20,16 +20,8 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
         stylers: [{ "visibility": "off"}, ]
     }];
 
-    if (window.customMapStyle) {
-        styles.push(window.customMapStyle);
-    }
-
     //                  teal      orangered    green      red        yellow     cyan       pink      purple     darkblue
     var polyColors =  ["#008080", "#ff4500", "#639A00", "#CC333F", "#EDC951", "#09AA91", "#F56991", "#524656", "#547980"];
-
-    if (window.customPolyStyle) {
-        polyColors.unshift(window.customPolyStyle.hue);
-    }
 
     /** Initialization */
     var mapService = {};
@@ -418,11 +410,6 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
             }
             return null;
         });
-    };
-
-    mapService.formatDistrictName = function(dist) {
-        return ((dist.name) ? dist.name + " " : capitalize(dist.type) + " District ")  + dist.district +
-            ((dist.member) ? " - " + dist.member.info.name : "");
     };
 
     return mapService;

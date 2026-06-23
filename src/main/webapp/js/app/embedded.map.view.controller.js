@@ -18,7 +18,7 @@ sage.controller("EmbeddedMapViewController", function($scope, $window, dataBus, 
                 mapService.clearPolygons();
                 $.each(data.districts, function(i, v){
                     if (v.map != null) {
-                        mapService.setOverlay(v.map.geom, formatDistrictName(v), false, false,
+                        mapService.setOverlay(v.map.geom, getMapName(v), false, false,
                             (v.type.toLowerCase() == clickableType) ?
                                 function() {
                                     dataBus.setBroadcast("showEmbedDistrict", v);
@@ -32,7 +32,7 @@ sage.controller("EmbeddedMapViewController", function($scope, $window, dataBus, 
             /** Show the individual district map */
             else if (data.map != null) {
                 $scope.setDistrictInfo(data);
-                mapService.setOverlay(data.map.geom, formatDistrictName(data), true, true, null, mapService.colors[0]);
+                mapService.setOverlay(data.map.geom, getMapName(data), true, true, null, mapService.colors[0]);
                 if (data.type.toLowerCase() == clickableType) {
                     mapService.setOfficeMarkers(data?.member?.offices);
                     $scope.showPrompt = false;

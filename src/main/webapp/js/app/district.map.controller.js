@@ -92,33 +92,16 @@ sage.controller("DistrictMapController", function($scope, $http, $timeout, $filt
         $http.get(this.getDistrictMapUrl(this.type, null, true))
             .then(function(response) {
                 var data = response.data;
-                $scope.showMemberOption = ($scope.type === 'senate' || $scope.type === 'congressional' || $scope.type === 'assembly');
-                if ($scope.showMemberOption) {
-                    // Filter out null members.
-                    $scope.sortedMemberList = data.districts.filter(function(resp) { return resp.member != null });
+                $scope.sortedMemberList = data.districts.filter(function(resp) { return resp.member != null });
+                if ($scope.sortedMemberList.length !== 0) {
                     $scope.sortedMemberList = $scope.sortedMemberList.sort(function(a, b){
-                        return a.member.info.name.localeCompare(b.member.info.name);
+                        return formatMemberName(a.member.info, true)
+                            .localeCompare(formatMemberName(b.member.info, true));
                     });
                 }
                 /** Sort school, town, and county districts by name */
-                if ($scope.type == "school" || $scope.type == "town" || $scope.type == "county") {
-                    $scope.districtList = data.districts.sort(function(a,b) {
-                        return a.name.localeCompare(b.name);
-                    });
-                }
-                /** Otherwise keep the default sort order */
-                else {
-                    $scope.districtList = data.districts;
-                }
+                $scope.districtList = data.districts;
 
-                /** Resolve city/town ambiguities */
-                if ($scope.type == "town") {
-                    $.each($scope.districtList, function(i,v){
-                        if (v.district.charAt(0) === '-') {
-                            v.name += ' (City)';
-                        }
-                    });
-                }
                 if ($scope.type !== "") {
                     $scope.districtList.unshift({district:null, name:'All districts'});
                 }
@@ -166,7 +149,7 @@ sage.controller("DistrictMapController", function($scope, $http, $timeout, $filt
     $scope.getDistrictMapUrl = function(type, district, meta) {
         return contextPath + baseApi + "/map/" + type + "?showMembers=true"
             + ((meta === true) ? "&meta=true" :
-                ((district) ? ("&district=" + district) : ""));
+                (district ? ("&district=" + district) : ""));
     };
 
     /**

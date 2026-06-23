@@ -21,17 +21,18 @@ public class AssemblyScraperTest {
     @Test
     public void testNameInversion() {
         String email = "smithJ@nyassembly.gov";
-        test("Smith, John", "John Smith", email);
-        test("Smith Jr., John", "John Smith Jr.", email);
-        test("Smith, John E.", "John E. Smith", email);
-        test("Smith, John Middle", "John Middle Smith", email);
+        test("John", "Smith", "John Smith", email);
+        test("John", "Smith Jr.", "John Smith Jr.", email);
+        test("John E.", "Smith", "John E. Smith", email);
+        test("John Middle", "Smith", "John Middle Smith", email);
         email = "middleJ@nyassembly.gov";
-        test("Middle Smith, John", "John Middle Smith", email);
-        test("Middle-Smith, John", "John Middle-Smith", email);
-        test("Schiavoni, Tommy John", "Tommy John Schiavoni", "schiavonitj@nyassembly.gov");
+        test("John", "Middle Smith", "John Middle Smith", email);
+        test("John", "Middle-Smith", "John Middle-Smith", email);
+        test("Tommy John ", "Schiavoni", "Tommy John Schiavoni", "schiavonitj@nyassembly.gov");
     }
 
-    private static void test(String expectedInvertedName, String baseName, String email) {
-        assertEquals(expectedInvertedName, AssemblyScraper.getInvertedName(baseName, email));
+    private static void test(String nameStart, String nameEnd, String baseName, String email) {
+        Pair<String> expectedNameParts = new Pair<>(nameStart, nameEnd);
+        assertEquals(expectedNameParts, AssemblyScraper.getNameParts(baseName, email));
     }
 }

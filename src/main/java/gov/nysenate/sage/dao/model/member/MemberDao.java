@@ -22,8 +22,8 @@ public class MemberDao extends BaseDao {
     private static final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
 
     public void refreshMemberData(DistrictType type, Map<Long, DistrictMember> newMemberMap) {
-        jdbcTemplate.execute(MemberQuery.CREATE_TABLE.getSql(type));
         synchronized (mapper) {
+            jdbcTemplate.execute(MemberQuery.CREATE_TABLE.getSql(type));
             jdbcTemplate.execute(MemberQuery.TRUNCATE_MEMBERS.getSql(type));
             for (var entry : newMemberMap.entrySet()) {
                 var params = new MapSqlParameterSource("district", entry.getKey())
@@ -35,18 +35,18 @@ public class MemberDao extends BaseDao {
     }
 
     public Map<Long, DistrictMember> getMembers(DistrictType type) {
+        String sql = MemberQuery.GET_ALL_MEMBERS.getSql(type);
+        var handler = new MemberHandler();
         synchronized (mapper) {
             try {
-                String sql = MemberQuery.GET_ALL_MEMBERS.getSql(type);
-                var handler = new MemberHandler();
                 namedJdbcTemplate.query(sql, handler);
-                return handler.memberMap;
             }
             // Thrown if the table does not exist.
             catch (BadSqlGrammarException e) {
                 return null;
             }
         }
+        return handler.memberMap;
     }
 
     private static class MemberHandler implements RowCallbackHandler {

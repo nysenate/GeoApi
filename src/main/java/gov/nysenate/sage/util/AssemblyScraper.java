@@ -50,7 +50,8 @@ public class AssemblyScraper {
                 String email = Objects.requireNonNull(member.selectFirst(".mem-email a")).text().trim();
 
                 long distNum = Long.parseLong(member.id().trim());
-                var info = new MemberInfo(getInvertedName(displayName, email), imageUrl, url, email);
+                Pair<String> nameParts = getNameParts(displayName, email);
+                var info = new MemberInfo(nameParts.first(), nameParts.second(), imageUrl, url, email);
                 List<OfficeInfo> offices = member.select(".mem-address .full-addr").stream()
                         .map(ele -> parseOffice(ele.html())).toList();
 
@@ -63,7 +64,7 @@ public class AssemblyScraper {
         return ret;
     }
 
-    protected static String getInvertedName(String name, String email) {
+    protected static Pair<String> getNameParts(String name, String email) {
         String trimmedEmail = email.split("@")[0];
         trimmedEmail = trimmedEmail.substring(0, trimmedEmail.length() - 1);
         var trimmedEmailRegex = new StringBuilder();
@@ -75,14 +76,14 @@ public class AssemblyScraper {
         if (emailMatcher.find()) {
             String lastName = name.substring(emailMatcher.start());
             String restOfName = name.substring(0, emailMatcher.start()).trim();
-            return lastName + ", " + restOfName;
+            return new Pair<>(restOfName, lastName);
         }
         String[] splitName = name.split(" ");
         var invertedNameBuilder = new StringBuilder();
         for (int i = 0; i < splitName.length - 1; i++) {
             invertedNameBuilder.append(splitName[i]).append(" ");
         }
-        return splitName[splitName.length - 1] + ", " + invertedNameBuilder.toString().trim();
+        return new Pair<>(invertedNameBuilder.toString(), splitName[splitName.length - 1]);
     }
 
     /**

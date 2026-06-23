@@ -269,7 +269,7 @@
                                 <label for="districtMemberMenu" class="menu-overhead">Member</label>
                                 <select id="districtMemberMenu" class="menu" style="width:325px;" ng-change="onMemberSelect()"
                                         ng-model="selectedDistrict"
-                                        ng-options="d.member.info.name for d in sortedMemberList">
+                                        ng-options="(d.member.info | memberName:true) for d in sortedMemberList">
                                 </select>
                             </div>
                         </div>
@@ -414,7 +414,7 @@
                                     <tr>
                                         <td>
                                             <p class="senator member-name">
-                                                <a target="_blank" ng-href="{{districts.senate.member.info.url}}">{{districts.senate.member.info.name}}</a>
+                                                <a target="_blank" ng-href="{{districts.senate.member.info.url}}">{{districts.senate.member.info | memberName}}</a>
                                             </p>
                                             <p class="senate district">Senate District {{districts.senate.district}}</p>
                                         </td>
@@ -509,7 +509,7 @@
                                             </div>
                                             <div style="line-height: 25px;">
                                                 <p class="senator member-name" style="font-size:16px;">
-                                                    <a target="_blank" ng-href="{{d.member.info.url}}">{{d.member.info.name}}</a>
+                                                    <a target="_blank" ng-href="{{d.member.info.url}}">{{d.member.info | memberName}}</a>
                                                 </p>
                                                 <p style="font-size:16px;" class="senate district"
                                                    ng-style="getColorStyle(d.district)">
@@ -550,7 +550,7 @@
                                     <td>
                                         <p class="member-name" ng-if="district.member">
                                             <a target="_blank"
-                                               ng-href="{{district.member.info.url}}">{{district.member.info.name}}
+                                               ng-href="{{district.member.info.url}}">{{district.member.info | memberName}}
                                             </a>
                                         </p>
                                         <p class="district-name" ng-if="district.name && !district.member">{{district.name}}</p>
@@ -576,7 +576,7 @@
                                 </div>
                                 <div style="margin-top:10px">
                                     <p class="senator member-name">
-                                        <a target="_blank" ng-href="{{member.info.url}}">{{member.info.name}}</a>
+                                        <a target="_blank" ng-href="{{member.info.url}}">{{member.info | memberName}}</a>
                                     </p>
                                     <p class="senate district">Senate District {{district}}</p><br/>
                                 </div>

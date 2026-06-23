@@ -69,6 +69,22 @@ sage.filter('addressFormat', function(){
     }
 });
 
+/** Formats a member's display name from a MemberInfo object.
+ *  Default: "First Last". Pass inverted=true for "Last, First". */
+sage.filter('memberName', function() {
+    return function(info, inverted) {
+        return formatMemberName(info, inverted);
+    };
+});
+
+/** Plain helper backing the memberName filter, for use outside Angular expressions. */
+function formatMemberName(info, inverted) {
+    if (info == null || typeof info === 'undefined') {
+        return "";
+    }
+    return inverted ? info.nameEnd + ", " + info.nameStart : info.nameStart + " " + info.nameEnd;
+}
+
 function notNullOrEmpty(input) { return input != null && input != '' && input != 'null'; }
 
 function capitalize(input) {
@@ -81,27 +97,13 @@ function capitalize(input) {
 }
 
 /**
- * Returns a proper district title depending on the district type.
+ * Returns a proper district title depending on the district data.
  * @param district
- * @param type
  * @returns {string}
  */
-function formatDistrictName(district, type) {
-    var distType = district.type || type;
-    if (distType !== null && typeof distType !== "undefined") {
-        distType = distType.toLowerCase();
-    }
-    var districtName = (district.name) ? district.name + " " : "";
-    if (distType == "school" || distType == "town" || distType == "county") {
-        districtName += " - (" + district.district + ")";
-    }
-    else {
-        districtName += (district.member) ? " - " + district.member.info.name : "";
-    }
-    return districtName;
+function getMapName(district) {
+    return district.name + (district.member ? " - " + formatMemberName(district.member.info) : "");
 }
-
-
 
 $(document).ready(function(){
     initVerticalMenu();
