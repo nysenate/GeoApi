@@ -93,7 +93,8 @@ sage.controller("DistrictMapController", function($scope, $http, $timeout, $filt
             .then(function(response) {
                 var data = response.data;
                 $scope.sortedMemberList = data.districts.filter(function(resp) { return resp.member != null });
-                if ($scope.sortedMemberList.length !== 0) {
+                $scope.showMemberOption = $scope.sortedMemberList.length !== 0;
+                if ($scope.showMemberOption) {
                     $scope.sortedMemberList = $scope.sortedMemberList.sort(function(a, b){
                         return formatMemberName(a.member.info, true)
                             .localeCompare(formatMemberName(b.member.info, true));
