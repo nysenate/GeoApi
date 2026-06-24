@@ -312,10 +312,9 @@ public class ShapefileDao extends BaseDao implements DistrictNameDao {
 
     private static DistrictMatchLevel getMatchLevel(GeocodeQuality quality) {
         return switch (quality) {
-            case POINT, HOUSE -> DistrictMatchLevel.HOUSE;
-            case ZIP_EXT, STREET -> DistrictMatchLevel.STREET;
-            case ZIP -> DistrictMatchLevel.ZIP5;
-            case CITY -> DistrictMatchLevel.CITY;
+            case HOUSE -> DistrictMatchLevel.HOUSE;
+            case STREET -> DistrictMatchLevel.STREET;
+            case REGION -> DistrictMatchLevel.REGION;
             default -> DistrictMatchLevel.NOMATCH;
         };
     }

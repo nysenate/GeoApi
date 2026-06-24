@@ -10,7 +10,7 @@ import java.util.Set;
  * A container for all assigned district names and codes.
  */
 public record DistrictInfo(ImmutableMap<DistrictType, SingleDistrict> typeToDistrictMap, DistrictMatchLevel matchLevel) {
-    public static final DistrictInfo empty = new DistrictInfo(Map.of(), DistrictMatchLevel.NOMATCH);
+    public static final DistrictInfo empty = new DistrictInfo(Map.of(), null);
 
     public DistrictInfo(Map<DistrictType, SingleDistrict> typeToDistrictMap, DistrictMatchLevel matchLevel) {
         this(ImmutableMap.copyOf(typeToDistrictMap), matchLevel);

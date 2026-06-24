@@ -117,8 +117,8 @@ public class BatchTest {
             }
         }
         if (currCol == Column.geoQuality) {
-            GeocodeQuality oldQuality = GeocodeQuality.valueOf(oldFileCell);
-            GeocodeQuality newQuality = GeocodeQuality.valueOf(newFileCell);
+            GeocodeQuality oldQuality = GeocodeQuality.fromString(oldFileCell);
+            GeocodeQuality newQuality = GeocodeQuality.fromString(newFileCell);
             if (oldQuality.ordinal() > newQuality.ordinal()) {
                 return Difference.REDUCTION;
             }

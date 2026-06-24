@@ -15,9 +15,9 @@ import static org.junit.Assert.assertEquals;
 public class GeocodedAddressTest {
     @Test
     public void isGeocodedTest() {
-        testGeocode(new Geocode(new Point("1", "1"), GeocodeQuality.POINT, Geocoder.NYSGEO, false), true);
         testGeocode(new Geocode(new Point("1", "1"), GeocodeQuality.HOUSE, Geocoder.NYSGEO, false), true);
-        testGeocode(new Geocode(new Point("0", "0"), GeocodeQuality.NOMATCH, Geocoder.NYSGEO, false), false);
+        testGeocode(new Geocode(new Point("1", "1"), GeocodeQuality.HOUSE, Geocoder.NYSGEO, false), true);
+        testGeocode(new Geocode(new Point("0", "0"), GeocodeQuality.UNKNOWN, Geocoder.NYSGEO, false), false);
         testGeocode(null, false);
     }
 

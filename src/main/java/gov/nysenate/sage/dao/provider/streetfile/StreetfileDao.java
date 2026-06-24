@@ -95,16 +95,16 @@ public class StreetfileDao extends BaseDao {
         return getDistrictInfo(addr, DistrictMatchLevel.HOUSE);
     }
 
-    private DistrictInfo getDistrictInfo(Address addr, @Nonnull DistrictMatchLevel matchLevel) {
+    private DistrictInfo getDistrictInfo(Address addr, DistrictMatchLevel matchLevel) {
         logger.debug("Getting district info for {} at level {}", addr, matchLevel);
-        if (addr == null || matchLevel == DistrictMatchLevel.NOMATCH) {
+        if (addr == null || matchLevel == null) {
             return DistrictInfo.empty;
         }
         var whereList = new ArrayList<String>();
-        if (matchLevel.compareTo(DistrictMatchLevel.CITY) >= 0 && addr.getPostalCity() != null) {
+        if (addr.getPostalCity() != null) {
             whereList.add("postal_city = '%s'".formatted(addr.getPostalCity().toUpperCase()));
         }
-        if (matchLevel.compareTo(DistrictMatchLevel.ZIP5) >= 0 && addr.getZip5() != null) {
+        if (addr.getZip5() != null) {
             whereList.add("zip5 = '%s'".formatted(addr.getZip5()));
         }
         if (addr instanceof BuildingAddress bldgAddr) {

@@ -29,7 +29,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import static gov.nysenate.sage.model.geo.GeocodeQuality.HOUSE;
-import static gov.nysenate.sage.model.geo.GeocodeQuality.POINT;
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 
 /**
@@ -152,7 +151,7 @@ public class DistrictService {
             if (!geoAddress.isValidGeocode()) {
                 return INVALID_GEOCODE;
             }
-            if (geoAddress.getGeocode().quality() != HOUSE && geoAddress.getGeocode().quality() != POINT) {
+            if (geoAddress.getGeocode().quality() != HOUSE) {
                 return INSUFFICIENT_GEOCODE;
             }
         }

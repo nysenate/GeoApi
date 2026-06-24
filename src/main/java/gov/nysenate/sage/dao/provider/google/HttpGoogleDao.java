@@ -129,12 +129,13 @@ public class HttpGoogleDao implements GeocoderDao {
                     }
                 }
                 var address = new Address(streetNumber + " " + street, "", city, state, zip5, zip4);
-                JsonNode location = result.get("geometry").get("location");
+                JsonNode geometry = result.get("geometry");
+                JsonNode location = geometry.get("location");
                 String lat = location.get("lat").asText("0");
                 String lon = location.get("lng").asText("0");
-                String geocodeType = result.get("types").get(0).asText();
+                String locationType = geometry.get("location_type").asText();
                 var geocode = new Geocode(
-                        new Point(lat, lon), resolveGeocodeQuality(geocodeType), geocoder(), false);
+                        new Point(lat, lon), resolveGeocodeQuality(locationType), geocoder(), false);
                 return new GeocodedAddress(address, geocode);
             }
             else if (node.has("status") && node.get("status").asText().equals("OVER_QUERY_LIMIT")) {
@@ -150,17 +151,11 @@ public class HttpGoogleDao implements GeocoderDao {
         return null;
     }
 
-    private static GeocodeQuality resolveGeocodeQuality(String type) {
-        return switch (type) {
-            // House matches
-            case "premise", "subpremise", "point_of_interest", "park", "natural_feature", "airport", "street_address" ->
-                    GeocodeQuality.HOUSE;
-            case "route", "intersection" -> GeocodeQuality.STREET;
-            case "neighborhood", "sublocality", "locality" -> GeocodeQuality.CITY;
-            case "administrative_area_level_2" -> GeocodeQuality.COUNTY;
-            case "administrative_area_level_1" -> GeocodeQuality.STATE;
-            case "postal_code" -> GeocodeQuality.ZIP;
-            case "postal_code_suffix" -> GeocodeQuality.ZIP_EXT;
+    private static GeocodeQuality resolveGeocodeQuality(String locationType) {
+        return switch (locationType) {
+            case "ROOFTOP" -> GeocodeQuality.HOUSE;
+            case "RANGE_INTERPOLATED" -> GeocodeQuality.STREET;
+            case "GEOMETRIC_CENTER" -> GeocodeQuality.REGION;
             default -> GeocodeQuality.UNKNOWN;
         };
     }

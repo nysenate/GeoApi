@@ -15,6 +15,7 @@ import org.apache.commons.text.CaseUtils;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @Getter
 public class DistrictResponse extends SourcedResponse {
@@ -40,7 +41,7 @@ public class DistrictResponse extends SourcedResponse {
         }
         this.districtAssigned = !districtResult.getAssignedDistricts().isEmpty();
         this.senateAssigned = districtResult.getAssignedDistricts().contains(DistrictType.SENATE);
-        this.matchLevel = districtResult.getDistrictInfo().matchLevel().name();
+        this.matchLevel = Objects.toString(districtResult.getDistrictInfo().matchLevel(), null);
         for (DistrictType districtType : DistrictType.values()) {
             districts.put(getFieldName(districtType), DistrictView.from(districtType, districtResult, geomMap.get(districtType)));
         }
@@ -53,8 +54,8 @@ public class DistrictResponse extends SourcedResponse {
             this.uspsValidated = realAddress.isUspsValidated();
         }
         Geocode realGeocode = geoAddr.getGeocode();
+        this.geocode = GeocodeView.from(realGeocode);
         if (realGeocode != null) {
-            this.geocode = new GeocodeView(realGeocode);
             this.geocoded = realGeocode.isValidGeocode();
         }
     }

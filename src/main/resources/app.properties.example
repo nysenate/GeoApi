@@ -50,7 +50,7 @@ google.geocoder.key = API Key obtained from Google
 google.maps.url = https://maps.google.com/maps/api/js?v=3&libraries=places
 google.maps.key = API Key obtained from Google (this key is public facing)
 
-nys.geocoder.url = https://gisservices.its.ny.gov/arcgis/rest/services/Locators/Street_and_Address_Composite/GeocodeServer
+nys.geocoder.url = https://nysgeohub.ny.gov/arcgis/rest/services/Geocoder/NYS_Geocoder/GeocodeServer
 nys.geocode.ext = /findAddressCandidates
 nys.revgeocode.ext = /reverseGeocode
 

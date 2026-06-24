@@ -28,7 +28,7 @@ public class ShapefileServiceTest extends BaseTests {
     @Test
     public void shouldNotDistrictAssignCityGeocodeQuality() {
         var addr = new Address("", "Delmar", "NY", "");
-        Geocode geo = new Geocode(new Point("42.6220235", "-73.8326232"), GeocodeQuality.CITY, Geocoder.GOOGLE, false);
+        Geocode geo = new Geocode(new Point("42.6220235", "-73.8326232"), GeocodeQuality.REGION, Geocoder.GOOGLE, false);
         GeocodedAddress geoAddr = new GeocodedAddress(addr, geo);
         DistrictResult res = districtService.assignDistricts(List.of(LocalSource.SHAPEFILE), geoAddr, Set.of(DistrictType.SENATE));
         assertFalse(res.isSuccess());

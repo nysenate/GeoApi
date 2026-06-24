@@ -69,11 +69,15 @@ public class GeocodeService {
         this.executor = ExecutorUtil.createExecutor("geocode", numThreads);
     }
 
+    public GeocodeResult geocode(List<Geocoder> geocoders, @Nonnull Address address) {
+        return geocode(geocoders, address, true);
+    }
+
     // Note that the returned Address will be the input Address unless
     // the input Address isn't validated and the geocoding succeeds.
-    public GeocodeResult geocode(List<Geocoder> geocoders, @Nonnull Address address) {
+    public GeocodeResult geocode(List<Geocoder> geocoders, @Nonnull Address address, boolean requireInState) {
         var geocodedAddress = new GeocodedAddress(address);
-        if (address.isOutOfState()) {
+        if (address.isOutOfState() && requireInState) {
             return new GeocodeResult(null, NON_NY_STATE, geocodedAddress);
         }
 
@@ -115,7 +119,7 @@ public class GeocodeService {
     }
 
     public GeocodeResult reverseGeocode(List<Geocoder> geocoders, Point point) {
-        var revGeocodedAddress = new GeocodedAddress(new Geocode(point, GeocodeQuality.POINT, null, false));
+        var revGeocodedAddress = new GeocodedAddress(new Geocode(point, GeocodeQuality.HOUSE, null, false));
         if (point == null) {
             return new GeocodeResult(null, MISSING_POINT, revGeocodedAddress);
         }
