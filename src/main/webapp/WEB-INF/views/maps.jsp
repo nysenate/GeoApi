@@ -35,8 +35,6 @@
                     <script>
                         districtType = "${districtType}";
                         districtCode = "${districtCode}";
-                        width = ${width};
-                        height = ${height};
                         doh = ${doh};
                     </script>
                 </div>
@@ -79,13 +77,5 @@
 
         <!-- Map Tooltip -->
         <div id="mapTooltip"></div>
-
-        <script>
-            $(window).load(function(){
-                if (width > 0 && height > 0) {
-                    $("body").width(width).height(height);
-                }
-            });
-        </script>
     </jsp:body>
 </sage:wrapper>
