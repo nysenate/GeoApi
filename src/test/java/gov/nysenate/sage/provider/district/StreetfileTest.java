@@ -5,9 +5,9 @@ import gov.nysenate.sage.annotation.IntegrationTest;
 import gov.nysenate.sage.config.DatabaseConfig;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
+import gov.nysenate.sage.model.Accuracy;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
-import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.provider.geocode.Geocoder;
@@ -34,7 +34,7 @@ public class StreetfileTest extends BaseTests {
     @Transactional(value = DatabaseConfig.geoApiTxManager)
     public void shouldNotDistrictAssignCityGeocodeQuality() {
         var addr = new Address("", "Delmar", "NY", "");
-        var geo = new Geocode(new Point("42.6220235", "-73.8326232"), GeocodeQuality.REGION, Geocoder.GOOGLE, false);
+        var geo = new Geocode(new Point("42.6220235", "-73.8326232"), Accuracy.REGION, Geocoder.GOOGLE, false);
         var geoAddr = new GeocodedAddress(addr, geo);
         DistrictResult districtResult = districtService.assignDistricts(List.of(LocalSource.STREETFILE), geoAddr, types);
         System.out.println(districtResult);

@@ -41,7 +41,7 @@ public class DistrictResponse extends SourcedResponse {
         }
         this.districtAssigned = !districtResult.getAssignedDistricts().isEmpty();
         this.senateAssigned = districtResult.getAssignedDistricts().contains(DistrictType.SENATE);
-        this.matchLevel = Objects.toString(districtResult.getDistrictInfo().matchLevel(), null);
+        this.matchLevel = Objects.toString(districtResult.getDistrictInfo().accuracy(), null);
         for (DistrictType districtType : DistrictType.values()) {
             districts.put(getFieldName(districtType), DistrictView.from(districtType, districtResult, geomMap.get(districtType)));
         }
@@ -71,5 +71,4 @@ public class DistrictResponse extends SourcedResponse {
     public boolean getMultiMatch() {
         return false;
     }
-
 }

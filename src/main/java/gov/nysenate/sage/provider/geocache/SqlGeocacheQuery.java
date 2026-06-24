@@ -11,13 +11,13 @@ public enum SqlGeocacheQuery implements BasicSqlQuery {
     ),
 
     INSERT_CACHE_ENTRY(
-            "INSERT INTO public.geocache (primary_addr1, postal_city, state, zip5, latlon, method, quality) " +
-            "VALUES (:primaryAddr1, :postalCity, :state, :zip5, ST_GeomFromText( :latlon ), :method, :quality)"
+            "INSERT INTO public.geocache (primary_addr1, postal_city, state, zip5, latlon, method, accuracy) " +
+            "VALUES (:primaryAddr1, :postalCity, :state, :zip5, ST_GeomFromText( :latlon ), :method, :accuracy)"
     ),
 
     UPDATE_CACHE_ENTRY("""
             UPDATE public.geocache
-            SET latlon = ST_GeomFromText(:latlon), method = :method, quality = :quality, updated = NOW()
+            SET latlon = ST_GeomFromText(:latlon), method = :method, accuracy = :accuracy, updated = NOW()
             WHERE primary_addr1 = :primaryAddr1 AND postal_city = :postalCity AND zip5 = :zip5"""
     );
 

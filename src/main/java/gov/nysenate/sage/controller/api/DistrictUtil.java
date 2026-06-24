@@ -1,9 +1,7 @@
 package gov.nysenate.sage.controller.api;
 
-import gov.nysenate.sage.model.district.DistrictInfo;
-import gov.nysenate.sage.model.district.DistrictMatchLevel;
-import gov.nysenate.sage.model.district.DistrictType;
-import gov.nysenate.sage.model.district.SingleDistrict;
+import gov.nysenate.sage.model.Accuracy;
+import gov.nysenate.sage.model.district.*;
 import gov.nysenate.sage.model.result.BaseResult;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.provider.district.LocalSource;
@@ -15,11 +13,11 @@ public final class DistrictUtil {
 
     public static DistrictResult consolidateResultsWithoutConflicts(Collection<DistrictResult> districtResults) {
         districtResults = districtResults.stream().filter(BaseResult::isSuccess).toList();
-        DistrictMatchLevel consolidatedMatchLevel = DistrictMatchLevel.getMin(
-                districtResults.stream().map(result -> result.getDistrictInfo().matchLevel()).toList()
+        Accuracy consolidatedAccuracy = Accuracy.getMin(
+                districtResults.stream().map(result -> result.getDistrictInfo().accuracy()).toList()
         );
         DistrictInfo consolidatedInfo = DistrictUtil.getDistrictInfoWithoutConflicts(
-                districtResults.stream().map(DistrictResult::getDistrictInfo).toList(), consolidatedMatchLevel);
+                districtResults.stream().map(DistrictResult::getDistrictInfo).toList(), consolidatedAccuracy);
         List<LocalSource> sources  = districtResults.stream().map(BaseResult::getSources)
                 .flatMap(Collection::stream).toList();
         return new DistrictResult(sources, consolidatedInfo);
@@ -29,7 +27,7 @@ public final class DistrictUtil {
      * Returns a DistrictInfo without conflicts between codes.
      */
     public static DistrictInfo getDistrictInfoWithoutConflicts(List<DistrictInfo> districtInfoList,
-                                                               DistrictMatchLevel matchLevel) {
+                                                               Accuracy accuracy) {
         Map<DistrictType, SingleDistrict> typeToDistrictMap = new HashMap<>();
         for (DistrictType distType : DistrictType.values()) {
             List<SingleDistrict> singleDistricts = districtInfoList.stream()
@@ -38,7 +36,7 @@ public final class DistrictUtil {
                 typeToDistrictMap.put(distType, singleDistricts.getFirst());
             }
         }
-        return new DistrictInfo(typeToDistrictMap, matchLevel);
+        return new DistrictInfo(typeToDistrictMap, accuracy);
     }
 
     /**
@@ -64,7 +62,7 @@ public final class DistrictUtil {
             }
         }
 
-        var finalDistInfo = new DistrictInfo(typeToDistrictMap, first.getDistrictInfo().matchLevel());
+        var finalDistInfo = new DistrictInfo(typeToDistrictMap, first.getDistrictInfo().accuracy());
         return new DistrictResult(sourcesUsed, finalDistInfo);
     }
 }

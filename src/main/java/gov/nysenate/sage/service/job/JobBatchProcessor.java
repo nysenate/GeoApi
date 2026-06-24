@@ -3,10 +3,9 @@ package gov.nysenate.sage.service.job;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.model.job.SqlJobProcessDao;
 import gov.nysenate.sage.model.address.Address;
-import gov.nysenate.sage.model.district.DistrictMatchLevel;
+import gov.nysenate.sage.model.Accuracy;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
-import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.job.*;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.DistrictResult;
@@ -226,9 +225,9 @@ public class JobBatchProcessor implements JobProcessor {
                 boolean interrupted = false;
                 int batchNum = 0, inStateRecords = 0, correctedAddresses = 0;
                 var geocoderUsage = new CountMap<Geocoder>();
-                var geocodeQualityMap = new CountMap<GeocodeQuality>();
+                var geocoderAccuracyCount = new CountMap<Accuracy>();
                 var districtAssignments = new CountMap<Column>();
-                var matchLevelCount = new CountMap<DistrictMatchLevel>();
+                var districtAssignmentAccuracyCount = new CountMap<Accuracy>();
                 while (jobResultsQueue.peek() != null) {
                     try {
                         logger.info("Waiting on batch # {}", batchNum);
@@ -244,20 +243,20 @@ public class JobBatchProcessor implements JobProcessor {
                             }
                             var geoAddr = record.getGeocodedAddress();
                             Geocoder geocoder = null;
-                            GeocodeQuality quality = null;
+                            Accuracy quality = null;
                             if (geoAddr != null) {
                                 Geocode geocode = geoAddr.getGeocode();
                                 if (geocode != null) {
                                     geocoder = geocode.geocoder();
-                                    quality = geocode.quality();
+                                    quality = geocode.accuracy();
                                 }
                             }
-                            geocodeQualityMap.put(quality);
+                            geocoderAccuracyCount.put(quality);
                             geocoderUsage.put(geocoder);
                             for (Column distColumn : record.getAssignedDistricts()) {
                                 districtAssignments.put(distColumn);
                             }
-                            matchLevelCount.put(record.getMatchLevel());
+                            districtAssignmentAccuracyCount.put(record.getAccuracy());
                         }
                         jobWriter.flush(); // Ensure records have been written
 
@@ -308,9 +307,9 @@ public class JobBatchProcessor implements JobProcessor {
                         fileName,
                         Math.round(100.0 * correctedAddresses/inStateRecords),
                         geocoderUsage.toString(inStateRecords, true),
-                        geocodeQualityMap.toString(inStateRecords, true),
+                        geocoderAccuracyCount.toString(inStateRecords, true),
                         districtAssignments.toString(inStateRecords, false),
-                        matchLevelCount.toString(inStateRecords, true)
+                        districtAssignmentAccuracyCount.toString(inStateRecords, true)
                 );
             }
         }

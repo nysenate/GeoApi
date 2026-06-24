@@ -3,7 +3,6 @@ package gov.nysenate.sage.model;
 import gov.nysenate.sage.annotation.UnitTest;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.geo.Geocode;
-import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.provider.geocode.Geocoder;
 import org.junit.Test;
@@ -15,9 +14,9 @@ import static org.junit.Assert.assertEquals;
 public class GeocodedAddressTest {
     @Test
     public void isGeocodedTest() {
-        testGeocode(new Geocode(new Point("1", "1"), GeocodeQuality.HOUSE, Geocoder.NYSGEO, false), true);
-        testGeocode(new Geocode(new Point("1", "1"), GeocodeQuality.HOUSE, Geocoder.NYSGEO, false), true);
-        testGeocode(new Geocode(new Point("0", "0"), GeocodeQuality.UNKNOWN, Geocoder.NYSGEO, false), false);
+        testGeocode(new Geocode(new Point("1", "1"), Accuracy.HOUSE, Geocoder.NYSGEO, false), true);
+        testGeocode(new Geocode(new Point("1", "1"), Accuracy.HOUSE, Geocoder.NYSGEO, false), true);
+        testGeocode(new Geocode(new Point("0", "0"), Accuracy.UNKNOWN, Geocoder.NYSGEO, false), false);
         testGeocode(null, false);
     }
 

@@ -1,5 +1,6 @@
 package gov.nysenate.sage.model.geo;
 
+import gov.nysenate.sage.model.Accuracy;
 import gov.nysenate.sage.provider.geocode.Geocoder;
 
 import java.math.BigDecimal;
@@ -9,7 +10,7 @@ import java.math.BigDecimal;
  * service. This includes the lat/log pair represented by a Point and various
  * metrics describing the accuracy of the geocoding.
  */
-public record Geocode(Point point, GeocodeQuality quality, Geocoder originalGeocoder, boolean isCached) {
+public record Geocode(Point point, Accuracy accuracy, Geocoder originalGeocoder, boolean isCached) {
     public BigDecimal lat() {
         return point.lat();
     }
@@ -18,9 +19,9 @@ public record Geocode(Point point, GeocodeQuality quality, Geocoder originalGeoc
         return point.lon();
     }
 
-    /** A valid geocode should have a quality code level of REGION or greater */
+    /** A valid geocode should have an accuracy code level of REGION or greater */
     public boolean isValidGeocode() {
-        return quality() != null && quality().compareTo(GeocodeQuality.REGION) >= 0;
+        return accuracy() != null && accuracy().compareTo(Accuracy.REGION) >= 0;
     }
 
     public Geocoder geocoder() {

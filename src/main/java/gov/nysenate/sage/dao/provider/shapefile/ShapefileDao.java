@@ -74,7 +74,7 @@ public class ShapefileDao extends BaseDao implements DistrictNameDao {
                 }
             }
         }
-        return new DistrictInfo(typeToDistrictMap, getMatchLevel(geocode.quality()));
+        return new DistrictInfo(typeToDistrictMap, geocode.accuracy());
     }
 
     /**
@@ -308,14 +308,5 @@ public class ShapefileDao extends BaseDao implements DistrictNameDao {
             logger.error("{}", String.valueOf(ex));
             return null;
         }
-    }
-
-    private static DistrictMatchLevel getMatchLevel(GeocodeQuality quality) {
-        return switch (quality) {
-            case HOUSE -> DistrictMatchLevel.HOUSE;
-            case STREET -> DistrictMatchLevel.STREET;
-            case REGION -> DistrictMatchLevel.REGION;
-            default -> DistrictMatchLevel.NOMATCH;
-        };
     }
 }

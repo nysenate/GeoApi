@@ -6,11 +6,9 @@ import gov.nysenate.sage.controller.api.DistrictUtil;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.base.SqlTable;
 import gov.nysenate.sage.dao.provider.DistrictNameDao;
+import gov.nysenate.sage.model.Accuracy;
 import gov.nysenate.sage.model.address.*;
-import gov.nysenate.sage.model.district.DistrictInfo;
-import gov.nysenate.sage.model.district.DistrictMatchLevel;
-import gov.nysenate.sage.model.district.DistrictType;
-import gov.nysenate.sage.model.district.SingleDistrict;
+import gov.nysenate.sage.model.district.*;
 import gov.nysenate.sage.scripts.streetfinder.model.AddressWithoutNum;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetParity;
 import org.postgresql.copy.CopyManager;
@@ -92,12 +90,12 @@ public class StreetfileDao extends BaseDao {
      * @return a districted address, with the highest possible match level.
      */
     public DistrictInfo getDistrictInfo(Address addr) {
-        return getDistrictInfo(addr, DistrictMatchLevel.HOUSE);
+        return getDistrictInfo(addr, Accuracy.HOUSE);
     }
 
-    private DistrictInfo getDistrictInfo(Address addr, DistrictMatchLevel matchLevel) {
-        logger.debug("Getting district info for {} at level {}", addr, matchLevel);
-        if (addr == null || matchLevel == null) {
+    private DistrictInfo getDistrictInfo(Address addr, Accuracy accuracy) {
+        logger.debug("Getting district info for {} at level {}", addr, accuracy);
+        if (addr == null || accuracy == Accuracy.UNKNOWN || accuracy == null) {
             return DistrictInfo.empty;
         }
         var whereList = new ArrayList<String>();
@@ -108,16 +106,16 @@ public class StreetfileDao extends BaseDao {
             whereList.add("zip5 = '%s'".formatted(addr.getZip5()));
         }
         if (addr instanceof BuildingAddress bldgAddr) {
-            if (matchLevel.compareTo(DistrictMatchLevel.STREET) >= 0) {
+            if (accuracy.compareTo(Accuracy.STREET) >= 0) {
                 whereList.add("street = '%s'".formatted(bldgAddr.getStreet().toUpperCase()));
             }
-            if (matchLevel == DistrictMatchLevel.HOUSE) {
+            if (accuracy == Accuracy.HOUSE) {
                 int bldgNum;
                 try {
                     bldgNum = Integer.parseInt(bldgAddr.getBldgId().replaceFirst("(?i)[a-z-]$", ""));
                 } catch (NumberFormatException ex) {
                     logger.warn("Could not parse building number from {}", bldgAddr);
-                    return getDistrictInfo(bldgAddr, matchLevel.getNextHighestLevel());
+                    return getDistrictInfo(bldgAddr, accuracy.getNextHighestLevel());
                 }
                 StreetParity parity = bldgNum % 2 == 0 ? EVENS : ODDS;
                 whereList.add("(bldg_low <= %d AND %d <= bldg_high)".formatted(bldgNum, bldgNum));
@@ -133,10 +131,10 @@ public class StreetfileDao extends BaseDao {
                 " WHERE " + String.join(" AND ", whereList);
         List<DistrictedStreetRange> ranges = namedJdbcTemplate.query(sql, new DistrictStreetRangeMapper());
         if (ranges.isEmpty()) {
-            return getDistrictInfo(addr, matchLevel.getNextHighestLevel());
+            return getDistrictInfo(addr, accuracy.getNextHighestLevel());
         }
         return DistrictUtil.getDistrictInfoWithoutConflicts(ranges.stream()
-                .map(DistrictedStreetRange::districtInfo).toList(), matchLevel);
+                .map(DistrictedStreetRange::districtInfo).toList(), accuracy);
     }
 
     /**
@@ -174,7 +172,7 @@ public class StreetfileDao extends BaseDao {
                     typeToDistrictMap.put(type, new SingleDistrict(code, name));
                 }
             }
-            return new DistrictedStreetRange(sar, new DistrictInfo(typeToDistrictMap, DistrictMatchLevel.HOUSE));
+            return new DistrictedStreetRange(sar, new DistrictInfo(typeToDistrictMap, Accuracy.HOUSE));
         }
     }
 }

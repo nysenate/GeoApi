@@ -4,9 +4,9 @@ import gov.nysenate.sage.BaseTests;
 import gov.nysenate.sage.annotation.IntegrationTest;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
+import gov.nysenate.sage.model.Accuracy;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
-import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.provider.geocode.Geocoder;
@@ -26,9 +26,9 @@ public class ShapefileServiceTest extends BaseTests {
 
     @Ignore
     @Test
-    public void shouldNotDistrictAssignCityGeocodeQuality() {
+    public void shouldNotDistrictAssignRegionAccuracy() {
         var addr = new Address("", "Delmar", "NY", "");
-        Geocode geo = new Geocode(new Point("42.6220235", "-73.8326232"), GeocodeQuality.REGION, Geocoder.GOOGLE, false);
+        Geocode geo = new Geocode(new Point("42.6220235", "-73.8326232"), Accuracy.REGION, Geocoder.GOOGLE, false);
         GeocodedAddress geoAddr = new GeocodedAddress(addr, geo);
         DistrictResult res = districtService.assignDistricts(List.of(LocalSource.SHAPEFILE), geoAddr, Set.of(DistrictType.SENATE));
         assertFalse(res.isSuccess());

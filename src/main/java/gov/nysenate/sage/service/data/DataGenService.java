@@ -21,7 +21,7 @@ public class DataGenService implements SageDataGenService {
         this.memberProvider = memberProvider;
     }
 
-    // TODO: clarify this, handle it, and update caches properly
+    // TODO: move to frontend
     public synchronized void vacantizeSenateData() {
         var vacantSenatorsList = new ArrayList<Senator>();
         //handle the empty ones

@@ -2,8 +2,8 @@ package gov.nysenate.sage.model.job;
 
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
+import gov.nysenate.sage.model.Accuracy;
 import gov.nysenate.sage.model.district.DistrictInfo;
-import gov.nysenate.sage.model.district.DistrictMatchLevel;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.result.AddressResult;
@@ -24,7 +24,7 @@ public class JobRecord {
     private final Address address;
     private Address correctedAddress;
     private GeocodedAddress geocodedAddress;
-    private DistrictMatchLevel matchLevel;
+    private Accuracy accuracy;
 
     public JobRecord(Map<Column, Integer> indexMap, List<Object> row) {
         this.indexMap = indexMap;
@@ -87,7 +87,7 @@ public class JobRecord {
                 dataMap.put(Column.lat, geocode.lat());
                 dataMap.put(Column.lon, geocode.lon());
                 dataMap.put(Column.geoMethod, geocode.originalGeocoder());
-                dataMap.put(Column.geoQuality, geocode.quality());
+                dataMap.put(Column.geoQuality, geocode.accuracy());
             }
         }
     }
@@ -95,7 +95,7 @@ public class JobRecord {
     public void applyDistrictResult(DistrictResult districtResult) {
         if (districtResult != null && districtResult.isSuccess()) {
             DistrictInfo districtInfo = districtResult.getDistrictInfo();
-            this.matchLevel = districtInfo.matchLevel();
+            this.accuracy = districtInfo.accuracy();
             for (Column column : Column.values()) {
                 if (column.group() != Column.Group.district) {
                     continue;
@@ -117,8 +117,8 @@ public class JobRecord {
         return geocodedAddress;
     }
 
-    public DistrictMatchLevel getMatchLevel() {
-        return matchLevel;
+    public Accuracy getAccuracy() {
+        return accuracy;
     }
 
     public Set<Column> getAssignedDistricts() {

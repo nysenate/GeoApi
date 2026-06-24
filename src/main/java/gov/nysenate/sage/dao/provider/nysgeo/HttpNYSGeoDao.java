@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
+import gov.nysenate.sage.model.Accuracy;
 import gov.nysenate.sage.model.geo.Geocode;
-import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.provider.geocode.Geocoder;
 import gov.nysenate.sage.util.UrlRequest;
@@ -122,7 +122,7 @@ public class HttpNYSGeoDao implements GeocoderDao {
             String lon = location.get("x").asText();
             String lat = location.get("y").asText();
             var geocode = new Geocode(new Point(lat, lon),
-                    resolveGeocodeQuality(addrType), geocoder(), false);
+                    resolveAccuracy(addrType), geocoder(), false);
             return new GeocodedAddress(address, geocode);
         }
         catch (IOException ex) {
@@ -136,23 +136,23 @@ public class HttpNYSGeoDao implements GeocoderDao {
     }
 
     /**
-     * Determines the geocode quality from the {@code Addr_type} attribute, which classifies the kind
+     * Determines the geocode accuracy from the {@code Addr_type} attribute, which classifies the kind
      * of feature the point represents (rooftop point, interpolated street address, postal centroid,
      * etc.). The new NYS geocoder returns {@code Addr_type} on both forward and reverse responses, so
      * the same mapping is used for either.
      *
      * @param addrType - the candidate's {@code Addr_type} attribute
-     * @return geoQuality - the closest matching quality reference
+     * @return accuracy - the closest matching accuracy reference
      */
-    private static GeocodeQuality resolveGeocodeQuality(String addrType) {
+    private static Accuracy resolveAccuracy(String addrType) {
         return switch (addrType) {
-            case "Subaddress", "PointAddress", "POI" -> GeocodeQuality.HOUSE;
+            case "Subaddress", "PointAddress", "POI" -> Accuracy.HOUSE;
             case "StreetAddress", "StreetInt", "StreetAddressExt", "DistanceMarker",
-                 "StreetMidBlock", "StreetBetween", "StreetName" -> GeocodeQuality.STREET;
-            case "Locality", "PostalLoc", "PostalExt", "Postal" -> GeocodeQuality.REGION;
+                 "StreetMidBlock", "StreetBetween", "StreetName" -> Accuracy.STREET;
+            case "Locality", "PostalLoc", "PostalExt", "Postal" -> Accuracy.REGION;
             default -> {
-                logger.warn("Unmapped NYSGeo Addr_type '{}'; defaulting to UNKNOWN quality.", addrType);
-                yield GeocodeQuality.UNKNOWN;
+                logger.warn("Unmapped NYSGeo Addr_type '{}'; defaulting to UNKNOWN accuracy.", addrType);
+                yield Accuracy.UNKNOWN;
             }
         };
     }

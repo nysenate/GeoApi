@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.dao.provider.nysgeo.GeocoderDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
+import gov.nysenate.sage.model.Accuracy;
 import gov.nysenate.sage.model.geo.Geocode;
-import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.provider.geocode.Geocoder;
 import gov.nysenate.sage.util.UrlRequest;
@@ -135,7 +135,7 @@ public class HttpGoogleDao implements GeocoderDao {
                 String lon = location.get("lng").asText("0");
                 String locationType = geometry.get("location_type").asText();
                 var geocode = new Geocode(
-                        new Point(lat, lon), resolveGeocodeQuality(locationType), geocoder(), false);
+                        new Point(lat, lon), resolveAccuracy(locationType), geocoder(), false);
                 return new GeocodedAddress(address, geocode);
             }
             else if (node.has("status") && node.get("status").asText().equals("OVER_QUERY_LIMIT")) {
@@ -151,12 +151,12 @@ public class HttpGoogleDao implements GeocoderDao {
         return null;
     }
 
-    private static GeocodeQuality resolveGeocodeQuality(String locationType) {
+    private static Accuracy resolveAccuracy(String locationType) {
         return switch (locationType) {
-            case "ROOFTOP" -> GeocodeQuality.HOUSE;
-            case "RANGE_INTERPOLATED" -> GeocodeQuality.STREET;
-            case "GEOMETRIC_CENTER" -> GeocodeQuality.REGION;
-            default -> GeocodeQuality.UNKNOWN;
+            case "ROOFTOP" -> Accuracy.HOUSE;
+            case "RANGE_INTERPOLATED" -> Accuracy.STREET;
+            case "GEOMETRIC_CENTER" -> Accuracy.REGION;
+            default -> Accuracy.UNKNOWN;
         };
     }
 }

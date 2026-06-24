@@ -19,7 +19,7 @@ public class GeocodeView {
     private GeocodeView(Geocode geocode) {
         this.lat = geocode.lat().toString();
         this.lon = geocode.lon().toString();
-        this.quality = geocode.quality().name();
+        this.quality = geocode.accuracy().name();
         this.method = geocode.originalGeocoder().name();
         this.cached = geocode.isCached();
         // Unfortunately, the only constructor uses doubles

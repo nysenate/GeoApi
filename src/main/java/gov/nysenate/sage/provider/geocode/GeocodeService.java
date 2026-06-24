@@ -11,8 +11,8 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.address.PostOfficeBox;
+import gov.nysenate.sage.model.Accuracy;
 import gov.nysenate.sage.model.geo.Geocode;
-import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import gov.nysenate.sage.model.result.ResultStatus;
@@ -119,7 +119,7 @@ public class GeocodeService {
     }
 
     public GeocodeResult reverseGeocode(List<Geocoder> geocoders, Point point) {
-        var revGeocodedAddress = new GeocodedAddress(new Geocode(point, GeocodeQuality.HOUSE, null, false));
+        var revGeocodedAddress = new GeocodedAddress(new Geocode(point, Accuracy.HOUSE, null, false));
         if (point == null) {
             return new GeocodeResult(null, MISSING_POINT, revGeocodedAddress);
         }

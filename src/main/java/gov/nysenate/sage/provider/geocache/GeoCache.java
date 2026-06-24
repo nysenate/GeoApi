@@ -4,8 +4,8 @@ import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.provider.nysgeo.GeocoderDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
+import gov.nysenate.sage.model.Accuracy;
 import gov.nysenate.sage.model.geo.Geocode;
-import gov.nysenate.sage.model.geo.GeocodeQuality;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.provider.geocode.Geocoder;
 import org.apache.commons.lang3.StringUtils;
@@ -48,7 +48,7 @@ public class GeoCache extends BaseDao implements GeocoderDao {
         var params = getIdParams(geoAddr.getAddress())
                 .addValue("latlon", "POINT(" + gc.lon() + " " + gc.lat() + ")")
                 .addValue("method", gc.originalGeocoder().name())
-                .addValue("quality", gc.quality().name());
+                .addValue("accuracy", gc.accuracy().name());
 
         synchronized (this) {
             if (namedJdbcTemplate.update(UPDATE_CACHE_ENTRY.getSql(), params) == 0) {
@@ -64,9 +64,9 @@ public class GeoCache extends BaseDao implements GeocoderDao {
                     WordUtils.capitalizeFully(rs.getString("postal_city")),
                     rs.getString("state"), rs.getString("zip5"));
             var point = new Point(rs.getString("lat"), rs.getString("lon"));
-            GeocodeQuality quality = GeocodeQuality.fromString(rs.getString("quality"));
+            Accuracy accuracy = Accuracy.fromString(rs.getString("accuracy"));
             Geocoder geocoder = Geocoder.valueOf(rs.getString("method"));
-            return new GeocodedAddress(addr, new Geocode(point, quality, geocoder, true));
+            return new GeocodedAddress(addr, new Geocode(point, accuracy, geocoder, true));
         }
     }
 
