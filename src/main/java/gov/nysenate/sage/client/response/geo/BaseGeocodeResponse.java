@@ -4,7 +4,9 @@ import gov.nysenate.sage.client.response.base.SourcedResponse;
 import gov.nysenate.sage.client.view.address.AddressView;
 import gov.nysenate.sage.client.view.geo.GeocodeView;
 import gov.nysenate.sage.model.result.GeocodeResult;
+import lombok.Getter;
 
+@Getter
 public class BaseGeocodeResponse extends SourcedResponse {
     private AddressView address;
     private GeocodeView geocode;
@@ -13,15 +15,7 @@ public class BaseGeocodeResponse extends SourcedResponse {
         super(geocodeResult);
         if (geocodeResult != null && geocodeResult.isSuccess()) {
             this.address = new AddressView(geocodeResult.getGeocodedAddress().getAddress(), false);
-            this.geocode = new GeocodeView(geocodeResult.getGeocode());
+            this.geocode = GeocodeView.from(geocodeResult.getGeocode());
         }
-    }
-
-    public AddressView getAddress() {
-        return address;
-    }
-
-    public GeocodeView getGeocode() {
-        return geocode;
     }
 }

@@ -80,7 +80,7 @@ public class ShapefileDao extends BaseDao implements DistrictNameDao {
     /**
      * Creates and returns a DistrictOverlap object which contains lists of all districts that contained
      * within a collection of other districts and maps of intersections for senate districts. This is used
-     * for a zip/city level match where given a collection of zip codes, gather the other types of districts
+     * for a region level match where given a collection of zip codes, gather the other types of districts
      * that overlap the zip area.
      * @param baseType The DistrictType of get overlap info for.
      * @param intersectType    The DistrictType to base the intersections of off.

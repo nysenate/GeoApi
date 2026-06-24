@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 
 @Getter
 public class DistrictMapView {
-    private String type;
+    private DistrictType type;
     private String district;
     private String name;
     private PolygonMapView map;
@@ -19,18 +19,19 @@ public class DistrictMapView {
 
     public DistrictMapView(DistrictMap districtMap, boolean showMaps) {
         if (districtMap != null) {
-            DistrictType districtType = districtMap.getDistrictType();
-            if (districtType != null) {
-                this.type = districtType.name();
-            }
+            this.type = districtMap.getDistrictType();
             this.district = districtMap.getDistrictCode();
             this.name = districtMap.getDistrictName();
             this.map = (showMaps) ? new PolygonMapView(districtMap) : null;
             this.member = districtMap.getMember();
-            if (districtType == DistrictType.COUNTY) {
+            if (type == DistrictType.COUNTY) {
                 this.link = districtMap.getLink();
             }
             this.area = districtMap.getArea();
         }
+    }
+
+    public String getDisplayName() {
+        return type == null ? null : type.getDisplayName();
     }
 }

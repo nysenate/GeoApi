@@ -24,7 +24,7 @@ public abstract class BaseResult<S extends DataSource> {
     }
 
     protected BaseResult(List<S> sources, ResultStatus status) {
-        this.sources = sources == null ? null : new LinkedHashSet<>(sources);
+        this.sources = sources == null  || sources.isEmpty() ? null : new LinkedHashSet<>(sources);
         this.statusCode = status;
     }
 
