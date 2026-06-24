@@ -3,6 +3,7 @@ package gov.nysenate.sage.client.response.map;
 import gov.nysenate.sage.client.response.base.SourcedResponse;
 import gov.nysenate.sage.client.view.map.DistrictMapView;
 import gov.nysenate.sage.client.view.map.PolygonMapView;
+import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.MapResult;
 
 public class MapResponse extends SourcedResponse {
@@ -23,8 +24,12 @@ public class MapResponse extends SourcedResponse {
         return (map != null) ? map.getName() : null;
     }
 
-    public String getType() {
+    public DistrictType getType() {
         return (map != null) ? map.getType() : null;
+    }
+
+    public String getDisplayName() {
+        return (map != null) ? map.getDisplayName() : null;
     }
 
     public PolygonMapView getMap() {

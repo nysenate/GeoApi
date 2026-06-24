@@ -77,7 +77,7 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
                 $.each(data.districts, function(i, v){
                     if (v.map) {
                         mapService.setOverlay(v.map.geom, getMapName(v), false, false,
-                            (v.type == "SENATE") ? function() {
+                            (v.member != null) ? function() {
 
                                 /** Draw the office markers */
                                 mapService.clearMarkers();
@@ -100,7 +100,7 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
             /** Show the individual district map */
             else if (data.map != null) {
                 mapService.setOverlay(data.map.geom, getMapName(data), true, true, null, null);
-                if (data.type == "SENATE") {
+                if (data.member != null) {
                     dataBus.setBroadcastAndView("member", data, "member");
 
                     /** Draw the office markers */
