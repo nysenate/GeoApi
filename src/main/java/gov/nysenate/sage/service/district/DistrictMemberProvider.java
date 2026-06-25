@@ -96,7 +96,7 @@ public class DistrictMemberProvider {
     }
 
     private Point getPoint(Address officeAddress) {
-        GeocodeResult result = geocodeService.geocode(null, officeAddress);
+        GeocodeResult result = geocodeService.geocode(null, officeAddress, false);
         if (result.isSuccess()) {
             return result.getGeocode().point();
         }
@@ -114,8 +114,8 @@ public class DistrictMemberProvider {
             return;
         }
         Map<Long, DistrictMember> cache = caches.get(map.getDistrictType());
-        long code = Long.parseLong(map.getDistrictCode());
         if (cache != null) {
+            long code = Long.parseLong(map.getDistrictCode());
             map.setMember(cache.get(code));
         }
     }
