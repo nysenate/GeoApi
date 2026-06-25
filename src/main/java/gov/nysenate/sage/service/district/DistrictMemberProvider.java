@@ -3,10 +3,7 @@ package gov.nysenate.sage.service.district;
 import com.google.common.collect.ImmutableMap;
 import gov.nysenate.sage.dao.model.member.MemberDao;
 import gov.nysenate.sage.model.address.Address;
-import gov.nysenate.sage.model.district.DistrictMap;
-import gov.nysenate.sage.model.district.DistrictMember;
-import gov.nysenate.sage.model.district.DistrictType;
-import gov.nysenate.sage.model.district.OfficeInfo;
+import gov.nysenate.sage.model.district.*;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.DistrictResultWithMembers;
@@ -113,26 +110,31 @@ public class DistrictMemberProvider {
         if (map == null) {
             return;
         }
-        Map<Long, DistrictMember> cache = caches.get(map.getDistrictType());
-        if (cache != null) {
-            long code = Long.parseLong(map.getDistrictCode());
-            map.setMember(cache.get(code));
-        }
+        map.setMember(getMember(map.getDistrictCode(), map.getDistrictType()));
     }
 
     public DistrictResultWithMembers assignMembers(DistrictResult baseResult) {
         var memberMap = new HashMap<DistrictType, DistrictMember>();
         for (DistrictType type : baseResult.getAssignedDistricts()) {
-            ImmutableMap<Long, DistrictMember> cache = caches.get(type);
-            if (cache == null) {
-                continue;
+            DistrictMember member = getMember(baseResult.getDistrictInfo().getDistCode(type), type);
+            if (member != null) {
+                memberMap.put(type, member);
             }
-            String codeStr = baseResult.getDistrictInfo().getDistCode(type);
-            if (codeStr == null) {
-                continue;
-            }
-            memberMap.put(type, cache.get(Long.parseLong(codeStr)));
         }
         return new DistrictResultWithMembers(baseResult, memberMap);
+    }
+
+    private DistrictMember getMember(String codeStr, DistrictType type) {
+        ImmutableMap<Long, DistrictMember> cache = caches.get(type);
+        if (cache == null) {
+            return null;
+        }
+        DistrictMember member = cache.get(Long.parseLong(codeStr));
+        if (member == null && type == DistrictType.SENATE) {
+            member = new DistrictMember(new MemberInfo("Vacant", "District " + codeStr,
+                    "https://www.nysenate.gov/themes/custom/nysenate_theme/dist/images/nys_logo_header240x240.jpg",
+                    "https://www.nysenate.gov/district/" + codeStr, null), null);
+        }
+        return member;
     }
 }

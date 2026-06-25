@@ -88,27 +88,6 @@ public class DataGenController extends BaseAdminApiController {
         return invalidAuthResponse;
     }
 
-    /**
-     * Vacantize Senator Data Api
-     * -----------------------
-     * <p>
-     * Generates and replaces the Senator table with vacant senator data
-     * <p>
-     * Usage:
-     * (GET)    /admin/api/datagen/vacantize
-     */
-    @GetMapping(value = "/vacantize")
-    public BaseResponse vacantizeSenatorData(HttpServletRequest request,
-                                       @RequestParam(required = false, defaultValue = "defaultUser") String username,
-                                       @RequestParam(required = false, defaultValue = "defaultPass") String password,
-                                       @RequestParam(required = false, defaultValue = "") String key) {
-        if (authenticate(request, username, password, key)) {
-            dataGenService.vacantizeSenateData();
-            return ApiControllerUtil.successResponse;
-        }
-        return invalidAuthResponse;
-    }
-
     @GetMapping(value = "/post-offices")
     public BaseResponse processPostOffices(HttpServletRequest request,
                                      @RequestParam(required = false, defaultValue = "defaultUser") String username,
