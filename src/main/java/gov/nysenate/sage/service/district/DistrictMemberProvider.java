@@ -75,6 +75,9 @@ public class DistrictMemberProvider {
                 continue;
             }
             for (OfficeInfo info : entry.getValue().offices()) {
+                if (info.getPoint() != null) {
+                    continue;
+                }
                 Address addressToGeocode = info.getAddress().getRealAddress();
                 if (addressToGeocode.getAddr1().matches("(\\d+ )?Legislative Office (Bldg|Building).*")) {
                     addressToGeocode = LOB;
