@@ -28,10 +28,6 @@ public class MapResponse extends SourcedResponse {
         return (map != null) ? map.getType() : null;
     }
 
-    public String getDisplayName() {
-        return (map != null) ? map.getDisplayName() : null;
-    }
-
     public PolygonMapView getMap() {
         return (map != null) ? map.getMap() : null;
     }

@@ -30,8 +30,4 @@ public class DistrictMapView {
             this.area = districtMap.getArea();
         }
     }
-
-    public String getDisplayName() {
-        return type == null ? null : type.getDisplayName();
-    }
 }

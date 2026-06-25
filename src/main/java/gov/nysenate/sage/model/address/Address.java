@@ -5,6 +5,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Getter
 public sealed class Address permits BuildingAddress, PostOfficeBox {
@@ -74,9 +76,13 @@ public sealed class Address permits BuildingAddress, PostOfficeBox {
 
     @Override
     public String toString() {
-        return addr1 + (StringUtils.isBlank(postalCity) ? "" : ", " + postalCity) +
-                (StringUtils.isBlank(state) ? "" : ", " + state) +
-                (zip5 == null ? "" : ", " + zip5) + (zip4 == null ? "" : "-" + zip4);
+        String ret = Stream.of(addr1, postalCity, state, zip5)
+                .filter(field -> field != null && field.toString().isBlank())
+                .map(Object::toString).collect(Collectors.joining(", "));
+        if (zip4 != null) {
+            ret += "-" + zip4;
+        }
+        return ret;
     }
 
     /** Indicates if address has been marked USPS validated. */
