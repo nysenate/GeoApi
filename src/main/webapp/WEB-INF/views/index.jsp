@@ -430,14 +430,14 @@
                             </div>
                         </div>
 
-                        <div class="info-container connected slim" style="border-bottom:1px solid #ddd;">
+                        <div class="info-container connected slim" style="border-bottom:1px solid #ddd;" ng-show="districts.senate.member.info.email">
                             <p class="member-email">
                             <div class="icon-mail icon-teal" style="margin-right: 5px;"></div>
                             <span style='font-size:15px'>{{districts.senate.member.info.email}}</span>
                             </p>
                         </div>
 
-                        <div class="info-container connected slim">
+                        <div class="info-container connected slim" ng-show="districts.senate.member.offices.length">
                             <table style="width:100%">
                                 <tr>
                                     <td>
