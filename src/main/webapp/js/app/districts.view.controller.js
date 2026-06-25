@@ -172,7 +172,7 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
         mapService.clearPolygons();
         /** Draw the intersected senate maps */
         if ($scope.overlaps) {
-            /** Assign a unique color to each senate district */
+            /** Assign a unique color to each district */
             $.each($scope.overlaps, function (i, overlap) {
                 $scope.senateColors[overlap.district] = $scope.colors[i % $scope.colors.length];
                 if (overlap.map != null) {

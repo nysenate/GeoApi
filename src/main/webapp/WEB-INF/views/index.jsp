@@ -463,7 +463,7 @@
                                         <tr>
                                             <td><p style="font-size:16px;color:teal;">{{office.name}}</p></td>
                                             <td class="right-icon-placeholder">
-                                                <a title="Locate office" ng-click="setOfficeMarker(office);">
+                                                <a title="Locate office" ng-show="office.point" ng-click="setOfficeMarker(office);">
                                                     <div class="icon-location icon-hover-teal"></div>
                                                 </a>
                                             </td>
@@ -487,8 +487,7 @@
                         </div>
                         <div class="info-container title connected" ng-show="id == 1">
                         <span class="message" ng-switch="matchLevel">
-                            <span ng-switch-when="ZIP5">This zipcode area contains multiple {{intersectTypeDisplayName}} Districts.</span>
-                            <span ng-switch-when="CITY">This approximated city area contains multiple {{intersectTypeDisplayName}} Districts.</span>
+                            <span ng-switch-when="REGION">This approximated area contains multiple {{intersectTypeDisplayName}} Districts.</span>
                             <span ng-switch-when="STREET">The indicated street contains multiple {{intersectTypeDisplayName}} Districts.</span>
                         </span>
                         </div>
@@ -578,7 +577,7 @@
                                     <p class="senator member-name">
                                         <a target="_blank" ng-href="{{member.info.url}}">{{member.info | memberName}}</a>
                                     </p>
-                                    <p class="senate district">{{displayName}} District {{district}}</p><br/>
+                                    <p class="senate district">{{name}}</p><br/>
                                 </div>
                             </div>
 
@@ -595,7 +594,7 @@
                                         <tr>
                                             <td><p style="font-size:16px;color:teal;">{{office.name}}</p></td>
                                             <td class="right-icon-placeholder">
-                                                <a title="Locate office" ng-click="setOfficeMarker(office);">
+                                                <a title="Locate office" ng-show="office.point" ng-click="setOfficeMarker(office);">
                                                     <div class="icon-location icon-hover-teal"></div>
                                                 </a>
                                             </td>

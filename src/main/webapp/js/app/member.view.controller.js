@@ -12,7 +12,7 @@ sage.controller("MemberViewController", function($scope, dataBus, mapService) {
     $scope.showMember = function() {
         $scope.member = dataBus.data.member;
         $scope.district = dataBus.data.district;
-        $scope.displayName = dataBus.data.displayName;
+        $scope.name = dataBus.data.name;
         dataBus.setBroadcast("expandResults", true);
     };
 
