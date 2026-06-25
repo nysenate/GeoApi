@@ -96,8 +96,14 @@ hr.section-title-hr {
     position:relative;
 }
 
+/* Width of the results sidebar. Shared so the map's reserved margin
+   (#contentcolumn.sidebar) and the column itself (#rightcolumn) stay in sync. */
+:root {
+    --sidebar-width: 340px;
+}
+
 #contentcolumn.sidebar {
-    margin-right:340px;
+    margin-right: var(--sidebar-width);
 }
 
 #mapcontentcolumn {
@@ -127,8 +133,7 @@ hr.section-title-hr {
 
 #rightcolumn {
     float: left;
-    width: 340px; /*Width of right column*/
-    margin-left: -340px; /*Set left margin to -(RightColumnWidth)*/
+    width: var(--sidebar-width); /*Width of right column*/
     background: transparent;
     height:auto;
     display:none;
@@ -482,8 +487,8 @@ hr.section-title-hr {
 
 .info-container {
     box-shadow:1px 1px 2px 0 #b0b0b0;
-    width: 300px;
-    margin: 5px auto;
+    width: auto;
+    margin: 5px 10px;
     background: white;
     height: auto;
     padding:10px;
