@@ -71,6 +71,7 @@ sage.controller("DistrictMapController", function($scope, $http, $timeout, $filt
     };
 
     $scope.onMemberSelect = function() {
+        if (!$scope.selectedDistrict) return;
         $scope.districtSearch = $scope.selectedDistrict.name;
         $scope.showDistrictDropdown = false;
         $scope.lookup();
