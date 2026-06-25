@@ -1,9 +1,4 @@
 /*-------------------------------------------------------
-  Web Fonts
---------------------------------------------------------*/
-@import url(https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600);
-
-/*-------------------------------------------------------
   Defaults
 --------------------------------------------------------*/
 html, body {
@@ -31,7 +26,7 @@ a {
 }
 
 a:hover {
-    color:teal;
+    color:var(--accent);
     text-decoration:underline !important;
 }
 
@@ -64,7 +59,7 @@ h3.section-title {
 
 h3.section-title.street-finder {
     padding: 15px;
-    background: #008cba;
+    background: var(--brand);
 }
 
 hr.section-title-hr {
@@ -100,6 +95,14 @@ hr.section-title-hr {
    (#contentcolumn.sidebar) and the column itself (#rightcolumn) stay in sync. */
 :root {
     --sidebar-width: 340px;
+
+    /* Brand palette */
+    --brand: #008cba;        /* primary header/result blue */
+    --brand-hover: #007095;  /* header hover */
+    --brand-active: #00546f; /* active nav item */
+    --accent: teal;          /* links, highlights, section titles */
+    --accent-dark: #0E4E5A;  /* form labels / section headings */
+    --link: #005588;         /* secondary link/heading blue */
 }
 
 #contentcolumn.sidebar {
@@ -118,7 +121,7 @@ hr.section-title-hr {
 }
 
 .scrollable-content {
-    overflow-x: inherit;
+    overflow-x: hidden;
     overflow-y: auto;
     border-left:1px solid #bbb;
 }
@@ -163,11 +166,11 @@ hr.section-title-hr {
     height:60px;
     width:100%;
     display:block;
-    background:#008cba;
+    background:var(--brand);
     padding:0;
     margin:0;
     font-size:16px;
-    border-bottom:1px solid #007095;
+    border-bottom:1px solid var(--brand-hover);
 }
 
 #header ul {
@@ -193,21 +196,17 @@ hr.section-title-hr {
 #header ul li a:hover {
     text-decoration: none !important;
     color:white !important;
-    background: #007095;
+    background: var(--brand-hover);
 }
 
 #header ul li a.active {
     color:white;
     font-weight: 600;
-    background: #00546f;
+    background: var(--brand-active);
 }
 
 #header ul li a.active:hover {
     color:white !important;
-}
-
-#header ul li a:hover {
-    color:white;
 }
 
 #sageLogoText {
@@ -266,13 +265,11 @@ hr.section-title-hr {
     background:white;
     padding-left:5px;
     box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
 }
 
 .search-container table label {
     font-size:14px;
-    color: #0E4E5A;
+    color: var(--accent-dark);
 }
 
 .search-container .options-link-container {
@@ -476,7 +473,7 @@ hr.section-title-hr {
 
 .result-header.success {
     color: white;
-    background-color: #008cba;
+    background-color: var(--brand);
     font-weight: 600;
 }
 
@@ -510,7 +507,7 @@ hr.section-title-hr {
 
 .info-container.title p {
     font-size:17px;
-    color:teal;
+    color:var(--accent);
 }
 
 .info-container.connected-top {
@@ -530,7 +527,7 @@ hr.section-title-hr {
 }
 
 .info-container.clickable:hover {
-    box-shadow:1px 1px 2px 0 teal;
+    box-shadow:1px 1px 2px 0 var(--accent);
     background-color:#f5f5f5;
 }
 
@@ -616,12 +613,12 @@ table.light-table tr {
 
 .district {
     font-size:16px;
-    color: teal;
+    color: var(--accent);
 }
 
 .district.senate {
     font-size:18px;
-    color: teal;
+    color: var(--accent);
 }
 
 .validated-address {
@@ -656,17 +653,8 @@ table.light-table tr {
 /*-------------------------------------------------------
   Form Styles
   ------------------------------------------------------*/
-.form-container {
-    display:none;
-}
-
-.form-container.active {
-    display:none;
-}
-
-button.submit, button.submit.mini {
+button.submit, button.toggle, button.geocache {
     text-align: center;
-    background: #00DD00;
     color: white;
     border: 0;
     outline: 0;
@@ -678,79 +666,23 @@ button.submit, button.submit.mini {
     border-radius: 2px;
 }
 
-button.submit.mini {
-    height:35px;
+button.submit.mini, button.toggle.mini, button.geocache.mini {
+    height: 35px;
     width: 52px;
-    font-weight: bold;
     border-radius: 0 2px 2px 0;
     box-sizing: border-box;
 }
 
-button.submit:hover{
-    background: #008800;
-}
+button.submit { background: #00DD00; }
+button.submit:hover { background: #008800; }
 
-button.submit[disabled] {
-    background: #aaa;
-}
+button.toggle { background: #0000FF; }
+button.toggle:hover { background: #000088; }
 
-button.toggle, button.toggle.mini {
-    text-align: center;
-    background: #0000FF;
-    color: white;
-    border: 0;
-    outline: 0;
-    font-size: 14px;
-    font-family: 'Source Sans Pro', sans-serif;
-    padding: 7px 20px;
-    width: 264px;
-    font-weight: bold;
-    border-radius: 2px;
-}
+button.geocache { background: #FF0000; }
+button.geocache:hover { background: #880000; }
 
-button.toggle.mini {
-    height:35px;
-    width: 52px;
-    font-weight: bold;
-    border-radius: 0 2px 2px 0;
-    box-sizing: border-box;
-}
-
-button.toggle:hover{
-    background: #000088;
-}
-
-button.toggle[disabled] {
-    background: #aaa;
-}
-
-button.geocache, button.geocache.mini {
-    text-align: center;
-    background: #FF0000;
-    color: white;
-    border: 0;
-    outline: 0;
-    font-size: 14px;
-    font-family: 'Source Sans Pro', sans-serif;
-    padding: 7px 20px;
-    width: 264px;
-    font-weight: bold;
-    border-radius: 2px;
-}
-
-button.geocache.mini {
-    height:35px;
-    width: 52px;
-    font-weight: bold;
-    border-radius: 0 2px 2px 0;
-    box-sizing: border-box;
-}
-
-button.geocache:hover{
-    background: #880000;
-}
-
-button.geocache[disabled] {
+button.submit[disabled], button.toggle[disabled], button.geocache[disabled] {
     background: #aaa;
 }
 
@@ -830,11 +762,10 @@ hr.shadow {
     background: white;
     padding-left: 5px;
     box-sizing: border-box;
-    -webkit-box-sizing: border-box;
 }
 
 #streetViewTableContainer {
-    border-tozp: 1px solid #ddd;
+    border-top: 1px solid #ddd;
     margin: 10px 0;
 }
 
@@ -844,12 +775,12 @@ table.dataTable tr.odd {
 
 table.dataTable tr.odd td.sorting_1 {
     background-color:transparent !important;
-    color:teal;
+    color:var(--accent);
 }
 
 table.dataTable tr.even td.sorting_1 {
     background-color:transparent !important;
-    color:teal;
+    color:var(--accent);
 }
 
 .dataTables_wrapper {
@@ -883,7 +814,7 @@ table.dataTable tr.even td.sorting_1 {
 
 #street-view-table.dataTable thead th {
     font-size:12px;
-    color:#005588;
+    color:var(--link);
 }
 
 #street-view-table_filter {
@@ -932,7 +863,7 @@ table.dataTable tr.even td.sorting_1 {
     border:1px solid #aaa;
     padding:5px;
     font-size:14px;
-    color:teal;
+    color:var(--accent);
     font-weight:600;
     cursor:pointer;
 }
@@ -1029,14 +960,14 @@ div.cancel {
 }
 
 .columnAliasTable tr td:first-child {
-    color:teal;
+    color:var(--accent);
 }
 
 /*-------------------------------------------------------
   Admin Page
 --------------------------------------------------------*/
 p.blue-header {
-    color:#005588;
+    color:var(--link);
     font-weight: 600;
 }
 
@@ -1048,7 +979,6 @@ p.blue-header {
 ul.horizontal {
     margin:0;
 }
-
 
 ul.horizontal li {
     display:inline;
@@ -1074,13 +1004,13 @@ ul.horizontal li {
 .highlight-section .title {
     text-align: left;
     font-weight: bold;
-    border-bottom: 1px solid #0E4E5A;
+    border-bottom: 1px solid var(--accent-dark);
     padding: 5px;
-    color: #0E4E5A;
+    color: var(--accent-dark);
 }
 
 .highlight-section label {
-    color:#0E4E5A;
+    color:var(--accent-dark);
 }
 
 table.admin-table {
@@ -1134,7 +1064,7 @@ table.admin-table tr {
 
 .pac-item b {
     font-weight: 600;
-    color:teal;
+    color:var(--accent);
 }
 
 /*-------------------------------------------------------
@@ -1148,7 +1078,7 @@ table.admin-table tr {
     width:auto;
     padding:5px;
     font-size:13px;
-    background:#005588;
+    background:var(--link);
     color:white;
     font-weight:600;
     opacity:0.9;
