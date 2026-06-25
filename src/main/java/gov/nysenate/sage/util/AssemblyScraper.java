@@ -91,12 +91,12 @@ public class AssemblyScraper {
      */
     private static OfficeInfo parseOffice(String addrHtml) {
         List<String> lines = Arrays.stream(addrHtml.split("<br>"))
-                .filter(line -> !line.isEmpty()).toList();
+                .filter(line -> !line.isEmpty()).map(String::trim).toList();
 
-        String addr2 = "", city = null, zip5 = null, zip4 = null;
+        String addr2 = null, city = null, zip5 = null, zip4 = null;
         int cityIdx = -1;
-        for (int i = 0; i < lines.size(); i++) {
-            String line = lines.get(i).trim();
+        for (int i = 1; i < lines.size(); i++) {
+            String line = lines.get(i);
             Matcher m = CITY_STATE_ZIP.matcher(line);
             if (m.matches()) {
                 city =  m.group(1).trim();
