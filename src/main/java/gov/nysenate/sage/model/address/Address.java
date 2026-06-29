@@ -11,9 +11,7 @@ import java.util.stream.Stream;
 @Getter
 public sealed class Address permits BuildingAddress, PostOfficeBox {
     private static final Pattern zipPattern = Pattern.compile("(\\d{5})(-\\d{4})?");
-    private final String addr1, addr2, postalCity,
-    // TODO: Should maybe default to NY/exclude it as a parameter
-            state;
+    private final String addr1, addr2, postalCity, state;
     private final Zip5 zip5;
     private final Zip4 zip4;
 
@@ -40,7 +38,7 @@ public sealed class Address permits BuildingAddress, PostOfficeBox {
             postalCity = postalCity.replaceAll("(?i)\\bThe Bronx", "Bronx");
         }
         this.postalCity = postalCity;
-        this.state = state;
+        this.state = StringUtils.isBlank(state) ? "NY" : state;
         this.zip5 = zip5;
         this.zip4 = zip4;
     }
@@ -76,8 +74,8 @@ public sealed class Address permits BuildingAddress, PostOfficeBox {
 
     @Override
     public String toString() {
-        String ret = Stream.of(addr1, postalCity, state, zip5)
-                .filter(field -> field != null && field.toString().isBlank())
+        String ret = Stream.of(getPrimaryAddr1(), postalCity, state, zip5)
+                .filter(field -> field != null && !field.toString().isBlank())
                 .map(Object::toString).collect(Collectors.joining(", "));
         if (zip4 != null) {
             ret += "-" + zip4;
