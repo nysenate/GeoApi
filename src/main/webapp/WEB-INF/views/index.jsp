@@ -1,24 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="gov.nysenate.sage.config.Environment" %>
-<%@ page import="org.springframework.web.servlet.support.RequestContextUtils" %>
-<%@ page import="org.springframework.context.ApplicationContext" %>
-<%@ page import="gov.nysenate.sage.service.geo.SageGeocodeServiceProvider" %>
 <%@ taglib prefix="sage" tagdir="/WEB-INF/tags" %>
-<%@ taglib uri="jakarta.tags.core" prefix="c" %>
-
-<%
-    ApplicationContext ac = RequestContextUtils.findWebApplicationContext(request);
-    Environment env = (Environment) ac.getBean("environment");
-    SageGeocodeServiceProvider geocodeServiceProvider = (SageGeocodeServiceProvider) ac.getBean("sageGeocodeServiceProvider");
-    request.setAttribute("amsUrl", env.getUspsAmsUiUrl());
-    request.setAttribute("geocoders", geocodeServiceProvider.geocoders());
-    String googleMapsUrl = env.getGoogleMapsUrl();
-    String googleMapsKey = env.getGoogleMapsKey();
-    if (googleMapsKey != null && !googleMapsKey.isEmpty()) {
-        googleMapsUrl = googleMapsUrl + "&key=" + googleMapsKey;
-    }
-    request.setAttribute("googleMapsUrl", googleMapsUrl);
-%>
 
 <sage:wrapper>
     <jsp:attribute name="ngApp">sage</jsp:attribute>
@@ -191,9 +172,7 @@
                                     <td>
                                         <select id="geocoderMenu" style="width: 100%;" ng-model="geoProvider">
                                             <option value="default">Default</option>
-                                            <c:forEach var="geocoder" items="${geocoders}">
-                                                <option value="${geocoder}">${geocoder}</option>
-                                            </c:forEach>
+                                            <option ng-repeat="geocoder in geocoders" value="{{geocoder}}">{{geocoder}}</option>
                                         </select>
                                     </td>
                                 </tr>

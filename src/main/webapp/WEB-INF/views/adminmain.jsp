@@ -1,23 +1,5 @@
-<%@ page import="gov.nysenate.sage.config.Environment" %>
-<%@ page import="org.springframework.web.servlet.support.RequestContextUtils" %>
-<%@ page import="org.springframework.context.ApplicationContext" %>
-<%@ page import="gov.nysenate.sage.service.geo.SageGeocodeServiceProvider" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="sage" tagdir="/WEB-INF/tags" %>
-
-<%
-    ApplicationContext ac = RequestContextUtils.findWebApplicationContext(request);
-    Environment env = (Environment) ac.getBean("environment");
-    SageGeocodeServiceProvider geocodeServiceProvider = (SageGeocodeServiceProvider) ac.getBean("sageGeocodeServiceProvider");
-    request.setAttribute("amsUrl", env.getUspsAmsUiUrl());
-    request.setAttribute("geocoders", geocodeServiceProvider.geocoders());
-    String googleMapsUrl = env.getGoogleMapsUrl();
-    String googleMapsKey = env.getGoogleMapsKey();
-    if (googleMapsKey != null && !googleMapsKey.isEmpty()) {
-        googleMapsUrl = googleMapsUrl + "&key=" + googleMapsKey;
-    }
-    request.setAttribute("googleMapsUrl", googleMapsUrl);
-%>
 <sage:wrapper>
     <jsp:attribute name="ngApp">sage-admin</jsp:attribute>
     <jsp:attribute name="title">SAGE - Admin Console</jsp:attribute>
