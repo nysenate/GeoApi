@@ -2,11 +2,9 @@ package gov.nysenate.sage.dao.provider.shapefile;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableSortedMap;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.model.county.CountyDao;
 import gov.nysenate.sage.dao.model.townCity.TownCityDao;
-import gov.nysenate.sage.dao.provider.DistrictNameDao;
 import gov.nysenate.sage.model.district.*;
 import gov.nysenate.sage.model.geo.*;
 import gov.nysenate.sage.util.Tuple;
@@ -21,7 +19,6 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -30,51 +27,45 @@ import java.util.*;
 import static gov.nysenate.sage.dao.provider.shapefile.ShapefileQueries.*;
 
 @Repository
-public class ShapefileDao extends BaseDao implements DistrictNameDao {
+public class ShapefileDao extends BaseDao {
     private static final Logger logger = LoggerFactory.getLogger(ShapefileDao.class);
     private static final String geometrySchema = "districts";
-    private final ShapefileTypeDao typeDao;
     private final CountyDao countyDao;
     private final TownCityDao townCityDao;
-    private ImmutableSortedMap<DistrictType, DistrictTypeInfo> typeInfoCache;
-    private ImmutableSortedMap<DistrictType, SortedSet<DistrictMap>> districtMapCache;
 
     @Autowired
-    public ShapefileDao(ShapefileTypeDao typeDao, CountyDao countyDao, TownCityDao townCityDao) {
-        this.typeDao = typeDao;
+    public ShapefileDao(CountyDao countyDao, TownCityDao townCityDao) {
         this.countyDao = countyDao;
         this.townCityDao = townCityDao;
     }
 
     /**
      * Retrieves a DistrictInfo object based on the districts that intersect the given point.
-     * @param geocode        Geocode of interest
-     * @param districtTypes  Collection of district types to resolve
+     * @param point          Point of interest
+     * @param tableInfos     Collection of district table infos to resolve
      * @return  DistrictInfo if query was successful, null otherwise
      */
-    public DistrictInfo getDistrictInfo(Geocode geocode, Set<DistrictType> districtTypes) {
-        Map<DistrictType, SingleDistrict> typeToDistrictMap = new HashMap<>();
-        for (DistrictType districtType : districtTypes) {
+    public Map<DistrictType, String> getCodes(Point point, Set<DistrictTableInfo> tableInfos) {
+        Map<DistrictType, String> typeToDistrictMap = new HashMap<>();
+        for (DistrictTableInfo tableInfo : tableInfos) {
             Map<String, String> replacementMap;
             try {
-                replacementMap = getReplacements(districtType, "type");
+                replacementMap = getReplacements(tableInfo, "type");
             } catch (NoShapefileForDistrictTypeException ignored) {
                 continue;
             }
             String sql = GET_DISTRICT_FROM_POINT.getSql(geometrySchema, replacementMap);
-            var params = new MapSqlParameterSource("lat", geocode.lat()).addValue("lon", geocode.lon());
+            var params = new MapSqlParameterSource("lat", point.lat()).addValue("lon", point.lon());
             try {
-                SingleDistrict result = namedJdbcTemplate.queryForObject(
-                        sql, params, new SingleDistrictMapper(districtType)
-                );
-                typeToDistrictMap.put(districtType, result);
+                String code = namedJdbcTemplate.queryForObject(sql, params, String.class);
+                typeToDistrictMap.put(tableInfo.type(), code);
             } catch (EmptyResultDataAccessException ex) {
-                if (districtType.coversState()) {
-                    logger.warn("Could not place {} inside a {} district", geocode.point(), districtType);
+                if (tableInfo.type().coversState()) {
+                    logger.warn("Could not place {} inside a {} district", point, tableInfo.type());
                 }
             }
         }
-        return new DistrictInfo(typeToDistrictMap, geocode.accuracy());
+        return typeToDistrictMap;
     }
 
     /**
@@ -82,67 +73,31 @@ public class ShapefileDao extends BaseDao implements DistrictNameDao {
      * within a collection of other districts and maps of intersections for senate districts. This is used
      * for a region level match where given a collection of zip codes, gather the other types of districts
      * that overlap the zip area.
-     * @param baseType The DistrictType of get overlap info for.
-     * @param intersectType    The DistrictType to base the intersections of off.
+     * @param baseTypeInfo      What to get overlap info for.
+     * @param intersectType     The DistrictType to base the intersections of off.
      * @param refCode           The code that represents the base area.
      */
-    public List<IntersectMap> getDistrictOverlap(DistrictType baseType, DistrictType intersectType, String refCode) {
-        DistrictTypeInfo baseTypeInfo = typeInfoCache.get(baseType);
-        if (baseTypeInfo == null) {
-            throw new NoShapefileForDistrictTypeException(baseType);
-        }
+    public List<IntersectInfo> getDistrictOverlap(DistrictTableInfo baseTypeInfo, DistrictTableInfo intersectType, String refCode) {
         Map<String, String> replacementMap = getReplacements(intersectType, "intersectType");
-        replacementMap.put("baseType", baseType.name().toLowerCase());
+        replacementMap.put("baseType", baseTypeInfo.type().name().toLowerCase());
         replacementMap.put("baseCodeColumn", baseTypeInfo.codeColumn());
         var params = new MapSqlParameterSource("districtCode", refCode);
 
         String sql = GET_INTERSECTION.getSql(geometrySchema, replacementMap);
         return namedJdbcTemplate.query(sql, params, (rs, rowNum) -> {
-            String code = rs.getString("code");
-            var baseMap = new IntersectMap(intersectType, getDistrictName(intersectType, code), code);
-            IntersectMap intersectMap = getDistrictMapFromJson(rs.getString("intersect_geo_json"), baseMap);
-            intersectMap.setArea(rs.getBigDecimal("area"));
-            intersectMap.setFullMapPolygons(getDistrictMap(intersectType, code).getPolygons());
-            return intersectMap;
+            List<Polygon> polygons = getPolygons(rs.getString("intersect_geo_json"));
+            return new IntersectInfo(rs.getString("code"), polygons, rs.getBigDecimal("area"));
         });
     }
 
-    /**
-     * Retrieves a mapped collection of DistrictMaps.
-     * @return Map<DistrictType, List<DistrictMap>>
-     */
-    public SortedSet<DistrictMap> getDistrictMaps(DistrictType type) {
-        return districtMapCache.get(type);
+    public SortedSet<DistrictMap> getDistrictMaps(DistrictTableInfo tableInfo) {
+        String sql = GET_DISTRICT_MAPS.getSql(geometrySchema, getReplacements(tableInfo, "type"));
+        return new TreeSet<>(namedJdbcTemplate.query(sql, new DistrictCacheMapper(tableInfo)));
     }
 
-    /**
-     * Caches all the district maps from the database.
-     */
-    @PostConstruct
-    public void cacheDistrictGeometryData() {
-        this.typeInfoCache = ImmutableSortedMap.copyOf(typeDao.getTypeInfoMap());
-        cacheDistrictMaps();
-    }
-
-    private void cacheDistrictMaps() {
-        Map<DistrictType, SortedSet<DistrictMap>> tempCache = new HashMap<>();
-        for (DistrictType districtType : typeInfoCache.keySet()) {
-            String sql = GET_DISTRICT_MAPS.getSql(geometrySchema, getReplacements(districtType, "type"));
-            SortedSet<DistrictMap> currDistrictMapSet = new TreeSet<>(
-                    namedJdbcTemplate.query(sql, new DistrictCacheMapper(districtType))
-            );
-            tempCache.put(districtType, currDistrictMapSet);
-        }
-        this.districtMapCache = ImmutableSortedMap.copyOf(tempCache);
-    }
-
-    private Map<String, String> getReplacements(DistrictType type, String typeReplacementName) {
-        DistrictTypeInfo typeInfo = typeInfoCache.get(type);
-        if (typeInfo == null) {
-            throw new NoShapefileForDistrictTypeException(type);
-        }
-        return new HashMap<>(Map.of(typeReplacementName, type.name().toLowerCase(),
-                "codeColumn", typeInfo.codeColumn(), "nameColumn", typeInfo.nameColumn()));
+    private Map<String, String> getReplacements(DistrictTableInfo tableInfo, String typeReplacementName) {
+        return new HashMap<>(Map.of(typeReplacementName, tableInfo.type().name().toLowerCase(),
+                "codeColumn", tableInfo.codeColumn(), "nameColumn", tableInfo.nameColumn()));
     }
 
     private class DistrictCacheMapper implements RowMapper<DistrictMap> {
@@ -150,13 +105,13 @@ public class ShapefileDao extends BaseDao implements DistrictNameDao {
         private Set<County> counties = null;
         private Set<TownCity> townCities = null;
 
-        private DistrictCacheMapper(DistrictType type) {
-            this.type = type;
+        private DistrictCacheMapper(DistrictTableInfo tableInfo) {
+            this.type = tableInfo.type();
             if (type == DistrictType.COUNTY) {
                 this.counties = countyDao.getCounties();
             }
             if (type == DistrictType.TOWN_CITY) {
-                this.townCities = townCityDao.getTownCities(typeInfoCache.get(DistrictType.TOWN_CITY));
+                this.townCities = townCityDao.getTownCities(tableInfo);
             }
         }
 
@@ -180,7 +135,8 @@ public class ShapefileDao extends BaseDao implements DistrictNameDao {
                 case VILLAGE -> "Village of " + rs.getString("name");
                 default -> rs.getString("name");
             };
-            DistrictMap map = getDistrictMapFromJson(rs.getString("map"), new DistrictMap(type, name, code));
+            var map = new DistrictMap(type, name, code);
+            getPolygons(rs.getString("map")).forEach(map::addPolygon);
             map.setArea(rs.getBigDecimal("area"));
             // For COVID links
             if (type == DistrictType.COUNTY) {
@@ -195,46 +151,15 @@ public class ShapefileDao extends BaseDao implements DistrictNameDao {
         }
     }
 
-    private class SingleDistrictMapper implements RowMapper<SingleDistrict> {
-        private final DistrictType type;
-
-        private SingleDistrictMapper(DistrictType type) {
-            this.type = type;
-        }
-
-        @Override
-        public SingleDistrict mapRow(@Nonnull ResultSet rs, int rowNum) throws SQLException {
-            String code = rs.getString("code");
-            return new SingleDistrict(code, getDistrictName(type, code));
-        }
-    }
-
-    public DistrictMap getDistrictMap(DistrictType type, String code) {
-        SortedSet<DistrictMap> maps = districtMapCache.get(type);
-        if (maps == null) {
-            return null;
-        }
-        return maps.stream().filter(dMap -> dMap.getDistrictCode().equalsIgnoreCase(code))
-                .findFirst().orElse(null);
-    }
-
-    @Override
-    public String getDistrictName(DistrictType type, String code) {
-        DistrictMap map = getDistrictMap(type, code);
-        return map == null ? null : map.getDistrictName();
-    }
-
     /**
      * Cleans the maps for a specific type. Note that the update_district_geometry.sh script handles
      * the initial insert of new geometry data.
      * @return null if the type's table is empty, true if all of type's geometry is valid, and false otherwise.
      */
-    public Boolean cleanMaps(DistrictType type) {
-        // Need to recache this first, since it's used in getReplacements()
-        this.typeInfoCache = ImmutableSortedMap.copyOf(typeDao.getTypeInfoMap());
-        Map<String, String> replacementMap = getReplacements(type, "type");
+    public Boolean cleanMaps(DistrictTableInfo tableInfo) {
+        Map<String, String> replacementMap = getReplacements(tableInfo, "type");
         // Leading zeroes are meaningful only in zip codes.
-        if (type != DistrictType.ZIP) {
+        if (tableInfo.type() != DistrictType.ZIP) {
             try {
                 namedJdbcTemplate.update(TRIM_CODES.getSql(geometrySchema, replacementMap), Map.of());
             } catch (BadSqlGrammarException ex) {
@@ -248,14 +173,9 @@ public class ShapefileDao extends BaseDao implements DistrictNameDao {
             namedJdbcTemplate.update(SET_UNION.getSql(geometrySchema, replacementMap), params);
             namedJdbcTemplate.update(DELETE_REDUNDANT_MAPS.getSql(geometrySchema, replacementMap), params);
         }
-        cacheDistrictMaps();
         return namedJdbcTemplate.getJdbcOperations().queryForObject(
                 IS_TYPE_VALID.getSql(geometrySchema, replacementMap), Boolean.class
         );
-    }
-
-    public SortedSet<DistrictType> getTypes() {
-        return typeInfoCache.keySet();
     }
 
     private static class CodeCallbackHandler implements RowCallbackHandler {
@@ -276,37 +196,30 @@ public class ShapefileDao extends BaseDao implements DistrictNameDao {
      * @return          DistrictMap containing the geometry.
      *                  null if map string not present or error
      */
-    private static <T extends DistrictMap> T getDistrictMapFromJson(String jsonMap, T districtMap) {
-        if (jsonMap == null || jsonMap.isEmpty() || jsonMap.equals("null")) {
+    private static List<Polygon> getPolygons(String jsonMap) {
+        if (jsonMap == null) {
             return null;
         }
+        List<Polygon> polygons = new ArrayList<>();
         var objectMapper = new ObjectMapper();
+        JsonNode mapNode;
         try {
-            JsonNode mapNode = objectMapper.readTree(jsonMap);
-            String type = mapNode.get("type").asText();
-            GeometryTypes geoType;
-            try {
-                geoType = GeometryTypes.valueOf(type.toUpperCase());
-                districtMap.setGeometryType(geoType.getType());
-            }
-            catch (Exception ex) {
-                logger.debug("Geometry type {} is not supported by this method!", type);
-                return null;
-            }
-            JsonNode coordinates = mapNode.get("coordinates");
-            for (int i = 0; i < coordinates.size(); i++) {
-                List<Point> points = new ArrayList<>();
-                JsonNode polygon = (geoType.equals(GeometryTypes.MULTIPOLYGON)) ? coordinates.get(i).get(0) : coordinates.get(i);
-                for (int j = 0; j < polygon.size(); j++){
-                    points.add(new Point(polygon.get(j).get(1).asText(), polygon.get(j).get(0).asText()));
-                }
-                districtMap.addPolygon(new Polygon(points));
-            }
-            return districtMap;
+            mapNode = objectMapper.readTree(jsonMap);
+        } catch (IOException ex) {
+            throw new IllegalArgumentException(ex);
         }
-        catch (IOException ex) {
-            logger.error("{}", String.valueOf(ex));
-            return null;
+        if (!mapNode.get("type").asText().equalsIgnoreCase("MULTIPOLYGON")) {
+            throw new IllegalArgumentException("Map geometry must be multipolygons.");
         }
+        JsonNode coordinates = mapNode.get("coordinates");
+        for (int i = 0; i < coordinates.size(); i++) {
+            List<Point> points = new ArrayList<>();
+            JsonNode polygon = coordinates.get(i).get(0);
+            for (int j = 0; j < polygon.size(); j++){
+                points.add(new Point(polygon.get(j).get(1).asText(), polygon.get(j).get(0).asText()));
+            }
+            polygons.add(new Polygon(points));
+        }
+        return polygons;
     }
 }

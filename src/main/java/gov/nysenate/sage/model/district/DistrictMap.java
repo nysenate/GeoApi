@@ -27,8 +27,7 @@ public class DistrictMap implements Comparable<DistrictMap> {
     @Setter
     private String baseName;
     private final List<Polygon> polygons = new ArrayList<>();
-    @Setter
-    private String geometryType = "";
+    private final String geometryType = "MULTIPOLYGON";
     // Note that this is only an approximation.
     @Setter
     private BigDecimal area;

@@ -9,7 +9,7 @@ import gov.nysenate.sage.dao.provider.shapefile.ShapefileTypeDao;
 import gov.nysenate.sage.dao.provider.streetfile.StreetfileDao;
 import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.model.district.DistrictType;
-import gov.nysenate.sage.model.district.DistrictTypeInfo;
+import gov.nysenate.sage.model.district.DistrictTableInfo;
 import gov.nysenate.sage.model.district.TownCity;
 import gov.nysenate.sage.scripts.streetfinder.model.ResolveConflictConfiguration;
 import gov.nysenate.sage.scripts.streetfinder.model.StreetfileAddressRange;
@@ -131,7 +131,7 @@ public class StreetfileProcessor {
     private Multimap<County, TownCity> getCountyToTownCityMap() {
         Set<County> counties = countyDao.getCounties();
         Multimap<County, TownCity> results = HashMultimap.create();
-        DistrictTypeInfo townCityInfo = typeDao.getDistrictTypeInfo(DistrictType.TOWN_CITY);
+        DistrictTableInfo townCityInfo = typeDao.getDistrictTypeInfo(DistrictType.TOWN_CITY);
         for (TownCity townCity : townCityDao.getTownCities(townCityInfo)) {
             for (String countyName : townCity.countyNames()) {
                 // Counties have unique names

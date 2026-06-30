@@ -56,7 +56,7 @@ public class MapController extends SourcedController<DistrictType> {
         if (district != null) {
             district = FormatUtil.cleanString(district);
             logger.debug("Retrieving {} district {} map.", districtType.name(), district);
-            MapResult mapResult = shapefileService.getDistrictMap(districtType, district);
+            MapResult mapResult = shapefileService.getMapResult(districtType, district);
             if (showMembers || meta) {
                 districtMemberProvider.assignMember(mapResult.getDistrictMap());
             }

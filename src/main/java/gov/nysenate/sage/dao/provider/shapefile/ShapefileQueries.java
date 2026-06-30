@@ -7,7 +7,7 @@ public enum ShapefileQueries implements BasicSqlQuery {
     GET_DISTRICT_MAPS("""
             SELECT *, ST_AsGeoJson(full_geom) AS map, area_in_sq_km(full_geom) AS area
             FROM (
-                SELECT ${nameColumn} AS name, ${codeColumn} AS code, ST_Union(geom) AS full_geom
+                SELECT ${nameColumn} AS name, ${codeColumn} AS code, ST_Multi(ST_Union(geom)) AS full_geom
                 FROM ${schema}.${type}
                 GROUP BY ${nameColumn}, ${codeColumn}
             ) AS temp"""),
@@ -42,7 +42,7 @@ public enum ShapefileQueries implements BasicSqlQuery {
     SET_UNION("""
             UPDATE ${schema}.${type}
             SET geom = (
-                SELECT St_Union(geom) FROM ${schema}.${type} WHERE ${codeColumn} = :code GROUP BY ${codeColumn}
+                SELECT ST_Multi(St_Union(geom)) FROM ${schema}.${type} WHERE ${codeColumn} = :code GROUP BY ${codeColumn}
             )
             WHERE gid = :mainGid
             """),

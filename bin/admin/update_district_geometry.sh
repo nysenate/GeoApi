@@ -65,6 +65,8 @@ OGR_ARGS=(
   -overwrite
   -nln "districts.${DISTRICT_TYPE}"
   # Promote single polygons to multi so mixed-geometry data loads cleanly.
+  # Note that this is required in NYS for consistency: Ellis Island and the Statue of Liberty
+  # are separate polygons from the rest of the state.
   -nlt PROMOTE_TO_MULTI
   # Reproject from the data's native coordinate reference system to WGS84.
   -t_srs EPSG:4326

@@ -2,8 +2,8 @@ package gov.nysenate.sage.model.district;
 
 import org.apache.commons.lang3.StringUtils;
 
-public record DistrictTypeInfo(String codeColumn, String nameColumn) {
-    public DistrictTypeInfo {
+public record DistrictTableInfo(DistrictType type, String codeColumn, String nameColumn) {
+    public DistrictTableInfo {
         if (StringUtils.isBlank(codeColumn)) {
             throw new IllegalArgumentException("codeColumn cannot be empty");
         }

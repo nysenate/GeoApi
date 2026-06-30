@@ -97,7 +97,7 @@ public class DistrictController extends SourcedController<LocalSource> {
         if (showMaps) {
             for (DistrictType type : initialResult.getAssignedDistricts()) {
                 String code = initialResult.getDistrictInfo().getDistCode(type);
-                MapResult result = shapefileService.getDistrictMap(type, code);
+                MapResult result = shapefileService.getMapResult(type, code);
                 if (result.isSuccess()) {
                     geomMap.put(type, result.getDistrictMap());
                 }
@@ -198,7 +198,7 @@ public class DistrictController extends SourcedController<LocalSource> {
         if (sourceType.equalsIgnoreCase(intersectType)) {
             return new BaseResponse(BAD_OVERLAY);
         }
-        IntersectResult intersectResult = shapefileService.getIntersectionResult(
+        IntersectResult intersectResult = shapefileService.getIntersectResult(
                 getValue(DistrictType.class, sourceType), sourceId, getValue(DistrictType.class, intersectType));
         intersectResult.getOverlaps().forEach(memberProvider::assignMember);
         return IntersectResponse.from(intersectResult);

@@ -5,7 +5,7 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
 import gov.nysenate.sage.controller.api.DistrictUtil;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.base.SqlTable;
-import gov.nysenate.sage.dao.provider.DistrictNameDao;
+import gov.nysenate.sage.dao.provider.SingleDistrictService;
 import gov.nysenate.sage.model.Accuracy;
 import gov.nysenate.sage.model.address.*;
 import gov.nysenate.sage.model.district.*;
@@ -42,7 +42,7 @@ public class StreetfileDao extends BaseDao {
     private static final String copySqlTemplate = "COPY public.streetfile(%s) FROM STDIN CSV NULL '%s'";
     private final String columnOrder;
     private final BaseConnection connection;
-    private final DistrictNameDao nameDao;
+    private final SingleDistrictService nameDao;
     private boolean locked = false;
 
     static {
@@ -60,7 +60,7 @@ public class StreetfileDao extends BaseDao {
 
     @Autowired
     public StreetfileDao(ComboPooledDataSource geoApiPostgresDataSource,
-                         DistrictNameDao nameDao) throws SQLException {
+                         SingleDistrictService nameDao) throws SQLException {
         List<String> colList = new ArrayList<>(List.of("bldg_low", "bldg_high", "parity", "street", "postal_city", "zip5"));
         colList.addAll(order().stream().map(distColMap::get).toList());
         this.columnOrder = String.join(", ", colList);
@@ -168,8 +168,7 @@ public class StreetfileDao extends BaseDao {
             for (DistrictType type : distColMap.keySet()) {
                 String code = rs.getString(distColMap.get(type));
                 if (code != null) {
-                    String name = nameDao.getDistrictName(type, code);
-                    typeToDistrictMap.put(type, new SingleDistrict(code, name));
+                    typeToDistrictMap.put(type, nameDao.getSingleDistrict(type, code));
                 }
             }
             return new DistrictedStreetRange(sar, new DistrictInfo(typeToDistrictMap, Accuracy.HOUSE));

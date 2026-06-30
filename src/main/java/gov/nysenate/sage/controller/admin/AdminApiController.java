@@ -4,12 +4,12 @@ import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.dao.model.api.ApiUserDao;
-import gov.nysenate.sage.dao.provider.shapefile.ShapefileDao;
 import gov.nysenate.sage.dao.stats.api.SqlApiUsageStatsDao;
 import gov.nysenate.sage.dao.stats.deployment.SqlDeploymentStatsDao;
 import gov.nysenate.sage.dao.stats.geocode.SqlGeocodeStatsDao;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.stats.DeploymentStats;
+import gov.nysenate.sage.provider.district.ShapefileService;
 import gov.nysenate.sage.util.auth.AdminUserAuth;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
 import gov.nysenate.sage.util.controller.ConstantUtil;
@@ -31,19 +31,19 @@ public class AdminApiController extends BaseAdminApiController {
     private final SqlDeploymentStatsDao sqlDeploymentStatsDao;
     private final ApiUserDao apiUserDao;
     private final SqlGeocodeStatsDao sqlGeocodeStatsDao;
-    private final ShapefileDao shapefileDao;
+    private final ShapefileService shapefileService;
 
     @Autowired
     public AdminApiController(SqlApiUsageStatsDao sqlApiUsageStatsDao, SqlDeploymentStatsDao sqlDeploymentStatsDao,
                               ApiUserDao apiUserDao, SqlGeocodeStatsDao sqlGeocodeStatsDao,
-                              ShapefileDao shapefileDao,
+                              ShapefileService shapefileService,
                               AdminUserAuth adminUserAuth, ApiUserAuth apiUserAuth) {
         super(adminUserAuth,  apiUserAuth);
         this.sqlApiUsageStatsDao = sqlApiUsageStatsDao;
         this.sqlDeploymentStatsDao = sqlDeploymentStatsDao;
         this.apiUserDao = apiUserDao;
         this.sqlGeocodeStatsDao = sqlGeocodeStatsDao;
-        this.shapefileDao = shapefileDao;
+        this.shapefileService = shapefileService;
     }
 
     /**
@@ -131,7 +131,7 @@ public class AdminApiController extends BaseAdminApiController {
                             @RequestParam String type) {
         if (authenticate(request, username, password, key)) {
             DistrictType districtType = DistrictType.valueOf(type.toUpperCase());
-            Boolean validGeometry = shapefileDao.cleanMaps(districtType);
+            Boolean validGeometry = shapefileService.cleanMaps(districtType);
             if (validGeometry == null) {
                 return new ApiError(EMPTY_GEOMETRY_TABLE);
             }
@@ -157,7 +157,7 @@ public class AdminApiController extends BaseAdminApiController {
             return invalidAuthResponse;
         }
         try {
-            shapefileDao.cacheDistrictGeometryData();
+            shapefileService.cacheDistrictGeometryData();
             return new GenericResponse(true,  SUCCESS.getCode() + ": " + SUCCESS.getDesc());
         } catch (Exception e) {
             return new ApiError(this.getClass(), INTERNAL_ERROR);
