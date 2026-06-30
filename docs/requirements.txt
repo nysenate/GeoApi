@@ -1,0 +1,30 @@
+# Pinned dependencies for building the Sphinx documentation.
+#
+# Used by bin/build-docs.sh to create the docs/.venv virtualenv. Pinning the
+# full dependency set (not just Sphinx) keeps doc builds reproducible so the
+# generated HTML doesn't drift between machines. Requires Python 3.11+.
+#
+# To bump: edit, recreate the venv, run bin/build-docs.sh, and re-freeze with
+#   docs/.venv/bin/pip freeze
+alabaster==1.0.0
+babel==2.18.0
+certifi==2026.5.20
+charset-normalizer==3.4.7
+docutils==0.22.4
+idna==3.18
+imagesize==2.0.0
+Jinja2==3.1.6
+MarkupSafe==3.0.3
+packaging==26.2
+Pygments==2.20.0
+requests==2.34.2
+roman-numerals==4.1.0
+snowballstemmer==3.1.1
+Sphinx==9.1.0
+sphinxcontrib-applehelp==2.0.0
+sphinxcontrib-devhelp==2.0.0
+sphinxcontrib-htmlhelp==2.1.0
+sphinxcontrib-jsmath==1.0.1
+sphinxcontrib-qthelp==2.0.0
+sphinxcontrib-serializinghtml==2.0.0
+urllib3==2.7.0

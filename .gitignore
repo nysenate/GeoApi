@@ -27,3 +27,5 @@ log4j2-test.xml
 # Sphinx docs build artifacts
 docs/_build/
 docs/.venv/
+admin-docs/_build/
+admin-docs/.venv/

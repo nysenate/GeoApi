@@ -75,6 +75,9 @@ public class WebApplicationConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/css/**").addResourceLocations("/css/").setCachePeriod(64000);
         registry.addResourceHandler("/static/img/**").addResourceLocations("/static/img/").setCachePeriod(64000);
         registry.addResourceHandler("/docs/**").addResourceLocations("/docs/").setCachePeriod(64000);
+        // The admin docs share the nature theme assets with the regular docs, so only one
+        // physical copy of _static is committed. See bin/build-docs.sh.
+        registry.addResourceHandler("/admindocs/html/_static/**").addResourceLocations("/docs/html/_static/").setCachePeriod(64000);
         registry.addResourceHandler("/admindocs/**").addResourceLocations("/admin-docs/").setCachePeriod(64000);
         registry.addResourceHandler("/favicon.ico").addResourceLocations("/static/img/icons/favicon.ico").setCachePeriod(64000);
     }
