@@ -12,11 +12,11 @@ sage.controller('DistrictInfoController', function($scope, $http, mapService, me
     $scope.inputId = "addressInput";
     $scope.addr = "";
     $scope.showOptions = false;
-    $scope.geoProvider = "default";
-    $scope.provider = "default";
-    $scope.uspsValidate = "true";
     $scope.geocoders = [];
     $scope.districtSources = [];
+    $scope.selectedGeocoder = "";
+    $scope.selectedDistrictSource = "";
+    $scope.uspsValidate = "true";
 
     /** Populates the geocoder options menu with the currently active geocoders. */
     $http.get(contextPath + baseApi + "/geo/options")
@@ -82,10 +82,10 @@ sage.controller('DistrictInfoController', function($scope, $http, mapService, me
      */
     $scope.getDistUrl = function () {
         var url = contextPath + baseApi + "/district/assign?addr=" + this.addr;
-        url += (this.provider != "" && this.provider != "default") ? "&provider=" + this.provider : "";
-        url += (this.geoProvider != "" && this.geoProvider != "default") ? "&geoProvider=" + this.geoProvider : "";
-        url += (this.uspsValidate != "false" && this.uspsValidate != "") ? "&uspsValidate=true" : "";
-        url += "&showMaps=true&showMembers=true";
+        url += this.selectedDistrictSource ? "&districtSource=" + this.selectedDistrictSource : "";
+        url += this.selectedGeocoder ? "&geocoder=" + this.selectedGeocoder : "";
+        url += "&uspsValidate=" + this.uspsValidate;
+        url += "&showMaps=true";
         url = url.replace(/#/g, ""); // Pound marks mess up the query string
         return url;
     };

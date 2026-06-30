@@ -160,8 +160,8 @@
                                 <tr>
                                     <td><label for="dataSourceMenu">District data source</label></td>
                                     <td style="width:180px;">
-                                        <select id="dataSourceMenu" style="width: 100%;" ng-model="provider">
-                                            <option value="default">Default</option>
+                                        <select id="dataSourceMenu" style="width: 100%;" ng-model="selectedDistrictSource">
+                                            <option value="">Default</option>
                                             <option ng-repeat="source in districtSources" value="{{source.enumName}}">{{source.displayName}}</option>
                                         </select>
                                     </td>
@@ -169,8 +169,8 @@
                                 <tr>
                                     <td><label for="geocoderMenu">Geocoder</label></td>
                                     <td>
-                                        <select id="geocoderMenu" style="width: 100%;" ng-model="geoProvider">
-                                            <option value="default">Default</option>
+                                        <select id="geocoderMenu" style="width: 100%;" ng-model="selectedGeocoder">
+                                            <option value="">Default</option>
                                             <option ng-repeat="geocoder in geocoders" value="{{geocoder.enumName}}">{{geocoder.displayName}}</option>
                                         </select>
                                     </td>
