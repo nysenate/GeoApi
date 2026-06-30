@@ -25,9 +25,9 @@ sage.controller("DistrictMapController", function($scope, $http, $timeout, $filt
      * so the Type and intersection menus stay in sync with the backend DistrictType enum.
      */
     $scope.loadDistrictTypes = function() {
-        $http.get(contextPath + baseApi + "/map/types")
+        $http.get(contextPath + baseApi + "/map/options")
             .then(function(response) {
-                $scope.districtTypes = response.data.results.map(function(t) {
+                $scope.districtTypes = response.data.map(function(t) {
                     return { value: t.enumName.toLowerCase(), label: t.displayName };
                 });
             }, function(response) {});

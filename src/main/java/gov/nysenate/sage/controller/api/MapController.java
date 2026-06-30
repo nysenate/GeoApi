@@ -1,8 +1,7 @@
 package gov.nysenate.sage.controller.api;
 
 import gov.nysenate.sage.client.response.base.BaseResponse;
-import gov.nysenate.sage.client.response.base.BatchResponse;
-import gov.nysenate.sage.client.response.district.DistrictTypeResponse;
+import gov.nysenate.sage.client.response.district.DisplayEnumResponse;
 import gov.nysenate.sage.client.response.map.MapResponse;
 import gov.nysenate.sage.client.response.map.MultipleMapResponse;
 import gov.nysenate.sage.model.district.DistrictMap;
@@ -18,9 +17,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping(value = ConstantUtil.REST_PATH + "map")
-public class MapController extends BaseController {
+public class MapController extends SourcedController<DistrictType> {
     private static final Logger logger = LoggerFactory.getLogger(MapController.class);
     private final ShapefileService shapefileService;
     private final DistrictMemberProvider districtMemberProvider;
@@ -29,6 +30,12 @@ public class MapController extends BaseController {
     public MapController(ShapefileService shapefileService, DistrictMemberProvider districtMemberProvider) {
         this.shapefileService = shapefileService;
         this.districtMemberProvider = districtMemberProvider;
+    }
+
+    // The @GetMapping is inherited.
+    @Override
+    public List<DisplayEnumResponse> options() {
+        return shapefileService.getTypes().stream().map(DisplayEnumResponse::new).toList();
     }
 
     /**
@@ -45,7 +52,7 @@ public class MapController extends BaseController {
                             @RequestParam(required = false) String district,
                             @RequestParam(required = false) boolean showMembers,
                             @RequestParam(required = false) boolean meta) {
-        DistrictType districtType = getValue(distType, DistrictType.class);
+        DistrictType districtType = getValue(distType);
         if (district != null) {
             district = FormatUtil.cleanString(district);
             logger.debug("Retrieving {} district {} map.", districtType.name(), district);
@@ -64,10 +71,5 @@ public class MapController extends BaseController {
             }
             return new MultipleMapResponse(mapListResult, !meta);
         }
-    }
-
-    @GetMapping("/types")
-    public BatchResponse<DistrictTypeResponse> districtTypes() {
-        return new BatchResponse<>(shapefileService.getTypes(), DistrictTypeResponse::new);
     }
 }

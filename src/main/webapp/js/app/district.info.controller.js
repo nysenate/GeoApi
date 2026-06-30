@@ -15,6 +15,20 @@ sage.controller('DistrictInfoController', function($scope, $http, mapService, me
     $scope.geoProvider = "default";
     $scope.provider = "default";
     $scope.uspsValidate = "true";
+    $scope.geocoders = [];
+    $scope.districtSources = [];
+
+    /** Populates the geocoder options menu with the currently active geocoders. */
+    $http.get(contextPath + baseApi + "/geo/options")
+        .then(function(response) {
+            $scope.geocoders = response.data;
+        });
+
+    /** Populates the district data source menu with the available district sources. */
+    $http.get(contextPath + baseApi + "/district/options")
+        .then(function(response) {
+            $scope.districtSources = response.data;
+        });
 
     mapService.makeAutocomplete($scope.inputId);
 

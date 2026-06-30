@@ -36,7 +36,7 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
  */
 @RestController
 @RequestMapping(value = ConstantUtil.REST_PATH + "district")
-public class DistrictController extends BaseController {
+public class DistrictController extends SourcedController<LocalSource> {
     private final ShapefileService shapefileService;
     private final AddressService addressService;
     private final GeocodeService geocodeService;
@@ -82,18 +82,12 @@ public class DistrictController extends BaseController {
         Address uspsAddress = addressService.validateOrDefault(originalAddress);
         Point point = getPointFromParams(lat, lon);
 
-        List<Geocoder> currGeocoders = null;
-        if (geocoder != null) {
-            currGeocoders = List.of(getValue(geocoder, Geocoder.class));
-        }
-
+        List<Geocoder> currGeocoders = getListOrNull(Geocoder.class, geocoder);
         GeocodedAddress geocodedAddress = (point == null ?
                 geocodeService.geocode(currGeocoders, uspsAddress) :
                 geocodeService.reverseGeocode(currGeocoders, point)).getGeocodedAddress();
-        List<LocalSource> currDistrictSources = null;
-        if (districtSource != null) {
-            currDistrictSources = List.of(getValue(districtSource, LocalSource.class));
-        }
+
+        List<LocalSource> currDistrictSources = getListOrNull(districtSource);
         DistrictResult initialResult = districtService.assignDistricts(currDistrictSources, geocodedAddress,
                 Set.of(DistrictType.values()));
         if (!uspsValidate) {
@@ -198,7 +192,6 @@ public class DistrictController extends BaseController {
      * Usage:
      * (GET)    /api/v2/district/intersect
      */
-    //TODO: this really shouldn't be under "district"
     @GetMapping(value = "/intersect")
     public Object districtIntersect(@RequestParam String sourceType, @RequestParam String sourceId,
                                     @RequestParam String intersectType) {
@@ -206,7 +199,7 @@ public class DistrictController extends BaseController {
             return new BaseResponse(BAD_OVERLAY);
         }
         IntersectResult intersectResult = shapefileService.getIntersectionResult(
-                getValue(sourceType, DistrictType.class), sourceId, getValue(intersectType, DistrictType.class));
+                getValue(DistrictType.class, sourceType), sourceId, getValue(DistrictType.class, intersectType));
         intersectResult.getOverlaps().forEach(memberProvider::assignMember);
         return IntersectResponse.from(intersectResult);
     }

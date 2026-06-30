@@ -162,8 +162,7 @@
                                     <td style="width:180px;">
                                         <select id="dataSourceMenu" style="width: 100%;" ng-model="provider">
                                             <option value="default">Default</option>
-                                            <option value="streetfile">Board of Elections</option>
-                                            <option value="shapefile">LATFOR/GIS Geometry</option>
+                                            <option ng-repeat="source in districtSources" value="{{source.enumName}}">{{source.displayName}}</option>
                                         </select>
                                     </td>
                                 </tr>
@@ -172,7 +171,7 @@
                                     <td>
                                         <select id="geocoderMenu" style="width: 100%;" ng-model="geoProvider">
                                             <option value="default">Default</option>
-                                            <option ng-repeat="geocoder in geocoders" value="{{geocoder}}">{{geocoder}}</option>
+                                            <option ng-repeat="geocoder in geocoders" value="{{geocoder.enumName}}">{{geocoder.displayName}}</option>
                                         </select>
                                     </td>
                                 </tr>

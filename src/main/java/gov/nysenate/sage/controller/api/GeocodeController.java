@@ -29,7 +29,7 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
  */
 @RestController
 @RequestMapping(value = ConstantUtil.REST_PATH + "geo")
-public class GeocodeController extends BaseController {
+public class GeocodeController extends SourcedController<Geocoder> {
     private final AddressService addressService;
     private final GeocodeService geocodeService;
 
@@ -56,10 +56,7 @@ public class GeocodeController extends BaseController {
                                 @RequestParam(required = false) String zip4) {
         Address address = getAddressFromParams(null, addr1, addr2, city, state, zip5, zip4);
         address = addressService.validateOrDefault(address);
-        List<Geocoder> currGeocoders = null;
-        if (geocoder != null) {
-            currGeocoders = List.of(getValue(geocoder, Geocoder.class));
-        }
+        List<Geocoder> currGeocoders = getListOrNull(geocoder);
         return new GeocodeResponse(geocodeService.geocode(currGeocoders, address));
     }
 
@@ -73,10 +70,7 @@ public class GeocodeController extends BaseController {
     @GetMapping(value = "/revgeocode")
     public BaseResponse revGeocode(@RequestParam(required = false) String geocoder,
                                    @RequestParam String lat, @RequestParam String lon) {
-        List<Geocoder> currGeocoders = null;
-        if (geocoder != null) {
-            currGeocoders = List.of(getValue(geocoder, Geocoder.class));
-        }
+        List<Geocoder> currGeocoders = getListOrNull(geocoder);
         Point point = getPointFromParams(lat, lon);
         if (point == null) {
             return new ApiError(this.getClass(), MISSING_POINT);

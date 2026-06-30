@@ -18,7 +18,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value = ConstantUtil.REST_PATH + "street")
-public class StreetController extends BaseController {
+public class StreetController {
     private static final Logger logger = LoggerFactory.getLogger(StreetController.class);
     private final StreetfileDao streetfile;
 

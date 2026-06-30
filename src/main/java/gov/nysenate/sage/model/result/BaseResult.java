@@ -1,6 +1,7 @@
 package gov.nysenate.sage.model.result;
 
-import gov.nysenate.sage.provider.geocode.DataSource;
+import gov.nysenate.sage.provider.DataSource;
+import lombok.Getter;
 
 import java.util.*;
 
@@ -9,6 +10,7 @@ import java.util.*;
  * typically returned by the service layer classes and are used to wrap a data model object with
  * some status information.
  */
+@Getter
 public abstract class BaseResult<S extends DataSource> {
     // A null source means the service was never actually hit for a result.
     private final LinkedHashSet<S> sources;
@@ -26,14 +28,6 @@ public abstract class BaseResult<S extends DataSource> {
     protected BaseResult(List<S> sources, ResultStatus status) {
         this.sources = sources == null  || sources.isEmpty() ? null : new LinkedHashSet<>(sources);
         this.statusCode = status;
-    }
-
-    public LinkedHashSet<S> getSources() {
-        return sources;
-    }
-
-    public ResultStatus getStatusCode() {
-        return statusCode;
     }
 
     public boolean isSuccess() {

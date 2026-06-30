@@ -6,7 +6,7 @@ import com.google.common.collect.Table;
 import gov.nysenate.sage.model.address.PostOfficeBox;
 import gov.nysenate.sage.model.address.Zip5;
 import gov.nysenate.sage.model.result.BaseResult;
-import gov.nysenate.sage.provider.geocode.DataSource;
+import gov.nysenate.sage.provider.DataSource;
 
 import java.util.List;
 import java.util.function.Function;

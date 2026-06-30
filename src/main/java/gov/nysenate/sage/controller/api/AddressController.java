@@ -29,7 +29,7 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.getAddressesFr
  */
 @RestController
 @RequestMapping(value = ConstantUtil.REST_PATH + "address")
-public final class AddressController extends BaseController {
+public final class AddressController extends SourcedController<AddressSource> {
     private final AddressService addressService;
 
     @Autowired
@@ -56,7 +56,7 @@ public final class AddressController extends BaseController {
             @RequestParam(required = false) String zip5,
             @RequestParam(required = false) String zip4) {
         Address address = getAddressFromParams(addr, addr1, addr2, city, state, zip5, zip4);
-        AddressSource source = getValueOrNull(provider, AddressSource.class);
+        AddressSource source = getValueOrNull(provider);
         return new ValidateResponse(addressService.validate(address, source), punct);
     }
 
@@ -70,7 +70,7 @@ public final class AddressController extends BaseController {
     @GetMapping(value = "/citystate")
     public CityStateResponse addressCityState(@RequestParam String zip5, @RequestParam(required = false) String provider) {
         var validZip5 = new Zip5(zip5);
-        AddressSource source = getValueOrNull(provider, AddressSource.class);
+        AddressSource source = getValueOrNull(provider);
         return new CityStateResponse(addressService.lookupCityState(validZip5, source));
     }
 
@@ -85,7 +85,7 @@ public final class AddressController extends BaseController {
     public BatchValidateResponse addressBatchValidate(HttpServletRequest request,
                                      @RequestParam(required = false) String provider,
                                      @RequestParam(required = false) boolean punct) throws IOException {
-        AddressSource source = getValueOrNull(provider, AddressSource.class);
+        AddressSource source = getValueOrNull(provider);
         String batchJsonPayload = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
         List<Address> addresses = getAddressesFromJsonBody(batchJsonPayload);
         return new BatchValidateResponse(addressService.validate(addresses, source), punct);
@@ -101,10 +101,16 @@ public final class AddressController extends BaseController {
     @PostMapping(value = "/citystate/batch")
     public BatchCityStateResponse addressBatchCityState(HttpServletRequest request,
                                               @RequestParam(required = false) String provider) throws IOException {
-        AddressSource source = getValueOrNull(provider, AddressSource.class);
+        AddressSource source = getValueOrNull(provider);
         String batchJsonPayload = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
-        // TODO: parse if needed
         List<Zip5> zips = List.of();
         return new BatchCityStateResponse(addressService.lookupCityState(zips, source));
+    }
+
+    private AddressSource getValueOrNull(String strValue) {
+        if (strValue == null || strValue.isBlank()) {
+            return null;
+        }
+        return getValue(strValue);
     }
 }
