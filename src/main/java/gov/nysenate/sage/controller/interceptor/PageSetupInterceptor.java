@@ -9,10 +9,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 /**
- * Populates the request attributes that the front-end JSP views ({@code index}, {@code adminmain},
- * {@code maps}) need to render: the USPS AMS UI url and the Google Maps script url (with the API key
- * appended when one is configured). The list of active geocoders is fetched separately by the
- * front-end from {@code /api/v2/geo/options}.
+ * Populates the request attributes that the embedded map JSP view ({@code maps}) needs to render:
+ * the USPS AMS UI url and the Google Maps script url (with the API key appended when one is
+ * configured). The React front-end gets these values from {@code /globals} instead.
  */
 @Component
 public class PageSetupInterceptor implements HandlerInterceptor {

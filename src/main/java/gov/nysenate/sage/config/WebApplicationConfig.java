@@ -55,11 +55,12 @@ public class WebApplicationConfig implements WebMvcConfigurer {
         this.pageSetupInterceptor = pageSetupInterceptor;
     }
 
-    /** Populates the request attributes needed by the front-end map/lookup views. */
+    /** Populates the request attributes needed by the embedded map JSP views.
+     *  The React pages get these values from the /globals endpoint instead. */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(pageSetupInterceptor)
-                .addPathPatterns("/", "/admin/home", "/map", "/map/**");
+                .addPathPatterns("/map", "/map/**");
     }
 
     @PostConstruct
@@ -73,7 +74,8 @@ public class WebApplicationConfig implements WebMvcConfigurer {
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/js/**").addResourceLocations("/js/").setCachePeriod(64000);
         registry.addResourceHandler("/css/**").addResourceLocations("/css/").setCachePeriod(64000);
-        registry.addResourceHandler("/static/img/**").addResourceLocations("/static/img/").setCachePeriod(64000);
+        // Serves /static/img and the React bundle in /static/dist.
+        registry.addResourceHandler("/static/**").addResourceLocations("/static/").setCachePeriod(64000);
         registry.addResourceHandler("/docs/**").addResourceLocations("/docs/").setCachePeriod(64000);
         // The admin docs share the nature theme assets with the regular docs, so only one
         // physical copy of _static is committed. See bin/build-docs.sh.

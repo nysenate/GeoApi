@@ -120,6 +120,33 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
                 <version>3.5.1</version>
+                <configuration>
+                    <!-- The node dependencies are only needed to build the React bundle in static/dist. -->
+                    <packagingExcludes>node_modules/**</packagingExcludes>
+                </configuration>
+            </plugin>
+            <!-- Builds the React frontend. `npm ci` triggers a production webpack build
+                 via the postinstall script, outputting to src/main/webapp/static/dist. -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.6.3</version>
+                <executions>
+                    <execution>
+                        <id>exec-npm-install</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>npm</executable>
+                            <arguments>
+                                <argument>ci</argument>
+                            </arguments>
+                            <workingDirectory>src/main/webapp</workingDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

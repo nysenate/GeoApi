@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Glue between the React app and the legacy stylesheets (css/main.css) it reuses. */
+html, body, #app {
+  height: 100%;
+}
+
+/* The legacy page sized this with jQuery (resizeContentHeights); use CSS instead. */
+#contentcolumn {
+  height: calc(100% - 60px);
+}
+
+.map-canvas {
+  height: 100%;
+}
+
+/* The legacy page sized these with jQuery (resizeContentHeights); fill the
+   content column instead. #streetViewFrame keeps its overflow:auto from main.css. */
+#uspsIframe,
+#streetView,
+#streetViewFrame {
+  height: 100%;
+}
+
+/* main.css hides these by default; the legacy page toggled them with jQuery. */
+#rightcolumn.open {
+  display: block;
+}
+
+#showResultsTab.visible {
+  display: block;
+}
+
+#district-results {
+  max-height: calc(100vh - 101px);
+}
+
+/* Replica of the jQuery blockUI overlay the legacy page showed while loading. */
+.ui-block-overlay {
+  position: fixed;
+  inset: 0;
+  background: #eee;
+  opacity: 0.5;
+  z-index: 1010;
+}
+
+.ui-block-message {
+  position: fixed;
+  top: 40%;
+  left: 35%;
+  width: 30%;
+  text-align: center;
+  background: #fff;
+  border: 1px solid #ddd;
+  padding: 15px;
+  z-index: 1011;
+}

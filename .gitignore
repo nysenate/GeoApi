@@ -29,3 +29,7 @@ docs/_build/
 docs/.venv/
 admin-docs/_build/
 admin-docs/.venv/
+
+# React frontend build artifacts
+src/main/webapp/node_modules/
+src/main/webapp/static/dist/

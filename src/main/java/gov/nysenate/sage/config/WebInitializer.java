@@ -4,6 +4,7 @@ import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.filter.DelegatingFilterProxy;
 import org.springframework.web.servlet.DispatcherServlet;
 
@@ -56,6 +57,13 @@ public class WebInitializer implements WebApplicationInitializer
         dispatcher.setLoadOnStartup(1);
         dispatcher.addMapping("/");
         dispatcher.setAsyncSupported(true);
+
+        /** Force UTF-8 on requests and responses. The JSP views declared this in their page
+         * directive; without it, responses forwarded to static files (e.g. the React app's
+         * index.html) default to the locale's ISO-8859-1 and garble non-ASCII characters. */
+        CharacterEncodingFilter encodingFilter = new CharacterEncodingFilter("UTF-8", true, true);
+        servletContext.addFilter("encodingFilter", encodingFilter)
+                .addMappingForUrlPatterns(EnumSet.of(REQUEST, FORWARD, INCLUDE), false, "/*");
 
         /** Security response headers (X-Content-Type-Options, X-Frame-Options, etc.) */
         DelegatingFilterProxy securityHeadersFilter = new DelegatingFilterProxy("securityHeadersFilter", dispatcherContext);
