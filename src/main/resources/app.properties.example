@@ -5,6 +5,9 @@
 # The base url of the deployed SAGE instance (omit trailing slash)
 base.url = http://localhost:8080
 
+# Content-Security-Policy frame-ancestors source list. Controls which origins may embed SAGE in a frame/iframe.
+security.csp.frame-ancestors = 'self' https://nysenate.gov https://*.nysenate.gov
+
 ###############################
 ## Authentication Configuration
 ###############################
