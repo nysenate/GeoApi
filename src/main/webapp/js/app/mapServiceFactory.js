@@ -47,6 +47,7 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
     mapService.overlayFeatures = [];
     mapService.selectedFeature = null;
     mapService.overlayHandlers = new WeakMap();
+    mapService.boundaryLines = [];
     mapService.markers = [];
     mapService.activeMarker = null;
     mapService.districtData = null;
@@ -312,6 +313,57 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
     };
 
     /**
+     * Draws a dashed outline of a GeoJSON geometry.
+     * @param geom      GeoJSON Polygon or MultiPolygon geometry
+     * @param fitBounds If true, the map is framed to the boundary
+     * @returns {boolean} true if a boundary was drawn
+     */
+    mapService.setBoundary = function(geom, fitBounds) {
+        this.clearBoundary();
+        if (geom == null || geom.coordinates == null) {
+            return false;
+        }
+        var dashSymbol = {path: 'M 0,-0.5 0,0.5', strokeWeight: 3, strokeOpacity: 1, scale: 1};
+        var lineStyle = {
+            strokeColor: "#333",
+            strokeOpacity: 0,
+            zIndex: 1000,
+            icons: [{icon: dashSymbol, offset: '100%', repeat: '8px'}]
+        };
+        /** MultiPolygon nests as [polygon][ring][point]; Polygon as [ring][point]. */
+        var polygons = (geom.type === "MultiPolygon") ? geom.coordinates : [geom.coordinates];
+        var bounds = new google.maps.LatLngBounds();
+        var self = this;
+        polygons.forEach(function(rings) {
+            rings.forEach(function(ring) {
+                /** GeoJSON positions are [lon, lat]; LatLng takes (lat, lon). */
+                var path = ring.map(function(pt) {
+                    var latLng = new google.maps.LatLng(pt[1], pt[0]);
+                    bounds.extend(latLng);
+                    return latLng;
+                });
+                var line = new google.maps.Polyline($.extend({}, lineStyle, {path: path}));
+                line.setMap(self.map);
+                self.boundaryLines.push(line);
+            });
+        });
+        if (fitBounds && !bounds.isEmpty()) {
+            this.map.fitBounds(bounds);
+        }
+        return this.boundaryLines.length > 0;
+    };
+
+    /**
+     * Removes the dashed boundary outline
+     */
+    mapService.clearBoundary = function() {
+        this.boundaryLines.forEach(function(line) {
+            line.setMap(null);
+        });
+        this.boundaryLines = [];
+    };
+
+    /**
      * Removes all district overlays
      */
     mapService.clearPolygons = function() {
@@ -322,6 +374,7 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
         this.overlayFeatures = [];
         this.selectedFeature = null;
         this.overlayHandlers = new WeakMap();
+        this.clearBoundary();
     };
 
     /**
@@ -340,19 +393,6 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
     mapService.clearAll = function() {
         this.clearMarkers();
         this.clearPolygons();
-    };
-
-    /**--------------------------------------------
-     * Client Geocoder
-     ---------------------------------------------*/
-    mapService.geocode = function(address, callback) {
-        var googleGeocoder = new google.maps.Geocoder();
-        googleGeocoder.geocode( { 'address': address}, function(results, status) {
-            if (status == google.maps.GeocoderStatus.OK) {
-                return callback(results[0].geometry.location);
-            }
-            return null;
-        });
     };
 
     return mapService;

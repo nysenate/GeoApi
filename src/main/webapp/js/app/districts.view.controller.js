@@ -7,7 +7,7 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
     $scope.showNeighbors = false;
     $scope.colors = mapService.colors;
     $scope.neighborColors = ["#FF4500", "#639A00"];
-    $scope.senateColors = {};
+    $scope.mapColors = {};
     $scope.placeSuggestions = {};
     $scope.viewSuggestions = false;
 
@@ -155,21 +155,29 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
     };
 
     $scope.getColorStyle = function(senateDistrict) {
-        return {"color": this.senateColors[senateDistrict]};
+        return {"color": this.mapColors[senateDistrict]};
     };
 
     $scope.drawIntersect = function() {
         mapService.clearPolygons();
-        /** Draw the intersected senate maps */
+        /** Draw the intersected maps */
         if ($scope.overlaps) {
             /** Assign a unique color to each district */
             $.each($scope.overlaps, function (i, overlap) {
-                $scope.senateColors[overlap.district] = $scope.colors[i % $scope.colors.length];
+                $scope.mapColors[overlap.district] = $scope.colors[i % $scope.colors.length];
                 if (overlap.map != null) {
                     mapService.setOverlay(overlap.map, overlap.name + " Coverage", false, false, null,
-                        $scope.senateColors[overlap.district], {fillOpacity: 0.5});
+                        $scope.mapColors[overlap.district], {fillOpacity: 0.5});
                 }
             });
+            /** Outline the base district with a dashed boundary and frame the map to it. */
+            if (!mapService.setBoundary($scope.referenceMap, true)) {
+                /** Fall back to framing the drawn overlaps. */
+                var bounds = mapService.getOverlayBounds();
+                if (!bounds.isEmpty()) {
+                    mapService.map.fitBounds(bounds);
+                }
+            }
         }
     };
 });
