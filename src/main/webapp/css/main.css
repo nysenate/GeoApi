@@ -191,6 +191,7 @@ hr.section-title-hr {
     font-weight: 600;
     padding:11px 9px;
     outline:none;
+    cursor: pointer;
 }
 
 #header ul li a:hover {
