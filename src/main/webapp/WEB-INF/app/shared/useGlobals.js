@@ -1,4 +1,5 @@
 import React from 'react'
+import fetchJson from 'app/apis/fetchJson'
 
 
 /**
@@ -12,12 +13,19 @@ const GlobalsContext = React.createContext()
 
 function useProvideGlobals() {
   const [ globals, setGlobals ] = React.useState()
+  const [ error, setError ] = React.useState()
 
   React.useEffect(() => {
-    fetchGlobals()
+    fetchJson('/globals')
       .then((res) => setGlobals(res))
+      .catch(setError)
   }, [])
 
+  // Rethrow during render so a failed globals fetch reaches the ErrorBoundary
+  // instead of leaving the app permanently blank.
+  if (error) {
+    throw error
+  }
   return globals
 }
 
@@ -33,12 +41,4 @@ export function GlobalsProvider({ children }) {
 
 export default function useGlobals() {
   return React.useContext(GlobalsContext)
-}
-
-async function fetchGlobals() {
-  const response = await fetch('/globals')
-  if (!response.ok) {
-    throw new Error(`Failed to fetch globals: ${response.status}`)
-  }
-  return response.json()
 }

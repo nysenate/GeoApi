@@ -5,6 +5,7 @@ import DistrictPolygon from 'app/shared/maps/DistrictPolygon'
 import Header from 'app/shared/Header'
 import ResultsPane from 'app/shared/ResultsPane'
 import UiBlocker from 'app/shared/UiBlocker'
+import useMapResize from 'app/shared/maps/useMapResize'
 import { assignDistricts } from 'app/apis/districtApi'
 import { formatAddressLines, getMapName } from 'app/shared/formatters'
 import DistrictSearch from 'app/views/home/DistrictSearch'
@@ -44,13 +45,7 @@ export default function Home() {
     }
   }
 
-  // The legacy page triggered a map resize whenever the results pane
-  // reserved/released its column, so the map re-frames correctly.
-  React.useEffect(() => {
-    if (mapRef.current) {
-      window.google.maps.event.trigger(mapRef.current, 'resize')
-    }
-  }, [ paneOpen ])
+  useMapResize(mapRef, paneOpen)
 
   const onLocateOffice = (office) => {
     setOfficeMarker({

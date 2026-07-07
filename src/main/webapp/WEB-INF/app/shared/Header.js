@@ -13,7 +13,7 @@ const MENU_ITEMS = [
   { label: 'USPS Lookup', icon: 'icon-mail', path: '/usps' },
   { label: 'Street Finder', icon: 'icon-directions', path: '/street' },
   { label: 'Reverse Geocode', icon: 'icon-target', path: '/revgeo' },
-  { label: 'Batch', href: '/job' },
+  { label: 'Batch', icon: 'icon-upload', path: '/job' },
   { label: 'Developer API', href: '/docs/html/index.html', newTab: true },
 ]
 

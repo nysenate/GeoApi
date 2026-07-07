@@ -1,3 +1,5 @@
+import fetchJson from 'app/apis/fetchJson'
+
 const BASE_API = '/api/v2'
 
 /** Lists the district types backed by shapefiles, as [{ enumName, displayName }]. */
@@ -24,12 +26,4 @@ export function fetchDistrictMaps(type, { district, meta } = {}) {
 export function fetchIntersect(sourceType, sourceId, intersectType) {
   const params = new URLSearchParams({ sourceType, sourceId, intersectType })
   return fetchJson(`${BASE_API}/district/intersect?${params}`)
-}
-
-async function fetchJson(url) {
-  const response = await fetch(url)
-  if (!response.ok) {
-    throw new Error(`Request to ${url} failed with status ${response.status}`)
-  }
-  return response.json()
 }

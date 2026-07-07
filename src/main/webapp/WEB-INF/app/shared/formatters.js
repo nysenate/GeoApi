@@ -30,6 +30,16 @@ export function getMapName(district) {
     (district.member ? ` - ${formatMemberName(district.member.info)}` : '')
 }
 
+// These types render their district number in a dedicated labeled line, so the
+// generic "Code: {district}" line is redundant (mirrors the legacy displayCode()).
+const TYPES_WITHOUT_CODE_LINE = [ 'SENATE', 'ASSEMBLY', 'CONGRESSIONAL', 'ZIP' ]
+
+/** Whether a district result should show the generic "Code: {district}" line.
+ *  Accepts the type in any casing (result keys are lowercase, enum names uppercase). */
+export function showsCodeLine(type) {
+  return !TYPES_WITHOUT_CODE_LINE.includes(String(type).toUpperCase())
+}
+
 /** The polygon color rotation from the legacy mapService:
  *  teal, orangered, green, red, yellow, cyan, pink, purple, darkblue. */
 export const POLY_COLORS = [

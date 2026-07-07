@@ -1,18 +1,18 @@
 import React from 'react'
-import GoogleMap from 'app/shared/maps/GoogleMap'
+import GoogleMap, { DEFAULT_CENTER, DEFAULT_ZOOM } from 'app/shared/maps/GoogleMap'
 import MapMarker from 'app/shared/maps/MapMarker'
 import DistrictPolygon from 'app/shared/maps/DistrictPolygon'
 import MapLines from 'app/shared/maps/MapLines'
 import Header from 'app/shared/Header'
 import ResultsPane from 'app/shared/ResultsPane'
 import UiBlocker from 'app/shared/UiBlocker'
+import useMapResize from 'app/shared/maps/useMapResize'
 import { fetchDistrictMaps, fetchIntersect, fetchMapTypes } from 'app/apis/mapApi'
 import { formatMemberName, getMapName, POLY_COLORS } from 'app/shared/formatters'
 import DistrictMapSearch from 'app/views/maps/DistrictMapSearch'
 import MemberResults from 'app/views/maps/MemberResults'
 import IntersectResults from 'app/views/maps/IntersectResults'
 
-const NY_CENTER = { lat: 42.440510, lng: -76.495460 }
 const ALL_DISTRICTS = { district: null, name: 'All districts' }
 
 /**
@@ -45,13 +45,7 @@ export default function DistrictMapsPage() {
       .catch(() => setDistrictTypes([]))
   }, [])
 
-  // The legacy page triggered a map resize whenever the results pane
-  // reserved/released its column, so the map re-frames correctly.
-  React.useEffect(() => {
-    if (mapRef.current) {
-      window.google.maps.event.trigger(mapRef.current, 'resize')
-    }
-  }, [ paneOpen ])
+  useMapResize(mapRef, paneOpen)
 
   const closePane = () => {
     setPaneContent(null)
@@ -72,7 +66,7 @@ export default function DistrictMapsPage() {
         setMemberList(members)
         setDistrictList([ ALL_DISTRICTS, ...data.districts ])
       })
-      .catch(() => {})
+      .catch(() => window.alert('Failed to retrieve the list of districts.'))
   }
 
   const showMember = (district) => {
@@ -142,8 +136,8 @@ export default function DistrictMapsPage() {
         points.forEach(([ lat, lng ]) => bounds.extend({ lat, lng }))))
       map.fitBounds(bounds)
     } else {
-      map.setCenter(NY_CENTER)
-      map.setZoom(7)
+      map.setCenter(DEFAULT_CENTER)
+      map.setZoom(DEFAULT_ZOOM)
     }
   }
 

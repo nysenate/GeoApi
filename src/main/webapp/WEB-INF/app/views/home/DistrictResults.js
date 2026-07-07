@@ -1,5 +1,5 @@
 import React from 'react'
-import { formatAddressLines, formatMemberName } from 'app/shared/formatters'
+import { formatAddressLines, formatMemberName, showsCodeLine } from 'app/shared/formatters'
 
 const MATCH_LEVEL_TEXT = {
   HOUSE: 'Showing matching results for address',
@@ -7,10 +7,6 @@ const MATCH_LEVEL_TEXT = {
   CITY: 'Showing matching results for city',
   ZIP5: 'Showing matching results for zip code',
 }
-
-// These types render their district number in a dedicated labeled line, so the
-// generic "Code: {district}" line is redundant (mirrors the legacy displayCode()).
-const TYPES_WITHOUT_CODE_LINE = [ 'senate', 'assembly', 'congressional', 'zip' ]
 
 /**
  * Displays the outcome of a district assign lookup with the legacy stylesheet's
@@ -250,7 +246,7 @@ function DistrictList({ districts, onShowDistrict }) {
                 {district.name && district.member &&
                   <p className="district">{district.name}</p>
                 }
-                {!TYPES_WITHOUT_CODE_LINE.includes(type) &&
+                {showsCodeLine(type) &&
                   <p className="district">{district.displayName} Code: {district.district}</p>
                 }
               </td>

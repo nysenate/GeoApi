@@ -1,9 +1,5 @@
 import React from 'react'
-import { formatMemberName, POLY_COLORS } from 'app/shared/formatters'
-
-// These types render their district number in a dedicated labeled line, so the
-// generic "Code: {district}" line is redundant (mirrors the legacy displayCode()).
-const TYPES_WITHOUT_CODE_LINE = [ 'SENATE', 'ASSEMBLY', 'CONGRESSIONAL', 'ZIP' ]
+import { formatMemberName, POLY_COLORS, showsCodeLine } from 'app/shared/formatters'
 
 /**
  * Results panel content listing the districts that intersect the selected source
@@ -63,7 +59,7 @@ export default function IntersectResults({ data, onShowOverlap, onShowCoverage }
                       {overlap.name &&
                         <p className="district-name" style={{ color: color }}>{overlap.name}</p>
                       }
-                      {!TYPES_WITHOUT_CODE_LINE.includes(intersectType) &&
+                      {showsCodeLine(intersectType) &&
                         <p className="district" style={{ color: color }}>Code: {overlap.district}</p>
                       }
                     </div>

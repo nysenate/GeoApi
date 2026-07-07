@@ -1,3 +1,5 @@
+import fetchJson from 'app/apis/fetchJson'
+
 const BASE_API = '/api/v2'
 
 /**
@@ -27,12 +29,4 @@ export function fetchGeocoderOptions() {
 /** Lists the available district data sources, as [{ enumName, displayName }]. */
 export function fetchDistrictSourceOptions() {
   return fetchJson(`${BASE_API}/district/options`)
-}
-
-async function fetchJson(url) {
-  const response = await fetch(url)
-  if (!response.ok) {
-    throw new Error(`Request to ${url} failed with status ${response.status}`)
-  }
-  return response.json()
 }

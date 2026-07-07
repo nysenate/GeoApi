@@ -13,8 +13,8 @@ export function useMap() {
 }
 
 // Centers the map nicely over NY, matching the view the legacy mapService used.
-const DEFAULT_CENTER = { lat: 42.440510, lng: -76.495460 }
-const DEFAULT_ZOOM = 7
+export const DEFAULT_CENTER = { lat: 42.440510, lng: -76.495460 }
+export const DEFAULT_ZOOM = 7
 
 const MAP_STYLES = [
   {

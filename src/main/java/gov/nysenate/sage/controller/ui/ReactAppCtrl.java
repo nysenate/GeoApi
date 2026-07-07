@@ -14,7 +14,6 @@ import jakarta.servlet.http.HttpServletRequest;
 /**
  * Entry point to the React front-end. Returns the main React app which handles
  * routing and rendering client-side.
- *
  * The legacy Angular UI is no longer routed (the JSPs under WEB-INF/views are kept only
  * as reference while their pages are rebuilt in React, registered in WEB-INF/app/index.js).
  */
@@ -29,7 +28,12 @@ public class ReactAppCtrl {
 
     @RequestMapping({"/", "/maps", "/usps", "/street", "/revgeo", "/admin", "/admin/home", "/job", "/job/home"})
     public String home(HttpServletRequest request) {
-        return "forward:/static/dist/index.html";
+        // Senate staff and API users are routed to the internal dev interface;
+        // everyone else gets the 404 page.
+        if (isWhitelisted(request)) {
+            return "forward:/static/dist/index.html";
+        }
+        return "404";
     }
 
     /**
@@ -39,17 +43,20 @@ public class ReactAppCtrl {
     @ResponseBody
     @RequestMapping("/globals")
     public GlobalsView globals(HttpServletRequest request) {
-        String ipAddr = ApiControllerUtil.getIpAddress(request);
         Subject subject = SecurityUtils.getSubject();
-        boolean isWhitelisted = subject.isPermitted("ui:view") || ipAddr.matches(env.getUserIpFilter());
 
         String googleMapsUrl = env.getGoogleMapsUrl();
         String googleMapsKey = env.getGoogleMapsKey();
         if (googleMapsKey != null && !googleMapsKey.isEmpty()) {
             googleMapsUrl = googleMapsUrl + "&key=" + googleMapsKey;
         }
-        return new GlobalsView(env.getUspsAmsUiUrl(), googleMapsUrl, isWhitelisted,
+        return new GlobalsView(env.getUspsAmsUiUrl(), googleMapsUrl, isWhitelisted(request),
                 subject.hasRole("ADMIN"), subject.hasRole("JOB_USER"));
+    }
+
+    private boolean isWhitelisted(HttpServletRequest request) {
+        String ipAddr = ApiControllerUtil.getIpAddress(request);
+        return SecurityUtils.getSubject().isPermitted("ui:view") || ipAddr.matches(env.getUserIpFilter());
     }
 
     public record GlobalsView(String amsUrl, String googleMapsUrl, boolean isWhitelisted,

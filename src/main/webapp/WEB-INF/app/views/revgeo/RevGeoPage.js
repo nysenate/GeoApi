@@ -3,6 +3,7 @@ import GoogleMap from 'app/shared/maps/GoogleMap'
 import MapMarker from 'app/shared/maps/MapMarker'
 import Header from 'app/shared/Header'
 import ResultsPane from 'app/shared/ResultsPane'
+import useMapResize from 'app/shared/maps/useMapResize'
 import { reverseGeocode } from 'app/apis/geoApi'
 import { formatAddressLines } from 'app/shared/formatters'
 import RevGeoSearch from 'app/views/revgeo/RevGeoSearch'
@@ -16,13 +17,7 @@ export default function RevGeoPage() {
   const [ paneOpen, setPaneOpen ] = React.useState(false)
   const mapRef = React.useRef()
 
-  // The legacy page triggered a map resize whenever the results pane
-  // reserved/released its column, so the map re-frames correctly.
-  React.useEffect(() => {
-    if (mapRef.current) {
-      window.google.maps.event.trigger(mapRef.current, 'resize')
-    }
-  }, [ paneOpen ])
+  useMapResize(mapRef, paneOpen)
 
   const onSearch = async (point) => {
     try {
