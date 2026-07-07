@@ -1,21 +1,16 @@
 import React from 'react'
-import Header from 'app/shared/Header'
+import useGlobals from 'app/shared/useGlobals'
+import JobLogin from 'app/views/job/JobLogin'
+import JobMain from 'app/views/job/JobMain'
 
 /**
- * Batch jobs page (/job, /job/home): skeleton shown while the legacy job
- * pages (joblogin.jsp, jobmain.jsp) are rebuilt in React.
+ * Batch jobs page (/job, /job/home): job users get the batch job console
+ * (from jobmain.jsp), everyone else gets the login page (from joblogin.jsp).
+ * Login and logout are full page loads, so /globals always reflects the
+ * current session.
  */
 export default function JobPage() {
-  return (
-    <div id="contentwrapper">
-      <Header />
+  const globals = useGlobals()
 
-      <div id="contentcolumn">
-        <div className="m-8 text-center">
-          <h1 className="text-2xl font-semibold">Batch Jobs</h1>
-          <p className="mt-4">This page is being rebuilt in React and is not available yet.</p>
-        </div>
-      </div>
-    </div>
-  )
+  return globals.isJobUser ? <JobMain /> : <JobLogin />
 }

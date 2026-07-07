@@ -19,6 +19,7 @@ import org.apache.commons.fileupload2.jakarta.servlet6.JakartaServletDiskFileUpl
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +28,6 @@ import org.springframework.web.bind.annotation.*;
 import org.supercsv.io.CsvListReader;
 import org.supercsv.prefs.CsvPreference;
 
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.*;
@@ -36,14 +36,12 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import static gov.nysenate.sage.util.controller.ConstantUtil.DOWNLOAD_BASE_URL;
 import static gov.nysenate.sage.util.controller.JobControllerUtil.*;
 
 @RestController
 @RequestMapping(value = "/job")
 public class JobController {
     private static final Logger logger = LoggerFactory.getLogger(JobController.class);
-    private static final String JOB_LOGIN_JSP = "/WEB-INF/views/joblogin.jsp";
     private final Environment env;
     private final JobUserAuth jobUserAuth;
     private final SqlJobProcessDao sqlJobProcessDao;
@@ -62,43 +60,46 @@ public class JobController {
     /**
      * Job Logout Api
      * ---------------------
-     * Logs a job user out of the batch job section of Sage
+     * Logs a job user out of the batch job section of Sage and returns to the
+     * React login page
      * Usage:
      * (GET)    /job/logout
      *
      */
     @GetMapping(value = "/logout")
-    public void jobLogout(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    public void jobLogout(HttpServletRequest request, HttpServletResponse response) throws IOException {
         SecurityUtils.getSubject().logout();
-        request.getRequestDispatcher(JOB_LOGIN_JSP).forward(request, response);
+        response.sendRedirect(request.getContextPath() + "/job");
     }
 
 
     /**
      * Job Login Api
      * ---------------------
-     * Logs a job user into the batch job section of Sage
+     * Logs a job user into the batch job section of Sage. The React login page
+     * handles the response client-side.
      * Usage:
      * (POST)    /job/login
      *
      */
     @PostMapping(value = "/login")
-    public void jobLogin(HttpServletRequest request, HttpServletResponse response,
-                         @RequestParam String email, @RequestParam String password)
-            throws ServletException, IOException {
+    public JobActionResponse jobLogin(HttpServletRequest request,
+                                      @RequestParam String email, @RequestParam String password) {
         String ipAddr = ApiControllerUtil.getIpAddress(request);
 
         JobUser jobUser = jobUserAuth.getJobUser(email, password);
-        if (jobUser != null) {
-            SecurityUtils.getSubject().login(new UsernamePasswordToken(email, jobUser.getPassword(), ipAddr));
-            setJobUser(request, jobUser);
-            getJobRequest(request).clear();
-            request.setAttribute("downloadBaseUrl", request.getContextPath() + DOWNLOAD_BASE_URL);
-            response.sendRedirect(request.getContextPath() + "/job/home");
-        } else {
-            request.setAttribute("errorMessage", "Invalid credentials");
-            request.getRequestDispatcher(JOB_LOGIN_JSP).forward(request, response);
+        if (jobUser == null) {
+            return new JobActionResponse(false, "Invalid credentials");
         }
+        try {
+            SecurityUtils.getSubject().login(new UsernamePasswordToken(email, jobUser.getPassword(), ipAddr));
+        } catch (AuthenticationException ex) {
+            logger.warn("Job login blocked for {}: {}", email, ex.getMessage());
+            return new JobActionResponse(false, "Login is not permitted from your location.");
+        }
+        setJobUser(request, jobUser);
+        getJobRequest(request).clear();
+        return new JobActionResponse(true, null);
     }
 
     /**

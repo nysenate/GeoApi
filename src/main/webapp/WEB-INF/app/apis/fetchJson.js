@@ -1,8 +1,9 @@
 /**
  * Fetches a JSON endpoint, throwing an Error if the response is not ok.
+ * Accepts the same options as fetch, e.g. { method: 'POST' }.
  */
-export default async function fetchJson(url) {
-  const response = await fetch(url)
+export default async function fetchJson(url, options) {
+  const response = await fetch(url, options)
   if (!response.ok) {
     throw new Error(`Request to ${url} failed with status ${response.status}`)
   }

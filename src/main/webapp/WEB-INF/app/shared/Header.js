@@ -6,6 +6,9 @@ import { Link, useLocation } from 'react-router-dom'
  * Converted tools are React Router links; the active one is derived from the
  * current route. Tools that have not been converted yet render as inert links
  * so the menu looks the same as the legacy page.
+ * Pages with their own menu (e.g. the batch job pages) pass their <li> links
+ * as children, which replace the tool menu like the legacy sage:header tag's
+ * links attribute did.
  */
 const MENU_ITEMS = [
   { label: 'District Lookup', icon: 'icon-search', path: '/' },
@@ -17,7 +20,7 @@ const MENU_ITEMS = [
   { label: 'Developer API', href: '/docs/html/index.html', newTab: true },
 ]
 
-export default function Header() {
+export default function Header({ children }) {
   const location = useLocation()
 
   return (
@@ -26,7 +29,7 @@ export default function Header() {
         <Link to="/">SAGE</Link>
       </div>
       <ul className="top-method-header">
-        {MENU_ITEMS.map((item) => {
+        {children ?? MENU_ITEMS.map((item) => {
           const active = item.path != null && item.path === location.pathname
           const content = (
             <React.Fragment>
