@@ -1,7 +1,7 @@
 import React from 'react'
 import { fetchAllJobs, jobDownloadUrl } from 'app/apis/jobApi'
-import { conditionColor, conditionLabel, conditionSuccess, formatDateMedium }
-  from 'app/views/job/jobUtils'
+import { formatDateMedium } from 'app/shared/formatters'
+import { conditionColor, conditionLabel, conditionSuccess } from 'app/views/job/jobUtils'
 
 /**
  * "History" pane: every batch job the user can see, with its final condition

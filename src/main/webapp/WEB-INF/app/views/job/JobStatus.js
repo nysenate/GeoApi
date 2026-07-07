@@ -1,7 +1,8 @@
 import React from 'react'
 import { cancelJobProcess, fetchActiveJobs, fetchCompletedJobs, fetchRunningJobs, jobDownloadUrl }
   from 'app/apis/jobApi'
-import { conditionLabel, formatDateMedium, formatDateShort } from 'app/views/job/jobUtils'
+import { formatDateMedium, formatDateShort } from 'app/shared/formatters'
+import { conditionLabel } from 'app/views/job/jobUtils'
 
 // The legacy page polled the running job every 3s and the queues every 5-6s.
 const RUNNING_POLL_MS = 3000
