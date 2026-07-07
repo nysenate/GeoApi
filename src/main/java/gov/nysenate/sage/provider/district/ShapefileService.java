@@ -97,9 +97,9 @@ public class ShapefileService implements SingleDistrictService {
                 .stream().map(info -> {
                     SingleDistrict districtData = getSingleDistrict(intersectWith, info.code());
                     var intersectMap = new IntersectMap(intersectWith, districtData);
-                    info.polygons().forEach(intersectMap::addPolygon);
+                    intersectMap.setMapGeoJson(info.geoJson());
                     intersectMap.setArea(info.area());
-                    intersectMap.setFullMapPolygons(getDistrictMap(intersectWith, info.code()).getPolygons());
+                    intersectMap.setFullMapGeoJson(getDistrictMap(intersectWith, info.code()).getMapGeoJson());
                     return intersectMap;
                 }).toList();
         return new IntersectResult(sourceMap, intersectWith, overlaps);

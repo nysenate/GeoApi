@@ -1,8 +1,8 @@
 package gov.nysenate.sage.client.response.map;
 
+import com.fasterxml.jackson.annotation.JsonRawValue;
 import gov.nysenate.sage.client.response.base.SourcedResponse;
 import gov.nysenate.sage.client.view.map.DistrictMapView;
-import gov.nysenate.sage.client.view.map.PolygonMapView;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.MapResult;
 
@@ -28,7 +28,8 @@ public class MapResponse extends SourcedResponse {
         return (map != null) ? map.getType() : null;
     }
 
-    public PolygonMapView getMap() {
+    @JsonRawValue
+    public String getMap() {
         return (map != null) ? map.getMap() : null;
     }
 

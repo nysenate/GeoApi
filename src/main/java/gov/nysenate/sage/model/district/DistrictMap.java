@@ -1,14 +1,11 @@
 package gov.nysenate.sage.model.district;
 
-import gov.nysenate.sage.model.geo.Polygon;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.annotation.Nonnull;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * Contains district map geometry information.
@@ -26,8 +23,9 @@ public class DistrictMap implements Comparable<DistrictMap> {
     // TownCity maps also need to know the base name.
     @Setter
     private String baseName;
-    private final List<Polygon> polygons = new ArrayList<>();
-    private final String geometryType = "MULTIPOLYGON";
+    // Raw GeoJSON geometry (a MultiPolygon).
+    @Setter
+    private String mapGeoJson;
     // Note that this is only an approximation.
     @Setter
     private BigDecimal area;
@@ -38,17 +36,9 @@ public class DistrictMap implements Comparable<DistrictMap> {
         this.districtCode = code;
     }
 
-    public void addPolygon(Polygon polygon) {
-        polygons.add(polygon);
-    }
-
     @Override
     public String toString() {
-        var o = new StringBuilder();
-        for (Polygon polygon : polygons) {
-            o.append(polygon.toString());
-        }
-        return o.toString();
+        return mapGeoJson == null ? "" : mapGeoJson;
     }
 
     @Override

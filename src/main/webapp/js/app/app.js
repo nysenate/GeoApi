@@ -208,19 +208,4 @@ $(document).ready(function(){
         });
         return bounds;
     };
-
-    google.maps.getBoundsForPolygons = function(polygons) {
-        var bounds = new google.maps.LatLngBounds();
-        $.each(polygons, function(index, polygon){
-            var paths = polygon.getPaths();
-            var path;
-            for (var i = 0; i < paths.getLength(); i++) {
-                path = paths.getAt(i);
-                for (var ii = 0; ii < path.getLength(); ii++) {
-                    bounds.extend(path.getAt(ii));
-                }
-            }
-        });
-        return bounds;
-    };
 });

@@ -1,6 +1,6 @@
 package gov.nysenate.sage.client.view.district;
 
-import gov.nysenate.sage.client.view.map.PolygonMapView;
+import com.fasterxml.jackson.annotation.JsonRawValue;
 import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
@@ -11,13 +11,15 @@ import lombok.Getter;
 public class DistrictView {
     private final SingleDistrict district;
     private final DistrictType type;
+    // Raw GeoJSON geometry, emitted directly to the client.
     @Getter
-    private final PolygonMapView map;
+    @JsonRawValue
+    private final String map;
 
     protected DistrictView(SingleDistrict data, DistrictType type, DistrictMap map) {
         this.district = data;
         this.type = type;
-        this.map = map == null ? null : new PolygonMapView(map);
+        this.map = map == null ? null : map.getMapGeoJson();
     }
 
     public static DistrictView from(DistrictType type, DistrictResultWithMembers result, DistrictMap districtMap) {

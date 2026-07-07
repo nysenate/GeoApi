@@ -5,7 +5,6 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
     $scope.viewId = "districtsView";
     $scope.showOffices = false;
     $scope.showNeighbors = false;
-    $scope.neighborPolygons = [];
     $scope.colors = mapService.colors;
     $scope.neighborColors = ["#FF4500", "#639A00"];
     $scope.senateColors = {};
@@ -34,20 +33,11 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
 
         if ($scope.overlaps) {
             $scope.drawIntersect();
-            /** Display senate street lines if available */
-            if ($scope.matchLevel == "STREET") {
-                fillOpacity = 0.2;
-                mapService.setMarker($scope.geocode.lat, $scope.geocode.lon, '', true, true);
-            }
-            else {
-                /** Set region (city / zip) dashed line boundary for multi-matches */
-                mapService.setLines($scope.referenceMap.geom, true, false, {});
-            }
         }
         else {
             /** Update the marker location to point to the geocode */
-            if ($scope.districts?.senate?.map?.geom) {
-                mapService.setOverlay($scope.districts.senate.map.geom,
+            if ($scope.districts?.senate?.map) {
+                mapService.setOverlay($scope.districts.senate.map,
                     getMapName($scope.districts.senate), true, true, null);
             }
             if ($scope.geocoded) {
@@ -76,7 +66,7 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
                 mapService.clearPolygons();
                 $.each(data.districts, function(i, v){
                     if (v.map) {
-                        mapService.setOverlay(v.map.geom, getMapName(v), false, false,
+                        mapService.setOverlay(v.map, getMapName(v), false, false,
                             (v.member != null) ? function() {
 
                                 /** Draw the office markers */
@@ -90,7 +80,7 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
                 });
                 /** City council districts are NYC-only, so frame the boroughs instead of the whole state. */
                 if (data.districts[0] && data.districts[0].type === "CITY_COUNCIL") {
-                    mapService.map.fitBounds(google.maps.getBoundsForPolygons(mapService.polygons));
+                    mapService.map.fitBounds(mapService.getOverlayBounds());
                 }
                 else {
                     mapService.setCenter(42.440510, -76.495460); // Centers the map nicely over NY
@@ -99,7 +89,7 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
             }
             /** Show the individual district map */
             else if (data.map != null) {
-                mapService.setOverlay(data.map.geom, getMapName(data), true, true, null, null);
+                mapService.setOverlay(data.map, getMapName(data), true, true, null, null);
                 if (data.member != null) {
                     dataBus.setBroadcastAndView("member", data, "member");
 
@@ -146,12 +136,12 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
             var district = $scope.districts[districtType];
             district.type = districtType; // Set the type for the formatDistrictName method
             mapService.resizeMap();
-            mapService.setOverlay(district.map.geom, getMapName(district), true, true, null);
+            mapService.setOverlay(district.map, getMapName(district), true, true, null);
         }
     };
 
     $scope.showFullMapForOverlap = function(index, overlap) {
-        mapService.setOverlay(overlap.fullMap.geom, overlap.name, false, true, null, this.colors[index % this.colors.length]);
+        mapService.setOverlay(overlap.fullMap, overlap.name, false, true, null, this.colors[index % this.colors.length]);
     };
 
     $scope.setOfficeMarker = mapService.setOfficeMarker;
@@ -176,7 +166,7 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
             $.each($scope.overlaps, function (i, overlap) {
                 $scope.senateColors[overlap.district] = $scope.colors[i % $scope.colors.length];
                 if (overlap.map != null) {
-                    mapService.setOverlay(overlap.map.geom, overlap.name + " Coverage", false, false, null,
+                    mapService.setOverlay(overlap.map, overlap.name + " Coverage", false, false, null,
                         $scope.senateColors[overlap.district], {fillOpacity: 0.5});
                 }
             });

@@ -1,7 +1,5 @@
 package gov.nysenate.sage.dao.provider.shapefile;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.model.county.CountyDao;
 import gov.nysenate.sage.dao.model.townCity.TownCityDao;
@@ -19,7 +17,6 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
@@ -85,8 +82,7 @@ public class ShapefileDao extends BaseDao {
 
         String sql = GET_INTERSECTION.getSql(geometrySchema, replacementMap);
         return namedJdbcTemplate.query(sql, params, (rs, rowNum) -> {
-            List<Polygon> polygons = getPolygons(rs.getString("intersect_geo_json"));
-            return new IntersectInfo(rs.getString("code"), polygons, rs.getBigDecimal("area"));
+            return new IntersectInfo(rs.getString("code"), rs.getString("intersect_geo_json"), rs.getBigDecimal("area"));
         });
     }
 
@@ -136,7 +132,7 @@ public class ShapefileDao extends BaseDao {
                 default -> rs.getString("name");
             };
             var map = new DistrictMap(type, name, code);
-            getPolygons(rs.getString("map")).forEach(map::addPolygon);
+            map.setMapGeoJson(rs.getString("map"));
             map.setArea(rs.getBigDecimal("area"));
             // For COVID links
             if (type == DistrictType.COUNTY) {
@@ -187,39 +183,5 @@ public class ShapefileDao extends BaseDao {
                 codeList.add(new Tuple<>(rs.getString("code"), rs.getInt("main_gid")));
             }
         }
-    }
-
-    /**
-     * Parses JSON map response and creates a DistrictMap object containing the district geometry.
-     * This method does not set any other fields on the DistrictMap object.
-     * @param jsonMap   GeoJson string containing the district geometry
-     * @return          DistrictMap containing the geometry.
-     *                  null if map string not present or error
-     */
-    private static List<Polygon> getPolygons(String jsonMap) {
-        if (jsonMap == null) {
-            return null;
-        }
-        List<Polygon> polygons = new ArrayList<>();
-        var objectMapper = new ObjectMapper();
-        JsonNode mapNode;
-        try {
-            mapNode = objectMapper.readTree(jsonMap);
-        } catch (IOException ex) {
-            throw new IllegalArgumentException(ex);
-        }
-        if (!mapNode.get("type").asText().equalsIgnoreCase("MULTIPOLYGON")) {
-            throw new IllegalArgumentException("Map geometry must be multipolygons.");
-        }
-        JsonNode coordinates = mapNode.get("coordinates");
-        for (int i = 0; i < coordinates.size(); i++) {
-            List<Point> points = new ArrayList<>();
-            JsonNode polygon = coordinates.get(i).get(0);
-            for (int j = 0; j < polygon.size(); j++){
-                points.add(new Point(polygon.get(j).get(1).asText(), polygon.get(j).get(0).asText()));
-            }
-            polygons.add(new Polygon(points));
-        }
-        return polygons;
     }
 }
