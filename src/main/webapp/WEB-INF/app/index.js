@@ -6,6 +6,7 @@ import useGlobals, { GlobalsProvider } from 'app/shared/useGlobals'
 import ErrorBoundary from 'app/views/ErrorBoundary'
 import Home from 'app/views/home/Home'
 import DistrictMapsPage from 'app/views/maps/DistrictMapsPage'
+import EmbeddedMapPage from 'app/views/maps/EmbeddedMapPage'
 import UspsLookupPage from 'app/views/usps/UspsLookupPage'
 import StreetFinderPage from 'app/views/street/StreetFinderPage'
 import RevGeoPage from 'app/views/revgeo/RevGeoPage'
@@ -34,6 +35,8 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/maps" element={<DistrictMapsPage />} />
+      {/* Public embedded maps, forwarded here by EmbeddedMapController (no whitelist). */}
+      <Route path="/map/:districtType?/:districtCode?" element={<EmbeddedMapPage />} />
       <Route path="/usps" element={<UspsLookupPage />} />
       <Route path="/street" element={<StreetFinderPage />} />
       <Route path="/revgeo" element={<RevGeoPage />} />

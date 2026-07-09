@@ -38,7 +38,8 @@ public class ReactAppCtrl {
 
     /**
      * Provides the config values the React front-end needs, replacing the request
-     * attributes that PageSetupInterceptor sets for the JSP views.
+     * attributes the legacy JSP views were rendered with. Not whitelist-gated:
+     * the public embedded map pages (see EmbeddedMapController) also load it.
      */
     @ResponseBody
     @RequestMapping("/globals")

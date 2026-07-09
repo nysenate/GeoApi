@@ -1,6 +1,5 @@
 package gov.nysenate.sage.config;
 
-import gov.nysenate.sage.controller.interceptor.PageSetupInterceptor;
 import gov.nysenate.sage.dao.logger.deployment.SqlDeploymentLogger;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,7 +13,6 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -47,20 +45,10 @@ public class WebApplicationConfig implements WebMvcConfigurer {
             """;
 
     private final SqlDeploymentLogger sqlDeploymentLogger;
-    private final PageSetupInterceptor pageSetupInterceptor;
 
     @Autowired
-    public WebApplicationConfig(SqlDeploymentLogger sqlDeploymentLogger, PageSetupInterceptor pageSetupInterceptor) {
+    public WebApplicationConfig(SqlDeploymentLogger sqlDeploymentLogger) {
         this.sqlDeploymentLogger = sqlDeploymentLogger;
-        this.pageSetupInterceptor = pageSetupInterceptor;
-    }
-
-    /** Populates the request attributes needed by the embedded map JSP views.
-     *  The React pages get these values from the /globals endpoint instead. */
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(pageSetupInterceptor)
-                .addPathPatterns("/map", "/map/**");
     }
 
     @PostConstruct

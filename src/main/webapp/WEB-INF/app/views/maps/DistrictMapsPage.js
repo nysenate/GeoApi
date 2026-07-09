@@ -4,6 +4,7 @@ import MapMarker from 'app/shared/maps/MapMarker'
 import DistrictPolygon from 'app/shared/maps/DistrictPolygon'
 import MapBoundary from 'app/shared/maps/MapBoundary'
 import { extendGeoJsonBounds } from 'app/shared/maps/geoJson'
+import officeInfoContent from 'app/shared/maps/officeInfoContent'
 import Header from 'app/shared/Header'
 import ResultsPane from 'app/shared/ResultsPane'
 import UiBlocker from 'app/shared/UiBlocker'
@@ -266,12 +267,3 @@ function FitOverlapBounds({ overlaps }) {
   return null
 }
 
-/** Builds the office marker popup, matching the legacy setOfficeMarkers content. */
-function officeInfoContent(office) {
-  return "<div style='width:160px;'>" +
-    `<p style='color:teal;font-size:18px;'>${office.name}</p>` +
-    `<p>${office.address?.addr1 ?? ''}</p>` +
-    `<p>${office.address?.city ?? ''}, NY ${office.address?.zip5 ?? ''}</p>` +
-    `<p>Phone ${office.phone ?? ''}</p>` +
-    '</div>'
-}

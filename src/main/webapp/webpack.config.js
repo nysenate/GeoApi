@@ -39,7 +39,7 @@ module.exports = {
     // Send api and legacy page requests for these paths to the Tomcat instance while in dev mode.
     proxy: [
       {
-        context: ['/api', '/admin', '/job', '/map', '/globals', '/static', '/docs', '/admindocs', '/css', '/js', '/favicon.ico'],
+        context: ['/api', '/admin', '/job', '/globals', '/static', '/docs', '/admindocs', '/css', '/js', '/favicon.ico'],
         target: 'http://localhost:8080',
         secure: false,
         changeOrigin: true,
