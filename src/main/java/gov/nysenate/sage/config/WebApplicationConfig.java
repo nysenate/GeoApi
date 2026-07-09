@@ -17,7 +17,6 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.FixedLocaleResolver;
-import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
@@ -60,7 +59,6 @@ public class WebApplicationConfig implements WebMvcConfigurer {
     /** Sets paths that should not be intercepted by a controller (e.g css/ js/). */
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/js/**").addResourceLocations("/js/").setCachePeriod(64000);
         registry.addResourceHandler("/css/**").addResourceLocations("/css/").setCachePeriod(64000);
         // Serves /static/img and the React bundle in /static/dist.
         registry.addResourceHandler("/static/**").addResourceLocations("/static/").setCachePeriod(64000);
@@ -76,18 +74,6 @@ public class WebApplicationConfig implements WebMvcConfigurer {
     public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
         configurer.defaultContentType(MediaType.APPLICATION_JSON)
                 .favorParameter(true).ignoreAcceptHeader(true);
-    }
-
-    /**
-     * This view resolver will map view names returned from the controllers to jsp files stored in the
-     * configured 'prefix' url.
-     */
-    @Bean(name = "viewResolver")
-    public InternalResourceViewResolver viewResolver() {
-        InternalResourceViewResolver viewResolver = new InternalResourceViewResolver();
-        viewResolver.setPrefix("/WEB-INF/views/");
-        viewResolver.setSuffix(".jsp");
-        return viewResolver;
     }
 
     /**
