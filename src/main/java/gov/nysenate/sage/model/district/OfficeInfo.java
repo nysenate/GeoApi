@@ -7,6 +7,7 @@ import gov.nysenate.services.model.Office;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.lang.StringUtils;
 
 @Getter
 @Setter
@@ -22,7 +23,7 @@ public class OfficeInfo {
         String[] zips = senateOffice.getPostalCode().split("-");
         this.address = new AddressView(new Address(addr1, senateOffice.getAdditional(), senateOffice.getCity(), "NY",
                 zips[0], zips.length > 1 ? zips[1] : null), false);
-        this.name = senateOffice.getName();
-        this.phone = senateOffice.getPhone();
+        this.name = StringUtils.trimToNull(senateOffice.getName());
+        this.phone = StringUtils.trimToNull(senateOffice.getPhone());
     }
 }

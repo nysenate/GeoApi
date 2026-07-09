@@ -44,20 +44,79 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
     mapService.map = new google.maps.Map(document.getElementById("map_canvas"), mapService.mapOptions);
     mapService.autoComplete = new google.maps.places.AutocompleteService();
     mapService.bounds = null;
-    mapService.polygons = [];
-    mapService.lines = [];
-    mapService.polygon = null;
+    mapService.overlayFeatures = [];
+    mapService.selectedFeature = null;
+    mapService.overlayHandlers = new WeakMap();
+    mapService.boundaryLines = [];
     mapService.markers = [];
     mapService.activeMarker = null;
     mapService.districtData = null;
-    mapService.mouseEventName = null;
     mapService.colors = polyColors;
     mapService.showToolTip = true;
 
     /**
+     * District overlays are drawn with the Data layer: the API returns GeoJSON
+     * geometry that we hand straight to map.data.addGeoJson. Each overlay's base
+     * appearance lives on its feature's "style" property; hover and click-selection
+     * are applied as temporary style overrides on top of it.
+     */
+    mapService.map.data.setStyle(function(feature) {
+        return feature.getProperty("style") || {};
+    });
+
+    var applySelectedStyle = function(feature) {
+        mapService.map.data.overrideStyle(feature, {fillColor: "#ffcc00", fillOpacity: 0.6});
+    };
+
+    /** On mouseover reveal the tooltip and decrease opacity */
+    mapService.map.data.addListener("mouseover", function(event) {
+        var style = event.feature.getProperty("style");
+        mapService.map.data.overrideStyle(event.feature, {fillOpacity: style.fillOpacity - 0.2});
+        if (mapService.showToolTip) {
+            mapService.tooltipEl.show();
+        }
+    });
+
+    /** Follow the cursor with the district name */
+    mapService.map.data.addListener("mousemove", function(event) {
+        var name = event.feature.getProperty("name");
+        /** County DoH embeds label districts by county name only */
+        if (window.doh === true && name) {
+            name = name.split("-")[0].trim();
+        }
+        if (event.domEvent) {
+            mapService.tooltipEl.offset({top: event.domEvent.clientY + 20, left: event.domEvent.clientX});
+            mapService.tooltipEl.text(name);
+        }
+    });
+
+    /** On mouseout drop the hover override (re-applying selection if needed) and hide the tooltip */
+    mapService.map.data.addListener("mouseout", function(event) {
+        mapService.map.data.revertStyle(event.feature);
+        if (event.feature === mapService.selectedFeature) {
+            applySelectedStyle(event.feature);
+        }
+        mapService.tooltipEl.hide();
+    });
+
+    /** Only overlays registered with a click handler are selectable */
+    mapService.map.data.addListener("click", function(event) {
+        var handler = mapService.overlayHandlers.get(event.feature);
+        if (!handler) {
+            return;
+        }
+        if (mapService.selectedFeature) {
+            mapService.map.data.revertStyle(mapService.selectedFeature);
+        }
+        applySelectedStyle(event.feature);
+        mapService.selectedFeature = event.feature;
+        handler();
+    });
+
+    /**
      * Resize when window size changes
      */
-    google.maps.event.addDomListener(window, 'resize', function() {
+    window.addEventListener('resize', function() {
         mapService.resizeMap();
     });
 
@@ -192,192 +251,130 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
     };
 
     /**
-     * Sets a polygon overlay on the map with hover and click functionality
-     * @param geom          Nested array of point arrays, e.g [[43.1,-73],[43.2,-73],[43.2,-73]]
-     * @param name          The name of the polygon to display on the info header bar
-     * @param fitBounds     If true then map will resize to fit polygon's bounds
-     * @param clear         If true then map will be cleared of all overlays
-     * @param clickHandler  If a callback is supplied it will be called when the polygon is clicked
-     * @param color         Color of the polygon (default is teal)
-     * @param style         Override style properties for the polygon e.g. {'fillOpacity': 0.5}
+     * Draws a district overlay from a GeoJSON geometry using the Data layer.
+     * @param geom          GeoJSON geometry object, e.g. {type: "MultiPolygon", coordinates: [...]}
+     * @param name          The name of the district to display in the tooltip
+     * @param fitBounds     If true then map will resize to fit the overlay's bounds
+     * @param clear         If true then map will be cleared of all overlays first
+     * @param clickHandler  If a callback is supplied it will be called when the overlay is clicked
+     * @param color         Color of the overlay (default is teal)
+     * @param style         Override style properties for the overlay e.g. {'fillOpacity': 0.5}
      */
     mapService.setOverlay = function(geom, name, fitBounds, clear, clickHandler, color, style) {
-        if (geom != null) {
-            if (style === null || typeof style === 'undefined') {
-                style = {};
-            }
-            style = $.extend({
-                strokeColor: (color) ? color : "teal",
-                strokeOpacity: 1,
-                strokeWeight: 1.5,
-                fillColor: (color) ? color : "teal",
-                fillOpacity: 0.3
-            }, style);
-
-            if (clear == true) {
-                this.clearPolygons();
-            }
-            var coords = [];
-            for (var i in geom) {
-                for (var j in geom[i]) {
-                    coords.push(new google.maps.LatLng(geom[i][j][0], geom[i][j][1]));
-                }
-
-                var overlayProps = $.extend({}, style, {
-                    paths: coords
-                });
-
-                var polygon = new google.maps.Polygon(overlayProps);
-
-                /** On mouseover reveal the tooltip and decrease opacity */
-                google.maps.event.addListener(polygon,"mouseover",function() {
-                    // console.log("mouseover");
-                    this.setOptions({fillOpacity: style.fillOpacity - 0.2});
-                    if (mapService.showToolTip) {
-                        mapService.tooltipEl.show();
-                    }
-                });
-
-                google.maps.event.addListener(polygon, "mousemove", function(mousemove) {
-
-                    /** Have to find the correct property name that contains the client x,y data */
-                    if (mapService.mouseEventName == null) {
-                        for (var prop in mousemove) {
-                            if (mousemove.hasOwnProperty(prop) && typeof mousemove[prop] == 'object') {
-                                if (mousemove[prop] != null && 'clientY' in mousemove[prop]) {
-                                    mapService.mouseEventName = prop;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    if (mapService.mouseEventName != null) {
-
-                        /** County DoH embeds label districts by county name only */
-                        if (window.doh === true) {
-                            name = name.split("-")[0].trim();
-                        }
-
-                        mapService.tooltipEl.offset({top: mousemove[mapService.mouseEventName].clientY + 20, left: mousemove[mapService.mouseEventName].clientX});
-                        mapService.tooltipEl.text(name);
-                    }
-                });
-
-                /** On mouseout restore the opacity and hide the tooltip */
-                google.maps.event.addListener(polygon,"mouseout",function(){
-                    // console.log("mouseout");
-                    this.setOptions({fillOpacity: style.fillOpacity});
-                    mapService.tooltipEl.hide();
-                });
-
-                /** Set up event handling for mouse click on polygon */
-                if(clickHandler) {
-                    google.maps.event.addListener(polygon,"click", function() {
-                        if (mapService.polygon) {
-                            mapService.polygon.setOptions({fillColor: style.fillColor});
-                            mapService.polygon.setOptions({fillOpacity: style.fillOpacity});
-                        }
-                        this.setOptions({fillColor: "#ffcc00"});
-                        this.setOptions({fillOpacity: 0.6});
-                        mapService.polygon = this;
-                        clickHandler();
-                    });
-                }
-
-                polygon.setMap(this.map);
-                this.polygons.push(polygon);
-                this.polygon = polygon;
-                coords = [];
-            }
-
-            /** Set the zoom level to the polygon bounds */
-            if (fitBounds) {
-                this.map.fitBounds(google.maps.getBoundsForPolygons(this.polygons));
-            }
-
-            /** Text to display on the map header */
-            return this.polygon;
+        if (geom == null) {
+            this.clearPolygons();
+            return null;
         }
-        else {
+        if (clear === true) {
             this.clearPolygons();
         }
-        return null;
-    };
 
-    mapService.setLines = function(geom, fitBounds, clear, style, lineSymbolStyle) {
-        var coords = [];
-        if (clear) {
-            this.clearPolyLines();
-        }
-        var latLngBounds = new google.maps.LatLngBounds();
-
-        var lineSymbol = $.extend({
-            path: 'M 0,-0.5 0,0.5',
-            strokeWeight: 3,
+        var overlayStyle = $.extend({
+            strokeColor: color || "teal",
             strokeOpacity: 1,
-            scale: 1,
-            zIndex: 1000
-        }, lineSymbolStyle);
-
-        if (style === null || typeof style === 'undefined') {
-            style = {};
-        }
-        style = $.extend({
-            strokeColor: "#333",
-            strokeOpacity: 0,
-            icons: [{
-                icon: lineSymbol,
-                offset: '100%',
-                repeat: '8px'
-            }]
+            strokeWeight: 1.5,
+            fillColor: color || "teal",
+            fillOpacity: 0.3
         }, style);
 
-        for (var i in geom) {
-            for (var j in geom[i]) {
-                var latLng = new google.maps.LatLng(geom[i][j][0], geom[i][j][1]);
-                latLngBounds.extend(latLng);
-                coords.push(latLng);
-            }
-
-            var line = new google.maps.Polyline($.extend({}, style, {path: coords}));
-            line.setMap(this.map);
-            this.lines.push(line);
-
-            /** Set the zoom level to the district bounds for the first polyline */
-            coords = [];
-        }
-
-        if (fitBounds) {
-            this.map.fitBounds(latLngBounds);
-            this.map.setZoom(this.map.getZoom());
-        }
-    };
-
-    mapService.clearPolygon = function(polygon) {
-        if (polygon) {
-            try { polygon.setMap(null);}
-            catch (ex) {}
-        }
-    };
-
-    /**
-     * Removes all polylines
-     */
-    mapService.clearPolyLines = function() {
-        $.each(this.lines, function (i, v){
-            v.setMap(null);
+        var added = this.map.data.addGeoJson({
+            type: "Feature",
+            geometry: geom,
+            properties: {name: name, style: overlayStyle}
         });
-        this.lines = [];
+
+        var self = this;
+        added.forEach(function(feature) {
+            if (clickHandler) {
+                self.overlayHandlers.set(feature, clickHandler);
+            }
+            self.overlayFeatures.push(feature);
+        });
+
+        /** Set the zoom level to the overlay bounds */
+        if (fitBounds) {
+            this.map.fitBounds(this.getOverlayBounds());
+        }
+
+        return added.length ? added[added.length - 1] : null;
     };
 
     /**
-     * Removes all polygon overlays
+     * Computes a bounding box that contains every drawn overlay feature.
+     */
+    mapService.getOverlayBounds = function() {
+        var bounds = new google.maps.LatLngBounds();
+        this.overlayFeatures.forEach(function(feature) {
+            feature.getGeometry().forEachLatLng(function(latLng) {
+                bounds.extend(latLng);
+            });
+        });
+        return bounds;
+    };
+
+    /**
+     * Draws a dashed outline of a GeoJSON geometry.
+     * @param geom      GeoJSON Polygon or MultiPolygon geometry
+     * @param fitBounds If true, the map is framed to the boundary
+     * @returns {boolean} true if a boundary was drawn
+     */
+    mapService.setBoundary = function(geom, fitBounds) {
+        this.clearBoundary();
+        if (geom == null || geom.coordinates == null) {
+            return false;
+        }
+        var dashSymbol = {path: 'M 0,-0.5 0,0.5', strokeWeight: 3, strokeOpacity: 1, scale: 1};
+        var lineStyle = {
+            strokeColor: "#333",
+            strokeOpacity: 0,
+            zIndex: 1000,
+            icons: [{icon: dashSymbol, offset: '100%', repeat: '8px'}]
+        };
+        /** MultiPolygon nests as [polygon][ring][point]; Polygon as [ring][point]. */
+        var polygons = (geom.type === "MultiPolygon") ? geom.coordinates : [geom.coordinates];
+        var bounds = new google.maps.LatLngBounds();
+        var self = this;
+        polygons.forEach(function(rings) {
+            rings.forEach(function(ring) {
+                /** GeoJSON positions are [lon, lat]; LatLng takes (lat, lon). */
+                var path = ring.map(function(pt) {
+                    var latLng = new google.maps.LatLng(pt[1], pt[0]);
+                    bounds.extend(latLng);
+                    return latLng;
+                });
+                var line = new google.maps.Polyline($.extend({}, lineStyle, {path: path}));
+                line.setMap(self.map);
+                self.boundaryLines.push(line);
+            });
+        });
+        if (fitBounds && !bounds.isEmpty()) {
+            this.map.fitBounds(bounds);
+        }
+        return this.boundaryLines.length > 0;
+    };
+
+    /**
+     * Removes the dashed boundary outline
+     */
+    mapService.clearBoundary = function() {
+        this.boundaryLines.forEach(function(line) {
+            line.setMap(null);
+        });
+        this.boundaryLines = [];
+    };
+
+    /**
+     * Removes all district overlays
      */
     mapService.clearPolygons = function() {
-        $.each(this.polygons, function (i, v){
-            v.setMap(null);
+        var self = this;
+        this.overlayFeatures.forEach(function(feature) {
+            self.map.data.remove(feature);
         });
-        this.polygons = [];
+        this.overlayFeatures = [];
+        this.selectedFeature = null;
+        this.overlayHandlers = new WeakMap();
+        this.clearBoundary();
     };
 
     /**
@@ -396,20 +393,6 @@ sage.factory("mapService", function($rootScope, uiBlocker, dataBus) {
     mapService.clearAll = function() {
         this.clearMarkers();
         this.clearPolygons();
-        this.clearPolyLines();
-    };
-
-    /**--------------------------------------------
-     * Client Geocoder
-     ---------------------------------------------*/
-    mapService.geocode = function(address, callback) {
-        var googleGeocoder = new google.maps.Geocoder();
-        googleGeocoder.geocode( { 'address': address}, function(results, status) {
-            if (status == google.maps.GeocoderStatus.OK) {
-                return callback(results[0].geometry.location);
-            }
-            return null;
-        });
     };
 
     return mapService;

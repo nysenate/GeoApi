@@ -114,6 +114,10 @@ sage.controller("DistrictMapController", function($scope, $http, $timeout, $filt
      * Performs request to district map API to retrieve map data and delegates to the `districtMap` handler.
      */
     $scope.lookup = function () {
+        if (!$scope.selectedDistrict || !$scope.selectedDistrict.name) {
+            alert("Please select a district first.");
+            return;
+        }
         uiBlocker.block("Loading " + this.type.replace("_", "/") + " maps...");
         $scope.showIntersectMenu = $scope.selectedDistrict.name !== "All districts";
         // If there is no intersection type specified, we can just retrieve the map
