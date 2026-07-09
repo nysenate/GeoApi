@@ -56,7 +56,7 @@ export default function Home() {
   }
 
   const shownDistrictView = result?.districts?.[shownDistrict.type]
-  const shownGeom = shownDistrictView?.map?.geom
+  const shownGeom = shownDistrictView?.map
   const shownName = getMapName(shownDistrictView)
 
   return (

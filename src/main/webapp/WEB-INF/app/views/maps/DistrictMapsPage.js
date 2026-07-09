@@ -1,8 +1,9 @@
 import React from 'react'
-import GoogleMap, { DEFAULT_CENTER, DEFAULT_ZOOM } from 'app/shared/maps/GoogleMap'
+import GoogleMap, { DEFAULT_CENTER, DEFAULT_ZOOM, useMap } from 'app/shared/maps/GoogleMap'
 import MapMarker from 'app/shared/maps/MapMarker'
 import DistrictPolygon from 'app/shared/maps/DistrictPolygon'
-import MapLines from 'app/shared/maps/MapLines'
+import MapBoundary from 'app/shared/maps/MapBoundary'
+import { extendGeoJsonBounds } from 'app/shared/maps/geoJson'
 import Header from 'app/shared/Header'
 import ResultsPane from 'app/shared/ResultsPane'
 import UiBlocker from 'app/shared/UiBlocker'
@@ -132,8 +133,7 @@ export default function DistrictMapsPage() {
     }
     if (districts[0] && districts[0].type === 'CITY_COUNCIL') {
       const bounds = new window.google.maps.LatLngBounds()
-      districts.forEach((d) => d.map?.geom?.forEach((points) =>
-        points.forEach(([ lat, lng ]) => bounds.extend({ lat, lng }))))
+      districts.forEach((d) => extendGeoJsonBounds(bounds, d.map))
       map.fitBounds(bounds)
     } else {
       map.setCenter(DEFAULT_CENTER)
@@ -191,7 +191,7 @@ export default function DistrictMapsPage() {
                             onShowOverlap={(i, overlap) => setDisplay({
                               ...display,
                               fullOverlap: {
-                                geom: overlap.fullMap?.geom,
+                                geom: overlap.fullMap,
                                 name: overlap.name,
                                 color: POLY_COLORS[i % POLY_COLORS.length],
                               },
@@ -215,36 +215,54 @@ function MapDisplay({ display, highlighted, onDistrictClick }) {
   }
   if (display.kind === 'multi') {
     return display.districts.map((d, i) =>
-      d.map?.geom &&
-        <DistrictPolygon key={`${d.type}-${d.district}`} geom={d.map.geom} name={getMapName(d)}
+      d.map &&
+        <DistrictPolygon key={`${d.type}-${d.district}`} geom={d.map} name={getMapName(d)}
                          highlight={i === highlighted}
                          onClick={d.member != null ? () => onDistrictClick(i, d) : undefined}/>
     )
   }
   if (display.kind === 'single') {
     const d = display.district
-    return d.map?.geom &&
-      <DistrictPolygon geom={d.map.geom} name={getMapName(d)} fitBounds/>
+    return d.map &&
+      <DistrictPolygon geom={d.map} name={getMapName(d)} fitBounds/>
   }
   if (display.kind === 'intersect') {
     const { data, fullOverlap } = display
     return (
       <React.Fragment>
         {fullOverlap == null && data.overlaps.map((overlap, i) =>
-          overlap.map?.geom &&
-            <DistrictPolygon key={overlap.district} geom={overlap.map.geom}
+          overlap.map &&
+            <DistrictPolygon key={overlap.district} geom={overlap.map}
                              name={`${overlap.name} Coverage`}
                              color={POLY_COLORS[i % POLY_COLORS.length]} fillOpacity={0.5}/>
         )}
         {fullOverlap != null && fullOverlap.geom &&
           <DistrictPolygon geom={fullOverlap.geom} name={fullOverlap.name} color={fullOverlap.color}/>
         }
-        {data.referenceMap?.geom &&
-          <MapLines geom={data.referenceMap.geom} fitBounds/>
+        {/* Outline the base district with a dashed boundary and frame the map to it,
+            falling back to framing the drawn overlaps. */}
+        {data.referenceMap
+          ? <MapBoundary geom={data.referenceMap} fitBounds/>
+          : <FitOverlapBounds overlaps={data.overlaps}/>
         }
       </React.Fragment>
     )
   }
+  return null
+}
+
+/** Frames the map to the coverage maps of an intersect view with no reference boundary. */
+function FitOverlapBounds({ overlaps }) {
+  const map = useMap()
+
+  React.useEffect(() => {
+    const bounds = new window.google.maps.LatLngBounds()
+    overlaps.forEach((overlap) => extendGeoJsonBounds(bounds, overlap.map))
+    if (!bounds.isEmpty()) {
+      map.fitBounds(bounds)
+    }
+  }, [ map, overlaps ])
+
   return null
 }
 
