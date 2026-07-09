@@ -171,11 +171,12 @@ public final class ApiControllerUtil {
     }
 
     /**
-     * Retrieves the ip address from HttpServletRequest.
+     * Retrieves the client ip address from HttpServletRequest.
+     * getRemoteAddr() is authoritative: RemoteIpFilter (see WebInitializer) applies
+     * X-Forwarded-For only when the direct peer is a trusted proxy, so an untrusted
+     * client cannot spoof the header to appear as an internal/whitelisted address.
      */
-    // TODO: same logic used in ApiRequest constructor
     public static String getIpAddress(HttpServletRequest request) {
-        String forwardedForIp = request.getHeader("x-forwarded-for");
-        return forwardedForIp == null ? request.getRemoteAddr() : forwardedForIp;
+        return request.getRemoteAddr();
     }
 }

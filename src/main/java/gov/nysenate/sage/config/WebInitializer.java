@@ -1,6 +1,7 @@
 package gov.nysenate.sage.config;
 
 import gov.nysenate.sage.util.controller.ConstantUtil;
+import org.apache.catalina.filters.RemoteIpFilter;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
@@ -8,6 +9,7 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.filter.DelegatingFilterProxy;
 import org.springframework.web.servlet.DispatcherServlet;
 
+import jakarta.servlet.FilterRegistration;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletRegistration;
 import java.util.EnumSet;
@@ -57,6 +59,23 @@ public class WebInitializer implements WebApplicationInitializer
         dispatcher.setLoadOnStartup(1);
         dispatcher.addMapping("/");
         dispatcher.setAsyncSupported(true);
+
+        /** Resolve the real client IP from X-Forwarded-For, but only when the request arrives
+         * via a trusted proxy. This must run first so every downstream filter, the Shiro realms,
+         * and the controllers see the corrected request.getRemoteAddr(). Without this, a client
+         * could spoof X-Forwarded-For to impersonate an internal/whitelisted address and bypass
+         * the API-key requirement and the admin/job IP restrictions.
+         *
+         * With no override, RemoteIpFilter trusts only private/loopback ranges as proxies (its
+         * default internalProxies) and ignores the header from any other peer. If the fronting
+         * proxy is on a non-private address, set -Dsage.remoteip.internalProxies=<regex>. */
+        FilterRegistration.Dynamic remoteIpFilter =
+                servletContext.addFilter("remoteIpFilter", new RemoteIpFilter());
+        String internalProxies = System.getProperty("sage.remoteip.internalProxies");
+        if (internalProxies != null && !internalProxies.isBlank()) {
+            remoteIpFilter.setInitParameter("internalProxies", internalProxies);
+        }
+        remoteIpFilter.addMappingForUrlPatterns(EnumSet.of(REQUEST, FORWARD, INCLUDE), false, "/*");
 
         /** Force UTF-8 on requests and responses. The JSP views declared this in their page
          * directive; without it, responses forwarded to static files (e.g. the React app's
