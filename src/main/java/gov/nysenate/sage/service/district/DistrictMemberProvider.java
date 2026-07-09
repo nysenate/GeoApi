@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 @Component
 public class DistrictMemberProvider {
     private static final Logger logger = LoggerFactory.getLogger(DistrictMemberProvider.class);
-    private static final Address LOB = new Address("198 State St", "Albany", "NY", "12247");
+    private static final Point pointForLOB = new Point("42.65284900371907", "-73.75931474712434");
 
     private final MemberDao memberDao;
     private final AddressService addressService;
@@ -78,16 +78,7 @@ public class DistrictMemberProvider {
                 if (info.getPoint() != null) {
                     continue;
                 }
-                Address addressToGeocode = info.getAddress().getRealAddress();
-                if (addressToGeocode.getAddr1().matches("(\\d+ )?Legislative Office (Bldg|Building).*")) {
-                    addressToGeocode = LOB;
-                }
-                // Offices within the Capitol are corrected poorly by AMS, since it's a unique zipcode.
-                // TODO: improve?
-                if (!"12247".equals(info.getAddress().zip5())) {
-                    addressToGeocode = addressService.validateOrDefault(addressToGeocode);
-                }
-                info.setPoint(getPoint(addressToGeocode));
+                info.setPoint(getPoint(info.getAddress().getRealAddress()));
             }
         }
 
@@ -96,7 +87,12 @@ public class DistrictMemberProvider {
     }
 
     private Point getPoint(Address officeAddress) {
-        GeocodeResult result = geocodeService.geocode(null, officeAddress, false);
+        // Passing a validated LOB address into the geocoders doesn't work well.
+        if (officeAddress.toString().matches(".*(LOB |Legislative Office (Building|Bldg)).*")) {
+            return pointForLOB;
+        }
+        Address validatedAddress = addressService.validateOrDefault(officeAddress);
+        GeocodeResult result = geocodeService.geocode(null, validatedAddress, false);
         if (result.isSuccess()) {
             return result.getGeocode().point();
         }
