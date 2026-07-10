@@ -99,15 +99,19 @@ public class StreetfileDao extends BaseDao {
             return DistrictInfo.empty;
         }
         var whereList = new ArrayList<String>();
+        var params = new MapSqlParameterSource();
         if (addr.getPostalCity() != null) {
-            whereList.add("postal_city = '%s'".formatted(addr.getPostalCity().toUpperCase()));
+            whereList.add("postal_city = :postalCity");
+            params.addValue("postalCity", addr.getPostalCity().toUpperCase());
         }
         if (addr.getZip5() != null) {
-            whereList.add("zip5 = '%s'".formatted(addr.getZip5()));
+            whereList.add("zip5 = :zip5");
+            params.addValue("zip5", addr.getZip5().toString());
         }
         if (addr instanceof BuildingAddress bldgAddr) {
             if (accuracy.compareTo(Accuracy.STREET) >= 0) {
-                whereList.add("street = '%s'".formatted(bldgAddr.getStreet().toUpperCase()));
+                whereList.add("street = :street");
+                params.addValue("street", bldgAddr.getStreet().toUpperCase());
             }
             if (accuracy == Accuracy.HOUSE) {
                 int bldgNum;
@@ -118,8 +122,10 @@ public class StreetfileDao extends BaseDao {
                     return getDistrictInfo(bldgAddr, accuracy.getNextHighestLevel());
                 }
                 StreetParity parity = bldgNum % 2 == 0 ? EVENS : ODDS;
-                whereList.add("(bldg_low <= %d AND %d <= bldg_high)".formatted(bldgNum, bldgNum));
-                whereList.add("(parity = 'ALL' OR parity = '%s')".formatted(parity.name()));
+                whereList.add("(bldg_low <= :bldgNum AND :bldgNum <= bldg_high)");
+                params.addValue("bldgNum", bldgNum);
+                whereList.add("(parity = 'ALL' OR parity = CAST(:parity AS parity))");
+                params.addValue("parity", parity.name());
             }
         }
         if (whereList.isEmpty()) {
@@ -129,7 +135,7 @@ public class StreetfileDao extends BaseDao {
         checkLock();
         String sql = "SELECT * FROM %s\n".formatted(SqlTable.STREETFILE) +
                 " WHERE " + String.join(" AND ", whereList);
-        List<DistrictedStreetRange> ranges = namedJdbcTemplate.query(sql, new DistrictStreetRangeMapper());
+        List<DistrictedStreetRange> ranges = namedJdbcTemplate.query(sql, params, new DistrictStreetRangeMapper());
         if (ranges.isEmpty()) {
             return getDistrictInfo(addr, accuracy.getNextHighestLevel());
         }
