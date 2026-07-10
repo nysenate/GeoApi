@@ -12,22 +12,21 @@ import java.nio.charset.StandardCharsets;
 public abstract class UrlRequest {
     private static final Logger logger = LoggerFactory.getLogger(UrlRequest.class);
     private static final int CONNECTION_TIMEOUT = 10000;
-    private static final int RESPONSE_TIMEOUT = 30000;
+    private static final int DEFAULT_RESPONSE_TIMEOUT = 5000;
+
+    public static String getResponseFromUrl(String url) throws IOException {
+        return getResponseFromUrl(url, DEFAULT_RESPONSE_TIMEOUT);
+    }
 
     /**
-    * Connects to a url and retrieves the body response in String representation.
-    * This function can alternatively be implemented using the code snippet below
-    * but this produces unnecessarily detailed logs.
-    * <code>
-    *     Content content = Request.Get(url).execute().returnContent();
-    *     String response = content.asString();
-    * </code>
+    * Connects to a url and retrieves the body response.
     *
-    * @param url   Url request string
-    * @return      String containing response
+    * @param url          Url request string
+    * @param readTimeout  read timeout in milliseconds
+    * @return             String containing response
     */
-    public static String getResponseFromUrl(String url) throws IOException {
-        InputStream inputStream = getInputStreamFromUrl(url);
+    public static String getResponseFromUrl(String url, int readTimeout) throws IOException {
+        InputStream inputStream = getInputStreamFromUrl(url, readTimeout);
         return getResponseFromInputStream(inputStream);
     }
 
@@ -47,9 +46,13 @@ public abstract class UrlRequest {
     * Retrieves an input stream from a url resource
     */
     public static InputStream getInputStreamFromUrl(String url) throws IOException {
+        return getInputStreamFromUrl(url, DEFAULT_RESPONSE_TIMEOUT);
+    }
+
+    public static InputStream getInputStreamFromUrl(String url, int readTimeout) throws IOException {
         URL u = new URL(url);
         logger.debug("Requesting connection to " + url);
-        HttpURLConnection uc = getHttpURLConnection(u);
+        HttpURLConnection uc = getHttpURLConnection(u, readTimeout);
         int responseCode = uc.getResponseCode();
         logger.debug("Connection replied with response code: " + responseCode);
 
@@ -64,14 +67,9 @@ public abstract class UrlRequest {
     }
 
     public static String getResponseFromUrlUsingPOST(String url, String postBody) throws IOException {
-        InputStream inputStream = getInputStreamFromUrlUsingPOST(url, postBody);
-        return getResponseFromInputStream(inputStream);
-    }
-
-    public static InputStream getInputStreamFromUrlUsingPOST(String url, String postBody) throws IOException {
         URL u = new URL(url);
         logger.debug("Requesting connection to " + url);
-        HttpURLConnection uc = getHttpURLConnection(u);
+        HttpURLConnection uc = getHttpURLConnection(u, DEFAULT_RESPONSE_TIMEOUT);
         uc.setRequestMethod("POST");
         uc.setDoOutput(true);
         uc.setRequestProperty("Content-Length", String.valueOf(postBody.length()));
@@ -91,19 +89,18 @@ public abstract class UrlRequest {
 
         InputStream inputStream = uc.getInputStream();
         logger.trace("Retrieved input stream");
-        return inputStream;
+        return getResponseFromInputStream(inputStream);
     }
 
     /**
-     * Returns a HttpURLConnection object using the URL supplied. Timeout options are set as well.
+     * Returns a HttpURLConnection object using the URL supplied. Timeout is set as well.
      * @param u URL
      * @return HttpURLConnection
      */
-    private static HttpURLConnection getHttpURLConnection(URL u) throws IOException {
+    private static HttpURLConnection getHttpURLConnection(URL u, int readTimeout) throws IOException {
         HttpURLConnection uc = (HttpURLConnection) u.openConnection();
         uc.setConnectTimeout(CONNECTION_TIMEOUT);
-        uc.setReadTimeout(RESPONSE_TIMEOUT);
+        uc.setReadTimeout(readTimeout);
         return uc;
     }
-
 }

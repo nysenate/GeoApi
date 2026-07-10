@@ -40,6 +40,9 @@ public class HouseScraper {
      private static final String DISTRICT_OFFICES_URL =
             "https://unitedstates.github.io/congress-legislators/legislators-district-offices.json";
 
+    // We can wait longer for this data to return.
+    private static final int DISTRICT_OFFICES_READ_TIMEOUT = 30000;
+
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     // Expand the building code to the building name.
@@ -97,7 +100,8 @@ public class HouseScraper {
     private static Multimap<String, OfficeInfo> getDistrictOffices() throws IOException {
         logger.info("Getting Congressional district offices...");
         Multimap<String, OfficeInfo> ret = ArrayListMultimap.create();
-        JsonNode root = OBJECT_MAPPER.readTree(UrlRequest.getResponseFromUrl(DISTRICT_OFFICES_URL));
+        JsonNode root = OBJECT_MAPPER.readTree(
+                UrlRequest.getResponseFromUrl(DISTRICT_OFFICES_URL, DISTRICT_OFFICES_READ_TIMEOUT));
         for (JsonNode legislator : root) {
             String bioguideID = text(legislator.path("id"), "bioguide");
             if (bioguideID == null) {
