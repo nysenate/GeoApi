@@ -21,8 +21,7 @@ public class CountyDao extends BaseDao {
     private static class CountyHandler implements RowMapper<County> {
         @Override
         public County mapRow(ResultSet rs, int rowNum) throws SQLException {
-            return new County(rs.getInt("code"), rs.getInt("voterfile_code"),
-                    rs.getString("name"), rs.getString("link"));
+            return new County(rs.getInt("code"), rs.getString("name"), rs.getString("link"));
         }
     }
 }
