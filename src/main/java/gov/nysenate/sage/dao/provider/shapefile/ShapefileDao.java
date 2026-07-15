@@ -81,9 +81,9 @@ public class ShapefileDao extends BaseDao {
         var params = new MapSqlParameterSource("districtCode", refCode);
 
         String sql = GET_INTERSECTION.getSql(geometrySchema, replacementMap);
-        return namedJdbcTemplate.query(sql, params, (rs, rowNum) -> {
-            return new IntersectInfo(rs.getString("code"), rs.getString("intersect_geo_json"), rs.getBigDecimal("area"));
-        });
+        return namedJdbcTemplate.query(sql, params, (rs, rowNum) ->
+                new IntersectInfo(rs.getString("code"), rs.getString("intersect_geo_json"), rs.getBigDecimal("area"))
+        );
     }
 
     public SortedSet<DistrictMap> getDistrictMaps(DistrictTableInfo tableInfo) {
