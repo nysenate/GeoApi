@@ -76,7 +76,7 @@ public class VoterFileParser extends BaseParser {
     protected List<String> parseLine(String line) {
         List<String> tempLine = super.parseLine(line);
         County county = voterFileCodeToCountyMap.get(Integer.parseInt(tempLine.get(23)));
-        tempLine.set(23, String.valueOf(county.senateCode()));
+        tempLine.set(23, String.valueOf(county.code()));
         TownCity townCity = null;
         // In NYC, this field may contain e.g. the borough or Queens neighborhood, which should be overridden.
         if (county.inNYC()) {

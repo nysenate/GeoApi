@@ -47,7 +47,7 @@ public class ShapefileDao extends BaseDao {
         for (DistrictTableInfo tableInfo : tableInfos) {
             Map<String, String> replacementMap;
             try {
-                replacementMap = getReplacements(tableInfo, "type");
+                replacementMap = tableInfo.getReplacements("type");
             } catch (NoShapefileForDistrictTypeException ignored) {
                 continue;
             }
@@ -75,7 +75,7 @@ public class ShapefileDao extends BaseDao {
      * @param refCode           The code that represents the base area.
      */
     public List<IntersectInfo> getDistrictOverlap(DistrictTableInfo baseTypeInfo, DistrictTableInfo intersectType, String refCode) {
-        Map<String, String> replacementMap = getReplacements(intersectType, "intersectType");
+        Map<String, String> replacementMap = intersectType.getReplacements("intersectType");
         replacementMap.put("baseType", baseTypeInfo.type().name().toLowerCase());
         replacementMap.put("baseCodeColumn", baseTypeInfo.codeColumn());
         var params = new MapSqlParameterSource("districtCode", refCode);
@@ -87,13 +87,8 @@ public class ShapefileDao extends BaseDao {
     }
 
     public SortedSet<DistrictMap> getDistrictMaps(DistrictTableInfo tableInfo) {
-        String sql = GET_DISTRICT_MAPS.getSql(geometrySchema, getReplacements(tableInfo, "type"));
+        String sql = GET_DISTRICT_MAPS.getSql(geometrySchema, tableInfo.getReplacements("type"));
         return new TreeSet<>(namedJdbcTemplate.query(sql, new DistrictCacheMapper(tableInfo)));
-    }
-
-    private Map<String, String> getReplacements(DistrictTableInfo tableInfo, String typeReplacementName) {
-        return new HashMap<>(Map.of(typeReplacementName, tableInfo.type().name().toLowerCase(),
-                "codeColumn", tableInfo.codeColumn(), "nameColumn", tableInfo.nameColumn()));
     }
 
     private class DistrictCacheMapper implements RowMapper<DistrictMap> {
@@ -104,7 +99,7 @@ public class ShapefileDao extends BaseDao {
         private DistrictCacheMapper(DistrictTableInfo tableInfo) {
             this.type = tableInfo.type();
             if (type == DistrictType.COUNTY) {
-                this.counties = countyDao.getCounties();
+                this.counties = countyDao.getCounties(tableInfo);
             }
             if (type == DistrictType.TOWN_CITY) {
                 this.townCities = townCityDao.getTownCities(tableInfo);
@@ -136,8 +131,9 @@ public class ShapefileDao extends BaseDao {
             map.setArea(rs.getBigDecimal("area"));
             // For COVID links
             if (type == DistrictType.COUNTY) {
+                String baseName = rs.getString("name");
                 Optional<County> countyOpt = counties.stream()
-                        .filter(county -> String.valueOf(county.senateCode()).equals(code)).findFirst();
+                        .filter(county -> county.name().equals(baseName)).findFirst();
                 map.setLink(countyOpt.orElseThrow().link());
             }
             if (type == DistrictType.TOWN_CITY) {
@@ -153,7 +149,7 @@ public class ShapefileDao extends BaseDao {
      * @return null if the type's table is empty, true if all of type's geometry is valid, and false otherwise.
      */
     public Boolean cleanMaps(DistrictTableInfo tableInfo) {
-        Map<String, String> replacementMap = getReplacements(tableInfo, "type");
+        Map<String, String> replacementMap = tableInfo.getReplacements("type");
         // Leading zeroes are meaningful only in zip codes.
         if (tableInfo.type() != DistrictType.ZIP) {
             try {
