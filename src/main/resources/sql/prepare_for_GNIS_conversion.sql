@@ -26,3 +26,6 @@ ALTER TABLE public.town_city
 --We now use a LEFT JOIN, so these entries are no longer needed.
 DELETE FROM public.town_city
 WHERE voterfile_code IS NULL;
+
+ALTER TABLE public.streetfile
+    RENAME COLUMN town_city_abbrev TO town_city_code;
