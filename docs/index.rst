@@ -85,6 +85,8 @@ The following methods are implemented for the address_ service:
 +-------------+---------------------------------------------+
 | citystate   | Lookup the city and state given the zipcode |
 +-------------+---------------------------------------------+
+| options_    | List the available providers                |
++-------------+---------------------------------------------+
 
 The available providers are:
 
@@ -184,11 +186,13 @@ The following methods are implemented for the geo_ service:
 +-------------+---------------------------------------------+
 | revgeocode  | Obtain address from given coordinate pair   |
 +-------------+---------------------------------------------+
+| options_    | List the available geocoders                |
++-------------+---------------------------------------------+
 
-The available providers are:
+The available geocoders are:
 
 +-------------+---------------------------------------------+
-| Provider    | Description                                 |
+| Geocoder    | Description                                 |
 +=============+=============================================+
 | GEOCACHE    | Cached geocodes                             |
 +-------------+---------------------------------------------+
@@ -197,17 +201,17 @@ The available providers are:
 | GOOGLE      | Paid geocoding service                      |
 +-------------+---------------------------------------------+
 
-Methods have the following optional parameters:
+The ``geocode`` and ``revgeocode`` methods have the following optional parameters:
 
 +-------------+---------------------------------------------+
 | Param       | Description                                 |
 +=============+=============================================+
-| geocoder    | Specify which geocode provider to use       |
+| geocoder    | Specify which geocoder to use               |
 +-------------+---------------------------------------------+
 
 For example to use just NYSGEO::
 
-    /api/v2/geo/<method>?<params..>&provider=NYSGEO
+    /api/v2/geo/<method>?<params..>&geocoder=NYSGEO
 
 Geocode
 ^^^^^^^
@@ -316,15 +320,11 @@ The format of the batch geocoding call is::
 
     /api/v2/geo/geocode/batch
 
-The format of the batch reverse geocoding call is::
+The addresses must be JSON encoded and sent in the POST request payload.
+The fields are identical to the query parameter fields for an address.
 
-    /api/v2/geo/revgeocode/batch
-
-The addresses for geocoding and points for reverse geocoding must be JSON encoded and sent in the POST request payload.
-The fields are identical to the query parameter fields for both address and point. Likewise any options can be specified
-the same way as the single request version. For example to specify provider::
-
-    /api/v2/geo/geocode/batch?provider=PROVIDER_NAME
+Unlike the single request version, the batch call takes no parameters. It always uses the default ranked
+fallback, trying each geocoder in turn until a match is obtained.
 
 A sample batch geocoding request in PHP::
 
@@ -406,6 +406,8 @@ The district_ service has the following method(s).
 +-------------+-----------------------------------------------------------------+
 | bluebird    | Performs district assign with preset options for Bluebird       |
 +-------------+-----------------------------------------------------------------+
+| options_    | List the available district sources                             |
++-------------+-----------------------------------------------------------------+
 
 The available providers are:
 
@@ -422,9 +424,9 @@ The available providers are:
 +------------------+-------------------------------------------------------------------------------+
 | Param            | Description                                                                   |
 +==================+===============================================================================+
-| districtSource   | Specify which district provider to use. Overrides 'districtStrategy'          |
+| districtSource   | Specify which district source to use.                                         |
 +------------------+-------------------------------------------------------------------------------+
-| geocoder         | Specify which geocode provider to use.                                        |
+| geocoder         | Specify which geocoder to use.                                                |
 +------------------+-------------------------------------------------------------------------------+
 | uspsValidate     | If true: USPS will be used to perform address correction.                     |
 +------------------+-------------------------------------------------------------------------------+
@@ -613,12 +615,13 @@ The response is identical to that of a default district assign with those parame
 Batch District Assign
 ^^^^^^^^^^^^^^^^^^^^^
 
-Both Assign_ and BluebirdCRM_ methods can handle batch requests as well. The format is::
+The Assign_ method can handle batch requests as well. The format is::
 
     /api/v2/district/assign/batch
-    /api/v2/district/bluebird/batch
 
 The addresses must be JSON encoded and sent along the POST payload in the same way as :ref:`batch-geocode`.
+Unlike the single request version, the batch call accepts only the ``uspsValidate`` parameter, and it takes
+addresses only. Coordinate pairs are not supported.
 
 A sample batch district assign in PHP::
 
@@ -789,8 +792,7 @@ And a parse error response in case of invalid input::
 
 .. note: Batch district assignment can be configured by the application to follow a different strategy for
          purposes of improving performance. In this example the configuration was set to use street files only
-         hence why many of the results are partial successes. However this behaviour can be changed using
-         the same query parameters as the single request version.
+         hence why many of the results are partial successes.
 
 Street
 ------
@@ -861,7 +863,7 @@ Map
 ---
 
 The map_ service provides geometry information for certain district types. The methods for this service
-actually represent the district type to retrieve maps for. The available types are listed at ``/api/v2/map/types`` (see Types_ below).
+actually represent the district type to retrieve maps for. The available types are listed at ``/api/v2/map/options`` (see Options_ below).
 
 The parameters are:
 
@@ -903,42 +905,60 @@ The response of the second query is::
 
 The member data for senate, assembly, and congressional districts will have the same senator output as in district assignment.
 
-.. _Types:
+.. _Options:
 
-Types
-^^^^^
+Options
+-------
 
-The ``types`` method lists the district types that the map_ service can return geometry for. These are the district
-types that have shapefiles loaded, and any one of the returned ``enumName`` values may be used as the ``<method>``
-segment of a map request (e.g. ``/api/v2/map/senate``). The method takes no parameters::
+The address_, geo_, district_, and map_ services each expose an ``options`` method that lists the values their
+enumerated parameters accept. Rather than hardcoding provider or district type names, a client can query these
+at runtime and stay in sync with the backend. Each takes no parameters::
 
-    /api/v2/map/types
+    /api/v2/address/options
+    /api/v2/geo/options
+    /api/v2/district/options
+    /api/v2/map/options
 
-The response::
+What each one lists:
 
-    {
-      "status" : "SUCCESS",
-      "description" : "Success.",
-      "statusCode" : 0,
-      "results" : [ {
-        "status" : "SUCCESS",
-        "description" : "Success.",
-        "statusCode" : 0,
-        "enumName" : "SENATE",
-        "displayName" : "Senate"
-      }, {
-        "status" : "SUCCESS",
-        "description" : "Success.",
-        "statusCode" : 0,
-        "enumName" : "ASSEMBLY",
-        "displayName" : "Assembly"
-      },
-      ... ],
-      "total" : 9
-    }
++---------------------------+-------------------------------------------------------------------------------+
+| Method                    | Lists                                                                         |
++===========================+===============================================================================+
+| /api/v2/address/options   | Address validation providers, for the ``provider`` parameter.                 |
++---------------------------+-------------------------------------------------------------------------------+
+| /api/v2/geo/options       | Geocoders, for the ``geocoder`` parameter.                                    |
++---------------------------+-------------------------------------------------------------------------------+
+| /api/v2/district/options  | District data sources, for the ``districtSource`` parameter.                  |
++---------------------------+-------------------------------------------------------------------------------+
+| /api/v2/map/options       | District types the map_ service has shapefiles loaded for. Each ``enumName``  |
+|                           | may be used as the ``<method>`` segment of a map request.                     |
++---------------------------+-------------------------------------------------------------------------------+
 
-Each entry exposes the ``enumName`` (the value to use when building a map request) and a human-readable ``displayName``.
-The ``total`` field indicates the number of types returned.
+Unlike the other methods, ``options`` returns a bare JSON array with no status wrapper. Each entry exposes the
+``enumName`` (the value to supply to the API) and a human-readable ``displayName``. The response of
+``/api/v2/map/options``::
+
+    [ {
+      "enumName" : "SENATE",
+      "displayName" : "Senate"
+    }, {
+      "enumName" : "ASSEMBLY",
+      "displayName" : "Assembly"
+    },
+    ... ]
+
+And the response of ``/api/v2/district/options``::
+
+    [ {
+      "enumName" : "STREETFILE",
+      "displayName" : "Board of Elections"
+    }, {
+      "enumName" : "SHAPEFILE",
+      "displayName" : "LATFOR/GIS Geometry"
+    } ]
+
+.. note:: ``/api/v2/map/options`` reflects the shapefiles actually loaded in the database, so it is a subset of the
+          district types SAGE knows about. The other three list every value of their enum.
 
 Ping
 ----

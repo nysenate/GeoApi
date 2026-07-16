@@ -119,6 +119,9 @@ To supply a single address string use the parameter <code class="docutils litera
 <tr class="row-odd"><td><p>citystate</p></td>
 <td><p>Lookup the city and state given the zipcode</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#options">options</a></p></td>
+<td><p>List the available providers</p></td>
+</tr>
 </tbody>
 </table>
 <p>The available providers are:</p>
@@ -231,12 +234,15 @@ to enable punctuation.</p>
 <tr class="row-odd"><td><p>revgeocode</p></td>
 <td><p>Obtain address from given coordinate pair</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#options">options</a></p></td>
+<td><p>List the available geocoders</p></td>
+</tr>
 </tbody>
 </table>
-<p>The available providers are:</p>
+<p>The available geocoders are:</p>
 <table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"><p>Provider</p></th>
+<tr class="row-odd"><th class="head"><p>Geocoder</p></th>
 <th class="head"><p>Description</p></th>
 </tr>
 </thead>
@@ -252,7 +258,7 @@ to enable punctuation.</p>
 </tr>
 </tbody>
 </table>
-<p>Methods have the following optional parameters:</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">geocode</span></code> and <code class="docutils literal notranslate"><span class="pre">revgeocode</span></code> methods have the following optional parameters:</p>
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Param</p></th>
@@ -261,12 +267,12 @@ to enable punctuation.</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p>geocoder</p></td>
-<td><p>Specify which geocode provider to use</p></td>
+<td><p>Specify which geocoder to use</p></td>
 </tr>
 </tbody>
 </table>
 <p>For example to use just NYSGEO:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>/api/v2/geo/&lt;method&gt;?&lt;params..&gt;&amp;provider=NYSGEO
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>/api/v2/geo/&lt;method&gt;?&lt;params..&gt;&amp;geocoder=NYSGEO
 </pre></div>
 </div>
 <section id="geocode">
@@ -369,16 +375,10 @@ The format of the batch geocoding call is:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">v2</span><span class="o">/</span><span class="n">geo</span><span class="o">/</span><span class="n">geocode</span><span class="o">/</span><span class="n">batch</span>
 </pre></div>
 </div>
-<p>The format of the batch reverse geocoding call is:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">v2</span><span class="o">/</span><span class="n">geo</span><span class="o">/</span><span class="n">revgeocode</span><span class="o">/</span><span class="n">batch</span>
-</pre></div>
-</div>
-<p>The addresses for geocoding and points for reverse geocoding must be JSON encoded and sent in the POST request payload.
-The fields are identical to the query parameter fields for both address and point. Likewise any options can be specified
-the same way as the single request version. For example to specify provider:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>/api/v2/geo/geocode/batch?provider=PROVIDER_NAME
-</pre></div>
-</div>
+<p>The addresses must be JSON encoded and sent in the POST request payload.
+The fields are identical to the query parameter fields for an address.</p>
+<p>Unlike the single request version, the batch call takes no parameters. It always uses the default ranked
+fallback, trying each geocoder in turn until a match is obtained.</p>
 <p>A sample batch geocoding request in PHP:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;?php
 $addresses = array(
@@ -463,6 +463,9 @@ order of the addresses in the JSON payload.</p>
 <tr class="row-odd"><td><p>bluebird</p></td>
 <td><p>Performs district assign with preset options for Bluebird</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#options">options</a></p></td>
+<td><p>List the available district sources</p></td>
+</tr>
 </tbody>
 </table>
 <p>The available providers are:</p>
@@ -493,10 +496,10 @@ order of the addresses in the JSON payload.</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p>districtSource</p></td>
-<td><p>Specify which district provider to use. Overrides ‘districtStrategy’</p></td>
+<td><p>Specify which district source to use.</p></td>
 </tr>
 <tr class="row-odd"><td><p>geocoder</p></td>
-<td><p>Specify which geocode provider to use.</p></td>
+<td><p>Specify which geocoder to use.</p></td>
 </tr>
 <tr class="row-even"><td><p>uspsValidate</p></td>
 <td><p>If true: USPS will be used to perform address correction.</p></td>
@@ -691,12 +694,13 @@ Parsed Format:
 </section>
 <section id="batch-district-assign">
 <h4>Batch District Assign<a class="headerlink" href="#batch-district-assign" title="Link to this heading">¶</a></h4>
-<p>Both <a class="reference internal" href="#assign">Assign</a> and <a class="reference internal" href="#bluebirdcrm">BluebirdCRM</a> methods can handle batch requests as well. The format is:</p>
+<p>The <a class="reference internal" href="#assign">Assign</a> method can handle batch requests as well. The format is:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">v2</span><span class="o">/</span><span class="n">district</span><span class="o">/</span><span class="n">assign</span><span class="o">/</span><span class="n">batch</span>
-<span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">v2</span><span class="o">/</span><span class="n">district</span><span class="o">/</span><span class="n">bluebird</span><span class="o">/</span><span class="n">batch</span>
 </pre></div>
 </div>
-<p>The addresses must be JSON encoded and sent along the POST payload in the same way as <a class="reference internal" href="#batch-geocode"><span class="std std-ref">Batch Geocode</span></a>.</p>
+<p>The addresses must be JSON encoded and sent along the POST payload in the same way as <a class="reference internal" href="#batch-geocode"><span class="std std-ref">Batch Geocode</span></a>.
+Unlike the single request version, the batch call accepts only the <code class="docutils literal notranslate"><span class="pre">uspsValidate</span></code> parameter, and it takes
+addresses only. Coordinate pairs are not supported.</p>
 <p>A sample batch district assign in PHP:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;?php
 
@@ -938,7 +942,7 @@ Board of Election Street File data and can be searched via zip code.</p>
 <section id="map">
 <h3>Map<a class="headerlink" href="#map" title="Link to this heading">¶</a></h3>
 <p>The <a class="reference internal" href="#map">map</a> service provides geometry information for certain district types. The methods for this service
-actually represent the district type to retrieve maps for. The available types are listed at <code class="docutils literal notranslate"><span class="pre">/api/v2/map/types</span></code> (see <a class="reference internal" href="#types">Types</a> below).</p>
+actually represent the district type to retrieve maps for. The available types are listed at <code class="docutils literal notranslate"><span class="pre">/api/v2/map/options</span></code> (see <a class="reference internal" href="#options">Options</a> below).</p>
 <p>The parameters are:</p>
 <table class="docutils align-default">
 <thead>
@@ -985,40 +989,69 @@ actually represent the district type to retrieve maps for. The available types a
 </pre></div>
 </div>
 <p>The member data for senate, assembly, and congressional districts will have the same senator output as in district assignment.</p>
-<section id="types">
-<span id="id3"></span><h4>Types<a class="headerlink" href="#types" title="Link to this heading">¶</a></h4>
-<p>The <code class="docutils literal notranslate"><span class="pre">types</span></code> method lists the district types that the <a class="reference internal" href="#map">map</a> service can return geometry for. These are the district
-types that have shapefiles loaded, and any one of the returned <code class="docutils literal notranslate"><span class="pre">enumName</span></code> values may be used as the <code class="docutils literal notranslate"><span class="pre">&lt;method&gt;</span></code>
-segment of a map request (e.g. <code class="docutils literal notranslate"><span class="pre">/api/v2/map/senate</span></code>). The method takes no parameters:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">v2</span><span class="o">/</span><span class="nb">map</span><span class="o">/</span><span class="n">types</span>
-</pre></div>
-</div>
-<p>The response:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;SUCCESS&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;Success.&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-  <span class="s2">&quot;results&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">{</span>
-    <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;SUCCESS&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;Success.&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-    <span class="s2">&quot;enumName&quot;</span> <span class="p">:</span> <span class="s2">&quot;SENATE&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Senate&quot;</span>
-  <span class="p">},</span> <span class="p">{</span>
-    <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;SUCCESS&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;Success.&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-    <span class="s2">&quot;enumName&quot;</span> <span class="p">:</span> <span class="s2">&quot;ASSEMBLY&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Assembly&quot;</span>
-  <span class="p">},</span>
-  <span class="o">...</span> <span class="p">],</span>
-  <span class="s2">&quot;total&quot;</span> <span class="p">:</span> <span class="mi">9</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p>Each entry exposes the <code class="docutils literal notranslate"><span class="pre">enumName</span></code> (the value to use when building a map request) and a human-readable <code class="docutils literal notranslate"><span class="pre">displayName</span></code>.
-The <code class="docutils literal notranslate"><span class="pre">total</span></code> field indicates the number of types returned.</p>
 </section>
+<section id="options">
+<span id="id3"></span><h3>Options<a class="headerlink" href="#options" title="Link to this heading">¶</a></h3>
+<p>The <a class="reference internal" href="#address">address</a>, <a class="reference internal" href="#geo">geo</a>, <a class="reference internal" href="#district">district</a>, and <a class="reference internal" href="#map">map</a> services each expose an <code class="docutils literal notranslate"><span class="pre">options</span></code> method that lists the values their
+enumerated parameters accept. Rather than hardcoding provider or district type names, a client can query these
+at runtime and stay in sync with the backend. Each takes no parameters:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">v2</span><span class="o">/</span><span class="n">address</span><span class="o">/</span><span class="n">options</span>
+<span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">v2</span><span class="o">/</span><span class="n">geo</span><span class="o">/</span><span class="n">options</span>
+<span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">v2</span><span class="o">/</span><span class="n">district</span><span class="o">/</span><span class="n">options</span>
+<span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">v2</span><span class="o">/</span><span class="nb">map</span><span class="o">/</span><span class="n">options</span>
+</pre></div>
+</div>
+<p>What each one lists:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Method</p></th>
+<th class="head"><p>Lists</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>/api/v2/address/options</p></td>
+<td><p>Address validation providers, for the <code class="docutils literal notranslate"><span class="pre">provider</span></code> parameter.</p></td>
+</tr>
+<tr class="row-odd"><td><p>/api/v2/geo/options</p></td>
+<td><p>Geocoders, for the <code class="docutils literal notranslate"><span class="pre">geocoder</span></code> parameter.</p></td>
+</tr>
+<tr class="row-even"><td><p>/api/v2/district/options</p></td>
+<td><p>District data sources, for the <code class="docutils literal notranslate"><span class="pre">districtSource</span></code> parameter.</p></td>
+</tr>
+<tr class="row-odd"><td><p>/api/v2/map/options</p></td>
+<td><p>District types the <a class="reference internal" href="#map">map</a> service has shapefiles loaded for. Each <code class="docutils literal notranslate"><span class="pre">enumName</span></code>
+may be used as the <code class="docutils literal notranslate"><span class="pre">&lt;method&gt;</span></code> segment of a map request.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Unlike the other methods, <code class="docutils literal notranslate"><span class="pre">options</span></code> returns a bare JSON array with no status wrapper. Each entry exposes the
+<code class="docutils literal notranslate"><span class="pre">enumName</span></code> (the value to supply to the API) and a human-readable <code class="docutils literal notranslate"><span class="pre">displayName</span></code>. The response of
+<code class="docutils literal notranslate"><span class="pre">/api/v2/map/options</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span> <span class="p">{</span>
+  <span class="s2">&quot;enumName&quot;</span> <span class="p">:</span> <span class="s2">&quot;SENATE&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Senate&quot;</span>
+<span class="p">},</span> <span class="p">{</span>
+  <span class="s2">&quot;enumName&quot;</span> <span class="p">:</span> <span class="s2">&quot;ASSEMBLY&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Assembly&quot;</span>
+<span class="p">},</span>
+<span class="o">...</span> <span class="p">]</span>
+</pre></div>
+</div>
+<p>And the response of <code class="docutils literal notranslate"><span class="pre">/api/v2/district/options</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span> <span class="p">{</span>
+  <span class="s2">&quot;enumName&quot;</span> <span class="p">:</span> <span class="s2">&quot;STREETFILE&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Board of Elections&quot;</span>
+<span class="p">},</span> <span class="p">{</span>
+  <span class="s2">&quot;enumName&quot;</span> <span class="p">:</span> <span class="s2">&quot;SHAPEFILE&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;LATFOR/GIS Geometry&quot;</span>
+<span class="p">}</span> <span class="p">]</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">/api/v2/map/options</span></code> reflects the shapefiles actually loaded in the database, so it is a subset of the
+district types SAGE knows about. The other three list every value of their enum.</p>
+</div>
 </section>
 <section id="ping">
 <h3>Ping<a class="headerlink" href="#ping" title="Link to this heading">¶</a></h3>
@@ -1074,10 +1107,8 @@ other methods it is not part of the <code class="docutils literal notranslate"><
 </ul>
 </li>
 <li><a class="reference internal" href="#street">Street</a></li>
-<li><a class="reference internal" href="#map">Map</a><ul>
-<li><a class="reference internal" href="#types">Types</a></li>
-</ul>
-</li>
+<li><a class="reference internal" href="#map">Map</a></li>
+<li><a class="reference internal" href="#options">Options</a></li>
 <li><a class="reference internal" href="#ping">Ping</a></li>
 </ul>
 </li>
