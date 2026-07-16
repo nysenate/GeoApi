@@ -1,5 +1,6 @@
 package gov.nysenate.sage.model.address;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
@@ -15,6 +16,7 @@ public sealed class Address permits BuildingAddress, PostOfficeBox {
     private final Zip5 zip5;
     private final Zip4 zip4;
 
+    @JsonCreator
     public Address(String addr1, String addr2, String postalCity,
                    String state, String zip5, String zip4) {
         this(addr1, addr2, postalCity, state,

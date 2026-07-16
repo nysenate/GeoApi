@@ -2,6 +2,7 @@ package gov.nysenate.sage.util.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.model.address.Address;
@@ -26,6 +27,7 @@ public final class ApiControllerUtil {
             new GenericResponse(false, "You must be logged in as an administrator to access this API."),
             successResponse = new BaseResponse(ResultStatus.SUCCESS);
     private static final Logger logger = LogManager.getLogger(ApiControllerUtil.class);
+    private static final ObjectMapper mapper = new ObjectMapper().registerModule(new ParameterNamesModule());
 
     private ApiControllerUtil() {}
 
@@ -65,23 +67,20 @@ public final class ApiControllerUtil {
      * HttpServletRequest. The root JSON element must be an array containing a collection of
      * address component objects e.g
      * <code>
-     *  [{"addr1":"", "addr2":"", "city":"", "state":"","zip5":"", "zip4":""} .. ]
+     *  [{"addr1":"", "addr2":"", "postalCity":"", "state":"","zip5":"", "zip4":""} .. ]
      * </code>
      * @param json Json payload
      * @return ArrayList<Address>
      */
     public static List<Address> getAddressesFromJsonBody(String json) {
-        List<Address> addresses = new ArrayList<>();
         try {
             logger.trace("Batch address json body: {}", json);
-            ObjectMapper mapper = new ObjectMapper();
             return List.of(mapper.readValue(json, Address[].class));
         }
         catch(Exception ex) {
-            logger.debug("No valid batch address payload detected.");
-            logger.trace(ex);
+            logger.warn("No valid batch address payload detected.", ex);
+            return null;
         }
-        return addresses;
     }
 
     /**
@@ -98,7 +97,6 @@ public final class ApiControllerUtil {
         var points = new ArrayList<Point>();
         try {
             logger.trace("Batch points json body {}", json);
-            ObjectMapper mapper = new ObjectMapper();
             JsonNode node = mapper.readTree(json);
             for (int i = 0; i < node.size(); i++) {
                 JsonNode point = node.get(i);
@@ -106,8 +104,7 @@ public final class ApiControllerUtil {
             }
         }
         catch(Exception ex) {
-            logger.debug("No valid batch point payload detected.");
-            logger.trace(ex);
+            logger.warn("No valid batch point payload detected.", ex);
         }
         return points;
     }
