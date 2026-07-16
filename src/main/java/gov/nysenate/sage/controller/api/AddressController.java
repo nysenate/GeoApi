@@ -1,6 +1,5 @@
 package gov.nysenate.sage.controller.api;
 
-import gov.nysenate.sage.client.response.address.BatchCityStateResponse;
 import gov.nysenate.sage.client.response.address.BatchValidateResponse;
 import gov.nysenate.sage.client.response.address.CityStateResponse;
 import gov.nysenate.sage.client.response.address.ValidateResponse;
@@ -95,22 +94,6 @@ public final class AddressController extends SourcedController<AddressSource> {
             return new ApiError(this.getClass(), INVALID_BATCH_ADDRESSES);
         }
         return new BatchValidateResponse(addressService.validate(addresses, source), punct);
-    }
-
-    /**
-     * Batch City State Validation Api
-     * ---------------------------
-     * Batch city state validation with USPS
-     * Usage:
-     * (GET)    /api/v2/address/citystate/batch
-     */
-    @PostMapping(value = "/citystate/batch")
-    public BatchCityStateResponse addressBatchCityState(HttpServletRequest request,
-                                              @RequestParam(required = false) String provider) throws IOException {
-        AddressSource source = getValueOrNull(provider);
-        String batchJsonPayload = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
-        List<Zip5> zips = List.of();
-        return new BatchCityStateResponse(addressService.lookupCityState(zips, source));
     }
 
     private AddressSource getValueOrNull(String strValue) {

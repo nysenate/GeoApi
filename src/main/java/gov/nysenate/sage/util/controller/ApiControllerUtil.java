@@ -1,6 +1,5 @@
 package gov.nysenate.sage.util.controller;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import gov.nysenate.sage.client.response.base.BaseResponse;
@@ -15,7 +14,6 @@ import org.apache.logging.log4j.Logger;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -82,33 +80,6 @@ public final class ApiControllerUtil {
             return null;
         }
     }
-
-    /**
-     * Constructs a collection of Point objects using the JSON payload data in the body of the
-     * HttpServletRequest. The root JSON element must be an array containing a collection of
-     * point component objects containing numerical values for "lat" and "lon" e.g
-     * <code>
-     *     [{"lat":43.123 , "lon":-73.123 }, ..]
-     * </code>
-     * @param json Json payload
-     * @return a List of Points
-     */
-    public static List<Point> getPointsFromJsonBody(String json) {
-        var points = new ArrayList<Point>();
-        try {
-            logger.trace("Batch points json body {}", json);
-            JsonNode node = mapper.readTree(json);
-            for (int i = 0; i < node.size(); i++) {
-                JsonNode point = node.get(i);
-                points.add(new Point(point.get("lat").asText(), point.get("lon").asText()));
-            }
-        }
-        catch(Exception ex) {
-            logger.warn("No valid batch point payload detected.", ex);
-        }
-        return points;
-    }
-
 
     /**
      * Sets the current session as either authenticated or not authenticated. If the user is specified as
