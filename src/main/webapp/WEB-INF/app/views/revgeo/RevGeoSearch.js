@@ -5,13 +5,13 @@ import React from 'react'
  * stylesheet's search-container classes to match the old Angular page.
  */
 export default function RevGeoSearch({ onSearch }) {
-  const [ lat, setLat ] = React.useState('')
-  const [ lon, setLon ] = React.useState('')
+  const [ coord, setCoord ] = React.useState('')
   const [ minimized, setMinimized ] = React.useState(false)
 
   const onSubmit = (e) => {
     e.preventDefault()
-    onSearch({ lat: lat.trim(), lon: lon.trim() })
+    const [ lat = '', lon = '' ] = coord.trim().split(/[,\s]+/)
+    onSearch({ lat, lon })
   }
 
   return (
@@ -36,14 +36,10 @@ export default function RevGeoSearch({ onSearch }) {
         {!minimized &&
           <div className="section search-container-content">
             <div style={{ float: 'left' }}>
-              <label htmlFor="revGeoLatInput" className="menu-overhead">Latitude</label>
-              <input id="revGeoLatInput" type="text" style={{ width: '80px', marginRight: '5px' }}
-                     value={lat} onChange={(e) => setLat(e.target.value)}/>
-            </div>
-            <div style={{ float: 'left' }}>
-              <label htmlFor="revGeoLonInput" className="menu-overhead">Longitude</label>
-              <input id="revGeoLonInput" type="text" style={{ width: '80px', marginRight: '5px' }}
-                     value={lon} onChange={(e) => setLon(e.target.value)}/>
+              <label htmlFor="revGeoCoordInput" className="menu-overhead">Latitude, Longitude</label>
+              <input id="revGeoCoordInput" type="text" style={{ width: '170px', marginRight: '5px' }}
+                     placeholder="42.6521, -73.7572"
+                     value={coord} onChange={(e) => setCoord(e.target.value)}/>
             </div>
             <div style={{ float: 'left' }}>
               <label className="menu-overhead">&nbsp;</label>

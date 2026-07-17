@@ -39,7 +39,7 @@ export default function RevGeoPage() {
         <GoogleMap className="map-canvas" onMapLoad={(map) => { mapRef.current = map }}>
           {revGeocoded &&
             <MapMarker lat={result.geocode.lat} lon={result.geocode.lon}
-                       title={formatAddressLines(result.address).join(', ')} center />
+                       title={formatAddressLines(result.address).join(', ')} center zoom={15} />
           }
         </GoogleMap>
         <RevGeoSearch onSearch={onSearch} />
