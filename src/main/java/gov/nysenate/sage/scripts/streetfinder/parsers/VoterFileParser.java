@@ -1,6 +1,6 @@
 package gov.nysenate.sage.scripts.streetfinder.parsers;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimap;
 import gov.nysenate.sage.model.district.County;
@@ -14,11 +14,11 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static gov.nysenate.sage.model.district.DistrictType.*;
@@ -26,17 +26,18 @@ import static gov.nysenate.sage.scripts.streetfinder.scripts.utils.StreetfileLin
 
 public class VoterFileParser extends BaseParser {
     private static final Logger logger = LoggerFactory.getLogger(VoterFileParser.class);
+    // The voter file numbers counties in plain lexicographic order.
+    public static final Comparator<County> countyOrder = Comparator.comparing(County::name);
 
-    private final ImmutableMap<Integer, County> voterFileCodeToCountyMap;
+    private final ImmutableList<County> countyList;
     private final ImmutableSetMultimap<County, TownCity> countyToTownCityMap;
     private final TownCity nyc;
     private final Map<County, CaseInsensitiveKeyMap<TownCity>> countyToTownCityFieldMap = new HashMap<>();
 
     public VoterFileParser(File file, Multimap<County, TownCity> countyToTownCityMap, TownCity nyc) {
         super(file);
-        this.voterFileCodeToCountyMap = ImmutableMap.copyOf(countyToTownCityMap.keySet().stream()
-                .collect(Collectors.toMap(County::voterfileCode, Function.identity()))
-        );
+        this.countyList = countyToTownCityMap.keySet().stream().sorted(countyOrder)
+                .collect(ImmutableList.toImmutableList());
         this.countyToTownCityMap = ImmutableSetMultimap.copyOf(countyToTownCityMap);
         this.nyc = nyc;
 
@@ -75,8 +76,9 @@ public class VoterFileParser extends BaseParser {
     @Override
     protected List<String> parseLine(String line) {
         List<String> tempLine = super.parseLine(line);
-        County county = voterFileCodeToCountyMap.get(Integer.parseInt(tempLine.get(23)));
-        tempLine.set(23, String.valueOf(county.senateCode()));
+        // Adjust for zero-indexing of List.
+        County county = countyList.get(Integer.parseInt(tempLine.get(23)) - 1);
+        tempLine.set(23, String.valueOf(county.code()));
         TownCity townCity = null;
         // In NYC, this field may contain e.g. the borough or Queens neighborhood, which should be overridden.
         if (county.inNYC()) {

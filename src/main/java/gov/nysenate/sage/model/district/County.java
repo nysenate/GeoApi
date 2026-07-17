@@ -1,7 +1,20 @@
 package gov.nysenate.sage.model.district;
 
-public record County(int senateCode, int voterfileCode, String name, String link, String streetfileName) {
+// We don't mind using names directly here: counties have not been changed for over 100 years.
+public record County(int code, String name, String link) {
     public boolean inNYC() {
-        return senateCode >= 60;
+        return switch (name) {
+            case "Bronx", "Kings", "New York", "Queens", "Richmond" -> true;
+            default -> false;
+        };
+    }
+
+    public String streetfileName() {
+        return switch (name) {
+            case "Kings" -> "Brooklyn";
+            case "New York" -> "Manhattan";
+            case "Staten Island" -> "Richmond";
+            default -> name;
+        };
     }
 }

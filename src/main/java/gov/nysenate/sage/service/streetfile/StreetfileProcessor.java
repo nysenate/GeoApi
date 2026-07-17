@@ -36,7 +36,6 @@ import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class StreetfileProcessor {
@@ -128,8 +127,9 @@ public class StreetfileProcessor {
         return streetfilePath;
     }
 
+    // TODO: can now make this from the shapefiles
     private Multimap<County, TownCity> getCountyToTownCityMap() {
-        Set<County> counties = countyDao.getCounties();
+        Set<County> counties = countyDao.getCounties(typeDao.getDistrictTypeInfo(DistrictType.COUNTY));
         Multimap<County, TownCity> results = HashMultimap.create();
         DistrictTableInfo townCityInfo = typeDao.getDistrictTypeInfo(DistrictType.TOWN_CITY);
         for (TownCity townCity : townCityDao.getTownCities(townCityInfo)) {
@@ -169,13 +169,6 @@ public class StreetfileProcessor {
         if (county == null) {
             if (filename.contains("voter")) {
                 return new VoterFileParser(file, countyToTownCityMap, nyc);
-            }
-            // AddressPoints
-            else if (filename.contains("address_points")) {
-                var map = countyToTownCityMap.keySet().stream().collect(
-                        Collectors.toMap(tempCounty -> tempCounty.name().toLowerCase(), County::senateCode)
-                );
-                return new AddressPointsParser(file, map);
             }
             else throw new IllegalArgumentException(file.getName() + " could not be matched with a parser.");
         }

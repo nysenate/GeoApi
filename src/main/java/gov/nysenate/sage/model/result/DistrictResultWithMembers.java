@@ -9,7 +9,8 @@ public class DistrictResultWithMembers extends DistrictResult {
     private final Map<DistrictType, DistrictMember> memberMap;
 
     public DistrictResultWithMembers(DistrictResult baseResult, Map<DistrictType, DistrictMember> memberMap) {
-        super(baseResult.getSources().stream().toList(), baseResult.getDistrictInfo());
+        super(baseResult.getSources() == null ? null : baseResult.getSources().stream().toList(),
+                baseResult.getStatusCode(), baseResult.getDistrictInfo());
         this.memberMap = memberMap;
     }
 

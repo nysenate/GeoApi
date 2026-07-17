@@ -50,10 +50,9 @@ public class StreetfileDao extends BaseDao {
         for (DistrictType type : List.of(CONGRESSIONAL, SENATE, ASSEMBLY, ELECTION, CITY_COUNCIL, MUNICIPAL_COURT)) {
             tempMap.put(type, type.name().toLowerCase() + "_district");
         }
-        tempMap.put(COUNTY, "county_code");
-        tempMap.put(COUNTY_LEG, "county_leg_code");
-        tempMap.put(TOWN_CITY, "town_city_abbrev");
-        tempMap.put(WARD, "ward_code");
+        for (DistrictType type : List.of(COUNTY, COUNTY_LEG, TOWN_CITY, WARD)) {
+            tempMap.put(type, type.name().toLowerCase() + "_code");
+        }
         tempMap.put(ZIP, "zip5");
         distColMap = ImmutableMap.copyOf(tempMap);
     }

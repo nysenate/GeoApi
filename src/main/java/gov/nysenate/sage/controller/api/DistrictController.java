@@ -116,23 +116,17 @@ public class DistrictController extends SourcedController<LocalSource> {
     @PostMapping(value = "/assign/batch")
     public BaseResponse districtBatchAssign(
             HttpServletRequest request,
-            @RequestParam(required = false, defaultValue = "true") boolean uspsValidate,
-            @RequestParam(required = false) boolean usePunct)
+            @RequestParam(required = false, defaultValue = "true") boolean uspsValidate)
             throws IOException {
 
         String batchJsonPayload = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
         List<Address> originalAddresses = getAddressesFromJsonBody(batchJsonPayload);
-        List<Address> uspsAddresses = addressService.validateOrDefault(originalAddresses);
-        List<Point> points = List.of();
-        if (uspsAddresses.isEmpty()) {
-            points = getPointsFromJsonBody(batchJsonPayload);
-            if (points.isEmpty()) {
-                return new ApiError(this.getClass(), INVALID_BATCH_ADDRESSES);
-            }
+        if (originalAddresses == null) {
+            return new ApiError(this.getClass(), INVALID_BATCH_ADDRESSES);
         }
+        List<Address> uspsAddresses = addressService.validateOrDefault(originalAddresses);
 
-        List<GeocodedAddress> geocodedAddresses = (points.isEmpty() ?
-                geocodeService.geocode(uspsAddresses) : geocodeService.reverseGeocode(points))
+        List<GeocodedAddress> geocodedAddresses = geocodeService.geocode(uspsAddresses)
                     .stream().map(GeocodeResult::getGeocodedAddress).toList();
         List<DistrictResultWithMembers> results =
                 districtService.assignDistricts(geocodedAddresses, Set.of(DistrictType.values()))
@@ -169,20 +163,6 @@ public class DistrictController extends SourcedController<LocalSource> {
             @RequestParam(required = false) String zip4) {
         return districtAssign(null, null, true,
                 usePunct, false, lat, lon, addr, addr1, addr2, city, state, zip5, zip4);
-    }
-
-    /**
-     * District Assignment Api
-     * ---------------------------
-     * Assign a postal address to its corresponding NY Districts
-     * Usage:
-     * (POST)    /api/v2/district/bluebird/batch
-     */
-    @PostMapping(value = "/bluebird/batch")
-    public BaseResponse bluebirdBatchAssign(
-            HttpServletRequest request,
-            @RequestParam(required = false) boolean usePunct) throws IOException {
-        return districtBatchAssign(request, true, usePunct);
     }
 
     /**

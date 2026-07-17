@@ -1,9 +1,10 @@
 package gov.nysenate.sage.controller.api;
 
-import gov.nysenate.sage.client.response.address.BatchCityStateResponse;
 import gov.nysenate.sage.client.response.address.BatchValidateResponse;
 import gov.nysenate.sage.client.response.address.CityStateResponse;
 import gov.nysenate.sage.client.response.address.ValidateResponse;
+import gov.nysenate.sage.client.response.base.ApiError;
+import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.Zip5;
 import gov.nysenate.sage.provider.address.AddressSource;
@@ -18,6 +19,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import static gov.nysenate.sage.model.result.ResultStatus.INVALID_BATCH_ADDRESSES;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.getAddressFromParams;
 import static gov.nysenate.sage.util.controller.ApiControllerUtil.getAddressesFromJsonBody;
 
@@ -82,29 +84,16 @@ public final class AddressController extends SourcedController<AddressSource> {
      * (GET)    /api/v2/address/validate/batch
      */
     @PostMapping(value = "/validate/batch")
-    public BatchValidateResponse addressBatchValidate(HttpServletRequest request,
+    public BaseResponse addressBatchValidate(HttpServletRequest request,
                                      @RequestParam(required = false) String provider,
                                      @RequestParam(required = false) boolean punct) throws IOException {
         AddressSource source = getValueOrNull(provider);
         String batchJsonPayload = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
         List<Address> addresses = getAddressesFromJsonBody(batchJsonPayload);
+        if (addresses == null) {
+            return new ApiError(this.getClass(), INVALID_BATCH_ADDRESSES);
+        }
         return new BatchValidateResponse(addressService.validate(addresses, source), punct);
-    }
-
-    /**
-     * Batch City State Validation Api
-     * ---------------------------
-     * Batch city state validation with USPS
-     * Usage:
-     * (GET)    /api/v2/address/citystate/batch
-     */
-    @PostMapping(value = "/citystate/batch")
-    public BatchCityStateResponse addressBatchCityState(HttpServletRequest request,
-                                              @RequestParam(required = false) String provider) throws IOException {
-        AddressSource source = getValueOrNull(provider);
-        String batchJsonPayload = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
-        List<Zip5> zips = List.of();
-        return new BatchCityStateResponse(addressService.lookupCityState(zips, source));
     }
 
     private AddressSource getValueOrNull(String strValue) {

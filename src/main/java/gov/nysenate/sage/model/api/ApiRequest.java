@@ -1,6 +1,8 @@
 package gov.nysenate.sage.model.api;
 
 import gov.nysenate.sage.util.FormatUtil;
+import lombok.Getter;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,12 +18,13 @@ import java.util.regex.Pattern;
  * Represents the uri information that is provided to request a service from the API. This object is
  * typically created by the API filter and consumed by the controller classes.
  */
+@Getter
 public class ApiRequest {
     private static final Logger logger = LoggerFactory.getLogger(ApiRequest.class);
-    private static final Pattern validFormat = Pattern.compile("/api/v\\d+/(?<service>\\w+)/(?<request>\\w+)");
+    private static final Pattern validFormat = Pattern.compile("/api/v\\d+/(?<service>\\w+)/(?<request>\\w+(/\\w+)?)");
 
     private final boolean isValid;
-    /** Authentication */
+    @Setter
     private ApiUser apiUser;
     private String hostAddress;
 
@@ -53,33 +56,5 @@ public class ApiRequest {
             paramList.add(entry.getKey() + "=" + Arrays.toString(entry.getValue()));
         }
         this.params = String.join("&", paramList);
-    }
-
-    public boolean isValid() {
-        return isValid;
-    }
-
-    public ApiUser getApiUser() {
-        return apiUser;
-    }
-
-    public void setApiUser(ApiUser apiUser) {
-        this.apiUser = apiUser;
-    }
-
-    public String getHostAddress() {
-        return hostAddress;
-    }
-
-    public String getService() {
-        return service;
-    }
-
-    public String getRequest() {
-        return request;
-    }
-
-    public String getParams() {
-        return params;
     }
 }

@@ -98,28 +98,4 @@ public class GeocodeController extends SourcedController<Geocoder> {
         List<GeocodeResult> geocodeResults = geocodeService.geocode(addresses);
         return new BatchGeocodeResponse(geocodeResults);
     }
-
-    /**
-     * Batch Reverse Geocode Api
-     * ---------------------------
-     * Reverse geocode a batch of latlon coordinates
-     * Usage:
-     * (POST)    /api/v2/geo/revgeocode/batch
-     */
-    @PostMapping(value = "/revgeocode/batch")
-    public BaseResponse batchRevGeocode(HttpServletRequest request) throws IOException {
-        String batchJsonPayload = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
-        List<Point> points = getPointsFromJsonBody(batchJsonPayload);
-        if (points.isEmpty()) {
-            return new ApiError(this.getClass(), INVALID_BATCH_POINTS);
-        }
-
-        List<GeocodeResult> revGeocodeResults = geocodeService.reverseGeocode(points);
-        List<Address> addresses = revGeocodeResults.stream().map(GeocodeResult::getAddress).toList();
-        addresses = addressService.validateOrDefault(addresses);
-        for (int i = 0; i < addresses.size(); i++) {
-            revGeocodeResults.get(i).setAddress(addresses.get(i));
-        }
-        return new BatchGeocodeResponse(revGeocodeResults);
-    }
 }
