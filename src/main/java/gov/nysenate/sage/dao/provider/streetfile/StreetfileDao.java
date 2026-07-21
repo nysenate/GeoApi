@@ -2,7 +2,7 @@ package gov.nysenate.sage.dao.provider.streetfile;
 
 import com.google.common.collect.ImmutableMap;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
-import gov.nysenate.sage.controller.api.DistrictUtil;
+import gov.nysenate.sage.util.DistrictUtil;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.base.SqlTable;
 import gov.nysenate.sage.dao.provider.SingleDistrictService;

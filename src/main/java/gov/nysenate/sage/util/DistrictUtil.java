@@ -1,4 +1,4 @@
-package gov.nysenate.sage.controller.api;
+package gov.nysenate.sage.util;
 
 import gov.nysenate.sage.model.Accuracy;
 import gov.nysenate.sage.model.district.*;

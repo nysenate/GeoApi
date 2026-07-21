@@ -3,7 +3,7 @@ package gov.nysenate.sage.provider.district;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
-import gov.nysenate.sage.controller.api.DistrictUtil;
+import gov.nysenate.sage.util.DistrictUtil;
 import gov.nysenate.sage.dao.provider.streetfile.StreetfileDao;
 import gov.nysenate.sage.model.PostOfficeCache;
 import gov.nysenate.sage.model.address.Address;
