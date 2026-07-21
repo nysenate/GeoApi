@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 @EnableAsync
 @EnableScheduling
 @ComponentScan("gov.nysenate.sage")
-@Import({DatabaseConfig.class, SecurityConfig.class, ApplicationConfig.class })
+@Import({DatabaseConfig.class, SecurityConfig.class, ApplicationConfig.class})
 public class WebApplicationConfig implements WebMvcConfigurer {
     private static final Logger logger = LogManager.getLogger(WebApplicationConfig.class);
     // ASCII Art generated at http://patorjk.com/software/taag/
@@ -62,15 +62,16 @@ public class WebApplicationConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         CacheControl oneDay = CacheControl.maxAge(1, TimeUnit.DAYS);
-        // The React entry point must always be revalidated: it points at the current
-        // content-hashed bundle, so caching it would serve a stale app after deploys.
-        registry.addResourceHandler("/static/dist/index.html")
-                .addResourceLocations("/static/dist/index.html")
-                .setCacheControl(CacheControl.noCache());
         // The bundle filename contains a content hash (see webpack.config.js), so it
-        // can be cached indefinitely; a new build gets a new URL.
-        registry.addResourceHandler("/static/dist/**").addResourceLocations("/static/dist/")
+        // can be cached indefinitely; a new build gets a new URL. This more specific
+        // pattern wins over the /static/dist/** handler below.
+        registry.addResourceHandler("/static/dist/*.js").addResourceLocations("/static/dist/")
                 .setCacheControl(CacheControl.maxAge(365, TimeUnit.DAYS).cachePublic());
+        // Everything else under dist — notably index.html, the React entry point, which
+        // points at the current hashed bundle — must always be revalidated, otherwise a
+        // deploy would serve a stale app.
+        registry.addResourceHandler("/static/dist/**").addResourceLocations("/static/dist/")
+                .setCacheControl(CacheControl.noCache());
         registry.addResourceHandler("/css/**").addResourceLocations("/css/").setCacheControl(oneDay);
         // Serves /static/img and the other unhashed static assets.
         registry.addResourceHandler("/static/**").addResourceLocations("/static/").setCacheControl(oneDay);
