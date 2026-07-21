@@ -79,7 +79,7 @@ public class WebApplicationConfig implements WebMvcConfigurer {
         // physical copy of _static is committed. See bin/build-docs.sh.
         registry.addResourceHandler("/admindocs/html/_static/**").addResourceLocations("/docs/html/_static/").setCachePeriod(64000);
         registry.addResourceHandler("/admindocs/**").addResourceLocations("/admin-docs/").setCachePeriod(64000);
-        registry.addResourceHandler("/favicon.ico").addResourceLocations("/static/img/icons/favicon.ico").setCachePeriod(64000);
+        registry.addResourceHandler("/favicon.ico").addResourceLocations("/static/img/icons/").setCachePeriod(64000);
     }
 
     @Override
