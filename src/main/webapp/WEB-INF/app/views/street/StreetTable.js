@@ -1,10 +1,11 @@
 import React from 'react'
+import './dataTables.css'
 
 /**
  * Client-side replacement for the jQuery DataTable the legacy page used: sortable
  * columns, a street filter, a page length menu, and full-numbers pagination. Keeps
- * the DataTables ids/classes so the legacy stylesheets (jquery.dataTables-1.9.4.css
- * plus the main.css overrides) still apply.
+ * the DataTables ids/classes so the bundled dataTables.css and the main.css
+ * overrides still apply.
  */
 const COLUMNS = [
   { key: 'bldgLoNum', label: 'From Bldg' },

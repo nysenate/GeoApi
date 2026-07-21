@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -21,6 +22,7 @@ import org.springframework.web.servlet.i18n.FixedLocaleResolver;
 import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 @Configuration
 @EnableWebMvc
@@ -59,15 +61,25 @@ public class WebApplicationConfig implements WebMvcConfigurer {
     /** Sets paths that should not be intercepted by a controller (e.g css/ js/). */
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/css/**").addResourceLocations("/css/").setCachePeriod(64000);
-        // Serves /static/img and the React bundle in /static/dist.
-        registry.addResourceHandler("/static/**").addResourceLocations("/static/").setCachePeriod(64000);
-        registry.addResourceHandler("/docs/**").addResourceLocations("/docs/").setCachePeriod(64000);
+        CacheControl oneDay = CacheControl.maxAge(1, TimeUnit.DAYS);
+        // The React entry point must always be revalidated: it points at the current
+        // content-hashed bundle, so caching it would serve a stale app after deploys.
+        registry.addResourceHandler("/static/dist/index.html")
+                .addResourceLocations("/static/dist/index.html")
+                .setCacheControl(CacheControl.noCache());
+        // The bundle filename contains a content hash (see webpack.config.js), so it
+        // can be cached indefinitely; a new build gets a new URL.
+        registry.addResourceHandler("/static/dist/**").addResourceLocations("/static/dist/")
+                .setCacheControl(CacheControl.maxAge(365, TimeUnit.DAYS).cachePublic());
+        registry.addResourceHandler("/css/**").addResourceLocations("/css/").setCacheControl(oneDay);
+        // Serves /static/img and the other unhashed static assets.
+        registry.addResourceHandler("/static/**").addResourceLocations("/static/").setCacheControl(oneDay);
+        registry.addResourceHandler("/docs/**").addResourceLocations("/docs/").setCacheControl(oneDay);
         // The admin docs share the nature theme assets with the regular docs, so only one
         // physical copy of _static is committed. See bin/build-docs.sh.
-        registry.addResourceHandler("/admindocs/html/_static/**").addResourceLocations("/docs/html/_static/").setCachePeriod(64000);
-        registry.addResourceHandler("/admindocs/**").addResourceLocations("/admin-docs/").setCachePeriod(64000);
-        registry.addResourceHandler("/favicon.ico").addResourceLocations("/static/img/icons/favicon.ico").setCachePeriod(64000);
+        registry.addResourceHandler("/admindocs/html/_static/**").addResourceLocations("/docs/html/_static/").setCacheControl(oneDay);
+        registry.addResourceHandler("/admindocs/**").addResourceLocations("/admin-docs/").setCacheControl(oneDay);
+        registry.addResourceHandler("/favicon.ico").addResourceLocations("/static/img/icons/favicon.ico").setCacheControl(oneDay);
     }
 
     @Override

@@ -5,7 +5,10 @@ module.exports = {
   entry: './WEB-INF/app/index.js',
   output: {
     path: path.resolve(__dirname, 'static/dist'),
-    filename: 'index_bundle.js',
+    // The content hash lets the bundle be cached indefinitely; index.html always
+    // points at the current one. See WebApplicationConfig.addResourceHandlers.
+    filename: 'index_bundle.[contenthash].js',
+    clean: true,
     publicPath: process.env.NODE_ENV === 'production' ? '/static/dist/' : '/'
   },
   resolve: {
@@ -19,6 +22,11 @@ module.exports = {
       {
         test: /\.css$/i,
         use: ["style-loader", "css-loader", "postcss-loader"],
+      },
+      // Bundle images referenced from css (small ones are inlined as data URIs)
+      {
+        test: /\.png$/i,
+        type: 'asset'
       },
       // Transpile js
       {

@@ -1,0 +1,92 @@
+/* Trimmed to the rules the street table markup uses. main.css still layers overrides on top
+   (transparent row backgrounds, fonts/colors on #street-view-table). */
+
+table.dataTable {
+  margin: 0 auto;
+  clear: both;
+  width: 100%;
+}
+
+table.dataTable thead th {
+  padding: 3px 18px 3px 10px;
+  border-bottom: 1px solid black;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+table.dataTable thead th:active {
+  outline: none;
+}
+
+table.dataTable td {
+  padding: 3px 10px;
+}
+
+table.dataTable td.dataTables_empty {
+  text-align: center;
+}
+
+table.dataTable tr.odd { background-color: #E2E4FF; }
+table.dataTable tr.even { background-color: white; }
+
+table.dataTable tr.odd td.sorting_1 { background-color: #D3D6FF; }
+table.dataTable tr.even td.sorting_1 { background-color: #EAEBFF; }
+
+.dataTables_wrapper {
+  position: relative;
+  clear: both;
+}
+
+.dataTables_length {
+  float: left;
+}
+
+.dataTables_info {
+  clear: both;
+  float: left;
+}
+
+.dataTables_paginate {
+  float: right;
+  text-align: right;
+}
+
+.paging_full_numbers {
+  height: 22px;
+  line-height: 22px;
+}
+
+.paging_full_numbers a:active {
+  outline: none;
+}
+
+.paging_full_numbers a:hover {
+  text-decoration: none;
+}
+
+.paging_full_numbers a.paginate_button,
+.paging_full_numbers a.paginate_active {
+  border: 1px solid #aaa;
+  border-radius: 5px;
+  padding: 2px 5px;
+  margin: 0 3px;
+  cursor: pointer;
+  color: #333 !important;
+}
+
+.paging_full_numbers a.paginate_button {
+  background-color: #ddd;
+}
+
+.paging_full_numbers a.paginate_button:hover {
+  background-color: #ccc;
+  text-decoration: none !important;
+}
+
+.paging_full_numbers a.paginate_active {
+  background-color: #99B3FF;
+}
+
+.sorting { background: url('./sort_both.png') no-repeat center right; }
+.sorting_asc { background: url('./sort_asc.png') no-repeat center right; }
+.sorting_desc { background: url('./sort_desc.png') no-repeat center right; }
