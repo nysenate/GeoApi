@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/ping")
-public class PingController {
+public class PingController extends BaseApiController {
     @GetMapping("")
     public BaseResponse ping() {
         return new BaseResponse(ResultStatus.SUCCESS);

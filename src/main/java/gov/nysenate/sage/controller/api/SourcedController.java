@@ -16,7 +16,7 @@ import java.util.stream.Stream;
 
 import static gov.nysenate.sage.model.result.ResultStatus.UNSUPPORTED_DISTRICT_MAP;
 
-public abstract class SourcedController<E extends Enum<E> & HasDisplayName> {
+public abstract class SourcedController<E extends Enum<E> & HasDisplayName> extends BaseApiController {
     @SuppressWarnings("unchecked")
     private final Class<E> sourceClass = Objects.requireNonNull(
             (Class<E>) GenericTypeResolver.resolveTypeArgument(getClass(), SourcedController.class)
