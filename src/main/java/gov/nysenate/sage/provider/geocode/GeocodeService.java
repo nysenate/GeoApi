@@ -149,7 +149,7 @@ public class GeocodeService {
     private GeocodeResult getPostOfficeResult(PostOfficeBox poBox, @Nonnull List<Geocoder> geocoders) {
         // This strange monitor ensures we won't geocode the same post office in parallel,
         // while allowing other post offices to be geocoded at the same time.
-        synchronized (poBox.getZip5().toString().intern()) {
+        synchronized (String.valueOf(poBox.getZip5()).intern()) {
             GeocodeResult result = poBoxCache.get(poBox, geocoders);
             if (result == null) {
                 Multimap<String, GeocodeResult> postalCityMap = ArrayListMultimap.create();

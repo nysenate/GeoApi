@@ -119,7 +119,7 @@ public class DistrictService {
                                                             GeocodedPostOfficeBox geoPoBox) {
         // This strange monitor ensures we won't district assign the same post office in parallel,
         // while allowing other post offices to be assigned at the same time.
-        synchronized (poBox.getZip5().toString().intern()) {
+        synchronized (String.valueOf(poBox.getZip5()).intern()) {
             var cacheResult = poBoxCache.get(poBox, providers);
             if (cacheResult == null) {
                 Multimap<String, DistrictResult> postalCityMap = ArrayListMultimap.create();
