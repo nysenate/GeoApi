@@ -3,20 +3,21 @@ const CONDITION_LABELS = {
   WAITING_FOR_CRON: 'Waiting',
   RUNNING: 'Processing',
   COMPLETED: 'Completed',
-  COMPLETED_WITH_ERRORS: 'Completed with some errors',
   SKIPPED: 'Skipped',
   FAILED: 'Failed',
   CANCELLED: 'Cancelled',
-  INACTIVE: 'Currently inactive',
 }
 
 export function conditionLabel(condition) {
   return CONDITION_LABELS[condition] ?? condition
 }
 
+/** Every JobProcessStatus.Condition value, for building filter dropdowns. */
+export const JOB_CONDITIONS = Object.keys(CONDITION_LABELS)
+
 /** Whether a job's condition means it produced a downloadable result file. */
 export function conditionSuccess(condition) {
-  return condition === 'COMPLETED' || condition === 'COMPLETED_WITH_ERRORS'
+  return condition === 'COMPLETED'
 }
 
 /** The condition colors from the legacy job history page. */
@@ -25,7 +26,6 @@ export function conditionColor(condition) {
     case 'RUNNING':
     case 'COMPLETED': return '#639A00'
     case 'SKIPPED': return 'orangered'
-    case 'COMPLETED_WITH_ERRORS':
     case 'FAILED':
     case 'CANCELLED': return 'red'
     default: return '#333'

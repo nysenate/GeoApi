@@ -17,13 +17,9 @@ public enum JobProcessQuery implements BasicSqlQuery {
             "WHERE processId = :processId"),
 
     GET_JOB_PROCESS_STATUS_BY_CONDITIONS("SELECT * FROM ${schema}." + SqlTable.PROCESS + "\n" +
-            "LEFT JOIN ${schema}." + SqlTable.STATUS + " ON id = processId " +
-            "WHERE "
-    ),
-
-    GET_RECENTLY_COMPLETED_JOB_PROCESSES("SELECT * FROM ${schema}." + SqlTable.PROCESS + " " +
-            "LEFT JOIN ${schema}." + SqlTable.STATUS + " ON id = processId " +
-            "WHERE status.completeTime >= :afterThis "  // completeTime filter
+            "LEFT JOIN ${schema}." + SqlTable.STATUS + " ON id = processId\n" +
+            "WHERE status.condition IN (:conditions)\n" +
+            "AND requestTime BETWEEN :startTime AND :endTime"
     );
 
     private final String sql;

@@ -6,7 +6,6 @@ import gov.nysenate.sage.model.job.JobProcess;
 import gov.nysenate.sage.model.job.JobProcessStatus;
 import gov.nysenate.sage.model.job.JobUser;
 import gov.nysenate.sage.util.FormatUtil;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,9 +17,6 @@ import javax.annotation.Nonnull;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 import static gov.nysenate.sage.model.job.JobProcessStatus.Condition;
@@ -113,45 +109,27 @@ public class SqlJobProcessDao extends BaseDao implements JobProcessDao {
 
     /** {@inheritDoc} */
     public List<JobProcessStatus> getJobStatusesByConditions(List<Condition> conditions, JobUser jobUser, Timestamp start, Timestamp end) {
-        List<String> where = new ArrayList<>();
-        for (Condition c : conditions) {
-            where.add("status.condition = '" + c.name() + "'");
+        // An empty list would render an invalid "IN ()", and means the same thing as no filter.
+        List<Condition> conditionFilter = (conditions == null || conditions.isEmpty())
+                ? List.of(Condition.values()) : conditions;
+        var params = new MapSqlParameterSource()
+                .addValue("conditions", conditionFilter.stream().map(Condition::name).toList())
+                .addValue("startTime", (start == null) ? new Timestamp(0) : start)
+                .addValue("endTime", (end == null) ? new Timestamp(System.currentTimeMillis()) : end);
+
+        String sql = JobProcessQuery.GET_JOB_PROCESS_STATUS_BY_CONDITIONS.getSql(getJobSchema());
+        System.out.println("*****\n" + sql + "\n*****");
+        // Admins see every user's jobs, everyone else only sees their own.
+        if (jobUser != null && !jobUser.isAdmin()) {
+            sql += "\nAND userId = :userId";
+            params.addValue("userId", jobUser.getId());
         }
-        String conditionFilter = (!where.isEmpty()) ? StringUtils.join(where, " OR ") : "";
-        String jobUserFilter = (jobUser != null && !jobUser.isAdmin()) ? " AND userId = " + jobUser.getId() : "";
+        sql += "\nORDER BY processId DESC";
 
-        // If start and end timestamps are null, set to earliest and current time respectively
-        start = (start == null) ? new Timestamp(0) : start;
-        end = (end == null) ? new Timestamp(new Date().getTime()) : end;
-        String requestTimeFilter = " AND requestTime >= '" + start + "' AND requestTime <= '" + end + "'";
-
-        String restOfQuery = conditionFilter + " " + jobUserFilter + " " + requestTimeFilter + " ORDER BY processId DESC";
         try {
-            return namedJdbcTemplate.query(
-                    JobProcessQuery.GET_JOB_PROCESS_STATUS_BY_CONDITIONS.getSql(getJobSchema()) + restOfQuery, new JobStatusHandler());
+            return namedJdbcTemplate.query(sql, params, new JobStatusHandler());
         } catch (Exception ex) {
             logger.error("Failed to retrieve statuses by conditions!", ex);
-        }
-        return null;
-    }
-
-    /** {@inheritDoc} */
-    public List<JobProcessStatus> getRecentlyCompletedJobStatuses(Condition condition, JobUser jobUser) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.DATE, -1);
-        Timestamp afterThis = new Timestamp(calendar.getTimeInMillis());
-        String conditionFilter = (condition != null) ? " AND status.condition = '" + condition.name() + "' ": " ";
-        String jobUserFilter = (jobUser != null && !jobUser.isAdmin()) ? " AND userId = " + jobUser.getId() + " ": " ";
-
-        String restOfQuery = conditionFilter + jobUserFilter + " ORDER BY status.completeTime DESC";
-
-        try {
-            var params = new MapSqlParameterSource("afterThis", afterThis);
-            return namedJdbcTemplate.query(
-                    JobProcessQuery.GET_RECENTLY_COMPLETED_JOB_PROCESSES.getSql(getJobSchema()) + restOfQuery,
-                    params, new JobStatusHandler());
-        } catch (Exception ex) {
-            logger.error("Failed to retrieve recent job statuses!", ex);
         }
         return null;
     }

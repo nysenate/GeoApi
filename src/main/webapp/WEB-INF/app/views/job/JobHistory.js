@@ -1,32 +1,61 @@
 import React from 'react'
-import { fetchAllJobs, jobDownloadUrl } from 'app/apis/jobApi'
+import { fetchJobHistory, jobDownloadUrl } from 'app/apis/jobApi'
 import { formatDateMedium } from 'app/shared/formatters'
-import { conditionColor, conditionLabel, conditionSuccess } from 'app/views/job/jobUtils'
+import { conditionColor, conditionLabel, conditionSuccess, JOB_CONDITIONS } from 'app/views/job/jobUtils'
+
+// Batch jobs have existed since 2013.
+const EARLIEST_JOB_YEAR = 2013
+const CURRENT_YEAR = new Date().getFullYear()
+const YEAR_OPTIONS = []
+for (let year = CURRENT_YEAR; year >= EARLIEST_JOB_YEAR; year--) {
+  YEAR_OPTIONS.push(year)
+}
 
 /**
- * "History" pane: every batch job the user can see, with its final condition
- * and a download link for the ones that completed. Refreshed each time the
- * pane becomes visible.
+ * "History" pane: the batch jobs the user can see, filterable by request year
+ * and status, with a download link for the ones that completed. Refreshed
+ * each time the pane becomes visible or a filter changes.
  */
 export default function JobHistory({ visible }) {
-  const [ allProcesses, setAllProcesses ] = React.useState([])
+  const [ processes, setProcesses ] = React.useState([])
+  const [ year, setYear ] = React.useState(String(CURRENT_YEAR))
+  const [ condition, setCondition ] = React.useState('')
 
   React.useEffect(() => {
     if (visible) {
-      fetchAllJobs()
+      fetchJobHistory(year, condition)
         .then((data) => {
           if (data.success) {
-            setAllProcesses(data.statuses)
+            setProcesses(data.statuses)
           }
         })
         .catch(() => console.log('Error retrieving job history.'))
     }
-  }, [ visible ])
+  }, [ visible, year, condition ])
 
   return (
     <div id="history-container" style={{ display: visible ? '' : 'none', width: '100%', height: '100%' }}>
       <div style={{ textAlign: 'center', padding: '20px', width: '95%', margin: 'auto' }}>
         <h3 style={{ color: '#333' }}>Batch Job History</h3>
+        <div style={{ marginBottom: '15px' }}>
+          <label>Year:&nbsp;
+            <select value={year} onChange={(e) => setYear(e.target.value)}>
+              <option value="">All</option>
+              {YEAR_OPTIONS.map((yearOption) => (
+                <option key={yearOption} value={yearOption}>{yearOption}</option>
+              ))}
+            </select>
+          </label>
+          <span>&nbsp;&nbsp;&nbsp;</span>
+          <label>Status:&nbsp;
+            <select value={condition} onChange={(e) => setCondition(e.target.value)}>
+              <option value="">All</option>
+              {JOB_CONDITIONS.map((conditionOption) => (
+                <option key={conditionOption} value={conditionOption}>{conditionLabel(conditionOption)}</option>
+              ))}
+            </select>
+          </label>
+        </div>
         <div>
           <table className="job-table">
             <thead style={{ textAlign: 'left', borderBottom: '1px solid #999' }}>
@@ -42,12 +71,12 @@ export default function JobHistory({ visible }) {
             </tr>
             </thead>
             <tbody>
-            {allProcesses.length === 0 &&
+            {processes.length === 0 &&
               <tr>
-                <td>No files have been processed.</td>
+                <td>No matching jobs found.</td>
               </tr>
             }
-            {allProcesses.map((status) => (
+            {processes.map((status) => (
               <tr key={status.processId}>
                 <td>{status.processId}</td>
                 <td>{status.process.sourceFileName}</td>

@@ -40,12 +40,26 @@ export function fetchActiveJobs() {
   return fetchJson('/job/status/active')
 }
 
-export function fetchCompletedJobs() {
-  return fetchJson('/job/status/completed')
+/** Fetches jobs that completed successfully within the past day. */
+export function fetchRecentlyCompletedJobs() {
+  return fetchJson('/job/status/recentlyCompleted')
 }
 
-export function fetchAllJobs() {
-  return fetchJson('/job/status/all')
+/**
+ * Fetches the job history, optionally filtered by the year the jobs were
+ * requested in and/or their status condition (e.g. 'COMPLETED'). Pass a
+ * falsy year/condition to include all of them.
+ */
+export function fetchJobHistory(year, condition) {
+  const params = new URLSearchParams()
+  if (year) {
+    params.set('year', year)
+  }
+  if (condition) {
+    params.set('condition', condition)
+  }
+  const query = params.toString()
+  return fetchJson(`/job/status/history${query ? `?${query}` : ''}`)
 }
 
 /** URL to download a completed job's result file. */

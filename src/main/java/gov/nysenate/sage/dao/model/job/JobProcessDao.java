@@ -17,7 +17,7 @@ public interface JobProcessDao {
 
     /**
      * Update or insert a JobProcessStatus. If a job status entry already exists, the record will be updated with the
-     * new information. Otherwise a new row will be created.
+     * new information. Otherwise, a new row will be created.
      * @param jps JobProcessStatus
      * @return int (rows affected) or -1 if failed.
      */
@@ -39,11 +39,6 @@ public interface JobProcessDao {
         return getJobStatusesByConditions(List.of(condition), jobUser, null, null);
     }
 
-    default List<JobProcessStatus> getJobStatusesByConditions(List<JobProcessStatus.Condition> conditions, JobUser jobUser) {
-        return getJobStatusesByConditions(conditions, jobUser, null, null);
-    }
-
-
     /**
      * Retrieves a List of JobProcessStatus matching the given Condition types.
      * @param conditions List of Condition objects to filter results by.
@@ -53,23 +48,4 @@ public interface JobProcessDao {
      * @return List<JobProcessStatus>
      */
     List<JobProcessStatus> getJobStatusesByConditions(List<JobProcessStatus.Condition> conditions, JobUser jobUser, Timestamp start, Timestamp end);
-
-    /**
-     * Gets completed job statuses that finished on or after the 'afterThis' timestamp.
-     * This method is different from getJobStatusesByCondition because the completeTime is filtered on
-     * as opposed to the requestTime.
-     * @param condition Condition to filter by. If null, no filtering will occur on condition.
-     * @param jobUser JobUser to retrieve results for. If null or admin user, all results returned.
-     * @return List<JobProcessStatus>
-     */
-    List<JobProcessStatus> getRecentlyCompletedJobStatuses(JobProcessStatus.Condition condition, JobUser jobUser);
-
-    /**
-     *  Gets a list of active job processes for a given job user
-     * @param jobUser
-     * @return
-     */
-    default List<JobProcessStatus> getActiveJobStatuses(JobUser jobUser) {
-        return getJobStatusesByConditions(JobProcessStatus.Condition.getActiveConditions(), jobUser, null, null);
-    }
 }

@@ -1,5 +1,5 @@
 import React from 'react'
-import { cancelJobProcess, fetchActiveJobs, fetchCompletedJobs, fetchRunningJobs, jobDownloadUrl }
+import { cancelJobProcess, fetchActiveJobs, fetchRecentlyCompletedJobs, fetchRunningJobs, jobDownloadUrl }
   from 'app/apis/jobApi'
 import { formatDateMedium, formatDateShort } from 'app/shared/formatters'
 import { conditionLabel } from 'app/views/job/jobUtils'
@@ -41,7 +41,7 @@ export default function JobStatus({ visible }) {
   }
 
   const getCompletedProcesses = () => {
-    fetchCompletedJobs()
+    fetchRecentlyCompletedJobs()
       .then((data) => {
         if (data.success) {
           setCompletedProcesses(data.statuses)
