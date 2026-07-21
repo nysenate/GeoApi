@@ -71,8 +71,7 @@ public class DistrictService {
                 return getPostOfficeResult(poBox, providers, poBoxGeoAddr);
             }
             else {
-                logger.warn("Error handling PO box {}", poBox);
-                return new DistrictResult(INTERNAL_ERROR);
+                return new DistrictResult(INVALID_ADDRESS);
             }
         }
 
