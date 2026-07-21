@@ -118,7 +118,6 @@ public class SqlJobProcessDao extends BaseDao implements JobProcessDao {
                 .addValue("endTime", (end == null) ? new Timestamp(System.currentTimeMillis()) : end);
 
         String sql = JobProcessQuery.GET_JOB_PROCESS_STATUS_BY_CONDITIONS.getSql(getJobSchema());
-        System.out.println("*****\n" + sql + "\n*****");
         // Admins see every user's jobs, everyone else only sees their own.
         if (jobUser != null && !jobUser.isAdmin()) {
             sql += "\nAND userId = :userId";
