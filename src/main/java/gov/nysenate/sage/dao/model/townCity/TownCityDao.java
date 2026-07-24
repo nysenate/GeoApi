@@ -1,7 +1,9 @@
 package gov.nysenate.sage.dao.model.townCity;
 
 import gov.nysenate.sage.dao.base.BaseDao;
+import gov.nysenate.sage.dao.provider.shapefile.ShapefileTypeDao;
 import gov.nysenate.sage.model.district.DistrictTableInfo;
+import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.district.TownCity;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -15,7 +17,14 @@ import java.util.Set;
 
 @Repository
 public class TownCityDao extends BaseDao {
-    public Set<TownCity> getTownCities(DistrictTableInfo townCityInfo) {
+    private final ShapefileTypeDao typeDao;
+
+    public TownCityDao(ShapefileTypeDao typeDao) {
+        this.typeDao = typeDao;
+    }
+
+    public Set<TownCity> getTownCities() {
+        DistrictTableInfo townCityInfo = typeDao.getDistrictTypeInfo(DistrictType.TOWN_CITY);
         return new HashSet<>(namedJdbcTemplate.query(
                 TownCityQuery.SELECT_ALL.getSql("", townCityInfo.getReplacements("type")),
                 new TownCityRowMapper(townCityInfo))

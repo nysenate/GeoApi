@@ -1,5 +1,6 @@
 package gov.nysenate.sage.client.response.map;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import gov.nysenate.sage.client.response.base.SourcedResponse;
 import gov.nysenate.sage.client.view.map.DistrictMapView;
@@ -7,13 +8,18 @@ import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.MapResult;
 
 public class MapResponse extends SourcedResponse {
-    protected DistrictMapView map;
+    private DistrictMapView map;
 
-    public MapResponse(MapResult mapResult, boolean showMaps) {
+    public MapResponse(MapResult mapResult) {
         super(mapResult);
         if (mapResult != null && mapResult.isSuccess()) {
-            map = new DistrictMapView(mapResult.getDistrictMap(), showMaps);
+            map = new DistrictMapView(mapResult.getDistrictMap());
         }
+    }
+
+    @JsonIgnore
+    public DistrictMapView getMapView() {
+        return map;
     }
 
     public String getDistrict() {

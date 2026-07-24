@@ -4,10 +4,9 @@ import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.client.response.district.BatchDistrictResponse;
 import gov.nysenate.sage.client.response.district.DistrictResponse;
-import gov.nysenate.sage.client.response.district.IntersectResponse;
+import gov.nysenate.sage.dao.provider.DistrictNameDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
-import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.*;
@@ -36,22 +35,19 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
  */
 @RestController
 @RequestMapping(value = ConstantUtil.REST_PATH + "district")
-public class DistrictController extends SourcedController<LocalSource> {
-    private final ShapefileService shapefileService;
+public class DistrictController extends DistrictDataController<LocalSource> {
     private final AddressService addressService;
     private final GeocodeService geocodeService;
     private final DistrictService districtService;
-    private final DistrictMemberProvider memberProvider;
 
     @Autowired
-    public DistrictController(ShapefileService shapefileService, AddressService addressService,
-                              GeocodeService geocodeService, DistrictService districtService,
-                              DistrictMemberProvider memberProvider) {
-        this.shapefileService = shapefileService;
+    public DistrictController(DistrictNameDao nameDao, ShapefileService shapefileService,
+                              DistrictMemberProvider memberProvider, AddressService addressService,
+                              GeocodeService geocodeService, DistrictService districtService) {
+        super(nameDao, shapefileService, memberProvider);
         this.addressService = addressService;
         this.geocodeService = geocodeService;
         this.districtService = districtService;
-        this.memberProvider = memberProvider;
     }
 
     /**
@@ -93,17 +89,9 @@ public class DistrictController extends SourcedController<LocalSource> {
         if (!uspsValidate) {
             geocodedAddress = new GeocodedAddress(originalAddress, geocodedAddress.getGeocode());
         }
-        Map<DistrictType, DistrictMap> geomMap = new HashMap<>();
-        if (showMaps) {
-            for (DistrictType type : initialResult.getAssignedDistricts()) {
-                String code = initialResult.getDistrictInfo().getDistCode(type);
-                MapResult result = shapefileService.getMapResult(type, code);
-                if (result.isSuccess()) {
-                    geomMap.put(type, result.getDistrictMap());
-                }
-            }
-        }
-        return new DistrictResponse(memberProvider.assignMembers(initialResult), geocodedAddress, usePunct, geomMap);
+        var response = new DistrictResponse(initialResult, geocodedAddress, usePunct);
+        assignData(response, true, showMaps);
+        return response;
     }
 
     /**
@@ -128,9 +116,8 @@ public class DistrictController extends SourcedController<LocalSource> {
 
         List<GeocodedAddress> geocodedAddresses = geocodeService.geocode(uspsAddresses)
                     .stream().map(GeocodeResult::getGeocodedAddress).toList();
-        List<DistrictResultWithMembers> results =
-                districtService.assignDistricts(geocodedAddresses, Set.of(DistrictType.values()))
-                        .stream().map(memberProvider::assignMembers).toList();
+        List<DistrictResult> results =
+                districtService.assignDistricts(geocodedAddresses, Set.of(DistrictType.values()));
 
         if (!uspsValidate) {
             List<GeocodedAddress> tempGeoAddrs = new ArrayList<>();
@@ -139,7 +126,11 @@ public class DistrictController extends SourcedController<LocalSource> {
             }
             geocodedAddresses = tempGeoAddrs;
         }
-        return BatchDistrictResponse.of(results, geocodedAddresses);
+        var response = BatchDistrictResponse.of(results, geocodedAddresses);
+        response.getResults().forEach(
+                singleResponse -> assignData(singleResponse, false, false)
+        );
+        return response;
     }
 
     /**
@@ -165,22 +156,9 @@ public class DistrictController extends SourcedController<LocalSource> {
                 usePunct, false, lat, lon, addr, addr1, addr2, city, state, zip5, zip4);
     }
 
-    /**
-     * Intersect Api
-     * ---------------------------
-     * Find the intersection between one type of NY District and another
-     * Usage:
-     * (GET)    /api/v2/district/intersect
-     */
-    @GetMapping(value = "/intersect")
-    public Object districtIntersect(@RequestParam String sourceType, @RequestParam String sourceId,
-                                    @RequestParam String intersectType) {
-        if (sourceType.equalsIgnoreCase(intersectType)) {
-            return new BaseResponse(BAD_OVERLAY);
+    private void assignData(DistrictResponse response, boolean showMembers, boolean showMaps) {
+        for (var view : response.getDistricts().values()) {
+            assignData(view, showMembers, showMaps);
         }
-        IntersectResult intersectResult = shapefileService.getIntersectResult(
-                getValue(DistrictType.class, sourceType), sourceId, getValue(DistrictType.class, intersectType));
-        intersectResult.getOverlaps().forEach(memberProvider::assignMember);
-        return IntersectResponse.from(intersectResult);
     }
 }

@@ -28,12 +28,12 @@ public final class DistrictUtil {
      */
     public static DistrictInfo getDistrictInfoWithoutConflicts(List<DistrictInfo> districtInfoList,
                                                                Accuracy accuracy) {
-        Map<DistrictType, SingleDistrict> typeToDistrictMap = new HashMap<>();
+        Map<DistrictType, String> typeToDistrictMap = new HashMap<>();
         for (DistrictType distType : DistrictType.values()) {
-            List<SingleDistrict> singleDistricts = districtInfoList.stream()
-                    .map(info -> info.getDistrict(distType)).filter(Objects::nonNull).distinct().toList();
-            if (singleDistricts.size() == 1) {
-                typeToDistrictMap.put(distType, singleDistricts.getFirst());
+            List<String> codes = districtInfoList.stream()
+                    .map(info -> info.getDistCode(distType)).filter(Objects::nonNull).distinct().toList();
+            if (codes.size() == 1) {
+                typeToDistrictMap.put(distType, codes.getFirst());
             }
         }
         return new DistrictInfo(typeToDistrictMap, accuracy);
@@ -49,13 +49,13 @@ public final class DistrictUtil {
         if (results.size() <= 1) {
             return first;
         }
-        var typeToDistrictMap = new HashMap<DistrictType, SingleDistrict>();
+        var typeToDistrictMap = new HashMap<DistrictType, String>();
         var sourcesUsed = new ArrayList<LocalSource>();
         for (DistrictType distType : DistrictType.values()) {
             for (DistrictResult result : results) {
-                SingleDistrict singleDistrict = result.getDistrictInfo().getDistrict(distType);
-                if (singleDistrict != null) {
-                    typeToDistrictMap.put(distType, singleDistrict);
+                String code = result.getDistrictInfo().getDistCode(distType);
+                if (code != null) {
+                    typeToDistrictMap.put(distType, code);
                     sourcesUsed.addAll(result.getSources());
                     break;
                 }

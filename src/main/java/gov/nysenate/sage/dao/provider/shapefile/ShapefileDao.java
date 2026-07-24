@@ -1,14 +1,11 @@
 package gov.nysenate.sage.dao.provider.shapefile;
 
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.dao.model.county.CountyDao;
-import gov.nysenate.sage.dao.model.townCity.TownCityDao;
 import gov.nysenate.sage.model.district.*;
 import gov.nysenate.sage.model.geo.*;
 import gov.nysenate.sage.util.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.RowCallbackHandler;
@@ -27,14 +24,6 @@ import static gov.nysenate.sage.dao.provider.shapefile.ShapefileQueries.*;
 public class ShapefileDao extends BaseDao {
     private static final Logger logger = LoggerFactory.getLogger(ShapefileDao.class);
     private static final String geometrySchema = "districts";
-    private final CountyDao countyDao;
-    private final TownCityDao townCityDao;
-
-    @Autowired
-    public ShapefileDao(CountyDao countyDao, TownCityDao townCityDao) {
-        this.countyDao = countyDao;
-        this.townCityDao = townCityDao;
-    }
 
     /**
      * Retrieves a DistrictInfo object based on the districts that intersect the given point.
@@ -86,59 +75,18 @@ public class ShapefileDao extends BaseDao {
         );
     }
 
-    public SortedSet<DistrictMap> getDistrictMaps(DistrictTableInfo tableInfo) {
+    public Set<DistrictMap> getDistrictMaps(DistrictTableInfo tableInfo) {
         String sql = GET_DISTRICT_MAPS.getSql(geometrySchema, tableInfo.getReplacements("type"));
-        return new TreeSet<>(namedJdbcTemplate.query(sql, new DistrictCacheMapper(tableInfo)));
+        return new HashSet<>(namedJdbcTemplate.query(sql, new DistrictCacheMapper(tableInfo.type())));
     }
 
-    private class DistrictCacheMapper implements RowMapper<DistrictMap> {
-        private final DistrictType type;
-        private Set<County> counties = null;
-        private Set<TownCity> townCities = null;
-
-        private DistrictCacheMapper(DistrictTableInfo tableInfo) {
-            this.type = tableInfo.type();
-            if (type == DistrictType.COUNTY) {
-                this.counties = countyDao.getCounties(tableInfo);
-            }
-            if (type == DistrictType.TOWN_CITY) {
-                this.townCities = townCityDao.getTownCities(tableInfo);
-            }
-        }
-
+    private record DistrictCacheMapper(DistrictType type) implements RowMapper<DistrictMap> {
         @Override
         public DistrictMap mapRow(@Nonnull ResultSet rs, int rowNum) throws SQLException {
             String code = rs.getString("code");
-            // This is the place where names are actually assigned: everything else pulls from these cached values.
-            TownCity townCity = null;
-            if (type == DistrictType.TOWN_CITY) {
-                townCity = townCities.stream().filter(tc -> tc.code().equals(code))
-                        .findFirst().orElseThrow();
-            }
-            String name = switch (type) {
-                case SENATE -> "Senate District " + code;
-                case ASSEMBLY -> "Assembly District " + code;
-                case CONGRESSIONAL -> "Congressional District " + code;
-                case ZIP -> "Zipcode " + code;
-                case COUNTY -> rs.getString("name") + " County";
-                case TOWN_CITY -> townCity.fullName();
-                case CITY_COUNCIL -> "Council District " + code;
-                case VILLAGE -> "Village of " + rs.getString("name");
-                default -> rs.getString("name");
-            };
-            var map = new DistrictMap(type, name, code);
+            var map = new DistrictMap(type, code);
             map.setMapGeoJson(rs.getString("map"));
             map.setArea(rs.getBigDecimal("area"));
-            // For COVID links
-            if (type == DistrictType.COUNTY) {
-                String baseName = rs.getString("name");
-                Optional<County> countyOpt = counties.stream()
-                        .filter(county -> county.name().equals(baseName)).findFirst();
-                map.setLink(countyOpt.orElseThrow().link());
-            }
-            if (type == DistrictType.TOWN_CITY) {
-                map.setBaseName(townCity.baseName());
-            }
             return map;
         }
     }

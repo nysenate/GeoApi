@@ -168,7 +168,7 @@ sage.controller("DistrictMapController", function($scope, $http, $timeout, $filt
             $scope.selectedDistrict.district = "";
             $scope.showIntersectMenu = false;
         }
-        var url = contextPath + baseApi + "/district/intersect?sourceType=" + $scope.type + "&sourceId=" + $scope.selectedDistrict.district;
+        var url = contextPath + baseApi + "/map/intersect?sourceType=" + $scope.type + "&sourceId=" + $scope.selectedDistrict.district;
         url += "&intersectType=" + $scope.intersectType;
         url = url.replace(/#/g, ""); // Pound marks mess up the query string
         return url;

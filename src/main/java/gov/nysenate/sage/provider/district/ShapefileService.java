@@ -1,19 +1,18 @@
 package gov.nysenate.sage.provider.district;
 
-import com.google.common.collect.ImmutableSortedMap;
-import gov.nysenate.sage.dao.provider.SingleDistrictService;
 import gov.nysenate.sage.dao.provider.shapefile.ShapefileDao;
 import gov.nysenate.sage.dao.provider.shapefile.ShapefileTypeDao;
 import gov.nysenate.sage.model.district.*;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.result.IntersectResult;
-import gov.nysenate.sage.model.result.MapListResult;
 import gov.nysenate.sage.model.result.MapResult;
 import gov.nysenate.sage.model.result.ResultStatus;
+import gov.nysenate.sage.service.ImmutableCache;
+import gov.nysenate.sage.service.district.DistrictCodeCache;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -22,58 +21,43 @@ import java.util.stream.Collectors;
  * Used to return district maps for state level districts.
  */
 @Service
-public class ShapefileService implements SingleDistrictService {
+public class ShapefileService {
     private final ShapefileTypeDao typeDao;
     private final ShapefileDao shapefileDao;
-    private ImmutableSortedMap<DistrictType, DistrictTableInfo> typeInfoCache;
-    private ImmutableSortedMap<DistrictType, SortedSet<DistrictMap>> districtMapCache;
+    private final ImmutableCache<DistrictType, DistrictTableInfo> typeInfoCache;
+    @Getter
+    private final DistrictCodeCache<DistrictMap> mapCache;
 
     @Autowired
     public ShapefileService(ShapefileTypeDao typeDao, ShapefileDao shapefileDao) {
         this.typeDao = typeDao;
         this.shapefileDao = shapefileDao;
-    }
-
-    /**
-     * Caches all the district maps from the database.
-     */
-    @PostConstruct
-    public void cacheDistrictGeometryData() {
-        this.typeInfoCache = ImmutableSortedMap.copyOf(typeDao.getTableInfos().stream()
+        // Order matters: mapCache relies on typeInfoCache indirectly.
+        // It needs to be created first so that it will be refreshed first.
+        this.typeInfoCache = new ImmutableCache<>(() -> this.typeDao.getTableInfos().stream()
                 .collect(Collectors.toMap(DistrictTableInfo::type, Function.identity())));
-        var tempMap = new HashMap<DistrictType, SortedSet<DistrictMap>>();
-        for (DistrictTableInfo tableInfo : typeInfoCache.values()) {
-            tempMap.put(tableInfo.type(), shapefileDao.getDistrictMaps(tableInfo));
+        this.mapCache = new DistrictCodeCache<>(this::getGeometryMap);
+    }
+
+    private Map<String, DistrictMap> getGeometryMap(DistrictType type) {
+        DistrictTableInfo tableInfo = typeInfoCache.get(type);
+        if (tableInfo == null) {
+            return null;
         }
-        this.districtMapCache = ImmutableSortedMap.copyOf(tempMap);
+        Set<DistrictMap> maps = shapefileDao.getDistrictMaps(tableInfo);
+        return maps.stream().collect(Collectors.toMap(DistrictMap::getDistrictCode, Function.identity()));
     }
 
-    @Override
-    public SingleDistrict getSingleDistrict(DistrictType type, String code) {
-        DistrictMap map = getDistrictMap(type, code);
-        String name = map == null ? null : map.getDistrictName();
-        return new SingleDistrict(code, name);
-    }
-
-    /** Provides a district map given a specific district */
+    /** Provides a district map given a specific type and district */
     public MapResult getMapResult(DistrictType districtType, String code) {
         if (code == null || code.isBlank()) {
             return new MapResult(ResultStatus.MISSING_DISTRICT_CODE);
         }
-        DistrictMap map = getDistrictMap(districtType, code);
+        DistrictMap map = mapCache.getData(districtType, code);
         if (map == null) {
             return new MapResult(ResultStatus.NO_MAP_RESULT);
         }
         return new MapResult(map);
-    }
-
-    /** Provides a collection of all district maps for a given type */
-    public MapListResult getDistrictMaps(DistrictType districtType) {
-        SortedSet<DistrictMap> mapSet = districtMapCache.get(districtType);
-        if (mapSet == null) {
-            return new MapListResult(ResultStatus.NO_MAP_RESULT);
-        }
-        return new MapListResult(mapSet);
     }
 
     /**
@@ -84,7 +68,7 @@ public class ShapefileService implements SingleDistrictService {
      * @return Maps of this intersection.
      */
     public IntersectResult getIntersectResult(DistrictType sourceType, String sourceId, DistrictType intersectWith) {
-        DistrictMap sourceMap = getDistrictMap(sourceType, sourceId);
+        DistrictMap sourceMap = mapCache.getData(sourceType, sourceId);
         DistrictTableInfo baseInfo = typeInfoCache.get(sourceType);
         if (baseInfo == null) {
             throw new NoShapefileForDistrictTypeException(sourceType);
@@ -95,11 +79,10 @@ public class ShapefileService implements SingleDistrictService {
         }
         List<IntersectMap> overlaps = shapefileDao.getDistrictOverlap(baseInfo, intersectWithInfo, sourceId)
                 .stream().map(info -> {
-                    SingleDistrict districtData = getSingleDistrict(intersectWith, info.code());
-                    var intersectMap = new IntersectMap(intersectWith, districtData);
+                    var intersectMap = new IntersectMap(intersectWith, info.code());
                     intersectMap.setMapGeoJson(info.geoJson());
                     intersectMap.setArea(info.area());
-                    intersectMap.setFullMapGeoJson(getDistrictMap(intersectWith, info.code()).getMapGeoJson());
+                    intersectMap.setFullMapGeoJson(mapCache.getData(intersectWith, info.code()).getMapGeoJson());
                     return intersectMap;
                 }).toList();
         return new IntersectResult(sourceMap, intersectWith, overlaps);
@@ -107,31 +90,14 @@ public class ShapefileService implements SingleDistrictService {
 
     public Boolean cleanMaps(DistrictType type) {
         Boolean result = shapefileDao.cleanMaps(typeDao.getDistrictTypeInfo(type));
-        cacheDistrictGeometryData();
+        mapCache.refresh();
         return result;
     }
 
-    public List<DistrictType> getTypes() {
-        return List.copyOf(typeInfoCache.keySet());
-    }
-
     public DistrictInfo getDistrictInfo(Geocode geocode, Set<DistrictType> districtTypes) {
-        Set<DistrictTableInfo> tableInfoSet = districtTypes.stream().map(type -> typeInfoCache.get(type))
+        Set<DistrictTableInfo> tableInfoSet = districtTypes.stream().map(typeInfoCache::get)
                 .filter(Objects::nonNull).collect(Collectors.toSet());
         Map<DistrictType, String> typeToCodeMap = shapefileDao.getCodes(geocode.point(), tableInfoSet);
-        Map<DistrictType, SingleDistrict> typeToDistrictMap = typeToCodeMap.entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey,
-                        entry -> getSingleDistrict(entry.getKey(), entry.getValue())
-                ));
-        return new DistrictInfo(typeToDistrictMap, geocode.accuracy());
-    }
-
-    private DistrictMap getDistrictMap(DistrictType type, String code) {
-        SortedSet<DistrictMap> maps = districtMapCache.get(type);
-        if (maps == null) {
-            return null;
-        }
-        return maps.stream().filter(dMap -> dMap.getDistrictCode().equalsIgnoreCase(code))
-                .findFirst().orElse(null);
+        return new DistrictInfo(typeToCodeMap, geocode.accuracy());
     }
 }
