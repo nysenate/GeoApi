@@ -50,14 +50,14 @@ public class MapController extends DistrictDataController<DistrictType> {
     // The @GetMapping is inherited.
     @Override
     public List<DisplayEnumResponse> options() {
-        return shapefileService.getMapCache().keySet().stream().map(DisplayEnumResponse::new).toList();
+        return shapefileService.getMapCache().keySet().stream().sorted()
+                .map(DisplayEnumResponse::new).toList();
     }
 
     /**
      * District Map Api
      * ---------------------------
-     * Get a requested District type district map if it exists
-     * Senate, Assembly, Congressional, Zip, County, Town, School boundaries are retrieved with this api
+     * Gets all maps of a single DistrictType, or a single district's map.
      * @see DistrictType
      * Usage:
      * (GET)    /api/v2/map/{distType}

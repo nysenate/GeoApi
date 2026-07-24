@@ -77,10 +77,10 @@ public class ShapefileDao extends BaseDao {
 
     public Set<DistrictMap> getDistrictMaps(DistrictTableInfo tableInfo) {
         String sql = GET_DISTRICT_MAPS.getSql(geometrySchema, tableInfo.getReplacements("type"));
-        return new HashSet<>(namedJdbcTemplate.query(sql, new DistrictCacheMapper(tableInfo.type())));
+        return new HashSet<>(namedJdbcTemplate.query(sql, new DistrictGeometryMapper(tableInfo.type())));
     }
 
-    private record DistrictCacheMapper(DistrictType type) implements RowMapper<DistrictMap> {
+    private record DistrictGeometryMapper(DistrictType type) implements RowMapper<DistrictMap> {
         @Override
         public DistrictMap mapRow(@Nonnull ResultSet rs, int rowNum) throws SQLException {
             String code = rs.getString("code");
@@ -103,7 +103,7 @@ public class ShapefileDao extends BaseDao {
             try {
                 namedJdbcTemplate.update(TRIM_CODES.getSql(geometrySchema, replacementMap), Map.of());
             } catch (BadSqlGrammarException ex) {
-                logger.warn("The code appears to be numeric. Skipping trimming...");
+                logger.warn("The code appears not to be numeric. Skipping trimming...");
             }
         }
         var callbackHandler = new CodeCallbackHandler();
