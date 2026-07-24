@@ -1,4 +1,4 @@
-package gov.nysenate.sage.dao.provider.nysgeo;
+package gov.nysenate.sage.dao.provider;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

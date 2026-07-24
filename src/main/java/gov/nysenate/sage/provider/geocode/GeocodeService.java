@@ -4,7 +4,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import gov.nysenate.sage.dao.post_office.PostOfficeDao;
-import gov.nysenate.sage.dao.provider.nysgeo.GeocoderDao;
+import gov.nysenate.sage.dao.provider.GeocoderDao;
 import gov.nysenate.sage.dao.stats.geocode.SqlGeocodeStatsDao;
 import gov.nysenate.sage.model.PostOfficeCache;
 import gov.nysenate.sage.model.address.Address;

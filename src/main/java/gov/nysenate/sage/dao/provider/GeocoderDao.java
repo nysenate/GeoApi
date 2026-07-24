@@ -1,4 +1,4 @@
-package gov.nysenate.sage.dao.provider.nysgeo;
+package gov.nysenate.sage.dao.provider;
 
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
