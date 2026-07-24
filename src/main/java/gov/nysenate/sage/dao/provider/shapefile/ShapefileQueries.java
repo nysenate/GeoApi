@@ -55,16 +55,7 @@ public enum ShapefileQueries implements BasicSqlQuery {
     IS_TYPE_VALID("""
             SELECT bool_and(ST_IsValid(geom)) AS valid
             FROM ${schema}.${type}
-            """),
-
-    GET_ALL_TYPE_INFO("""
-            SELECT * FROM ${schema}.%s
-            """.formatted(SqlTable.TYPE_INFO)),
-
-    GET_SINGLE_TYPE_INFO("""
-            SELECT * FROM ${schema}.%s
-            WHERE type_name ILIKE :typeName
-            """.formatted(SqlTable.TYPE_INFO));
+            """);
 
 
     private final String query;

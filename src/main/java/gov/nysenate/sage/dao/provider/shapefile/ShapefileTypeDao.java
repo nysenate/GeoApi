@@ -14,8 +14,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-import static gov.nysenate.sage.dao.provider.shapefile.ShapefileQueries.GET_ALL_TYPE_INFO;
-import static gov.nysenate.sage.dao.provider.shapefile.ShapefileQueries.GET_SINGLE_TYPE_INFO;
+import static gov.nysenate.sage.dao.provider.shapefile.ShapefileTypeQuery.GET_ALL_TYPE_INFO;
+import static gov.nysenate.sage.dao.provider.shapefile.ShapefileTypeQuery.GET_SINGLE_TYPE_INFO;
 
 /**
  * DAO to manipulate basic information related to shapefile tables in the database.
