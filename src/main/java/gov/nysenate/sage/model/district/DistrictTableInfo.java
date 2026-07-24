@@ -10,14 +10,18 @@ public record DistrictTableInfo(DistrictType type, String codeColumn, String nam
         if (StringUtils.isBlank(codeColumn)) {
             throw new IllegalArgumentException("codeColumn cannot be empty");
         }
-        // Many DistrictTypes do not have separate names
-        if (StringUtils.isBlank(nameColumn)) {
-            nameColumn = codeColumn;
+        if (nameColumn != null && nameColumn.isBlank()) {
+            throw new IllegalArgumentException("nameColumn should never be blank: use null instead");
         }
     }
 
     public Map<String, String> getReplacements(String typeReplacementName) {
-        return new HashMap<>(Map.of(typeReplacementName, type().name().toLowerCase(),
-                "codeColumn", codeColumn(), "nameColumn", nameColumn()));
+        var tempMap = new HashMap<String, String>();
+        tempMap.put(typeReplacementName, type().name().toLowerCase());
+        tempMap.put("codeColumn", codeColumn);
+        if (nameColumn != null) {
+            tempMap.put("nameColumn", nameColumn);
+        }
+        return tempMap;
     }
 }
