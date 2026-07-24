@@ -4,16 +4,22 @@ import com.google.common.collect.*;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.service.ImmutableCache;
 
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class DistrictCodeCache<T> extends ImmutableCache<DistrictType, ImmutableMap<String, T>> {
     public DistrictCodeCache(Function<DistrictType, Map<String, T>> supplier) {
-        super(() -> Arrays.stream(DistrictType.values()).collect(
-                Collectors.toMap(Function.identity(), type -> ImmutableMap.copyOf(supplier.apply(type)))
-        ));
+        super(() -> {
+            var tempMap = new HashMap<DistrictType, ImmutableMap<String, T>>();
+            for (DistrictType type : DistrictType.values()) {
+                Map<String, T> data = supplier.apply(type);
+                if (data != null) {
+                    tempMap.put(type, ImmutableMap.copyOf(data));
+                }
+            }
+            return tempMap;
+        });
     }
 
     public T getData(DistrictType type, String code) {

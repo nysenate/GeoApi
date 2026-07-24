@@ -7,9 +7,9 @@ public enum ShapefileQueries implements BasicSqlQuery {
     GET_DISTRICT_MAPS("""
             SELECT *, ST_AsGeoJson(full_geom) AS map, area_in_sq_km(full_geom) AS area
             FROM (
-                SELECT ${nameColumn} AS name, ${codeColumn} AS code, ST_Multi(ST_Union(geom)) AS full_geom
+                SELECT ${codeColumn} AS code, ST_Multi(ST_Union(geom)) AS full_geom
                 FROM ${schema}.${type}
-                GROUP BY ${nameColumn}, ${codeColumn}
+                GROUP BY ${codeColumn}
             ) AS temp"""),
 
     GET_DISTRICT_FROM_POINT("""

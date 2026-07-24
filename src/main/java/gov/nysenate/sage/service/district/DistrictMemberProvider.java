@@ -15,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -49,7 +48,11 @@ public class DistrictMemberProvider {
     }
 
     private Map<String, DistrictMember> getMemberMap(DistrictType type) {
-        return memberDao.getMembers(type).entrySet().stream()
+        Map<Long, DistrictMember> longToMemberMap = memberDao.getMembers(type);
+        if (longToMemberMap == null) {
+            return null;
+        }
+        return longToMemberMap.entrySet().stream()
                 .collect(Collectors.toMap(entry -> entry.getKey().toString(), Map.Entry::getValue));
     }
 
