@@ -1,7 +1,7 @@
 package gov.nysenate.sage.service;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import jakarta.annotation.Nonnull;
 
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -30,20 +30,16 @@ public class ImmutableCache<K, V> {
         dataMap = ImmutableMap.copyOf(mapSupplier.get());
     }
 
-    public ImmutableSet<K> keySet() {
-        ensureMapExists();
-        return dataMap.keySet();
-    }
-
-    public V get(K key) {
-        ensureMapExists();
-        return dataMap.get(key);
-    }
-
-    private void ensureMapExists() {
+    @Nonnull
+    public ImmutableMap<K, V> getMap() {
         // Theoretically two threads could run this at the same time, but it's not a big deal.
         if (dataMap == null) {
             refresh();
         }
+        return dataMap;
+    }
+
+    public V get(K key) {
+        return getMap().get(key);
     }
 }

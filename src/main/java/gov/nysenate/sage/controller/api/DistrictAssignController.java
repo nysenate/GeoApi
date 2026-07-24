@@ -2,6 +2,7 @@ package gov.nysenate.sage.controller.api;
 
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.base.BaseResponse;
+import gov.nysenate.sage.client.response.base.MapResponse;
 import gov.nysenate.sage.client.response.district.BatchDistrictResponse;
 import gov.nysenate.sage.client.response.district.DistrictResponse;
 import gov.nysenate.sage.dao.provider.DistrictNameDao;
@@ -35,15 +36,15 @@ import static gov.nysenate.sage.util.controller.ApiControllerUtil.*;
  */
 @RestController
 @RequestMapping(value = ConstantUtil.REST_PATH + "district")
-public class DistrictController extends DistrictDataController<LocalSource> {
+public class DistrictAssignController extends BaseDistrictController<LocalSource> {
     private final AddressService addressService;
     private final GeocodeService geocodeService;
     private final DistrictService districtService;
 
     @Autowired
-    public DistrictController(DistrictNameDao nameDao, ShapefileService shapefileService,
-                              DistrictMemberProvider memberProvider, AddressService addressService,
-                              GeocodeService geocodeService, DistrictService districtService) {
+    public DistrictAssignController(DistrictNameDao nameDao, ShapefileService shapefileService,
+                                    DistrictMemberProvider memberProvider, AddressService addressService,
+                                    GeocodeService geocodeService, DistrictService districtService) {
         super(nameDao, shapefileService, memberProvider);
         this.addressService = addressService;
         this.geocodeService = geocodeService;
@@ -133,6 +134,12 @@ public class DistrictController extends DistrictDataController<LocalSource> {
         return response;
     }
 
+    private void assignData(DistrictResponse response, boolean showMembers, boolean showMaps) {
+        for (var view : response.getDistricts().values()) {
+            assignData(view, showMembers, showMaps);
+        }
+    }
+
     /**
      * District Assignment Api
      * ---------------------------
@@ -156,9 +163,15 @@ public class DistrictController extends DistrictDataController<LocalSource> {
                 usePunct, false, lat, lon, addr, addr1, addr2, city, state, zip5, zip4);
     }
 
-    private void assignData(DistrictResponse response, boolean showMembers, boolean showMaps) {
-        for (var view : response.getDistricts().values()) {
-            assignData(view, showMembers, showMaps);
-        }
+    /**
+     * District Names Api
+     * ---------------------------
+     * Get a map from code -> name for a single district type.
+     * Usage:
+     * (GET)    /api/v2/district/names?type=SENATE
+     */
+    @GetMapping(value = "/names")
+    public MapResponse<String, String> names(@RequestParam String type) {
+        return new MapResponse<>(nameCache.get(getValue(DistrictType.class, type)));
     }
 }

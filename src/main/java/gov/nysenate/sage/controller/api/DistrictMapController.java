@@ -33,14 +33,14 @@ import static gov.nysenate.sage.model.result.ResultStatus.BAD_OVERLAY;
 
 @RestController
 @RequestMapping(value = ConstantUtil.REST_PATH + "map")
-public class MapController extends DistrictDataController<DistrictType> {
-    private static final Logger logger = LoggerFactory.getLogger(MapController.class);
+public class DistrictMapController extends BaseDistrictController<DistrictType> {
+    private static final Logger logger = LoggerFactory.getLogger(DistrictMapController.class);
     private final ShapefileService shapefileService;
     private final ImmutableCache<String, URI> linkCache;
 
     @Autowired
-    public MapController(DistrictNameDao nameDao, ShapefileService shapefileService,
-                         DistrictMemberProvider memberProvider, CountyDao countyDao) {
+    public DistrictMapController(DistrictNameDao nameDao, ShapefileService shapefileService,
+                                 DistrictMemberProvider memberProvider, CountyDao countyDao) {
         super(nameDao, shapefileService, memberProvider);
         this.shapefileService = shapefileService;
         this.linkCache = new ImmutableCache<>(() -> countyDao.getCounties()
@@ -50,8 +50,7 @@ public class MapController extends DistrictDataController<DistrictType> {
     // The @GetMapping is inherited.
     @Override
     public List<DisplayEnumResponse> options() {
-        return shapefileService.getMapCache().keySet().stream().sorted()
-                .map(DisplayEnumResponse::new).toList();
+        return mapCache.getMap().keySet().stream().sorted().map(DisplayEnumResponse::new).toList();
     }
 
     /**
