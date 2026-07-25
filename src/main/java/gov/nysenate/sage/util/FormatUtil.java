@@ -24,7 +24,7 @@ public final class FormatUtil {
     private FormatUtil() {}
 
     public static String cleanString(String string) {
-        if (string != null && string.isEmpty()) {
+        if (string != null && !string.isEmpty()) {
             return Jsoup.clean(string, Safelist.basic());
         }
         return string;

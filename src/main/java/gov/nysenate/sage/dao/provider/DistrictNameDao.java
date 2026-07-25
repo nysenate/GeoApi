@@ -71,7 +71,7 @@ public class DistrictNameDao extends BaseDao {
                 name = switch (tableInfo.type()) {
                     case COUNTY -> name + " County";
                     case TOWN_CITY -> townCityCodeToNameMap.get(code);
-                    case VILLAGE -> name + " Village";
+                    case VILLAGE -> "Village of " + name;
                     default -> defaultName(tableInfo.type(), name, code);
                 };
                 map.put(code, name);

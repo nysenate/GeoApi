@@ -37,7 +37,8 @@ public class DistrictResponse extends SourcedResponse {
         this.matchLevel = Objects.toString(districtResult.getDistrictInfo().accuracy(), null);
         for (DistrictType districtType : DistrictType.values()) {
             String currCode = districtResult.getDistrictInfo().getDistCode(districtType);
-            districts.put(getFieldName(districtType), new DistrictView(districtType, currCode));
+            districts.put(getFieldName(districtType),
+                    currCode == null ? null : new DistrictView(districtType, currCode));
         }
         if (geoAddr == null) {
             return;

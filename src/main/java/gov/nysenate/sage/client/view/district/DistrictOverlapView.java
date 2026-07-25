@@ -19,6 +19,8 @@ public class DistrictOverlapView extends DistrictMapView {
         super(intersectionMap);
         this.areaPercentage = new BigDecimal(100).multiply(getArea()).divide(baseArea, 2, RoundingMode.HALF_UP);
         this.fullMap = intersectionMap.getFullMapGeoJson();
+        // The clipped geometry only exists on this intersection, so it can't be filled in from the map cache.
+        setMap(intersectionMap.getMapGeoJson());
     }
 
     @JsonRawValue

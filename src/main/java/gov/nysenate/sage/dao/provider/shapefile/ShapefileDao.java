@@ -97,6 +97,9 @@ public class ShapefileDao extends BaseDao {
      * @return null if the type's table is empty, true if all of type's geometry is valid, and false otherwise.
      */
     public Boolean cleanMaps(DistrictTableInfo tableInfo) {
+        if (tableInfo == null) {
+            return null;
+        }
         Map<String, String> replacementMap = tableInfo.getReplacements("type");
         // Leading zeroes are meaningful only in zip codes.
         if (tableInfo.type() != DistrictType.ZIP) {

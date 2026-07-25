@@ -1,5 +1,6 @@
 package gov.nysenate.sage.client.view.map;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import gov.nysenate.sage.client.view.district.BaseDistrictView;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
@@ -20,6 +21,8 @@ public class DistrictMapView extends BaseDistrictView {
         this.area = districtMap.getArea();
     }
 
+    // Explicit marker so this getter survives the @JsonIgnore on BaseDistrictView#type.
+    @JsonProperty("type")
     public DistrictType getType() {
         return type;
     }

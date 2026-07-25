@@ -15,7 +15,8 @@ public class DistrictMemberCache extends DistrictCodeCache<DistrictMember> {
     @Override
     public DistrictMember getData(DistrictType type, String code) {
         DistrictMember result = super.getData(type, code);
-        if (result == null && type == DistrictType.SENATE) {
+        // We should only generate vacant members for real Senate seats.
+        if (result == null && type == DistrictType.SENATE && code != null) {
             return new DistrictMember(new MemberInfo("Vacant", "District " + code,
                     "https://www.nysenate.gov/themes/custom/nysenate_theme/dist/images/nys_logo_header240x240.jpg",
                     "https://www.nysenate.gov/district/" + code, null), null);
