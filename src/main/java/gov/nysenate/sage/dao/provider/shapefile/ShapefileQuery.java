@@ -1,9 +1,8 @@
 package gov.nysenate.sage.dao.provider.shapefile;
 
 import gov.nysenate.sage.dao.base.BasicSqlQuery;
-import gov.nysenate.sage.dao.base.SqlTable;
 
-public enum ShapefileQueries implements BasicSqlQuery {
+public enum ShapefileQuery implements BasicSqlQuery {
     GET_DISTRICT_MAPS("""
             SELECT *, ST_AsGeoJson(full_geom) AS map, area_in_sq_km(full_geom) AS area
             FROM (
@@ -42,14 +41,20 @@ public enum ShapefileQueries implements BasicSqlQuery {
     SET_UNION("""
             UPDATE ${schema}.${type}
             SET geom = (
-                SELECT ST_Multi(St_Union(geom)) FROM ${schema}.${type} WHERE ${codeColumn} = :code GROUP BY ${codeColumn}
+                SELECT ST_Multi(St_Union(geom)) FROM ${schema}.${type} WHERE ${codeColumn}::text = :code GROUP BY ${codeColumn}
             )
             WHERE gid = :mainGid
             """),
 
     DELETE_REDUNDANT_MAPS("""
             DELETE FROM ${schema}.${type}
-            WHERE ${codeColumn} = :code AND gid != :mainGid
+            WHERE ${codeColumn}::text = :code AND gid != :mainGid
+            """),
+
+    // Ensures that codes are unique identifiers.
+    ADD_UNIQUE_CODE_INDEX("""
+            CREATE UNIQUE INDEX IF NOT EXISTS ${type}_${codeColumn}_unique_idx
+            ON ${schema}.${type} (${codeColumn})
             """),
 
     IS_TYPE_VALID("""
@@ -60,7 +65,7 @@ public enum ShapefileQueries implements BasicSqlQuery {
 
     private final String query;
 
-    ShapefileQueries(String query) {
+    ShapefileQuery(String query) {
         this.query = query;
     }
 

@@ -18,7 +18,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
-import static gov.nysenate.sage.dao.provider.shapefile.ShapefileQueries.*;
+import static gov.nysenate.sage.dao.provider.shapefile.ShapefileQuery.*;
 
 @Repository
 public class ShapefileDao extends BaseDao {
@@ -106,7 +106,7 @@ public class ShapefileDao extends BaseDao {
             try {
                 namedJdbcTemplate.update(TRIM_CODES.getSql(geometrySchema, replacementMap), Map.of());
             } catch (BadSqlGrammarException ex) {
-                logger.warn("The code appears not to be numeric. Skipping trimming...");
+                logger.warn("The code appears to be numeric. Skipping trimming...");
             }
         }
         var callbackHandler = new CodeCallbackHandler();
@@ -116,6 +116,9 @@ public class ShapefileDao extends BaseDao {
             namedJdbcTemplate.update(SET_UNION.getSql(geometrySchema, replacementMap), params);
             namedJdbcTemplate.update(DELETE_REDUNDANT_MAPS.getSql(geometrySchema, replacementMap), params);
         }
+        namedJdbcTemplate.getJdbcOperations().execute(
+                ADD_UNIQUE_CODE_INDEX.getSql(geometrySchema, replacementMap)
+        );
         return namedJdbcTemplate.getJdbcOperations().queryForObject(
                 IS_TYPE_VALID.getSql(geometrySchema, replacementMap), Boolean.class
         );

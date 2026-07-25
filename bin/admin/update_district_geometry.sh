@@ -100,6 +100,12 @@ if [ -n "$NAME_RENAME" ]; then
   SQL_NAME_COLUMN="$NAME_RENAME"
 fi
 
+# Some NOT NULL enforcement to prevent problems in Java.
+psql -d "$database" -U "$db_user" -c "ALTER TABLE $TABLE ALTER COLUMN $SQL_CODE_COLUMN SET NOT NULL;" || exit 1
+if [ -n "$SQL_NAME_COLUMN" ]; then
+  psql -d "$database" -U "$db_user" -c "ALTER TABLE $TABLE ALTER COLUMN $SQL_NAME_COLUMN SET NOT NULL;" || exit 1
+fi
+
 # The name column is nullable, which requires some extra care.
 if [ -n "$SQL_NAME_COLUMN" ]; then
   NAME_VALUE="'$SQL_NAME_COLUMN'"
