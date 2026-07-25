@@ -7,10 +7,10 @@ import gov.nysenate.sage.client.view.map.DistrictMapView;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.MapResult;
 
-public class MapResponse extends SourcedResponse {
+public class MapGeometryResponse extends SourcedResponse {
     private DistrictMapView map;
 
-    public MapResponse(MapResult mapResult) {
+    public MapGeometryResponse(MapResult mapResult) {
         super(mapResult);
         if (mapResult != null && mapResult.isSuccess()) {
             map = new DistrictMapView(mapResult.getDistrictMap());

@@ -4,8 +4,8 @@ import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.client.response.district.DisplayEnumResponse;
 import gov.nysenate.sage.client.response.district.IntersectResponse;
-import gov.nysenate.sage.client.response.map.MapResponse;
-import gov.nysenate.sage.client.response.map.MultipleMapResponse;
+import gov.nysenate.sage.client.response.map.MapGeometryResponse;
+import gov.nysenate.sage.client.response.map.MultipleMapGeometryResponse;
 import gov.nysenate.sage.dao.model.county.CountyDao;
 import gov.nysenate.sage.dao.provider.DistrictNameDao;
 import gov.nysenate.sage.model.district.County;
@@ -74,7 +74,7 @@ public class DistrictMapController extends BaseDistrictController<DistrictType> 
                 return new ApiError(ResultStatus.UNSUPPORTED_DISTRICT_MAP);
             }
 
-            var response = new MultipleMapResponse(new MapListResult(mapResult));
+            var response = new MultipleMapGeometryResponse(new MapListResult(mapResult));
             response.getMapViews().forEach(
                     dmv -> assignData(dmv, showMembers, !meta)
             );
@@ -89,7 +89,7 @@ public class DistrictMapController extends BaseDistrictController<DistrictType> 
         district = FormatUtil.cleanString(district);
         logger.debug("Retrieving {} district {} map.", districtType.name(), district);
         MapResult mapResult = shapefileService.getMapResult(districtType, district);
-        var response = new MapResponse(mapResult);
+        var response = new MapGeometryResponse(mapResult);
         assignData(response.getMapView(), showMembers, !meta);
         return response;
     }

@@ -8,10 +8,10 @@ import gov.nysenate.sage.model.result.MapListResult;
 
 import java.util.*;
 
-public class MultipleMapResponse extends SourcedResponse {
+public class MultipleMapGeometryResponse extends SourcedResponse {
     private final List<DistrictMapView> districtMapViews = new ArrayList<>();
 
-    public MultipleMapResponse(MapListResult mapResult) {
+    public MultipleMapGeometryResponse(MapListResult mapResult) {
         super(mapResult);
         if (mapResult != null && mapResult.isSuccess()) {
             for (DistrictMap map : mapResult.getDistrictMaps().values()) {
@@ -27,15 +27,15 @@ public class MultipleMapResponse extends SourcedResponse {
 
     // Ensures maps show up in dropdowns in the proper order.
     public List<DistrictMapView> getDistricts() {
-        return districtMapViews.stream().sorted(MultipleMapResponse::getComparator).toList();
+        return districtMapViews.stream().sorted(MultipleMapGeometryResponse::getComparator).toList();
     }
 
     private static int getComparator(DistrictMapView o1, DistrictMapView o2) {
-        String baseName1 = String.valueOf(o1.getName()).split(" of ")[0];
-        String baseName2 = String.valueOf(o2.getName()).split(" of ")[0];
+        String baseName1 = o1.getName().replaceAll(".* of ", "");
+        String baseName2 = o2.getName().replaceAll(".* of ", "");
         int i = Arrays.mismatch(baseName1.toCharArray(), baseName2.toCharArray());
         if (i < 0) {
-            return 0;
+            return o1.getName().compareTo(o2.getName());
         }
         // It's common for names to have a common form, e.g. District x, where x is the code.
         // These should be sorted by the code.

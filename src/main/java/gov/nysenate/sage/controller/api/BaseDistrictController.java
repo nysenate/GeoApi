@@ -8,9 +8,7 @@ import gov.nysenate.sage.provider.district.ShapefileService;
 import gov.nysenate.sage.service.district.DistrictCodeCache;
 import gov.nysenate.sage.service.district.DistrictMemberProvider;
 import gov.nysenate.sage.util.HasDisplayName;
-import org.springframework.stereotype.Controller;
 
-@Controller
 public abstract class BaseDistrictController<E extends Enum<E> & HasDisplayName> extends SourcedController<E> {
     protected final DistrictCodeCache<String> nameCache;
     protected final DistrictCodeCache<DistrictMap> mapCache;
