@@ -2,7 +2,7 @@ package gov.nysenate.sage.controller.api;
 
 import gov.nysenate.sage.client.response.base.ApiError;
 import gov.nysenate.sage.client.response.base.BaseResponse;
-import gov.nysenate.sage.client.response.base.MapResponse;
+import gov.nysenate.sage.client.response.base.ListResponse;
 import gov.nysenate.sage.client.response.district.BatchDistrictResponse;
 import gov.nysenate.sage.client.response.district.DistrictResponse;
 import gov.nysenate.sage.model.address.Address;
@@ -167,11 +167,27 @@ public class DistrictAssignController extends BaseDistrictController<LocalSource
      * District Names Api
      * ---------------------------
      * Get a map from code -> name for a single district type.
+     * We can't simply serialize a map here, because XML doesn't allow numeric keys.
      * Usage:
      * (GET)    /api/v2/district/names?type=SENATE
      */
     @GetMapping(value = "/names")
-    public MapResponse<String, String> names(@RequestParam String type) {
-        return new MapResponse<>(nameCache.get(getValue(DistrictType.class, type)));
+    public ListResponse<Map.Entry<String, String>> names(@RequestParam String type) {
+        return new ListResponse<>(nameCache.get(getValue(DistrictType.class, type)).entrySet()
+                .stream().sorted((entry1, entry2) ->
+                        NUMBERS_FIRST.compare(entry1.getKey(), entry2.getKey())).toList());
     }
+
+    private static Long asLong(String s) {
+        try {
+            return Long.parseLong(s);
+        }
+        catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private static final Comparator<String> NUMBERS_FIRST =
+            Comparator.comparing(DistrictAssignController::asLong, Comparator.nullsLast(Comparator.naturalOrder()))
+                    .thenComparing(Comparator.naturalOrder());
 }

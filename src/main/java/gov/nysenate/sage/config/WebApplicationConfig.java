@@ -1,5 +1,6 @@
 package gov.nysenate.sage.config;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import gov.nysenate.sage.controller.interceptor.PageSetupInterceptor;
 import gov.nysenate.sage.dao.logger.deployment.SqlDeploymentLogger;
 import org.apache.logging.log4j.LogManager;
@@ -10,6 +11,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
@@ -23,7 +26,9 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 @Configuration
 @EnableWebMvc
@@ -86,6 +91,21 @@ public class WebApplicationConfig implements WebMvcConfigurer {
     public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
         configurer.defaultContentType(MediaType.APPLICATION_JSON)
                 .favorParameter(true).ignoreAcceptHeader(true);
+    }
+
+    /**
+     * By default, a Map.Entry is serialized with the key becoming the field name, which is
+     * invalid XML whenever that key is numeric. Requesting the OBJECT shape instead makes
+     * Jackson fall back to MapEntryAsPOJOSerializer, which writes plain key and value fields.
+     */
+    @Override
+    public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+        for (var converter : converters) {
+            if (converter instanceof AbstractJackson2HttpMessageConverter jacksonConverter) {
+                jacksonConverter.getObjectMapper().configOverride(Map.Entry.class)
+                        .setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.OBJECT));
+            }
+        }
     }
 
     /**
