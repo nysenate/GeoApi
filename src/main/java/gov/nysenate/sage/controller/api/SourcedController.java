@@ -34,7 +34,7 @@ public abstract class SourcedController<E extends Enum<E> & HasDisplayName> exte
         return new ApiError(UNSUPPORTED_DISTRICT_MAP);
     }
 
-    protected  <T extends Enum<T>> T getValue(Class<T> enumClass, String strValue) {
+    protected <T extends Enum<T>> T getValue(Class<T> enumClass, String strValue) {
         try {
             return T.valueOf(enumClass, strValue.trim().toUpperCase());
         } catch (NullPointerException | IllegalArgumentException e) {
@@ -46,7 +46,7 @@ public abstract class SourcedController<E extends Enum<E> & HasDisplayName> exte
         return getValue(sourceClass, strValue);
     }
 
-    protected  <T extends Enum<T>> List<T> getListOrNull(Class<T> enumClass, String strValue) {
+    protected <T extends Enum<T>> List<T> getListOrNull(Class<T> enumClass, String strValue) {
         if (strValue == null || strValue.isBlank()) {
             return null;
         }
