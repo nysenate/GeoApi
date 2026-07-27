@@ -58,7 +58,7 @@ public class DistrictResponse extends SourcedResponse {
     private static String getFieldName(DistrictType type) {
         return switch (type) {
             case TOWN_CITY -> "town";
-            case COUNTY_LEG -> "cleg";
+            case COUNTY_LEGISLATURE -> "cleg";
             default -> CaseUtils.toCamelCase(type.name(), false, '_');
         };
     }
