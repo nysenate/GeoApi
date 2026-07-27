@@ -1,12 +1,12 @@
 package gov.nysenate.sage.controller.api;
 
 import gov.nysenate.sage.client.view.district.BaseDistrictView;
-import gov.nysenate.sage.dao.provider.DistrictNameDao;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictMember;
 import gov.nysenate.sage.provider.district.ShapefileService;
 import gov.nysenate.sage.service.district.DistrictCodeCache;
 import gov.nysenate.sage.service.district.DistrictMemberProvider;
+import gov.nysenate.sage.service.district.DistrictNameCache;
 import gov.nysenate.sage.util.HasDisplayName;
 
 public abstract class BaseDistrictController<E extends Enum<E> & HasDisplayName> extends SourcedController<E> {
@@ -14,9 +14,9 @@ public abstract class BaseDistrictController<E extends Enum<E> & HasDisplayName>
     protected final DistrictCodeCache<DistrictMap> mapCache;
     protected final DistrictCodeCache<DistrictMember> memberCache;
 
-    protected BaseDistrictController(DistrictNameDao nameDao, ShapefileService shapefileService,
+    protected BaseDistrictController(DistrictNameCache nameCache, ShapefileService shapefileService,
                                      DistrictMemberProvider memberProvider) {
-        this.nameCache = new DistrictCodeCache<>(nameDao::getNameMap);
+        this.nameCache = nameCache;
         this.mapCache = shapefileService.getMapCache();
         this.memberCache = memberProvider.getMemberCache();
     }

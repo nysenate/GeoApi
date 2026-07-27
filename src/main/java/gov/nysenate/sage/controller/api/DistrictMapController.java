@@ -7,7 +7,6 @@ import gov.nysenate.sage.client.response.district.IntersectResponse;
 import gov.nysenate.sage.client.response.map.MapGeometryResponse;
 import gov.nysenate.sage.client.response.map.MultipleMapGeometryResponse;
 import gov.nysenate.sage.dao.model.county.CountyDao;
-import gov.nysenate.sage.dao.provider.DistrictNameDao;
 import gov.nysenate.sage.model.district.County;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
@@ -18,6 +17,7 @@ import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.district.ShapefileService;
 import gov.nysenate.sage.service.ImmutableCache;
 import gov.nysenate.sage.service.district.DistrictMemberProvider;
+import gov.nysenate.sage.service.district.DistrictNameCache;
 import gov.nysenate.sage.util.FormatUtil;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.slf4j.Logger;
@@ -39,9 +39,9 @@ public class DistrictMapController extends BaseDistrictController<DistrictType> 
     private final ImmutableCache<String, URI> linkCache;
 
     @Autowired
-    public DistrictMapController(DistrictNameDao nameDao, ShapefileService shapefileService,
+    public DistrictMapController(DistrictNameCache nameCache, ShapefileService shapefileService,
                                  DistrictMemberProvider memberProvider, CountyDao countyDao) {
-        super(nameDao, shapefileService, memberProvider);
+        super(nameCache, shapefileService, memberProvider);
         this.shapefileService = shapefileService;
         this.linkCache = new ImmutableCache<>(() -> countyDao.getCounties()
                 .stream().collect(Collectors.toMap(county -> String.valueOf(county.code()), County::link)));

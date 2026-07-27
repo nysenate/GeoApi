@@ -5,7 +5,6 @@ import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.client.response.base.MapResponse;
 import gov.nysenate.sage.client.response.district.BatchDistrictResponse;
 import gov.nysenate.sage.client.response.district.DistrictResponse;
-import gov.nysenate.sage.dao.provider.DistrictNameDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.district.DistrictType;
@@ -18,6 +17,7 @@ import gov.nysenate.sage.provider.geocode.GeocodeService;
 import gov.nysenate.sage.provider.geocode.Geocoder;
 import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.service.district.DistrictMemberProvider;
+import gov.nysenate.sage.service.district.DistrictNameCache;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,10 +42,10 @@ public class DistrictAssignController extends BaseDistrictController<LocalSource
     private final DistrictService districtService;
 
     @Autowired
-    public DistrictAssignController(DistrictNameDao nameDao, ShapefileService shapefileService,
+    public DistrictAssignController(DistrictNameCache nameCache, ShapefileService shapefileService,
                                     DistrictMemberProvider memberProvider, AddressService addressService,
                                     GeocodeService geocodeService, DistrictService districtService) {
-        super(nameDao, shapefileService, memberProvider);
+        super(nameCache, shapefileService, memberProvider);
         this.addressService = addressService;
         this.geocodeService = geocodeService;
         this.districtService = districtService;
