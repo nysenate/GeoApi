@@ -32,11 +32,11 @@ public class DistrictResponse extends SourcedResponse {
         if (districtResult == null) {
             return;
         }
-        this.districtAssigned = !districtResult.getAssignedDistricts().isEmpty();
-        this.senateAssigned = districtResult.getAssignedDistricts().contains(DistrictType.SENATE);
-        this.matchLevel = Objects.toString(districtResult.getDistrictInfo().accuracy(), null);
+        this.districtAssigned = !districtResult.getAssignedDistrictTypes().isEmpty();
+        this.senateAssigned = districtResult.getAssignedDistrictTypes().contains(DistrictType.SENATE);
+        this.matchLevel = Objects.toString(districtResult.getAssignedDistricts().accuracy(), null);
         for (DistrictType districtType : DistrictType.values()) {
-            String currCode = districtResult.getDistrictInfo().getDistCode(districtType);
+            String currCode = districtResult.getAssignedDistricts().getDistCode(districtType);
             districts.put(getFieldName(districtType),
                     currCode == null ? null : new DistrictView(districtType, currCode));
         }

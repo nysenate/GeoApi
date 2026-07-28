@@ -84,14 +84,14 @@ public class StreetfileDao extends BaseDao {
      * Performs a lookup in the streetfile table, consolidating districts if needed.
      * @return a districted address, with the highest possible match level.
      */
-    public DistrictInfo getDistrictInfo(Address addr) {
+    public AssignedDistricts getDistrictInfo(Address addr) {
         return getDistrictInfo(addr, Accuracy.HOUSE);
     }
 
-    private DistrictInfo getDistrictInfo(Address addr, Accuracy accuracy) {
+    private AssignedDistricts getDistrictInfo(Address addr, Accuracy accuracy) {
         logger.debug("Getting district info for {} at level {}", addr, accuracy);
         if (addr == null || accuracy == Accuracy.UNKNOWN || accuracy == null) {
-            return DistrictInfo.empty;
+            return AssignedDistricts.empty;
         }
         var whereList = new ArrayList<String>();
         var params = new MapSqlParameterSource();
@@ -124,7 +124,7 @@ public class StreetfileDao extends BaseDao {
             }
         }
         if (whereList.isEmpty()) {
-            return DistrictInfo.empty;
+            return AssignedDistricts.empty;
         }
 
         checkLock();
@@ -135,7 +135,7 @@ public class StreetfileDao extends BaseDao {
             return getDistrictInfo(addr, accuracy.getNextHighestLevel());
         }
         return DistrictUtil.getDistrictInfoWithoutConflicts(ranges.stream()
-                .map(DistrictedStreetRange::districtInfo).toList(), accuracy);
+                .map(DistrictedStreetRange::assignedDistricts).toList(), accuracy);
     }
 
     /**
@@ -172,7 +172,7 @@ public class StreetfileDao extends BaseDao {
                     typeToDistrictMap.put(type, code);
                 }
             }
-            return new DistrictedStreetRange(sar, new DistrictInfo(typeToDistrictMap, Accuracy.HOUSE));
+            return new DistrictedStreetRange(sar, new AssignedDistricts(typeToDistrictMap, Accuracy.HOUSE));
         }
     }
 }

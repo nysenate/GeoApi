@@ -4,10 +4,12 @@ import gov.nysenate.sage.client.response.base.SourcedResponse;
 import gov.nysenate.sage.client.view.street.StreetRangeView;
 import gov.nysenate.sage.model.address.DistrictedStreetRange;
 import gov.nysenate.sage.model.result.StreetResult;
+import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
 public class StreetResponse extends SourcedResponse {
     protected List<StreetRangeView> streets = new ArrayList<>();
 
@@ -20,7 +22,4 @@ public class StreetResponse extends SourcedResponse {
         }
     }
 
-    public List<StreetRangeView> getStreets() {
-        return streets;
-    }
 }

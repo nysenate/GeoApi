@@ -95,10 +95,10 @@ public class ShapefileService {
         return result;
     }
 
-    public DistrictInfo getDistrictInfo(Geocode geocode, Set<DistrictType> districtTypes) {
+    public AssignedDistricts getDistrictInfo(Geocode geocode, Set<DistrictType> districtTypes) {
         Set<DistrictTableInfo> tableInfoSet = districtTypes.stream().map(typeInfoCache::get)
                 .filter(Objects::nonNull).collect(Collectors.toSet());
         Map<DistrictType, String> typeToCodeMap = shapefileDao.getCodes(geocode.point(), tableInfoSet);
-        return new DistrictInfo(typeToCodeMap, geocode.accuracy());
+        return new AssignedDistricts(typeToCodeMap, geocode.accuracy());
     }
 }

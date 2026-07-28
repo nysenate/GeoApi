@@ -10,10 +10,10 @@ import java.util.Set;
 /**
  * A container for all assigned district names and codes.
  */
-public record DistrictInfo(ImmutableMap<DistrictType, String> typeToDistrictMap, Accuracy accuracy) {
-    public static final DistrictInfo empty = new DistrictInfo(Map.of(), null);
+public record AssignedDistricts(ImmutableMap<DistrictType, String> typeToDistrictMap, Accuracy accuracy) {
+    public static final AssignedDistricts empty = new AssignedDistricts(Map.of(), null);
 
-    public DistrictInfo(Map<DistrictType, String> typeToDistrictMap, Accuracy accuracy) {
+    public AssignedDistricts(Map<DistrictType, String> typeToDistrictMap, Accuracy accuracy) {
         this(ImmutableMap.copyOf(typeToDistrictMap), accuracy);
     }
 

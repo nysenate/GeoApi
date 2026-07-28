@@ -10,7 +10,7 @@ import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.address.GeocodedPostOfficeBox;
 import gov.nysenate.sage.model.address.PostOfficeBox;
-import gov.nysenate.sage.model.district.DistrictInfo;
+import gov.nysenate.sage.model.district.AssignedDistricts;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.ResultStatus;
@@ -80,15 +80,15 @@ public class DistrictService {
         Set<DistrictType> typesToAssign = EnumSet.copyOf(requiredTypes);
         for (LocalSource provider : providers) {
             ResultStatus status = getStatus(geocodedAddress, provider);
-            DistrictInfo districtInfo = DistrictInfo.empty;
+            AssignedDistricts assignedDistricts = AssignedDistricts.empty;
             if (status == SUCCESS) {
-                districtInfo = switch (provider) {
+                assignedDistricts = switch (provider) {
                     case STREETFILE -> streetfileDao.getDistrictInfo(address);
                     case SHAPEFILE -> shapefileService.getDistrictInfo(geocodedAddress.getGeocode(), typesToAssign);
                 };
-                typesToAssign.removeAll(districtInfo.getAssignedTypes());
+                typesToAssign.removeAll(assignedDistricts.getAssignedTypes());
             }
-            results.add(new DistrictResult(List.of(provider), status, districtInfo));
+            results.add(new DistrictResult(List.of(provider), status, assignedDistricts));
         }
         return DistrictUtil.consolidateResults(results);
     }

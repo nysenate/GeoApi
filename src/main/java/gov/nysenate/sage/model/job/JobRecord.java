@@ -3,12 +3,13 @@ package gov.nysenate.sage.model.job;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.Accuracy;
-import gov.nysenate.sage.model.district.DistrictInfo;
+import gov.nysenate.sage.model.district.AssignedDistricts;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.result.AddressResult;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,9 +22,13 @@ public class JobRecord {
     private final Map<Column, Integer> indexMap;
     private final Map<Column, Object> dataMap = new HashMap<>();
 
+    @Getter
     private final Address address;
+    @Getter
     private Address correctedAddress;
+    @Getter
     private GeocodedAddress geocodedAddress;
+    @Getter
     private Accuracy accuracy;
 
     public JobRecord(Map<Column, Integer> indexMap, List<Object> row) {
@@ -94,31 +99,15 @@ public class JobRecord {
 
     public void applyDistrictResult(DistrictResult districtResult) {
         if (districtResult != null && districtResult.isSuccess()) {
-            DistrictInfo districtInfo = districtResult.getDistrictInfo();
-            this.accuracy = districtInfo.accuracy();
+            AssignedDistricts assignedDistricts = districtResult.getAssignedDistricts();
+            this.accuracy = assignedDistricts.accuracy();
             for (Column column : Column.values()) {
                 if (column.group() != Column.Group.district) {
                     continue;
                 }
-                dataMap.put(column, districtInfo.getDistCode(DistrictType.valueOf(column.name().toUpperCase())));
+                dataMap.put(column, assignedDistricts.getDistCode(DistrictType.valueOf(column.name().toUpperCase())));
             }
         }
-    }
-
-    public Address getAddress() {
-        return address;
-    }
-
-    public Address getCorrectedAddress() {
-        return correctedAddress;
-    }
-
-    public GeocodedAddress getGeocodedAddress() {
-        return geocodedAddress;
-    }
-
-    public Accuracy getAccuracy() {
-        return accuracy;
     }
 
     public Set<Column> getAssignedDistricts() {

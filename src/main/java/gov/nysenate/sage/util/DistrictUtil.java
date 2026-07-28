@@ -14,10 +14,10 @@ public final class DistrictUtil {
     public static DistrictResult consolidateResultsWithoutConflicts(Collection<DistrictResult> districtResults) {
         districtResults = districtResults.stream().filter(BaseResult::isSuccess).toList();
         Accuracy consolidatedAccuracy = Accuracy.getMin(
-                districtResults.stream().map(result -> result.getDistrictInfo().accuracy()).toList()
+                districtResults.stream().map(result -> result.getAssignedDistricts().accuracy()).toList()
         );
-        DistrictInfo consolidatedInfo = DistrictUtil.getDistrictInfoWithoutConflicts(
-                districtResults.stream().map(DistrictResult::getDistrictInfo).toList(), consolidatedAccuracy);
+        AssignedDistricts consolidatedInfo = DistrictUtil.getDistrictInfoWithoutConflicts(
+                districtResults.stream().map(DistrictResult::getAssignedDistricts).toList(), consolidatedAccuracy);
         List<LocalSource> sources  = districtResults.stream().map(BaseResult::getSources)
                 .flatMap(Collection::stream).toList();
         return new DistrictResult(sources, consolidatedInfo);
@@ -26,17 +26,17 @@ public final class DistrictUtil {
     /**
      * Returns a DistrictInfo without conflicts between codes.
      */
-    public static DistrictInfo getDistrictInfoWithoutConflicts(List<DistrictInfo> districtInfoList,
-                                                               Accuracy accuracy) {
+    public static AssignedDistricts getDistrictInfoWithoutConflicts(List<AssignedDistricts> assignedDistrictsList,
+                                                                    Accuracy accuracy) {
         Map<DistrictType, String> typeToDistrictMap = new HashMap<>();
         for (DistrictType distType : DistrictType.values()) {
-            List<String> codes = districtInfoList.stream()
+            List<String> codes = assignedDistrictsList.stream()
                     .map(info -> info.getDistCode(distType)).filter(Objects::nonNull).distinct().toList();
             if (codes.size() == 1) {
                 typeToDistrictMap.put(distType, codes.getFirst());
             }
         }
-        return new DistrictInfo(typeToDistrictMap, accuracy);
+        return new AssignedDistricts(typeToDistrictMap, accuracy);
     }
 
     /**
@@ -53,7 +53,7 @@ public final class DistrictUtil {
         var sourcesUsed = new ArrayList<LocalSource>();
         for (DistrictType distType : DistrictType.values()) {
             for (DistrictResult result : results) {
-                String code = result.getDistrictInfo().getDistCode(distType);
+                String code = result.getAssignedDistricts().getDistCode(distType);
                 if (code != null) {
                     typeToDistrictMap.put(distType, code);
                     sourcesUsed.addAll(result.getSources());
@@ -62,7 +62,7 @@ public final class DistrictUtil {
             }
         }
 
-        var finalDistInfo = new DistrictInfo(typeToDistrictMap, first.getDistrictInfo().accuracy());
+        var finalDistInfo = new AssignedDistricts(typeToDistrictMap, first.getAssignedDistricts().accuracy());
         return new DistrictResult(sourcesUsed, finalDistInfo);
     }
 }

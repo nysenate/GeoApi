@@ -1,6 +1,6 @@
 package gov.nysenate.sage.model.result;
 
-import gov.nysenate.sage.model.district.DistrictInfo;
+import gov.nysenate.sage.model.district.AssignedDistricts;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.provider.district.LocalSource;
 import lombok.Getter;
@@ -15,23 +15,23 @@ import static gov.nysenate.sage.model.result.ResultStatus.SUCCESS;
  */
 @Getter
 public class DistrictResult extends BaseResult<LocalSource> {
-    private final DistrictInfo districtInfo;
+    private final AssignedDistricts assignedDistricts;
 
-    public DistrictResult(List<LocalSource> sources, DistrictInfo districtInfo) {
-        this(sources, SUCCESS, districtInfo);
+    public DistrictResult(List<LocalSource> sources, AssignedDistricts assignedDistricts) {
+        this(sources, SUCCESS, assignedDistricts);
     }
 
     public DistrictResult(ResultStatus status) {
-        this(null, status, DistrictInfo.empty);
+        this(null, status, AssignedDistricts.empty);
     }
 
-    public DistrictResult(List<LocalSource> sources, ResultStatus status, DistrictInfo districtInfo) {
+    public DistrictResult(List<LocalSource> sources, ResultStatus status, AssignedDistricts assignedDistricts) {
         super(sources, status);
-        this.districtInfo = districtInfo;
+        this.assignedDistricts = assignedDistricts;
     }
 
     /** Accessor method to the set of assigned districts stored in DistrictInfo */
-    public Set<DistrictType> getAssignedDistricts() {
-        return getDistrictInfo() == null ? Set.of() : getDistrictInfo().typeToDistrictMap().keySet();
+    public Set<DistrictType> getAssignedDistrictTypes() {
+        return assignedDistricts.getAssignedTypes();
     }
 }
