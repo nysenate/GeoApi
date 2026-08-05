@@ -16,6 +16,9 @@ public enum DistrictType implements HasDisplayName {
     }
 
     public boolean coversState() {
-        return this != WARD && this != CITY_COUNCIL && this != COUNTY_LEGISLATURE && this != VILLAGE;
+        return switch (this) {
+            case WARD, CITY_COUNCIL, COUNTY_LEGISLATURE, VILLAGE -> false;
+            default -> true;
+        };
     }
 }
