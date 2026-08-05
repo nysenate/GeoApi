@@ -90,8 +90,7 @@ public class ShapefileService {
 
     public Boolean cleanMaps(DistrictType type) {
         Boolean result = shapefileDao.cleanMaps(typeDao.getDistrictTypeInfo(type));
-        typeInfoCache.refresh();
-        mapCache.refresh();
+        ImmutableCache.refreshAll();
         return result;
     }
 
