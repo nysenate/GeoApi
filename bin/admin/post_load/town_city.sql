@@ -1,11 +1,5 @@
 -- Run by update_district_geometry.sh after it reloads districts.town_city.
 
---Corrects to use legal names.
-UPDATE districts.town_city
-SET name = replace(name, 'St ', 'St. '),
-    county = replace(county, 'St ', 'St. ')
-WHERE name LIKE '%St %' OR county LIKE '%St %';
-
 ALTER TABLE districts.town_city ADD COLUMN display_code text;
 
 UPDATE districts.town_city SET display_code = upper(name);
@@ -32,62 +26,64 @@ ALTER TABLE districts.town_city
 
 -- Some codes need to be set manually, mostly because multiple entries would otherwise have the same abbreviation.
 WITH conflicts (name, abbrev) AS (VALUES
-    ('Alexandria',     'ALEXAD'),
-    ('Beekmantown',    'BEEKMT'),
-    ('Cambridge',      'CAMBRD'),
-    ('Carrollton',     'CARROT'),
-    ('Cherry Valley',  'CHERRV'),
-    ('Chesterfield',   'CHESTF'),
-    ('Clarendon',      'CLARED'),
-    ('Clarkstown',     'CLARKT'),
-    ('Clarksville',    'CLARKV'),
-    ('Clifton Park',   'CLIFTP'),
-    ('Columbus',       'COLUMS'),
-    ('Constable',      'CONSTB'),
-    ('Cortlandville',  'CORTLV'),
-    ('Ellicottville',  'ELLICV'),
-    ('Forestburgh',    'FORESB'),
-    ('Franklinville',  'FRANKV'),
-    ('Gainesville',    'GAINEV'),
-    ('Genesee Falls',  'GENESF'),
-    ('Geneseo',        'GENESO'),
-    ('German Flatts',  'GERMAF'),
-    ('Germantown',     'GERMAT'),
-    ('Greenwood',      'GREEND'),
-    ('Hamptonburgh',   'HAMPTB'),
-    ('Harrisburg',     'HARRIB'),
-    ('Highland',       'HIGHLD'),
-    ('Little Valley',  'LITTLV'),
-    ('Middleburgh',    'MIDDLB'),
-    ('Middlefield',    'MIDDLF'),
-    ('Middlesex',      'MIDDLS'),
-    ('Morristown',     'MORRIT'),
-    ('New Hartford',   'NEW HF'),
-    ('New York',       '-NYC'),
-    ('Orangetown',     'ORANGT'),
-    ('Orangeville',    'ORANGV'),
-    ('Parishville',    'PARISV'),
-    ('Pittsfield',     'PITTSD'),
-    ('Prattsville',    'PRATTV'),
-    ('Putnam Valley',  'PUTNAV'),
-    ('Red Hook',       'RED HK'),
-    ('Richmondville',  'RICHMV'),
-    ('Schuyler Falls', 'SCHUYF'),
-    ('Seneca Falls',   'SENECF'),
-    ('Somerset',       'SOMERT'),
-    ('Springfield',    'SPRINF'),
-    ('Springport',     'SPRINP'),
-    ('Stony Point',    'STONYP'),
-    ('Union Vale',     'UNIONV'),
-    ('Victory',        'VICTOY'),
-    ('Warrensburg',    'WARREB'),
-    ('Watervliet',     '-WATEV'),
-    ('Western',        'WESTEN'),
-    ('Williamstown',   'WILLIM'),
+    ('Alexandria',      'ALEXAD'),
+    ('Beekmantown',     'BEEKMT'),
+    ('Cambridge',       'CAMBRD'),
+    ('Carrollton',      'CARROT'),
+    ('Cherry Valley',   'CHERRV'),
+    ('Chesterfield',    'CHESTF'),
+    ('Clarendon',       'CLARED'),
+    ('Clarkstown',      'CLARKT'),
+    ('Clarksville',     'CLARKV'),
+    ('Clifton Park',    'CLIFTP'),
+    ('Columbus',        'COLUMS'),
+    ('Constable',       'CONSTB'),
+    ('Cortlandville',   'CORTLV'),
+    ('Ellicottville',   'ELLICV'),
+    ('Forestburgh',     'FORESB'),
+    ('Franklinville',   'FRANKV'),
+    ('Gainesville',     'GAINEV'),
+    ('Genesee Falls',   'GENESF'),
+    ('Geneseo',         'GENESO'),
+    ('German Flatts',   'GERMAF'),
+    ('Germantown',      'GERMAT'),
+    ('Greenwood',       'GREEND'),
+    ('Hamptonburgh',    'HAMPTB'),
+    ('Harrisburg',      'HARRIB'),
+    ('Highland',        'HIGHLD'),
+    ('Little Valley',   'LITTLV'),
+    ('Middleburgh',     'MIDDLB'),
+    ('Middlefield',     'MIDDLF'),
+    ('Middlesex',       'MIDDLS'),
+    ('Morristown',      'MORRIT'),
+    ('New Hartford',    'NEW HF'),
+    ('New York',        '-NYC'),
+    ('Orangetown',      'ORANGT'),
+    ('Orangeville',     'ORANGV'),
+    ('Parishville',     'PARISV'),
+    ('Pittsfield',      'PITTSD'),
+    ('Prattsville',     'PRATTV'),
+    ('Putnam Valley',   'PUTNAV'),
+    ('Red Hook',        'RED HK'),
+    ('Richmondville',   'RICHMV'),
+    ('Schuyler Falls',  'SCHUYF'),
+    ('Seneca Falls',    'SENECF'),
+    ('Somerset',        'SOMERT'),
+    ('Springfield',     'SPRINF'),
+    ('Springport',      'SPRINP'),
+    ('Stony Point',     'STONYP'),
+    ('Union Vale',      'UNIONV'),
+    ('Victory',         'VICTOY'),
+    ('Warrensburg',     'WARREB'),
+    ('Watervliet',      '-WATEV'),
+    ('Western',         'WESTEN'),
+    ('Williamstown',    'WILLIM'),
     -- Apparent mistakes rather than conflicts.
-    ('Ward',           'W ALMO'),
-    ('Wellsville',     'WARD'),
-    ('West Almond',    'WELLSV')
+    ('Ward',            'W ALMO'),
+    ('Wellsville',      'WARD'),
+    ('West Almond',     'WELLSV'),
+    -- This new town used to be part of Monroe.
+    ('Palm Tree',       'MONROE')
 )
 UPDATE districts.town_city tc
 SET display_code = c.abbrev
@@ -110,6 +106,12 @@ UPDATE districts.town_city tc
 SET display_code = c.abbrev
 FROM conflicts c
 WHERE tc.name = c.name AND tc.county = c.county;
+
+--Corrects to use legal names.
+UPDATE districts.town_city
+SET name = replace(name, 'St ', 'St. '),
+    county = replace(county, 'St ', 'St. ')
+WHERE name LIKE '%St %' OR county LIKE '%St %';
 
 -- full_name follows the rules TownCity.java builds its fullName by: New York is named for
 -- its city rather than its muni_type, and a name more than one municipality of the same

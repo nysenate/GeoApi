@@ -3,12 +3,7 @@ ALTER TABLE districts.election
     ADD COLUMN county_legislature smallint,
     ADD COLUMN assembly_district smallint,
     ADD COLUMN ward smallint,
-    ADD COLUMN muni_type VARCHAR(7),
-    ADD COLUMN stored_ed TEXT;
-
--- TODO: use "name" instead, same at bottom
-UPDATE districts.election
-SET stored_ed = election_district;
+    ADD COLUMN muni_type varchar(7);
 
 UPDATE districts.election
 SET election_district = trim(replace(election_district, county || ' - ', ''));
@@ -32,7 +27,8 @@ AS $$
         ));
 $$;
 
---Lists muni_type conflicts. No conflict if at least one is NULL.
+--No conflict if at least one is NULL.
+\echo 'EDs with conflicting municipality type information'
 SELECT * FROM districts.election
 WHERE coalesce(muni_type(municipality) != muni_type(election_district), false);
 
@@ -43,7 +39,7 @@ WHERE coalesce(muni_type(municipality), muni_type(election_district)) IS NOT NUL
 UPDATE districts.election
 SET municipality = trim(regexp_replace(municipality, '^(village|town|city) of | (town|city)', '', 'i')),
     election_district = trim(regexp_replace(election_district, '^(village|town|city) of | (town|city)', '', 'i'))
-WHERE muni_type IS NOT NULL;
+WHERE muni_type IS NOT NULL AND municipality != 'New York City';
 
 UPDATE districts.election
 SET election_district = trim(regexp_replace(election_district, '^' || municipality, '', 'i'));
@@ -72,17 +68,27 @@ WHERE election_district ~ '\yAD (\d+)';
 UPDATE districts.election
 SET assembly_district = left(election_district, 2)::smallint,
     election_district = substring(election_district, 3)
-WHERE municipality = 'New York';
+WHERE municipality = 'New York City';
 
 UPDATE districts.election
 SET county_legislature = (regexp_match(election_district, '\y(Leg |LD ?)(\d+)'))[2]::int,
     election_district = trim(regexp_replace(election_district, '\y(Leg |LD ?)(\d+)', ''))
 WHERE election_district ~ '\y(Leg |LD ?)(\d+)';
 
+-- The code in Chemung County is four digits: the first two are the county
+-- legislative district (1-15), the last two count the EDs inside it, so 'Elmira 0701' is the 1st
+-- ED of the 7th legislative district and the county Board of Elections writes it '07-01'.
+UPDATE districts.election
+SET county_legislature = left(election_district, 2)::smallint,
+    election_district = right(election_district, 2)
+WHERE county = 'Chemung'
+  AND election_district ~ '^\d{4}$';
+
+-- Pulls out the ward for codes like 03-02 (for ward 3 and ED 2).
 UPDATE districts.election
 SET ward = regexp_replace(election_district, '[-/]\d+$', '')::smallint,
     election_district = regexp_replace(election_district, '^\d+[-/]', '')
-WHERE election_district ~ '^\d+[-/]\d+$';;
+WHERE election_district ~ '^\d+[-/]\d+$';
 
 WITH words(word, val) AS (
     VALUES ('ONE',1),('TWO',2),('THREE',3),('FOUR',4), ('FIVE',5), ('SIX', 6)
@@ -95,27 +101,19 @@ WHERE election_district = 'DISTRICT ' || words.word;
 
 UPDATE districts.election
 SET election_district = trim(
-        regexp_replace(election_district, '^(election|(election )?district|e?d) ?(?=\d|$)|(st|nd|rd|th|ed)$', '', 'i')
+        regexp_replace(election_district, '(election|(election )?district|e?d) ?(?=\d|$)|(st|nd|rd|th|ed)$', '', 'i')
 );
 
 UPDATE districts.election
 SET display_code = COALESCE(ward, 1)
-WHERE election_district = '';
+WHERE election_district = ''
+  AND display_code IS NULL;
 
 UPDATE districts.election
 SET display_code = election_district::int,
     election_district = ''
 WHERE trim(election_district) ~ '^\d+$';
 
---A few odd, partially-parsed entries remain.
-SELECT county, municipality, election_district
-FROM districts.election
-WHERE election_district != ''
-ORDER BY county, municipality, election_district;
-
 UPDATE districts.election
 SET display_code = substring(election_district FROM '\d+$')::smallint
 WHERE election_district != '';
-
-UPDATE districts.election
-SET election_district = stored_ed;
