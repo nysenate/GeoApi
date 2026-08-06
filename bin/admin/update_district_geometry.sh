@@ -56,11 +56,17 @@ if ! curl -fsS "${baseUrl}/ping" >/dev/null; then
   exit 1
 fi
 
+LAYER_URL=""
 if [[ "$SOURCE" =~ ^https?://.*/(Feature|Map)Server/[0-9]+/?$ ]]; then
   # GDAL's ESRIJSON driver reads a feature service's /query endpoint directly and pages
   # through it automatically, so there's nothing to download by hand.
   # "where=1=1" gets every row, since the endpoint rejects a query with no WHERE clause.
-  DATA_SOURCE="ESRIJSON:${SOURCE%/}/query?where=1=1&outFields=*&outSR=4326&f=json"
+  LAYER_URL="${SOURCE%/}"
+  # Coordinates are taken at full precision. Rounding them cuts the response by about a
+  # third, but it also folds near-degenerate spikes over on themselves: at six decimal
+  # places 23 of the 995 town_city polygons came back self-intersecting, which fails the
+  # ST_IsValid check cleanMaps ends with and leaves the layer too invalid to simplify.
+  DATA_SOURCE="ESRIJSON:${LAYER_URL}/query?where=1=1&outFields=*&outSR=4326&f=json"
 elif [[ "$SOURCE" == http://* || "$SOURCE" == https://* ]]; then
   # Any other URL is handed to GDAL as-is, which covers a plain geospatial file served over HTTP.
   DATA_SOURCE="$SOURCE"
@@ -84,7 +90,18 @@ fi
 TABLE="districts.${DISTRICT_TYPE,,}"
 HOOK="$(dirname "$0")/post_load/${DISTRICT_TYPE,,}.sql"
 
-FIELDS=$(ogrinfo -json -so -al "$DATA_SOURCE" | jq -r '.layers[0].fields[].name')
+# The field list is only used to show the choices and to drop columns the source lacks.
+# A feature service layer states its own fields, so ask it rather than have ogrinfo derive
+# them: deriving means reading the features, which for a layer small enough to come back in
+# one page of the query endpoint downloads the whole dataset a second time.
+FIELDS=""
+if [ -n "$LAYER_URL" ]; then
+  FIELDS=$(curl -fsS "${LAYER_URL}?f=json" | jq -r '.fields[]?.name')
+fi
+# Anything else, and any service that didn't answer, has to be inspected.
+if [ -z "$FIELDS" ]; then
+  FIELDS=$(ogrinfo -json -so -al "$DATA_SOURCE" | jq -r '.layers[0].fields[].name')
+fi
 if [ -z "$FIELDS" ]; then
   echo "$PROG: ERROR: no fields found in $DATA_SOURCE." >&2
   exit 1
