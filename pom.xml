@@ -144,7 +144,7 @@
         <jasypt.version>1.9.3</jasypt.version>
         <jbcrypt.version>0.4</jbcrypt.version>
         <jdom.version>2.0.2</jdom.version>
-        <jsoup.version>1.22.2</jsoup.version>
+        <jsoup.version>1.23.1</jsoup.version>
         <junit.version>4.13.2</junit.version>
         <log4j.version>2.26.0</log4j.version>
         <lombok.version>1.18.38</lombok.version>
