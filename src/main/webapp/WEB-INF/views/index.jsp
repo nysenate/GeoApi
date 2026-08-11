@@ -489,15 +489,15 @@
                                                     <a target="_blank" ng-href="{{d.member.info.url}}">{{d.member.info | memberName}}</a>
                                                 </p>
                                                 <p style="font-size:16px;" class="senate district"
-                                                   ng-style="getColorStyle(d.district)">
+                                                   ng-style="getColorStyle(d.id)">
                                                     {{intersectTypeDisplayName}} District {{d.district}}
                                                 </p>
                                             </div>
                                         </div>
                                         <div ng-show="d.member == null">
                                             <div style="padding-left: 10px;" class="">
-                                                <p class="district-name" ng-style="getColorStyle(d.district)" ng-if="d.name">{{d.name}}</p>
-                                                <p class="district" ng-style="getColorStyle(d.district)" ng-if="displayCode(intersectType)">Code: {{d.district}}</p>
+                                                <p class="district-name" ng-style="getColorStyle(d.id)" ng-if="d.name">{{d.name}}</p>
+                                                <p class="district" ng-style="getColorStyle(d.id)" ng-if="displayCode(intersectType)">Code: {{d.district}}</p>
                                             </div>
 
                                         </div>

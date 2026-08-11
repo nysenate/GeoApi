@@ -154,8 +154,8 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
         return {"background-color" : this.colors[i % this.colors.length]};
     };
 
-    $scope.getColorStyle = function(senateDistrict) {
-        return {"color": this.mapColors[senateDistrict]};
+    $scope.getColorStyle = function(districtId) {
+        return {"color": this.mapColors[districtId]};
     };
 
     $scope.drawIntersect = function() {
@@ -164,10 +164,10 @@ sage.controller('DistrictsViewController', function($scope, $http, $filter, data
         if ($scope.overlaps) {
             /** Assign a unique color to each district */
             $.each($scope.overlaps, function (i, overlap) {
-                $scope.mapColors[overlap.district] = $scope.colors[i % $scope.colors.length];
+                $scope.mapColors[overlap.id] = $scope.colors[i % $scope.colors.length];
                 if (overlap.map != null) {
                     mapService.setOverlay(overlap.map, overlap.name + " Coverage", false, false, null,
-                        $scope.mapColors[overlap.district], {fillOpacity: 0.5});
+                        $scope.mapColors[overlap.id], {fillOpacity: 0.5});
                 }
             });
             /** Outline the base district with a dashed boundary and frame the map to it. */

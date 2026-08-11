@@ -105,7 +105,7 @@ sage.controller("DistrictMapController", function($scope, $http, $timeout, $filt
                 $scope.districtList = data.districts;
 
                 if ($scope.type !== "") {
-                    $scope.districtList.unshift({district:null, name:'All districts'});
+                    $scope.districtList.unshift({id:null, name:'All districts'});
                 }
             }, function(response){});
     };
@@ -121,8 +121,8 @@ sage.controller("DistrictMapController", function($scope, $http, $timeout, $filt
         uiBlocker.block("Loading " + this.type.replace("_", "/") + " maps...");
         $scope.showIntersectMenu = $scope.selectedDistrict.name !== "All districts";
         // If there is no intersection type specified, we can just retrieve the map
-        if ($scope.intersectType === "none" || $scope.type === $scope.intersectType || $scope.selectedDistrict.district === null) {
-            $http.get(this.getDistrictMapUrl(this.type, this.selectedDistrict.district, false))
+        if ($scope.intersectType === "none" || $scope.type === $scope.intersectType || $scope.selectedDistrict.id === null) {
+            $http.get(this.getDistrictMapUrl(this.type, this.selectedDistrict.id, false))
                 .then(function(response) {
                     mapService.clearAll();
                     dataBus.setBroadcast("districtMap", response.data);
@@ -149,13 +149,14 @@ sage.controller("DistrictMapController", function($scope, $http, $timeout, $filt
 
     /**
      * Returns the url for accessing the district map API.
+     * The API keys districts on their id, not the code shown in responses.
      * @param meta If true then no polygon data will be retrieved (just meta data)
      * @returns {string}
      */
-    $scope.getDistrictMapUrl = function(type, district, meta) {
+    $scope.getDistrictMapUrl = function(type, id, meta) {
         return contextPath + baseApi + "/map/" + type + "?showMembers=true"
             + ((meta === true) ? "&meta=true" :
-                (district ? ("&district=" + district) : ""));
+                (id ? ("&district=" + id) : ""));
     };
 
     /**
@@ -163,14 +164,13 @@ sage.controller("DistrictMapController", function($scope, $http, $timeout, $filt
      * @returns {string}
      */
     $scope.getIntersectUrl = function () {
-        if($scope.selectedDistrict.district === null || $scope.selectedDistrict.district === "") {
+        if($scope.selectedDistrict.id === null || $scope.selectedDistrict.id === "") {
             $scope.intersectType = "none";
-            $scope.selectedDistrict.district = "";
+            $scope.selectedDistrict.id = "";
             $scope.showIntersectMenu = false;
         }
-        var url = contextPath + baseApi + "/map/intersect?sourceType=" + $scope.type + "&sourceId=" + $scope.selectedDistrict.district;
+        var url = contextPath + baseApi + "/map/intersect?sourceType=" + $scope.type + "&sourceId=" + $scope.selectedDistrict.id;
         url += "&intersectType=" + $scope.intersectType;
-        url = url.replace(/#/g, ""); // Pound marks mess up the query string
         return url;
     };
 });

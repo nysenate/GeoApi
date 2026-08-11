@@ -2,7 +2,7 @@ var sage = angular.module('sage');
 
 sage.controller("EmbeddedMapController", function($scope, $http, $window, dataBus, uiBlocker) {
     $scope.districtType = $window.districtType;
-    $scope.districtCode = $window.districtCode;
+    $scope.districtId = $window.districtId;
 
     $scope.lookup = function() {
         if (this.districtType) {
@@ -15,7 +15,7 @@ sage.controller("EmbeddedMapController", function($scope, $http, $window, dataBu
     };
 
     $scope.getDistrictMapUrl = function () {
-        return contextPath + baseApi + "/map/" + this.districtType + "?showMembers=true" + ((this.districtCode) ? ("&district=" + this.districtCode) : "");
+        return contextPath + baseApi + "/map/" + this.districtType + "?showMembers=true" + ((this.districtId) ? ("&district=" + this.districtId) : "");
     };
 
     $scope.lookup();

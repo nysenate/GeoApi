@@ -17,7 +17,7 @@
                 <div ng-controller="EmbeddedMapController">
                     <script>
                         districtType = "${districtType}";
-                        districtCode = "${districtCode}";
+                        districtId = "${districtId}";
                         doh = ${doh};
                     </script>
                 </div>

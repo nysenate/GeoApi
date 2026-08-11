@@ -1,5 +1,6 @@
 package gov.nysenate.sage.controller.map;
 
+import gov.nysenate.sage.model.district.DistrictId;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -48,19 +49,19 @@ public class EmbeddedMapController {
     }
 
     /**
-     * Embedded District Type, Code Map Api
+     * Embedded District Type, Id Map Api
      * ------------------------------
-     * Returns an embedded Google map with the specified district type, district code and request params
+     * Returns an embedded Google map with the specified district type, district id, and request params
      * Usage:
-     * (GET)    /map/{districtType}/{districtCode}
+     * (GET)    /map/{districtType}/{districtId}
      *
      */
-    @GetMapping(value = "/map/{districtType}/{districtCode}")
-    public void mapDistrictCode(HttpServletRequest request, HttpServletResponse response,
-                                @PathVariable String districtType, @PathVariable int districtCode)
+    @GetMapping(value = "/map/{districtType}/{districtId}")
+    public void mapDistrictId(HttpServletRequest request, HttpServletResponse response,
+                              @PathVariable String districtType, @PathVariable DistrictId districtId)
             throws ServletException, IOException {
         request.setAttribute("districtType", districtType);
-        request.setAttribute("districtCode", districtCode);
+        request.setAttribute("districtId", districtId);
         request.setAttribute("doh", false);
         request.getRequestDispatcher(MAPS_JSP).forward(request, response);
     }
