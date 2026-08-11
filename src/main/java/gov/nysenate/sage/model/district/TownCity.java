@@ -1,30 +1,17 @@
 package gov.nysenate.sage.model.district;
 
-import org.apache.commons.text.WordUtils;
-
-import java.util.Arrays;
-import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class TownCity {
-    private final String baseName, fullName, code, voterFileCode;
-    private final Set<String> countyNames;
+    private final DistrictId id;
+    private final String baseName, voterFileCode;
     private final boolean isCity;
     private final Pattern pattern;
 
-    public TownCity(String baseName, String muniType, boolean isRepeat, String code, String voterFileCode,
-                    String countyNames) {
+    public TownCity(String baseName, String fullName, DistrictId id, String voterFileCode) {
         this.baseName = baseName;
-        String tempFullName = "New York".equals(baseName) ?
-                "New York City" : WordUtils.capitalizeFully(muniType) + " of " + baseName;
-        if (isRepeat) {
-            tempFullName += ", %s County".formatted(countyNames);
-        }
-        this.fullName = tempFullName;
-        this.code = code;
+        this.id = id;
         this.voterFileCode = voterFileCode;
-        this.countyNames = Arrays.stream(countyNames.split(", ")).collect(Collectors.toSet());
         this.isCity = fullName.contains("City");
         this.pattern = getPattern(isCity, baseName);
     }
@@ -33,12 +20,8 @@ public class TownCity {
         return baseName;
     }
 
-    public String fullName() {
-        return fullName;
-    }
-
-    public String code() {
-        return code;
+    public DistrictId id() {
+        return id;
     }
 
     public String voterFileCode() {
@@ -51,10 +34,6 @@ public class TownCity {
 
     public Pattern pattern() {
         return pattern;
-    }
-
-    public Set<String> countyNames() {
-        return countyNames;
     }
 
     private static Pattern getPattern(boolean isCity, String baseName) {
@@ -74,6 +53,6 @@ public class TownCity {
 
     @Override
     public String toString() {
-        return "TownCity{" + "baseName=" + baseName + ", code=" + code + '}';
+        return "TownCity{isCity = " + isCity + "name=" + baseName + ", id=" + id + '}';
     }
 }

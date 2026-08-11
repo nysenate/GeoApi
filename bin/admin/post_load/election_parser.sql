@@ -1,5 +1,5 @@
 ALTER TABLE districts.election
-    ADD COLUMN display_code integer,
+    ADD COLUMN code integer,
     ADD COLUMN county_legislature smallint,
     ADD COLUMN assembly_district smallint,
     ADD COLUMN ward smallint,
@@ -94,7 +94,7 @@ WITH words(word, val) AS (
     VALUES ('ONE',1),('TWO',2),('THREE',3),('FOUR',4), ('FIVE',5), ('SIX', 6)
 )
 UPDATE districts.election
-SET display_code = words.val,
+SET code = words.val,
     election_district = ''
 FROM words
 WHERE election_district = 'DISTRICT ' || words.word;
@@ -105,15 +105,15 @@ SET election_district = trim(
 );
 
 UPDATE districts.election
-SET display_code = COALESCE(ward, 1)
+SET code = COALESCE(ward, 1)
 WHERE election_district = ''
-  AND display_code IS NULL;
+  AND code IS NULL;
 
 UPDATE districts.election
-SET display_code = election_district::int,
+SET code = election_district::int,
     election_district = ''
 WHERE trim(election_district) ~ '^\d+$';
 
 UPDATE districts.election
-SET display_code = substring(election_district FROM '\d+$')::smallint
+SET code = substring(election_district FROM '\d+$')::smallint
 WHERE election_district != '';

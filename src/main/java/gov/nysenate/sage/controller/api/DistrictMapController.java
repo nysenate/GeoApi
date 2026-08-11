@@ -8,6 +8,7 @@ import gov.nysenate.sage.client.response.map.MapGeometryResponse;
 import gov.nysenate.sage.client.response.map.MultipleMapGeometryResponse;
 import gov.nysenate.sage.dao.model.county.CountyDao;
 import gov.nysenate.sage.model.district.County;
+import gov.nysenate.sage.model.district.DistrictId;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.IntersectResult;
@@ -17,8 +18,7 @@ import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.district.ShapefileService;
 import gov.nysenate.sage.service.ImmutableCache;
 import gov.nysenate.sage.service.district.DistrictMemberProvider;
-import gov.nysenate.sage.service.district.DistrictNameCache;
-import gov.nysenate.sage.util.FormatUtil;
+import gov.nysenate.sage.service.district.DistrictInfoCache;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +39,7 @@ public class DistrictMapController extends BaseDistrictController<DistrictType> 
     private final ImmutableCache<String, URI> linkCache;
 
     @Autowired
-    public DistrictMapController(DistrictNameCache nameCache, ShapefileService shapefileService,
+    public DistrictMapController(DistrictInfoCache nameCache, ShapefileService shapefileService,
                                  DistrictMemberProvider memberProvider, CountyDao countyDao) {
         super(nameCache, shapefileService, memberProvider);
         this.shapefileService = shapefileService;
@@ -63,13 +63,13 @@ public class DistrictMapController extends BaseDistrictController<DistrictType> 
      */
     @GetMapping(value = "/{distType}")
     public BaseResponse map(@PathVariable String distType,
-                            @RequestParam(required = false) String district,
+                            @RequestParam(required = false) DistrictId district,
                             @RequestParam(required = false) boolean showMembers,
                             @RequestParam(required = false) boolean meta) {
         DistrictType districtType = getValue(distType);
         if (district == null) {
             logger.debug("Retrieving all {} district maps.", districtType.name());
-            Map<String, DistrictMap> mapResult = shapefileService.getMapCache().get(districtType);
+            Map<DistrictId, DistrictMap> mapResult = shapefileService.getMapCache().get(districtType);
             if (mapResult == null) {
                 return new ApiError(ResultStatus.UNSUPPORTED_DISTRICT_MAP);
             }
@@ -86,7 +86,6 @@ public class DistrictMapController extends BaseDistrictController<DistrictType> 
             return response;
         }
 
-        district = FormatUtil.cleanString(district);
         logger.debug("Retrieving {} district {} map.", districtType.name(), district);
         MapResult mapResult = shapefileService.getMapResult(districtType, district);
         var response = new MapGeometryResponse(mapResult);
@@ -102,7 +101,7 @@ public class DistrictMapController extends BaseDistrictController<DistrictType> 
      * (GET)    /api/v2/map/intersect
      */
     @GetMapping(value = "/intersect")
-    public Object districtIntersect(@RequestParam String sourceType, @RequestParam String sourceId,
+    public Object districtIntersect(@RequestParam String sourceType, @RequestParam DistrictId sourceId,
                                     @RequestParam String intersectType) {
         if (sourceType.equalsIgnoreCase(intersectType)) {
             return new BaseResponse(BAD_OVERLAY);

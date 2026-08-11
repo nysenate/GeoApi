@@ -2,6 +2,7 @@ package gov.nysenate.sage.client.response.map;
 
 import gov.nysenate.sage.annotation.UnitTest;
 import gov.nysenate.sage.client.view.map.DistrictMapView;
+import gov.nysenate.sage.model.district.DistrictId;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.MapListResult;
@@ -51,10 +52,10 @@ public class MultipleMapGeometryResponseTest {
      * then asserts that {@link MultipleMapGeometryResponse#getDistricts()} returns them in the expected order.
      */
     private static void assertOrder(DistrictType type, List<String> namesToAdd, List<String> expectedOrder) {
-        var maps = new LinkedHashMap<String, DistrictMap>();
+        var maps = new LinkedHashMap<DistrictId, DistrictMap>();
         for (int i = 0; i < namesToAdd.size(); i++) {
-            String code = String.valueOf(i);
-            maps.put(code, new DistrictMap(type, code));
+            var id = new DistrictId(String.valueOf(i));
+            maps.put(id, new DistrictMap(type, id));
         }
         var response = new MultipleMapGeometryResponse(new MapListResult(maps));
         List<DistrictMapView> views = response.getMapViews();

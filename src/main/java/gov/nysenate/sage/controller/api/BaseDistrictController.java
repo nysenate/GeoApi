@@ -1,22 +1,24 @@
 package gov.nysenate.sage.controller.api;
 
 import gov.nysenate.sage.client.view.district.BaseDistrictView;
+import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictMember;
 import gov.nysenate.sage.provider.district.ShapefileService;
-import gov.nysenate.sage.service.district.DistrictCodeCache;
+import gov.nysenate.sage.service.district.DistrictIdCache;
 import gov.nysenate.sage.service.district.DistrictMemberProvider;
-import gov.nysenate.sage.service.district.DistrictNameCache;
+import gov.nysenate.sage.service.district.DistrictInfoCache;
 import gov.nysenate.sage.util.HasDisplayName;
+import org.apache.commons.lang3.StringUtils;
 
 public abstract class BaseDistrictController<E extends Enum<E> & HasDisplayName> extends SourcedController<E> {
-    protected final DistrictCodeCache<String> nameCache;
-    protected final DistrictCodeCache<DistrictMap> mapCache;
-    protected final DistrictCodeCache<DistrictMember> memberCache;
+    protected final DistrictIdCache<DistrictInfo> infoCache;
+    protected final DistrictIdCache<DistrictMap> mapCache;
+    protected final DistrictIdCache<DistrictMember> memberCache;
 
-    protected BaseDistrictController(DistrictNameCache nameCache, ShapefileService shapefileService,
+    protected BaseDistrictController(DistrictInfoCache infoCache, ShapefileService shapefileService,
                                      DistrictMemberProvider memberProvider) {
-        this.nameCache = nameCache;
+        this.infoCache = infoCache;
         this.mapCache = shapefileService.getMapCache();
         this.memberCache = memberProvider.getMemberCache();
     }
@@ -25,12 +27,19 @@ public abstract class BaseDistrictController<E extends Enum<E> & HasDisplayName>
         if (bdv == null) {
             return;
         }
-        bdv.setName(nameCache.getData(bdv.getType(), bdv.getDistrict()));
+        DistrictInfo currInfo = infoCache.getData(bdv.getType(), bdv.getId());
+        if (currInfo != null) {
+            bdv.setName(currInfo.getName());
+            String code = currInfo.getCode();
+            if (!StringUtils.isBlank(code)) {
+                bdv.setDistrict(code);
+            }
+        }
         if (showMembers) {
-            bdv.setMember(memberCache.getData(bdv.getType(), bdv.getDistrict()));
+            bdv.setMember(memberCache.getData(bdv.getType(), bdv.getId()));
         }
         if (showMaps) {
-            DistrictMap map = mapCache.getData(bdv.getType(), bdv.getDistrict());
+            DistrictMap map = mapCache.getData(bdv.getType(), bdv.getId());
             if (map != null) {
                 bdv.setMap(map.getMapGeoJson());
             }

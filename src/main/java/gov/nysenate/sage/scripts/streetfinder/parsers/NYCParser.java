@@ -51,7 +51,7 @@ public class NYCParser extends CountyParser {
     @Override
     protected List<String> parseLine(String line) {
         String[] lineParts = line.replaceAll("\\s+", " ").trim().split(" ");
-        List<String> dataList = new ArrayList<>(List.of(mailCity, currStreet, nyc.code()));
+        List<String> dataList = new ArrayList<>(List.of(mailCity, currStreet, nyc.id().toString()));
         Collections.addAll(dataList, lineParts);
         return dataList;
     }

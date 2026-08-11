@@ -102,7 +102,7 @@ SET town_city_id = (SELECT string_agg(tc.gnis_id, ',')
                     FROM districts.town_city tc
                     WHERE e.county ILIKE ANY (regexp_split_to_array(tc.county, '\s*,\s*'))
                       -- Uses split_part to remove potential ", County X" suffix.
-                      AND replace(split_part(tc.full_name, ',', 1), ' ', '') ILIKE replace(e.tc_name, ' ', ''))
+                      AND replace(split_part(tc.name, ',', 1), ' ', '') ILIKE replace(e.tc_name, ' ', ''))
 WHERE e.town_city_id IS NULL;
 
 \echo 'EDs not assigned a town_city_id'
@@ -130,24 +130,24 @@ WHERE village_name IS NOT NULL AND village_id IS NULL
 ORDER BY county, village_name, stored_ed;
 
 ALTER TABLE districts.election
-    ADD COLUMN code text,
+    ADD COLUMN id text,
     ADD COLUMN name text;
 
 -- Need full town/city names to generate ED names correctly.
 UPDATE districts.election e
-SET tc_name = tc.full_name
+SET tc_name = tc.name
 FROM districts.town_city tc
 WHERE e.town_city_id = tc.gnis_id;
 
 -- concat_ws drops a null argument, and e,g, ('AD ' || NULL) IS NULL, so a part the ED does not use is skipped by both.
 UPDATE districts.election
-SET code = concat_ws('-', town_city_id, assembly_district, village_id, ward, county_legislature, display_code),
+SET id = concat_ws('-', town_city_id, assembly_district, village_id, ward, county_legislature, code),
     name = concat_ws(' ', tc_name || ',',
                      'AD ' || assembly_district,
                      'Village of ' || village_name || ',',
                      'Ward ' || ward,
                      'LD ' || county_legislature,
-                     'ED ' || display_code)
+                     'ED ' || code)
 WHERE town_city_id IS NOT NULL;
 
 ALTER TABLE districts.election
@@ -155,21 +155,21 @@ ALTER TABLE districts.election
     DROP COLUMN village_name;
 
 \echo 'Duplicate codes built from different fields (should be empty)'
-SELECT code, count(*) AS field_sets
-FROM (SELECT DISTINCT code, town_city_id, assembly_district, village_id, ward,
-                      county_legislature, display_code
+SELECT id, count(*) AS field_sets
+FROM (SELECT DISTINCT id, town_city_id, assembly_district, village_id, ward,
+                      county_legislature, code
       FROM districts.election
       WHERE code IS NOT NULL) f
-GROUP BY code
+GROUP BY id
 HAVING count(*) > 1
-ORDER BY code;
+ORDER BY id;
 
 -- The reverse of the check above: a name is what users see, so it has to separate the districts
--- that the code separates.
+-- that the ID separates.
 \echo 'Names shared by more than one code (should be empty)'
-SELECT name, string_agg(DISTINCT code, ', ') AS codes
+SELECT name, string_agg(DISTINCT id, ', ') AS codes
 FROM districts.election
 WHERE name IS NOT NULL
 GROUP BY name
-HAVING count(DISTINCT code) > 1
+HAVING count(DISTINCT id) > 1
 ORDER BY name;

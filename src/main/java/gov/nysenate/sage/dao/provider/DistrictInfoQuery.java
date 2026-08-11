@@ -2,12 +2,13 @@ package gov.nysenate.sage.dao.provider;
 
 import gov.nysenate.sage.dao.base.BasicSqlQuery;
 
-public enum NameQuery implements BasicSqlQuery {
+public enum DistrictInfoQuery implements BasicSqlQuery {
     GET_SHAPEFILE_DATA("""
-            SELECT ${nameColumn:-NULL::text} AS name, ${codeColumn} AS code
+            SELECT *
             FROM ${schema}.${type}
-            GROUP BY name, code"""),
+            """),
 
+    // Note that getting codes instead of IDs is correct: the streetfile stores codes.
     GET_STREETFILE_CODES("""
             SELECT DISTINCT ${codeColumn} AS code
             FROM ${schema}.streetfile
@@ -16,7 +17,7 @@ public enum NameQuery implements BasicSqlQuery {
 
     private final String query;
 
-    NameQuery(String query) {
+    DistrictInfoQuery(String query) {
         this.query = query;
     }
 

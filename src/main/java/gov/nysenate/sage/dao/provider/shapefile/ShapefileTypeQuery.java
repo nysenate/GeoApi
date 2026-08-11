@@ -5,13 +5,11 @@ import gov.nysenate.sage.dao.base.SqlTable;
 
 public enum ShapefileTypeQuery implements BasicSqlQuery {
     GET_ALL_TYPE_INFO("""
-            SELECT * FROM ${schema}.%s
+            SELECT type_name, code_column
+            FROM ${schema}.%s
             """.formatted(SqlTable.TYPE_INFO)),
 
-    GET_SINGLE_TYPE_INFO("""
-            SELECT * FROM ${schema}.%s
-            WHERE type_name ILIKE :typeName
-            """.formatted(SqlTable.TYPE_INFO));
+    GET_SINGLE_TYPE_INFO(GET_ALL_TYPE_INFO.sql + "\nWHERE type_name ILIKE :typeName");
 
     private final String sql;
 

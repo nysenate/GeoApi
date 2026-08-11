@@ -7,7 +7,6 @@ import gov.nysenate.sage.util.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -31,8 +30,8 @@ public class ShapefileDao extends BaseDao {
      * @param tableInfos     Collection of district table infos to resolve
      * @return  DistrictInfo if query was successful, null otherwise
      */
-    public Map<DistrictType, String> getCodes(Point point, Set<DistrictTableInfo> tableInfos) {
-        Map<DistrictType, String> typeToDistrictMap = new HashMap<>();
+    public Map<DistrictType, DistrictId> getIds(Point point, Set<DistrictTableInfo> tableInfos) {
+        Map<DistrictType, DistrictId> typeToDistrictMap = new HashMap<>();
         for (DistrictTableInfo tableInfo : tableInfos) {
             Map<String, String> replacementMap;
             try {
@@ -43,8 +42,8 @@ public class ShapefileDao extends BaseDao {
             String sql = GET_DISTRICT_FROM_POINT.getSql(geometrySchema, replacementMap);
             var params = new MapSqlParameterSource("lat", point.lat()).addValue("lon", point.lon());
             try {
-                String code = namedJdbcTemplate.queryForObject(sql, params, String.class);
-                typeToDistrictMap.put(tableInfo.type(), code);
+                DistrictId id = namedJdbcTemplate.queryForObject(sql, params, DistrictId.class);
+                typeToDistrictMap.put(tableInfo.type(), id);
             } catch (EmptyResultDataAccessException ex) {
                 if (tableInfo.type().coversState()) {
                     logger.warn("Could not place {} inside a {} district", point, tableInfo.type());
@@ -61,17 +60,19 @@ public class ShapefileDao extends BaseDao {
      * that overlap the zip area.
      * @param baseTypeInfo      What to get overlap info for.
      * @param intersectType     The DistrictType to base the intersections of off.
-     * @param refCode           The code that represents the base area.
+     * @param refId             The id that represents the base area.
      */
-    public List<IntersectInfo> getDistrictOverlap(DistrictTableInfo baseTypeInfo, DistrictTableInfo intersectType, String refCode) {
+    public List<IntersectInfo> getDistrictOverlap(DistrictTableInfo baseTypeInfo, DistrictTableInfo intersectType,
+                                                  DistrictId refId) {
         Map<String, String> replacementMap = intersectType.getReplacements("intersectType");
         replacementMap.put("baseType", baseTypeInfo.type().name().toLowerCase());
-        replacementMap.put("baseCodeColumn", baseTypeInfo.codeColumn());
-        var params = new MapSqlParameterSource("districtCode", refCode);
+        replacementMap.put("baseIdColumn", baseTypeInfo.idColumn());
+        var params = new MapSqlParameterSource("districtId", refId.id());
 
         String sql = GET_INTERSECTION.getSql(geometrySchema, replacementMap);
         return namedJdbcTemplate.query(sql, params, (rs, rowNum) ->
-                new IntersectInfo(rs.getString("code"), rs.getString("intersect_geo_json"), rs.getBigDecimal("area"))
+                new IntersectInfo(new DistrictId(rs.getString("id")),
+                        rs.getString("intersect_geo_json"), rs.getBigDecimal("area"))
         );
     }
 
@@ -83,8 +84,8 @@ public class ShapefileDao extends BaseDao {
     private record DistrictGeometryMapper(DistrictType type) implements RowMapper<DistrictMap> {
         @Override
         public DistrictMap mapRow(@Nonnull ResultSet rs, int rowNum) throws SQLException {
-            String code = rs.getString("code");
-            var map = new DistrictMap(type, code);
+            DistrictId id = new DistrictId(rs.getString("id"));
+            var map = new DistrictMap(type, id);
             map.setMapGeoJson(rs.getString("map"));
             map.setArea(rs.getBigDecimal("area"));
             return map;
@@ -101,36 +102,28 @@ public class ShapefileDao extends BaseDao {
             return null;
         }
         Map<String, String> replacementMap = tableInfo.getReplacements("type");
-        // Leading zeroes are meaningful only in zip codes.
-        if (tableInfo.type() != DistrictType.ZIP) {
-            try {
-                namedJdbcTemplate.update(TRIM_CODES.getSql(geometrySchema, replacementMap), Map.of());
-            } catch (BadSqlGrammarException ex) {
-                logger.warn("The code appears to be numeric. Skipping trimming...");
-            }
-        }
-        var callbackHandler = new CodeCallbackHandler();
-        namedJdbcTemplate.query(GET_CODES.getSql(geometrySchema, replacementMap), callbackHandler);
-        for (var tuple : callbackHandler.codeList) {
-            var params = new MapSqlParameterSource("code", tuple.first()).addValue("mainGid", tuple.second());
+        var callbackHandler = new IdCallbackHandler();
+        namedJdbcTemplate.query(GET_IDS.getSql(geometrySchema, replacementMap), callbackHandler);
+        for (var tuple : callbackHandler.idList) {
+            var params = new MapSqlParameterSource("id", tuple.first()).addValue("mainGid", tuple.second());
             namedJdbcTemplate.update(SET_UNION.getSql(geometrySchema, replacementMap), params);
             namedJdbcTemplate.update(DELETE_REDUNDANT_MAPS.getSql(geometrySchema, replacementMap), params);
         }
         namedJdbcTemplate.getJdbcOperations().execute(
-                ADD_UNIQUE_CODE_INDEX.getSql(geometrySchema, replacementMap)
+                ADD_UNIQUE_ID_INDEX.getSql(geometrySchema, replacementMap)
         );
         return namedJdbcTemplate.getJdbcOperations().queryForObject(
                 IS_TYPE_VALID.getSql(geometrySchema, replacementMap), Boolean.class
         );
     }
 
-    private static class CodeCallbackHandler implements RowCallbackHandler {
-        private final List<Tuple<String, Integer>> codeList = new ArrayList<>();
+    private static class IdCallbackHandler implements RowCallbackHandler {
+        private final List<Tuple<String, Integer>> idList = new ArrayList<>();
 
         @Override
         public void processRow(@Nonnull ResultSet rs) throws SQLException {
-            if (rs.getInt("code_count") > 1) {
-                codeList.add(new Tuple<>(rs.getString("code"), rs.getInt("main_gid")));
+            if (rs.getInt("id_count") > 1) {
+                idList.add(new Tuple<>(rs.getString("id"), rs.getInt("main_gid")));
             }
         }
     }

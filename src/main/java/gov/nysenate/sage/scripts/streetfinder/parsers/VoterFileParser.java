@@ -104,7 +104,7 @@ public class VoterFileParser extends BaseParser {
             }
             townCity = fieldMap.get(townCityStr);
         }
-        tempLine.set(26, townCity == null ? "" : townCity.code());
+        tempLine.set(26, townCity == null ? "" : townCity.id().toString());
         return tempLine;
     }
 

@@ -10,14 +10,14 @@ import java.util.Set;
 /**
  * A container for all assigned district names and codes.
  */
-public record AssignedDistricts(ImmutableMap<DistrictType, String> typeToDistrictMap, Accuracy accuracy) {
+public record AssignedDistricts(ImmutableMap<DistrictType, DistrictId> typeToDistrictMap, Accuracy accuracy) {
     public static final AssignedDistricts empty = new AssignedDistricts(Map.of(), null);
 
-    public AssignedDistricts(Map<DistrictType, String> typeToDistrictMap, Accuracy accuracy) {
+    public AssignedDistricts(Map<DistrictType, DistrictId> typeToDistrictMap, Accuracy accuracy) {
         this(ImmutableMap.copyOf(typeToDistrictMap), accuracy);
     }
 
-    public String getDistCode(DistrictType districtType) {
+    public DistrictId getDistId(DistrictType districtType) {
         return typeToDistrictMap.get(districtType);
     }
 
@@ -30,7 +30,7 @@ public record AssignedDistricts(ImmutableMap<DistrictType, String> typeToDistric
     public String toString() {
         var out = new StringBuilder().append(accuracy).append('\n');
         for (DistrictType t : typeToDistrictMap.keySet()) {
-            out.append(t).append(": ").append(getDistCode(t)).append("\n");
+            out.append(t).append(": ").append(getDistId(t)).append("\n");
         }
         return out.toString();
     }

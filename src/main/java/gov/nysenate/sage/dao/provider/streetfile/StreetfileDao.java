@@ -165,11 +165,11 @@ public class StreetfileDao extends BaseDao {
                     rs.getString("postal_city"), rs.getString("zip5"));
             var sar = new StreetAddressRange(rs.getInt("bldg_low"), rs.getInt("bldg_high"),
                     rs.getString("parity"), awn);
-            var typeToDistrictMap = new HashMap<DistrictType, String>();
+            var typeToDistrictMap = new HashMap<DistrictType, DistrictId>();
             for (DistrictType type : distColMap.keySet()) {
                 String code = rs.getString(distColMap.get(type));
                 if (code != null) {
-                    typeToDistrictMap.put(type, code);
+                    typeToDistrictMap.put(type, new DistrictId(code));
                 }
             }
             return new DistrictedStreetRange(sar, new AssignedDistricts(typeToDistrictMap, Accuracy.HOUSE));

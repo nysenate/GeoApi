@@ -6,6 +6,7 @@ import gov.nysenate.sage.client.view.district.DistrictView;
 import gov.nysenate.sage.client.view.geo.GeocodeView;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
+import gov.nysenate.sage.model.district.DistrictId;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.result.DistrictResult;
@@ -36,8 +37,9 @@ public class DistrictResponse extends SourcedResponse {
         this.senateAssigned = districtResult.getAssignedDistrictTypes().contains(DistrictType.SENATE);
         this.matchLevel = Objects.toString(districtResult.getAssignedDistricts().accuracy(), null);
         for (DistrictType districtType : DistrictType.values()) {
-            String currCode = districtResult.getAssignedDistricts().getDistCode(districtType);
+            DistrictId currCode = districtResult.getAssignedDistricts().getDistId(districtType);
             districts.put(getFieldName(districtType),
+                    // TODO: use display codes
                     currCode == null ? null : new DistrictView(districtType, currCode));
         }
         if (geoAddr == null) {

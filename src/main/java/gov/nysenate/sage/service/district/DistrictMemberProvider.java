@@ -47,13 +47,13 @@ public class DistrictMemberProvider {
         this.geocodeService = geocodeService;
     }
 
-    private Map<String, DistrictMember> getMemberMap(DistrictType type) {
+    private Map<DistrictId, DistrictMember> getMemberMap(DistrictType type) {
         Map<Long, DistrictMember> longToMemberMap = memberDao.getMembers(type);
         if (longToMemberMap == null) {
             return null;
         }
         return longToMemberMap.entrySet().stream()
-                .collect(Collectors.toMap(entry -> entry.getKey().toString(), Map.Entry::getValue));
+                .collect(Collectors.toMap(entry -> new DistrictId(entry.getKey().toString()), Map.Entry::getValue));
     }
 
     public void updateDistrictMembers(DistrictType type) throws IOException {

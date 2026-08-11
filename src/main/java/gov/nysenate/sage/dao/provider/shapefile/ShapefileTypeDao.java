@@ -32,7 +32,7 @@ public class ShapefileTypeDao extends BaseDao {
     }
 
     public List<DistrictTableInfo> getTableInfos() {
-        return namedJdbcTemplate.query(GET_ALL_TYPE_INFO.getSql("districts"), new TableInfoRowMapper());
+        return namedJdbcTemplate.query(GET_ALL_TYPE_INFO.getSql("districts"), tableInfoRowMapper);
     }
 
     public static class TableInfoRowMapper implements RowMapper<DistrictTableInfo> {
@@ -40,7 +40,7 @@ public class ShapefileTypeDao extends BaseDao {
         public @Nullable DistrictTableInfo mapRow(@NonNull ResultSet rs, int rowNum) throws SQLException {
             return new DistrictTableInfo(
                     DistrictType.valueOf(rs.getString("type_name").toUpperCase()),
-                    rs.getString("code_column"), rs.getString("name_column")
+                    rs.getString("code_column")
             );
         }
     }

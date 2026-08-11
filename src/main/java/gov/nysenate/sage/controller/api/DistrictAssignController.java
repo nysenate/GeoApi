@@ -7,6 +7,8 @@ import gov.nysenate.sage.client.response.district.BatchDistrictResponse;
 import gov.nysenate.sage.client.response.district.DistrictResponse;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
+import gov.nysenate.sage.model.district.DistrictId;
+import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.*;
@@ -17,7 +19,7 @@ import gov.nysenate.sage.provider.geocode.GeocodeService;
 import gov.nysenate.sage.provider.geocode.Geocoder;
 import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.service.district.DistrictMemberProvider;
-import gov.nysenate.sage.service.district.DistrictNameCache;
+import gov.nysenate.sage.service.district.DistrictInfoCache;
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +44,7 @@ public class DistrictAssignController extends BaseDistrictController<LocalSource
     private final DistrictService districtService;
 
     @Autowired
-    public DistrictAssignController(DistrictNameCache nameCache, ShapefileService shapefileService,
+    public DistrictAssignController(DistrictInfoCache nameCache, ShapefileService shapefileService,
                                     DistrictMemberProvider memberProvider, AddressService addressService,
                                     GeocodeService geocodeService, DistrictService districtService) {
         super(nameCache, shapefileService, memberProvider);
@@ -166,16 +168,16 @@ public class DistrictAssignController extends BaseDistrictController<LocalSource
     /**
      * District Names Api
      * ---------------------------
-     * Get a map from code -> name for a single district type.
+     * Get a map from id -> info for a single district type.
      * We can't simply serialize a map here, because XML doesn't allow numeric keys.
      * Usage:
-     * (GET)    /api/v2/district/names?type=SENATE
+     * (GET)    /api/v2/district/info?type=SENATE
      */
-    @GetMapping(value = "/names")
-    public ListResponse<Map.Entry<String, String>> names(@RequestParam String type) {
-        return new ListResponse<>(nameCache.get(getValue(DistrictType.class, type)).entrySet()
+    @GetMapping(value = "/info")
+    public ListResponse<Map.Entry<DistrictId, DistrictInfo>> infos(@RequestParam String type) {
+        return new ListResponse<>(infoCache.get(getValue(DistrictType.class, type)).entrySet()
                 .stream().sorted((entry1, entry2) ->
-                        NUMBERS_FIRST.compare(entry1.getKey(), entry2.getKey())).toList());
+                        NUMBERS_FIRST.compare(entry1.getKey().toString(), entry2.getKey().toString())).toList());
     }
 
     private static Long asLong(String s) {

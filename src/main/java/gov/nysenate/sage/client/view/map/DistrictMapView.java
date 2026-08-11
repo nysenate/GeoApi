@@ -17,7 +17,7 @@ public class DistrictMapView extends BaseDistrictView {
     private final BigDecimal area;
 
     public DistrictMapView(DistrictMap districtMap) {
-        super(districtMap.getDistrictType(), districtMap.getDistrictCode());
+        super(districtMap.getDistrictType(), districtMap.getId());
         this.area = districtMap.getArea();
     }
 

@@ -28,10 +28,10 @@ public final class DistrictUtil {
      */
     public static AssignedDistricts getDistrictInfoWithoutConflicts(List<AssignedDistricts> assignedDistrictsList,
                                                                     Accuracy accuracy) {
-        Map<DistrictType, String> typeToDistrictMap = new HashMap<>();
+        Map<DistrictType, DistrictId> typeToDistrictMap = new HashMap<>();
         for (DistrictType distType : DistrictType.values()) {
-            List<String> codes = assignedDistrictsList.stream()
-                    .map(info -> info.getDistCode(distType)).filter(Objects::nonNull).distinct().toList();
+            List<DistrictId> codes = assignedDistrictsList.stream()
+                    .map(info -> info.getDistId(distType)).filter(Objects::nonNull).distinct().toList();
             if (codes.size() == 1) {
                 typeToDistrictMap.put(distType, codes.getFirst());
             }
@@ -49,11 +49,11 @@ public final class DistrictUtil {
         if (results.size() <= 1) {
             return first;
         }
-        var typeToDistrictMap = new HashMap<DistrictType, String>();
+        var typeToDistrictMap = new HashMap<DistrictType, DistrictId>();
         var sourcesUsed = new ArrayList<LocalSource>();
         for (DistrictType distType : DistrictType.values()) {
             for (DistrictResult result : results) {
-                String code = result.getAssignedDistricts().getDistCode(distType);
+                DistrictId code = result.getAssignedDistricts().getDistId(distType);
                 if (code != null) {
                     typeToDistrictMap.put(distType, code);
                     sourcesUsed.addAll(result.getSources());

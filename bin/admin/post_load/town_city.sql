@@ -1,28 +1,28 @@
 -- Run by update_district_geometry.sh after it reloads districts.town_city.
 
-ALTER TABLE districts.town_city ADD COLUMN display_code text;
+ALTER TABLE districts.town_city ADD COLUMN code text;
 
-UPDATE districts.town_city SET display_code = upper(name);
+UPDATE districts.town_city SET code = upper(name);
 
 UPDATE districts.town_city
-SET display_code = regexp_replace(display_code, '^\S+', left(display_code, 1))
+SET code = regexp_replace(code, '^\S+', left(code, 1))
 WHERE name ~* '^(North|South|East|West) ';
 
 UPDATE districts.town_city
-SET display_code = regexp_replace(display_code, '^\S+', left(display_code, 1) || 'T')
+SET code = regexp_replace(code, '^\S+', left(code, 1) || 'T')
 WHERE name ~* '^(Mount|Fort) ';
 
 UPDATE districts.town_city
-SET display_code = replace(display_code, ' ', '')
+SET code = replace(code, ' ', '')
 WHERE name ~* '^(De|La|Le) ';
 
 UPDATE districts.town_city
-SET display_code = '-' || display_code
+SET code = '-' || code
 WHERE muni_type = 'city';
 
 ALTER TABLE districts.town_city
-    ALTER COLUMN display_code TYPE varchar(6) USING trim(left(display_code, 6)),
-    ALTER COLUMN display_code SET NOT NULL;
+    ALTER COLUMN code TYPE varchar(6) USING trim(left(code, 6)),
+    ALTER COLUMN code SET NOT NULL;
 
 -- Some codes need to be set manually, mostly because multiple entries would otherwise have the same abbreviation.
 WITH conflicts (name, abbrev) AS (VALUES
@@ -86,7 +86,7 @@ WITH conflicts (name, abbrev) AS (VALUES
     ('Palm Tree',       'MONROE')
 )
 UPDATE districts.town_city tc
-SET display_code = c.abbrev
+SET code = c.abbrev
 FROM conflicts c
 WHERE tc.name = c.name;
 
@@ -103,7 +103,7 @@ WITH conflicts (name, county, abbrev) AS (VALUES
     ('Middletown', 'Delaware', 'MIDDLT')
 )
 UPDATE districts.town_city tc
-SET display_code = c.abbrev
+SET code = c.abbrev
 FROM conflicts c
 WHERE tc.name = c.name AND tc.county = c.county;
 
@@ -113,16 +113,93 @@ SET name = replace(name, 'St ', 'St. '),
     county = replace(county, 'St ', 'St. ')
 WHERE name LIKE '%St %' OR county LIKE '%St %';
 
--- full_name follows the rules TownCity.java builds its fullName by: New York is named for
--- its city rather than its muni_type, and a name more than one municipality of the same
--- type shares is qualified by county.
-ALTER TABLE districts.town_city ADD COLUMN IF NOT EXISTS full_name text;
+-- The codes some counties use for municipalities in their voter files. Only the counties that
+-- send us these are listed, so most municipalities have no voterfile_code at all.
+ALTER TABLE districts.town_city
+    ADD COLUMN IF NOT EXISTS voterfile_code text,
+    ADD COLUMN IF NOT EXISTS base_name text;
+
+UPDATE districts.town_city
+SET base_name = name;
+
+-- Wyoming County abbreviates by rule rather than by hand: every code is just
+-- the first 4 letters of the name, at least if it's longer than 4 characters.
+UPDATE districts.town_city
+SET voterfile_code = left(upper(name), 4)
+WHERE county = 'Wyoming' AND length(name) > 4;
 
 WITH repeated_names AS (
     SELECT name FROM districts.town_city GROUP BY name, muni_type HAVING count(*) > 1
 )
 UPDATE districts.town_city tc
-SET full_name = CASE WHEN tc.name ILIKE 'New York%' THEN 'New York City'
+SET name = CASE WHEN tc.name ILIKE 'New York%' THEN 'New York City'
                      ELSE initcap(tc.muni_type) || ' of ' || tc.name END
                 || CASE WHEN tc.name IN (SELECT name FROM repeated_names)
                         THEN ', ' || tc.county || ' County' ELSE '' END;
+
+WITH codes (name, voterfile_code) AS (VALUES
+    ('City of Buffalo',           'BFLO'),
+    ('City of Lackawanna',        'LACK'),
+    ('City of Tonawanda',         'CTON'),
+    ('Town of Alden',             'ALDN'),
+    ('Town of Amherst',           'AMHS'),
+    ('Town of Aurora',            'AURA'),
+    ('Town of Boston',            'BOST'),
+    ('Town of Brant',             'BRNT'),
+    ('Town of Cheektowaga',       'CKTW'),
+    ('Town of Clarence',          'CLAR'),
+    ('Town of Colden',            'CLDN'),
+    ('Town of Collins',           'COLL'),
+    ('Town of Concord',           'CONC'),
+    ('Town of Evans',             'EVNS'),
+    ('Town of Grand Island',      'GRIS'),
+    ('Town of Hamburg',           'HAMB'),
+    ('Town of Holland',           'HOLL'),
+    ('Town of Lancaster',         'LANC'),
+    ('Town of Marilla',           'MARL'),
+    ('Town of Newstead',          'NEWS'),
+    ('Town of North Collins',     'NCOL'),
+    ('Town of Orchard Park',      'ORPK'),
+    ('Town of Sardinia',          'SARD'),
+    ('Town of Tonawanda',         'TTON'),
+    ('Town of Wales',             'WALS'),
+    ('Town of West Seneca',       'WSEN'),
+    ('City of Glen Cove',         'GC'),
+    ('City of Long Beach',        'LB'),
+    ('Town of Hempstead',         'HEM'),
+    ('Town of North Hempstead',   'NH'),
+    ('Town of Oyster Bay',        'OB'),
+    ('City of Lockport',          'LOCKPORT'),
+    ('City of Canandaigua',       'CITY CDGA'),
+    ('City of Saratoga Springs',  'SARATOGA SPGS'),
+    ('City of Kingston',          'CITY/KNG'),
+    ('City of Mount Vernon',      'MTVE'),
+    ('City of New Rochelle',      'NEWR'),
+    ('City of Peekskill',         'PEEK'),
+    ('City of Rye',               'RYE'),
+    ('City of White Plains',      'WHPL'),
+    ('City of Yonkers',           'YONK'),
+    ('Town of Bedford',           'BDFD'),
+    ('Town of Cortlandt',         'CORT'),
+    ('Town of Eastchester',       'ESTC'),
+    ('Town of Greenburgh',        'GRNB'),
+    ('Town of Harrison',          'HARR'),
+    ('Town of Lewisboro',         'LEWB'),
+    ('Town of Mamaroneck',        'MAMA'),
+    ('Town of Mount Kisco',       'MTKS'),
+    ('Town of Mount Pleasant',    'MTPL'),
+    ('Town of New Castle',        'NCTL'),
+    ('Town of North Castle',      'NCAS'),
+    ('Town of North Salem',       'NSAL'),
+    ('Town of Ossining',          'OSSI'),
+    ('Town of Pelham',            'PELH'),
+    ('Town of Pound Ridge',       'PRDG'),
+    ('Town of Rye',               'RYET'),
+    ('Town of Scarsdale',         'SCRD'),
+    ('Town of Somers',            'SOMR'),
+    ('Town of Yorktown',          'YTWN')
+)
+UPDATE districts.town_city tc
+SET voterfile_code = c.voterfile_code
+FROM codes c
+WHERE tc.name = c.name;

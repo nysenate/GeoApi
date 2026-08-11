@@ -9,7 +9,7 @@ public class IntersectMap extends DistrictMap {
     // Raw GeoJSON geometry for the full (un-clipped) map of the intersecting district.
     private String fullMapGeoJson;
 
-    public IntersectMap(DistrictType type, String code) {
-        super(type, code);
+    public IntersectMap(DistrictType type, DistrictId id) {
+        super(type, id);
     }
 }

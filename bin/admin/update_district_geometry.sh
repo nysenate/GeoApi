@@ -11,6 +11,7 @@ function usage() {
   echo "  DISTRICT_TYPE  District type (used as the target table name in the districts schema)." >&2
   echo "A type listed in sources.conf takes its columns from there and is not prompted;" >&2
   echo "otherwise the script inspects the dataset and asks for the code and name columns." >&2
+  echo "The name column is renamed to \"name\", which is where SAGE reads names from." >&2
 }
 
 # Assigns variables based on argument count.
@@ -139,7 +140,7 @@ for col in "${COLS[@]}"; do
   fi
 done
 SELECT_COLS="$KEPT"
-
+# TODO: include id?
 echo "Keeping columns: $SELECT_COLS"
 
 OGR_ARGS=(
@@ -166,6 +167,12 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
+# Standardize the column to be called "name" now
+if [ -n "$NAME_COLUMN" ] && [ "${NAME_COLUMN,,}" != "name" ] && grep -qxiF "$NAME_COLUMN" <<< "$FIELDS"; then
+  psql -d "$database" -U "$db_user" -v ON_ERROR_STOP=1 \
+    -c "ALTER TABLE $TABLE RENAME COLUMN ${NAME_COLUMN,,} TO name;" || exit 1
+fi
+
 # Adds any SAGE-specific columns the source doesn't carry. This has to run before the NOT
 # NULL enforcement below, since for some types the hook is what supplies the code column.
 if [ -f "$HOOK" ]; then
@@ -176,18 +183,17 @@ fi
 # Some NOT NULL enforcement to prevent problems in Java. This doubles as the gate on the
 # hook's work: a district the hook had no code for fails here rather than reaching Java.
 psql -d "$database" -U "$db_user" -c "ALTER TABLE $TABLE ALTER COLUMN $CODE_COLUMN SET NOT NULL;" || exit 1
-# The name column is nullable in districts.type_info, which requires some extra care.
-NAME_VALUE="NULL"
-if [ -n "$NAME_COLUMN" ]; then
-  psql -d "$database" -U "$db_user" -c "ALTER TABLE $TABLE ALTER COLUMN $NAME_COLUMN SET NOT NULL;" || exit 1
-  NAME_VALUE="'$NAME_COLUMN'"
+HAS_NAME=$(psql -d "$database" -U "$db_user" -tAc \
+  "SELECT 1 FROM information_schema.columns
+   WHERE table_schema = 'districts' AND table_name = '${DISTRICT_TYPE,,}' AND column_name = 'name';") || exit 1
+if [ -n "$HAS_NAME" ]; then
+  psql -d "$database" -U "$db_user" -c "ALTER TABLE $TABLE ALTER COLUMN name SET NOT NULL;" || exit 1
 fi
 
-psql -d "$database" -U "$db_user" -c "INSERT INTO districts.type_info (type_name, code_column, name_column)
-VALUES ('${DISTRICT_TYPE,,}', LOWER('$CODE_COLUMN'), LOWER($NAME_VALUE))
+psql -d "$database" -U "$db_user" -c "INSERT INTO districts.type_info (type_name, code_column)
+VALUES ('${DISTRICT_TYPE,,}', LOWER('$CODE_COLUMN'))
 ON CONFLICT (type_name) DO UPDATE SET
-    code_column = EXCLUDED.code_column,
-    name_column = EXCLUDED.name_column;" || exit 1
+    code_column = EXCLUDED.code_column;" || exit 1
 
 # Calls an API endpoint to finish setup, pretty-printing the response.
 echo "Calling /cleanMaps to clean ${TABLE}..."

@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @Getter
 public class DistrictMap {
     private final DistrictType districtType;
-    private final String districtCode;
+    private final DistrictId id;
     // Raw GeoJSON geometry (a MultiPolygon).
     @Setter
     private String mapGeoJson;
@@ -19,9 +19,9 @@ public class DistrictMap {
     @Setter
     private BigDecimal area;
 
-    public DistrictMap(DistrictType type, String code) {
+    public DistrictMap(DistrictType type, DistrictId id) {
         this.districtType = type;
-        this.districtCode = code;
+        this.id = id;
     }
 
     @Override
