@@ -130,6 +130,9 @@ WHERE village_name IS NOT NULL AND village_id IS NULL
 ORDER BY county, village_name, stored_ed;
 
 ALTER TABLE districts.election
+    DROP COLUMN stored_municipality,
+    DROP COLUMN stored_ed,
+    DROP COLUMN election_district,
     ADD COLUMN id text,
     ADD COLUMN name text;
 
