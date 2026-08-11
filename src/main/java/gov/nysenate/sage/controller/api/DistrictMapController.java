@@ -6,17 +6,12 @@ import gov.nysenate.sage.client.response.district.DisplayEnumResponse;
 import gov.nysenate.sage.client.response.district.IntersectResponse;
 import gov.nysenate.sage.client.response.map.MapGeometryResponse;
 import gov.nysenate.sage.client.response.map.MultipleMapGeometryResponse;
-import gov.nysenate.sage.dao.model.county.CountyDao;
-import gov.nysenate.sage.model.district.County;
-import gov.nysenate.sage.model.district.DistrictId;
-import gov.nysenate.sage.model.district.DistrictMap;
-import gov.nysenate.sage.model.district.DistrictType;
+import gov.nysenate.sage.model.district.*;
 import gov.nysenate.sage.model.result.IntersectResult;
 import gov.nysenate.sage.model.result.MapListResult;
 import gov.nysenate.sage.model.result.MapResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.district.ShapefileService;
-import gov.nysenate.sage.service.ImmutableCache;
 import gov.nysenate.sage.service.district.DistrictMemberProvider;
 import gov.nysenate.sage.service.district.DistrictInfoCache;
 import gov.nysenate.sage.util.controller.ConstantUtil;
@@ -25,9 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static gov.nysenate.sage.model.result.ResultStatus.BAD_OVERLAY;
 
@@ -36,15 +29,12 @@ import static gov.nysenate.sage.model.result.ResultStatus.BAD_OVERLAY;
 public class DistrictMapController extends BaseDistrictController<DistrictType> {
     private static final Logger logger = LoggerFactory.getLogger(DistrictMapController.class);
     private final ShapefileService shapefileService;
-    private final ImmutableCache<String, URI> linkCache;
 
     @Autowired
-    public DistrictMapController(DistrictInfoCache nameCache, ShapefileService shapefileService,
-                                 DistrictMemberProvider memberProvider, CountyDao countyDao) {
-        super(nameCache, shapefileService, memberProvider);
+    public DistrictMapController(DistrictInfoCache infoCache, ShapefileService shapefileService,
+                                 DistrictMemberProvider memberProvider) {
+        super(infoCache, shapefileService, memberProvider);
         this.shapefileService = shapefileService;
-        this.linkCache = new ImmutableCache<>(() -> countyDao.getCounties()
-                .stream().collect(Collectors.toMap(county -> String.valueOf(county.code()), County::link)));
     }
 
     // The @GetMapping is inherited.
@@ -79,9 +69,14 @@ public class DistrictMapController extends BaseDistrictController<DistrictType> 
                     dmv -> assignData(dmv, showMembers, !meta)
             );
             if (districtType == DistrictType.COUNTY) {
+                Map<DistrictId, DistrictInfo> countyInfoMap = infoCache.get(DistrictType.COUNTY);
                 response.getMapViews().forEach(
-                        dmv -> dmv.setLink(linkCache.get(dmv.getDistrict()))
-                );
+                        dmv -> {
+                            DistrictInfo currInfo = countyInfoMap.get(dmv.getId());
+                            if (currInfo != null) {
+                                dmv.setLink(currInfo.get("link"));
+                            }
+                        });
             }
             return response;
         }

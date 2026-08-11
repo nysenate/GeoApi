@@ -3,9 +3,9 @@ package gov.nysenate.sage.service.streetfile;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import gov.nysenate.sage.dao.model.county.CountyDao;
 import gov.nysenate.sage.dao.provider.streetfile.StreetfileDao;
 import gov.nysenate.sage.model.district.County;
+import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.district.TownCity;
 import gov.nysenate.sage.scripts.streetfinder.model.ResolveConflictConfiguration;
@@ -31,6 +31,7 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,13 +42,12 @@ public class StreetfileProcessor {
     private final File sourceDir, resultsDir;
     private final Path streetfilePath, conflictPath, improperPath, invalidPath;
     private final StreetfileDao streetfileDao;
-    private final CountyDao countyDao;
     private final DistrictInfoCache districtInfoCache;
     private final StreetfileAddressCorrectionService correctionService;
 
     @Autowired
     public StreetfileProcessor(@Value("${streetfile.dir}") String streetfileDir, StreetfileDao streetfileDao,
-                               CountyDao countyDao, DistrictInfoCache districtInfoCache,
+                               DistrictInfoCache districtInfoCache,
                                StreetfileAddressCorrectionService correctionService) throws IOException {
         this.sourceDir = Path.of(streetfileDir, "text_files").toFile();
         FileUtils.forceMkdir(sourceDir);
@@ -58,7 +58,6 @@ public class StreetfileProcessor {
         this.improperPath = Path.of(resultsDir.getPath(), "improper.txt");
         this.invalidPath = Path.of(resultsDir.getPath(), "invalid.txt");
         this.streetfileDao = streetfileDao;
-        this.countyDao = countyDao;
         this.districtInfoCache = districtInfoCache;
         this.correctionService = correctionService;
     }
@@ -124,16 +123,21 @@ public class StreetfileProcessor {
     }
 
     private Multimap<County, TownCity> getCountyToTownCityMap() {
-        Set<County> counties = countyDao.getCounties();
+        // Counties have unique names
+        var countyNameMap = new HashMap<String, County>();
+        for (var entry : districtInfoCache.get(DistrictType.COUNTY).entrySet()) {
+            String name = entry.getValue().get("name");
+            var county = new County(Integer.parseInt(entry.getKey().id()), name);
+            countyNameMap.put(name, county);
+        }
 
         Multimap<County, TownCity> results = HashMultimap.create();
         for (var entry : districtInfoCache.get(DistrictType.TOWN_CITY).entrySet()) {
-            Map<String, String> tcInfo = entry.getValue().getInternalMap();
+            DistrictInfo tcInfo = entry.getValue();
             for (String countyName : tcInfo.get("county").split(", ?")) {
-                // Counties have unique names
-                County county = counties.stream().filter(c -> c.name().equalsIgnoreCase(countyName))
-                        .findFirst().orElseThrow();
-                results.put(county, new TownCity(tcInfo.get("base_name"), tcInfo.get("name"), entry.getKey(), tcInfo.get("voterfile_code")));
+                County county = countyNameMap.get(countyName);
+                results.put(county, new TownCity(entry.getKey(), tcInfo.get("base_name"),
+                        tcInfo.get("name"), tcInfo.get("voterfile_code")));
             }
         }
         return results;

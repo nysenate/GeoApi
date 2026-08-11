@@ -18,3 +18,5 @@ SELECT name
 FROM districts.county
 WHERE senate_code IS NULL
 ORDER BY name;
+
+\ir add_county_links.sql

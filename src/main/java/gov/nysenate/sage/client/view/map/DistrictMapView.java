@@ -5,14 +5,14 @@ import gov.nysenate.sage.client.view.district.BaseDistrictView;
 import gov.nysenate.sage.model.district.DistrictMap;
 import gov.nysenate.sage.model.district.DistrictType;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.net.URI;
-import java.util.Objects;
 
 @Getter
 public class DistrictMapView extends BaseDistrictView {
     // Only used for County maps.
+    @Setter
     private String link;
     private final BigDecimal area;
 
@@ -27,7 +27,4 @@ public class DistrictMapView extends BaseDistrictView {
         return type;
     }
 
-    public void setLink(URI link) {
-        this.link = Objects.toString(link, null);
-    }
 }

@@ -13,11 +13,7 @@ public class DistrictInfo {
         internalMap.put(columnName, value);
     }
 
-    public String getName() {
-        return internalMap.get("name");
-    }
-
-    public String getCode() {
-        return internalMap.get("code");
+    public String get(String columnName) {
+        return internalMap.get(columnName);
     }
 }

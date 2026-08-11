@@ -8,9 +8,9 @@ public class TownCity {
     private final boolean isCity;
     private final Pattern pattern;
 
-    public TownCity(String baseName, String fullName, DistrictId id, String voterFileCode) {
-        this.baseName = baseName;
+    public TownCity(DistrictId id, String baseName, String fullName, String voterFileCode) {
         this.id = id;
+        this.baseName = baseName;
         this.voterFileCode = voterFileCode;
         this.isCity = fullName.contains("City");
         this.pattern = getPattern(isCity, baseName);

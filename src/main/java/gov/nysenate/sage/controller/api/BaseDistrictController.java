@@ -29,8 +29,8 @@ public abstract class BaseDistrictController<E extends Enum<E> & HasDisplayName>
         }
         DistrictInfo currInfo = infoCache.getData(bdv.getType(), bdv.getId());
         if (currInfo != null) {
-            bdv.setName(currInfo.getName());
-            String code = currInfo.getCode();
+            bdv.setName(currInfo.get("name"));
+            String code = currInfo.get("code");
             if (!StringUtils.isBlank(code)) {
                 bdv.setDistrict(code);
             }
