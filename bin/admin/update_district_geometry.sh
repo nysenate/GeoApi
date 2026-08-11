@@ -52,9 +52,10 @@ for cmd in ogr2ogr ogrinfo jq psql curl unzip; do
 done
 
 source "$(dirname "$0")/admin.script.properties"
+SERVER_UP=1
 if ! curl -fsS "${baseUrl}/ping" >/dev/null; then
-  echo "$PROG: ERROR: server at ${baseUrl} is not responding." >&2
-  exit 1
+  SERVER_UP=0
+  echo "$PROG: WARNING: server at ${baseUrl} is not responding." >&2
 fi
 
 LAYER_URL=""
@@ -196,7 +197,11 @@ ON CONFLICT (type_name) DO UPDATE SET
     code_column = EXCLUDED.code_column;" || exit 1
 
 # Calls an API endpoint to finish setup, pretty-printing the response.
-echo "Calling /cleanMaps to clean ${TABLE}..."
-curl -sS -G "${baseUrl}/admin/api/cleanMaps" \
-  --data-urlencode "key=${adminKey}" \
-  --data-urlencode "type=${DISTRICT_TYPE}" | jq .
+if [ "$SERVER_UP" -eq 0 ]; then
+  echo "$PROG: WARNING: skipping /cleanMaps, since the server was not responding. You'' have to run it manually." >&2
+else
+  echo "Calling /cleanMaps to clean ${TABLE}..."
+  curl -sS -G "${baseUrl}/admin/api/cleanMaps" \
+    --data-urlencode "key=${adminKey}" \
+    --data-urlencode "type=${DISTRICT_TYPE}" | jq .
+fi
