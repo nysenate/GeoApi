@@ -50,13 +50,13 @@ SET ward = (regexp_match(election_district, '\y(Ward |WD |W)(\d+)', 'i'))[2]::in
 WHERE election_district ~* '\y(Ward |WD |W)(\d+)';
 
 -- Buffalo's wards are named rather than numbered, and Erie County labels them by the
--- 3-letter abbreviation ('Buffalo ELL 1'). districts.buffalo_ward maps those to the codes
+-- 3-letter abbreviation ('Buffalo ELL 1'). public.buffalo_ward maps those to the codes
 -- SAGE uses (see src/main/resources/sql/add_buffalo_ward_map.sql). An abbreviation the
 -- table does not know simply will not match, leaving the label intact and ward NULL.
 UPDATE districts.election e
 SET ward = w.code,
     election_district = regexp_replace(e.election_district, '^[A-Z]{3} ', '')
-FROM districts.buffalo_ward w
+FROM public.buffalo_ward w
 WHERE e.municipality = 'Buffalo'
   AND w.abbrev = left(election_district, 3);
 
