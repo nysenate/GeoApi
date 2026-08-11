@@ -51,7 +51,7 @@ public class ShapefileService {
     /** Provides a district map given a specific type and district */
     public MapResult getMapResult(DistrictType districtType, DistrictId id) {
         if (id == null) {
-            return new MapResult(ResultStatus.MISSING_DISTRICT_CODE);
+            return new MapResult(ResultStatus.MISSING_DISTRICT_ID);
         }
         DistrictMap map = mapCache.getData(districtType, id);
         if (map == null) {

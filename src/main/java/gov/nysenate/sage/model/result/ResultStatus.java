@@ -35,7 +35,7 @@ public enum ResultStatus {
 
     NO_MAP_RESULT(80, "Map request returned no results"),
     UNSUPPORTED_DISTRICT_MAP(81, "Maps for the requested district type are not available"),
-    MISSING_DISTRICT_CODE(82, "A district code is required"),
+    MISSING_DISTRICT_ID(82, "A district ID is required"),
     BAD_OVERLAY(83, "Same type overlay is not supported"),
 
     NO_STREETFILES_TO_PROCESS(90, "There were no streetfiles to process. No action was taken."),

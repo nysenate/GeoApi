@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-import static gov.nysenate.sage.model.result.ResultStatus.MISSING_DISTRICT_CODE;
+import static gov.nysenate.sage.model.result.ResultStatus.MISSING_DISTRICT_ID;
 import static gov.nysenate.sage.model.result.ResultStatus.UNSUPPORTED_DISTRICT_MAP;
 
 public abstract class SourcedController<E extends Enum<E> & HasDisplayName> extends BaseApiController {
@@ -43,7 +43,7 @@ public abstract class SourcedController<E extends Enum<E> & HasDisplayName> exte
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
     public ApiError handleTypeMismatchException(MethodArgumentTypeMismatchException e) {
-        return new ApiError(MISSING_DISTRICT_CODE);
+        return new ApiError(MISSING_DISTRICT_ID);
     }
 
     protected <T extends Enum<T>> T getValue(Class<T> enumClass, String strValue) {
