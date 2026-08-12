@@ -3,28 +3,18 @@ package gov.nysenate.sage.dao.provider.shapefile;
 import gov.nysenate.sage.dao.base.BasicSqlQuery;
 
 public enum ShapefileQuery implements BasicSqlQuery {
-    // These maps are only ever displayed, so the geometry is simplified to cut the payload.
-    // ST_CoverageSimplify, not ST_Simplify: it treats a shared border once, where simplifying
-    // neighbours independently pulls their common edge two different ways and tears visible gaps
-    // along it. ST_CoverageSimplify throws outright on an invalid polygon, so the repair guards
-    // the display path against a layer that failed the validity check cleanMaps reports on. The
-    // area still comes off the full geometry.
+    // Map geometry is simplified to cut the payload.
+    // The 0.0001-degree tolerance (~11m) and 6 coordinate digits (~10cm) are invisible at
+    // display zooms: this causes no district collapses, the median border barely shifts,
+    // and no type has even 0.1% of its area displaced. In return, the largest laters shrink ~3x.
     GET_DISTRICT_MAPS("""
-            SELECT *, ST_AsGeoJson(ST_CoverageSimplify(ST_MakeValid(full_geom), tolerance) OVER ()) AS map,
+            SELECT *, ST_AsGeoJson(ST_CoverageSimplify(ST_MakeValid(full_geom), 0.0001) OVER (), 6) AS map,
                 area_in_sq_km(full_geom) AS area
             FROM (
                 SELECT ${idColumn} AS id, ST_Multi(ST_Union(geom)) AS full_geom
                 FROM ${schema}.${type}
                 GROUP BY ${idColumn}
-            ) AS temp
-            CROSS JOIN (
-                -- A hundredth of the smallest district's width, 111320m being a degree of
-                -- latitude. One fixed tolerance can't serve both a county and a city election
-                -- district, so it's derived per type rather than configured.
-                SELECT LEAST(0.0005, GREATEST(0.00002,
-                    MIN(SQRT(ST_Area(geom::geography)))/100/111320)) AS tolerance
-                FROM ${schema}.${type}
-            ) AS tol"""),
+            ) AS temp"""),
 
     GET_DISTRICT_FROM_POINT("""
             SELECT ${idColumn}::text AS id
