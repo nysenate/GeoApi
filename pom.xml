@@ -146,7 +146,7 @@
         <jdom.version>2.0.2</jdom.version>
         <jsoup.version>1.22.2</jsoup.version>
         <junit.version>4.13.2</junit.version>
-        <log4j.version>2.26.0</log4j.version>
+        <log4j.version>2.26.1</log4j.version>
         <lombok.version>1.18.38</lombok.version>
         <maven-core.version>3.9.6</maven-core.version>
         <mockito.version>5.23.0</mockito.version>
