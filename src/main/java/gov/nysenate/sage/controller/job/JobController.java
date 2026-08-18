@@ -127,24 +127,23 @@ public class JobController {
         logger.info("Processing Job Request Submission.");
         JobRequest jobRequest = getJobRequest(request);
 
-        if (jobRequest.getProcesses() != null && !jobRequest.getProcesses().isEmpty()) {
-            for (JobProcess jobProcess : jobRequest.getProcesses()) {
-                /* Store the job process and status */
-                int processId = sqlJobProcessDao.addJobProcess(jobProcess);
-                if (processId > -1) {
-                    JobProcessStatus status = new JobProcessStatus(processId);
-                    sqlJobProcessDao.setJobProcessStatus(status);
-                    logger.info("Added job process and status for file {}", jobProcess.getFileName());
-                } else {
-                    logger.error("Failed to add job process for file {}", jobProcess.getFileName());
-                }
-            }
-            getJobRequest(request).clear();
-            return new JobActionResponse(true, null);
-        } else {
+        if (jobRequest.getProcesses().isEmpty()) {
             getJobRequest(request).clear();
             return new JobActionResponse(false, "You must upload a file before submitting.");
         }
+        for (JobProcess jobProcess : jobRequest.getProcesses()) {
+            /* Store the job process and status */
+            int processId = sqlJobProcessDao.addJobProcess(jobProcess);
+            if (processId > -1) {
+                JobProcessStatus status = new JobProcessStatus(processId);
+                sqlJobProcessDao.setJobProcessStatus(status);
+                logger.info("Added job process and status for file {}", jobProcess.getFileName());
+            } else {
+                logger.error("Failed to add job process for file {}", jobProcess.getFileName());
+            }
+        }
+        getJobRequest(request).clear();
+        return new JobActionResponse(true, null);
     }
 
     /**
@@ -159,13 +158,11 @@ public class JobController {
     public Object jobRemove(HttpServletRequest request, @RequestParam String fileName) {
         logger.info("User requested job file removal prior to submission");
         JobRequest jobRequest = getJobRequest(request);
-        if (fileName != null && jobRequest.getProcesses() != null && !jobRequest.getProcesses().isEmpty()) {
-            Iterator<JobProcess> itr = jobRequest.getProcesses().iterator();
-            while (itr.hasNext()) {
-                if (itr.next().getFileName().equalsIgnoreCase(fileName)) {
-                    itr.remove();
-                    return new JobActionResponse(true, "Removed " + fileName);
-                }
+        Iterator<JobProcess> itr = jobRequest.getProcesses().iterator();
+        while (itr.hasNext()) {
+            if (itr.next().getFileName().equalsIgnoreCase(fileName)) {
+                itr.remove();
+                return new JobActionResponse(true, "Removed " + fileName);
             }
         }
         return new JobActionResponse(false, "The removal request was unsuccessful.");
@@ -174,7 +171,7 @@ public class JobController {
     /**
      * Cancel Job Api
      * ---------------------
-     * Sets the condition of a job process status to cancelled
+     * Sets the condition of a job process status to CANCELLED
      * Usage:
      * (POST)    /job/cancel
      *

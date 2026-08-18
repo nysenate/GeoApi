@@ -49,7 +49,7 @@ import static gov.nysenate.sage.model.job.JobProcessStatus.Condition.*;
 import static gov.nysenate.sage.util.controller.ConstantUtil.DOWNLOAD_BASE_URL;
 
 @Service
-public class JobBatchProcessor implements JobProcessor {
+public class JobBatchProcessor {
     private static final Logger logger = LoggerFactory.getLogger(JobBatchProcessor.class);
     private static final Marker fatal = MarkerFactory.getMarker("FATAL");
 
@@ -93,6 +93,9 @@ public class JobBatchProcessor implements JobProcessor {
         this.districtExecutor = ExecutorUtil.createExecutor("job-dist-assign", numThreads);
     }
 
+    /**
+     * Processing the actual job process
+     */
     @Scheduled(cron = "${job.process.cron}")
     public synchronized void run() throws Exception {
         isRunning = true;
@@ -512,7 +515,7 @@ public class JobBatchProcessor implements JobProcessor {
     }
 
     /**
-     * Marks all running jobs as cancelled effectively removing them from the queue.
+     * Marks all running jobs as canceled, effectively removing them from the queue.
      */
     public void cancelRunningJobs() {
         logger.info("Cancelling all running jobs!");

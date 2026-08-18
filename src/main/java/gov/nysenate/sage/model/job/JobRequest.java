@@ -1,46 +1,26 @@
 package gov.nysenate.sage.model.job;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-public class JobRequest
-{
-    protected JobUser requestor;
-    protected List<JobProcess> processes;
+@Getter
+public class JobRequest {
+    private final JobUser requestor;
+    private final List<JobProcess> processes = new LinkedList<>();
 
     public JobRequest(JobUser requestor) {
         this.requestor = requestor;
-        this.processes = new LinkedList<>();
     }
 
-    public void clear()
-    {
-        if (this.processes != null) {
-            processes.clear();
-        }
-    }
-
-    public JobUser getRequestor() {
-        return requestor;
-    }
-
-    public void setRequestor(JobUser requestor) {
-        this.requestor = requestor;
-    }
-
-    public List<JobProcess> getProcesses() {
-        return processes;
-    }
-
-    public void setProcesses(List<JobProcess> processes) {
-        this.processes = processes;
+    public void clear() {
+        processes.clear();
     }
 
     public void addProcess(JobProcess process) {
-        if (this.processes == null) {
-            this.processes = new ArrayList<>();
-        }
-        this.processes.add(process);
+        processes.add(process);
     }
 }

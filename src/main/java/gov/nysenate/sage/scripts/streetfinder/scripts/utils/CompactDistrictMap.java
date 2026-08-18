@@ -18,6 +18,7 @@ import static gov.nysenate.sage.model.district.DistrictType.ZIP;
  * Due to lots of repetition, interning is enforced.
  */
 public class CompactDistrictMap {
+    // TODO: no they don't lol
     // A few special wards have ward numbers, but data is given in 3-letter codes.
     private static final Map<String, Integer> wardCorrectionMap = Map.of(
             "DEL", 10, "ELL", 20,

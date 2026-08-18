@@ -105,7 +105,7 @@ public class JobRecord {
                 if (column.group() != Column.Group.district) {
                     continue;
                 }
-                dataMap.put(column, assignedDistricts.getDistCode(DistrictType.valueOf(column.name().toUpperCase())));
+                dataMap.put(column, assignedDistricts.getDistId(DistrictType.valueOf(column.name().toUpperCase())));
             }
         }
     }
