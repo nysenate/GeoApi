@@ -14,9 +14,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import static gov.nysenate.sage.model.district.DistrictInfo.NAME_COLUMN;
+
 @Service
 public class DistrictInfoDao extends BaseDao {
-    private static final String NAME_COLUMN = "name";
     private final ShapefileTypeDao typeDao;
 
     @Autowired
@@ -39,7 +40,7 @@ public class DistrictInfoDao extends BaseDao {
         jdbcTemplate.query(sql, (rs, rowNum) -> rs.getString("code"))
                 .forEach(code -> {
                     var info = new DistrictInfo();
-                    info.put("name", defaultName(type, null, code));
+                    info.put(NAME_COLUMN, defaultName(type, null, code));
                     map.put(new DistrictId(code), info);
                 });
         return map;

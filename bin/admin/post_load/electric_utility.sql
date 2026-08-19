@@ -1,6 +1,6 @@
 -- Run by update_district_geometry.sh after it reloads districts.electric_utility.
 
--- SAGE reads names out of "name"..
+-- SAGE reads names out of "name".
 ALTER TABLE districts.electric_utility RENAME COLUMN comp_full TO name;
 
 -- comp_id identifies the company, which is enough for the investor-owned utilities, but every
