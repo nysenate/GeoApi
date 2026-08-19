@@ -10,8 +10,7 @@ function usage() {
   echo "                 Omitted for a type listed in sources.conf, which supplies it." >&2
   echo "  DISTRICT_TYPE  District type (used as the target table name in the districts schema)." >&2
   echo "A type listed in sources.conf takes its columns from there and is not prompted;" >&2
-  echo "otherwise the script inspects the dataset and asks for the code and name columns." >&2
-  echo "The name column is renamed to \"name\", which is where SAGE reads names from." >&2
+  echo "otherwise the script inspects the dataset and asks for the code column." >&2
 }
 
 # Assigns variables based on argument count.
@@ -28,7 +27,7 @@ if [ ! -f "$SOURCES_CONF" ]; then
   echo "$PROG: ERROR: $SOURCES_CONF not found." >&2
   exit 1
 fi
-unset CODE_COLUMN NAME_COLUMN EXTRA_COLUMNS
+unset CODE_COLUMN EXTRA_COLUMNS
 source "$SOURCES_CONF"
 
 # A configured type is loaded from its configured source, since SAGE relies on certain columns.
@@ -112,20 +111,16 @@ echo "Available fields:"
 echo "$FIELDS"
 echo
 
-# Prompt for code and name, if not provided.
+# Prompt for the code column, if not provided.
 if [[ ! -v DEF_SOURCE ]]; then
   read -rp "Code column in file: " CODE_COLUMN
   if [ -z "$CODE_COLUMN" ]; then
     echo "$PROG: ERROR: no code column given." >&2
     exit 1
   fi
-  read -rp "Name column in file (blank to skip): " NAME_COLUMN
 fi
 
-# Deliberately not prompted for: anything past the code and name columns is dropped
-# unless sources.conf says to keep it, so the extra columns a type relies on are
-# recorded rather than remembered.
-SELECT_COLS="$CODE_COLUMN,$NAME_COLUMN,$EXTRA_COLUMNS"
+SELECT_COLS="$CODE_COLUMN,$EXTRA_COLUMNS"
 # Fixes string in case of skipped fields.
 SELECT_COLS="${SELECT_COLS//,,/,}"
 SELECT_COLS="${SELECT_COLS#,}"
@@ -168,14 +163,9 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# Standardize the column to be called "name" now
-if [ -n "$NAME_COLUMN" ] && [ "${NAME_COLUMN,,}" != "name" ] && grep -qxiF "$NAME_COLUMN" <<< "$FIELDS"; then
-  psql -d "$database" -U "$db_user" -v ON_ERROR_STOP=1 \
-    -c "ALTER TABLE $TABLE RENAME COLUMN ${NAME_COLUMN,,} TO name;" || exit 1
-fi
-
-# Adds any SAGE-specific columns the source doesn't carry. This has to run before the NOT
-# NULL enforcement below, since for some types the hook is what supplies the code column.
+# Adds any SAGE-specific columns the source doesn't carry, and standardizes the name column
+# on "name". This has to run before the NOT NULL enforcement below, since for some types the
+# hook is what supplies the code column.
 if [ -f "$HOOK" ]; then
   echo "Running post-load hook $HOOK..."
   psql -d "$database" -U "$db_user" -v ON_ERROR_STOP=1 -f "$HOOK" || exit 1
