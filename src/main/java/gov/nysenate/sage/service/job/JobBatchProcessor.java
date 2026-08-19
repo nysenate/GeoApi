@@ -1,9 +1,11 @@
 package gov.nysenate.sage.service.job;
 
+import com.google.common.collect.ImmutableMap;
 import gov.nysenate.sage.config.Environment;
 import gov.nysenate.sage.dao.model.job.SqlJobProcessDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.Accuracy;
+import gov.nysenate.sage.model.district.AssignedDistricts;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.job.*;
@@ -14,6 +16,7 @@ import gov.nysenate.sage.provider.district.DistrictService;
 import gov.nysenate.sage.provider.geocode.GeocodeService;
 import gov.nysenate.sage.provider.geocode.Geocoder;
 import gov.nysenate.sage.service.address.AddressService;
+import gov.nysenate.sage.service.district.DistrictInfoCache;
 import gov.nysenate.sage.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,10 +39,7 @@ import java.nio.file.Path;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -57,11 +57,12 @@ public class JobBatchProcessor {
     private final String downloadDir;
     private final String downloadUrl;
 
+    private final SqlJobProcessDao sqlJobProcessDao;
     private final Mailer mailer;
     private final AddressService addressService;
     private final GeocodeService geocodeService;
     private final DistrictService districtService;
-    private final SqlJobProcessDao sqlJobProcessDao;
+    private final DistrictInfoCache districtInfoCache;
 
     private final ThreadPoolTaskExecutor addressExecutor;
     private final ThreadPoolTaskExecutor geocodeExecutor;
@@ -74,10 +75,11 @@ public class JobBatchProcessor {
     private boolean isRunning = false;
 
     @Autowired
-    public JobBatchProcessor(Environment env, Mailer mailer, AddressService addressService,
-                             GeocodeService geocodeService, DistrictService districtService,
+    public JobBatchProcessor(Environment env, SqlJobProcessDao sqlJobProcessDao, Mailer mailer,
+                             AddressService addressService, GeocodeService geocodeService,
+                             DistrictService districtService, DistrictInfoCache districtInfoCache,
                              @Value("${base.url:http://localhost:8080}") String baseUrl,
-                             SqlJobProcessDao sqlJobProcessDao, @Value("${num.threads:3}") int numThreads) {
+                             @Value("${num.threads:3}") int numThreads) {
         this.uploadDir = env.getJobUploadDir();
         this.downloadDir = env.getJobDownloadDir();
         this.downloadUrl = baseUrl.trim() + DOWNLOAD_BASE_URL;
@@ -87,6 +89,7 @@ public class JobBatchProcessor {
         this.geocodeService = geocodeService;
         this.districtService = districtService;
         this.sqlJobProcessDao = sqlJobProcessDao;
+        this.districtInfoCache = districtInfoCache;
 
         this.addressExecutor = ExecutorUtil.createExecutor("job-validator", numThreads);
         this.geocodeExecutor = ExecutorUtil.createExecutor("job-geocoder", numThreads);
@@ -218,7 +221,7 @@ public class JobBatchProcessor {
                         fullBatch = geocodeExecutor.submit(new GeocodeJobBatch(fullBatch, geocodeService));
                         if (jobFile.requiresDistrictAssign()) {
                             fullBatch = districtExecutor.submit(
-                                    new DistrictJobBatch(fullBatch, jobFile.getRequiredDistrictTypes(), districtService)
+                                    new DistrictJobBatch(fullBatch, jobFile.getRequiredDistrictTypes(), districtService, districtInfoCache)
                             );
                         }
                     }
@@ -439,26 +442,41 @@ public class JobBatchProcessor {
         private final Future<JobBatch> futureJobBatch;
         private final Set<DistrictType> districtTypes;
         private final DistrictService districtService;
+        private final DistrictInfoCache districtInfoCache;
 
-        public DistrictJobBatch(Future<JobBatch> futureJobBatch, Set<DistrictType> types, DistrictService districtService)
+        public DistrictJobBatch(Future<JobBatch> futureJobBatch, Set<DistrictType> types,
+                                DistrictService districtService, DistrictInfoCache districtInfoCache)
                 throws InterruptedException, ExecutionException {
             this.futureJobBatch = futureJobBatch;
             this.districtTypes = types;
             this.districtService = districtService;
+            this.districtInfoCache = districtInfoCache;
         }
 
         @Override
         public JobBatch call() throws Exception {
             JobBatch jobBatch = futureJobBatch.get();
             LocalDateTime start = LocalDateTime.now();
-            List<DistrictResult> districtResults = districtService.assignDistricts(
+            List<AssignedDistrictCodes> assignedCodes = districtService.assignDistricts(
                     jobBatch.getGeocodedAddresses(), districtTypes
-            );
+            ).stream().map(this::getAssignedDistrictCodes).toList();
             long millis = ChronoUnit.MILLIS.between(start, LocalDateTime.now());
             logger.info("District assigned records {}-{} in {} milliseconds",
                     jobBatch.fromRecord(), jobBatch.toRecord(), millis);
-            jobBatch.setDistrictResults(districtResults);
+            jobBatch.setDistrictResults(assignedCodes);
             return jobBatch;
+        }
+
+        /**
+         * Batch jobs need to output codes which match Bluebird.
+         */
+        private AssignedDistrictCodes getAssignedDistrictCodes(DistrictResult districtResult) {
+            var codeMapBuilder = ImmutableMap.<DistrictType, String>builder();
+            AssignedDistricts assignedDistricts = districtResult.getAssignedDistricts();
+            for (var entry : assignedDistricts.typeToDistrictMap().entrySet()) {
+                codeMapBuilder.put(entry.getKey(), districtInfoCache.getCode(entry.getKey(), entry.getValue()));
+            }
+            return new AssignedDistrictCodes(codeMapBuilder.build(), assignedDistricts.accuracy());
         }
     }
 

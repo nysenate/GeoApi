@@ -3,11 +3,9 @@ package gov.nysenate.sage.model.job;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.Accuracy;
-import gov.nysenate.sage.model.district.AssignedDistricts;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.result.AddressResult;
-import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -97,16 +95,14 @@ public class JobRecord {
         }
     }
 
-    public void applyDistrictResult(DistrictResult districtResult) {
-        if (districtResult != null && districtResult.isSuccess()) {
-            AssignedDistricts assignedDistricts = districtResult.getAssignedDistricts();
-            this.accuracy = assignedDistricts.accuracy();
-            for (Column column : Column.values()) {
-                if (column.group() != Column.Group.district) {
-                    continue;
-                }
-                dataMap.put(column, assignedDistricts.getDistId(DistrictType.valueOf(column.name().toUpperCase())));
+    public void applyDistrictCodes(AssignedDistrictCodes codeResult) {
+        this.accuracy = codeResult.accuracy();
+        for (Column column : Column.values()) {
+            if (column.group() != Column.Group.district) {
+                continue;
             }
+            DistrictType currType = DistrictType.valueOf(column.name().toUpperCase());
+            dataMap.put(column, codeResult.codeMap().get(currType));
         }
     }
 

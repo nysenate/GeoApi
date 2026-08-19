@@ -126,7 +126,7 @@ public class StreetfileProcessor {
         // Counties have unique names
         var countyNameMap = new HashMap<String, County>();
         for (var entry : districtInfoCache.get(DistrictType.COUNTY).entrySet()) {
-            String name = entry.getValue().get("name");
+            String name = entry.getValue().getName();
             var county = new County(Integer.parseInt(entry.getKey().id()), name);
             countyNameMap.put(name, county);
         }
@@ -137,7 +137,7 @@ public class StreetfileProcessor {
             for (String countyName : tcInfo.get("county").split(", ?")) {
                 County county = countyNameMap.get(countyName);
                 results.put(county, new TownCity(entry.getKey(), tcInfo.get("base_name"),
-                        tcInfo.get("name"), tcInfo.get("voterfile_code")));
+                        tcInfo.getName(), tcInfo.get("voterfile_code")));
             }
         }
         return results;

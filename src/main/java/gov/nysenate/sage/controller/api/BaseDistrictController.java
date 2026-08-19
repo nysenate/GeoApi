@@ -9,10 +9,9 @@ import gov.nysenate.sage.service.district.DistrictIdCache;
 import gov.nysenate.sage.service.district.DistrictMemberProvider;
 import gov.nysenate.sage.service.district.DistrictInfoCache;
 import gov.nysenate.sage.util.HasDisplayName;
-import org.apache.commons.lang3.StringUtils;
 
 public abstract class BaseDistrictController<E extends Enum<E> & HasDisplayName> extends SourcedController<E> {
-    protected final DistrictIdCache<DistrictInfo> infoCache;
+    protected final DistrictInfoCache infoCache;
     protected final DistrictIdCache<DistrictMap> mapCache;
     protected final DistrictIdCache<DistrictMember> memberCache;
 
@@ -29,12 +28,9 @@ public abstract class BaseDistrictController<E extends Enum<E> & HasDisplayName>
         }
         DistrictInfo currInfo = infoCache.getData(bdv.getType(), bdv.getId());
         if (currInfo != null) {
-            bdv.setName(currInfo.get("name"));
-            String code = currInfo.get("code");
-            if (!StringUtils.isBlank(code)) {
-                bdv.setDistrict(code);
-            }
+            bdv.setName(currInfo.getName());
         }
+        bdv.setDistrict(infoCache.getCode(bdv.getType(), bdv.getId()));
         if (showMembers) {
             bdv.setMember(memberCache.getData(bdv.getType(), bdv.getId()));
         }

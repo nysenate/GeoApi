@@ -16,4 +16,8 @@ public class DistrictInfo {
     public String get(String columnName) {
         return internalMap.get(columnName);
     }
+
+    public String getName() {
+        return get("name");
+    }
 }
