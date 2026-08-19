@@ -7,7 +7,7 @@ import java.sql.Timestamp;
 
 @Getter
 public class JobProcessView {
-    private int id;
+    private final int id;
     private int requestorId;
     private String requestorEmail;
     private final String sourceFileName;

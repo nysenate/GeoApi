@@ -2,7 +2,6 @@ package gov.nysenate.sage.client.response.job;
 
 import gov.nysenate.sage.client.view.job.JobProcessStatusView;
 import gov.nysenate.sage.model.job.JobProcessStatus;
-import gov.nysenate.sage.model.result.JobErrorResult;
 import lombok.Getter;
 
 import java.util.ArrayList;
