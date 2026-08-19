@@ -10,7 +10,7 @@ function usage() {
   echo "                 Omitted for a type listed in sources.conf, which supplies it." >&2
   echo "  DISTRICT_TYPE  District type (used as the target table name in the districts schema)." >&2
   echo "A type listed in sources.conf takes its columns from there and is not prompted;" >&2
-  echo "otherwise the script inspects the dataset and asks for the code column." >&2
+  echo "otherwise the script inspects the dataset and asks for the id column." >&2
 }
 
 # Assigns variables based on argument count.
@@ -27,7 +27,7 @@ if [ ! -f "$SOURCES_CONF" ]; then
   echo "$PROG: ERROR: $SOURCES_CONF not found." >&2
   exit 1
 fi
-unset CODE_COLUMN EXTRA_COLUMNS
+unset ID_COLUMN EXTRA_COLUMNS
 source "$SOURCES_CONF"
 
 # A configured type is loaded from its configured source, since SAGE relies on certain columns.
@@ -111,16 +111,16 @@ echo "Available fields:"
 echo "$FIELDS"
 echo
 
-# Prompt for the code column, if not provided.
+# Prompt for the id column, if not provided.
 if [[ ! -v DEF_SOURCE ]]; then
-  read -rp "Code column in file: " CODE_COLUMN
-  if [ -z "$CODE_COLUMN" ]; then
-    echo "$PROG: ERROR: no code column given." >&2
+  read -rp "ID column in file: " ID_COLUMN
+  if [ -z "$ID_COLUMN" ]; then
+    echo "$PROG: ERROR: no id column given." >&2
     exit 1
   fi
 fi
 
-SELECT_COLS="$CODE_COLUMN,$EXTRA_COLUMNS"
+SELECT_COLS="$ID_COLUMN,$EXTRA_COLUMNS"
 # Fixes string in case of skipped fields.
 SELECT_COLS="${SELECT_COLS//,,/,}"
 SELECT_COLS="${SELECT_COLS#,}"
@@ -165,15 +165,15 @@ fi
 
 # Adds any SAGE-specific columns the source doesn't carry, and standardizes the name column
 # on "name". This has to run before the NOT NULL enforcement below, since for some types the
-# hook is what supplies the code column.
+# hook is what supplies the id column.
 if [ -f "$HOOK" ]; then
   echo "Running post-load hook $HOOK..."
   psql -d "$database" -U "$db_user" -v ON_ERROR_STOP=1 -f "$HOOK" || exit 1
 fi
 
 # Some NOT NULL enforcement to prevent problems in Java. This doubles as the gate on the
-# hook's work: a district the hook had no code for fails here rather than reaching Java.
-psql -d "$database" -U "$db_user" -c "ALTER TABLE $TABLE ALTER COLUMN $CODE_COLUMN SET NOT NULL;" || exit 1
+# hook's work: a district the hook had no id for fails here rather than reaching Java.
+psql -d "$database" -U "$db_user" -c "ALTER TABLE $TABLE ALTER COLUMN $ID_COLUMN SET NOT NULL;" || exit 1
 HAS_NAME=$(psql -d "$database" -U "$db_user" -tAc \
   "SELECT 1 FROM information_schema.columns
    WHERE table_schema = 'districts' AND table_name = '${DISTRICT_TYPE,,}' AND column_name = 'name';") || exit 1
@@ -181,10 +181,10 @@ if [ -n "$HAS_NAME" ]; then
   psql -d "$database" -U "$db_user" -c "ALTER TABLE $TABLE ALTER COLUMN name SET NOT NULL;" || exit 1
 fi
 
-psql -d "$database" -U "$db_user" -c "INSERT INTO districts.type_info (type_name, code_column)
-VALUES ('${DISTRICT_TYPE,,}', LOWER('$CODE_COLUMN'))
+psql -d "$database" -U "$db_user" -c "INSERT INTO districts.type_info (type_name, id_column)
+VALUES ('${DISTRICT_TYPE,,}', LOWER('$ID_COLUMN'))
 ON CONFLICT (type_name) DO UPDATE SET
-    code_column = EXCLUDED.code_column;" || exit 1
+    id_column = EXCLUDED.id_column;" || exit 1
 
 # Calls an API endpoint to finish setup, pretty-printing the response.
 if [ "$SERVER_UP" -eq 0 ]; then

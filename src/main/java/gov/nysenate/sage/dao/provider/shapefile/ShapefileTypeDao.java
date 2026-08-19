@@ -40,7 +40,7 @@ public class ShapefileTypeDao extends BaseDao {
         public @Nullable DistrictTableInfo mapRow(@NonNull ResultSet rs, int rowNum) throws SQLException {
             return new DistrictTableInfo(
                     DistrictType.valueOf(rs.getString("type_name").toUpperCase()),
-                    rs.getString("code_column")
+                    rs.getString("id_column")
             );
         }
     }

@@ -58,7 +58,7 @@ public class DistrictInfoDao extends BaseDao {
             var info = new DistrictInfo();
             row.forEach((column, value) -> info.put(column, Objects.toString(value, null)));
             var id = new DistrictId(row.get(tableInfo.idColumn()).toString());
-            // A table without a name column leaves the name null.
+            // A table without a name column would leave the name null.
             String name = Objects.toString(row.get(NAME_COLUMN), null);
             info.put(NAME_COLUMN, switch (tableInfo.type()) {
                 case COUNTY -> name + " County";
