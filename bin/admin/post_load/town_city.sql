@@ -123,10 +123,10 @@ UPDATE districts.town_city
 SET base_name = name;
 
 -- Wyoming County abbreviates by rule rather than by hand: every code is just
--- the first 4 letters of the name, at least if it's longer than 4 characters.
+-- the first 4 letters of the name.
 UPDATE districts.town_city
 SET voterfile_code = left(upper(name), 4)
-WHERE county = 'Wyoming' AND length(name) > 4;
+WHERE county = 'Wyoming';
 
 WITH repeated_names AS (
     SELECT name FROM districts.town_city GROUP BY name, muni_type HAVING count(*) > 1

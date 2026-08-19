@@ -188,7 +188,7 @@ ON CONFLICT (type_name) DO UPDATE SET
 
 # Calls an API endpoint to finish setup, pretty-printing the response.
 if [ "$SERVER_UP" -eq 0 ]; then
-  echo "$PROG: WARNING: skipping /cleanMaps, since the server was not responding. You'' have to run it manually." >&2
+  echo "$PROG: WARNING: skipping /cleanMaps, since the server was not responding. You'll have to run it manually." >&2
 else
   echo "Calling /cleanMaps to clean ${TABLE}..."
   curl -sS -G "${baseUrl}/admin/api/cleanMaps" \

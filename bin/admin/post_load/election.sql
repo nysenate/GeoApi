@@ -117,11 +117,11 @@ FROM districts.election
 WHERE town_city_id LIKE '%,%'
 ORDER BY county, tc_name, stored_ed, town_city_id;
 
--- Village names are unique statewide, but the county is still checked to guard against a bad match.
+-- Village names are unique statewide.
 UPDATE districts.election e
 SET village_id = v.gnis_id
 FROM districts.village v
-WHERE e.village_name IS NOT NULL;
+WHERE lower(v.name) = lower(e.village_name);
 
 \echo 'EDs with a village name that was not assigned a village_id'
 SELECT county, village_name, stored_ed
