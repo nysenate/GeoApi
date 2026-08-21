@@ -38,7 +38,6 @@ public class HttpNYSGeoDao implements GeocoderDao {
         return Geocoder.NYSGEO;
     }
 
-    // TODO: use batching, suggested batch size is 1000
     /** {@inheritDoc} */
     public GeocodedAddress getGeocodedAddress(Address address) {
         if (!address.isValid()) {

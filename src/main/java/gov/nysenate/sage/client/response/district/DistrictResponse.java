@@ -39,7 +39,6 @@ public class DistrictResponse extends SourcedResponse {
         for (DistrictType districtType : DistrictType.values()) {
             DistrictId currCode = districtResult.getAssignedDistricts().getDistId(districtType);
             districts.put(getFieldName(districtType),
-                    // TODO: use display codes
                     currCode == null ? null : new DistrictView(districtType, currCode));
         }
         if (geoAddr == null) {
