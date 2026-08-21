@@ -463,7 +463,10 @@ order of the addresses in the JSON payload.</p>
 <tr class="row-odd"><td><p>bluebird</p></td>
 <td><p>Performs district assign with preset options for Bluebird</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#options">options</a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#info">info</a></p></td>
+<td><p>List every district of one type along with its attributes</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#options">options</a></p></td>
 <td><p>List the available district sources</p></td>
 </tr>
 </tbody>
@@ -519,6 +522,77 @@ Specifying districtSource or geocoder is not recommended as it may reduce the ac
 <p class="admonition-title">Caution</p>
 <p>USPS validation will only work when addr1, city/zip, and state are provided. See address section above for details.</p>
 </div>
+<section id="district-identifiers">
+<span id="id3"></span><h4>District Identifiers<a class="headerlink" href="#district-identifiers" title="Link to this heading">¶</a></h4>
+<p>Wherever a district appears in a response - district assignment, <a class="reference internal" href="#map">map</a> data, or <a class="reference internal" href="#info">info</a> - it is described by the
+same three fields:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>id</p></td>
+<td><p>SAGE’s identifier for the district. Unique within the district type.</p></td>
+</tr>
+<tr class="row-odd"><td><p>district</p></td>
+<td><p>The display code: the short code or number this district is known by publicly.</p></td>
+</tr>
+<tr class="row-even"><td><p>name</p></td>
+<td><p>The human readable name of the district.</p></td>
+</tr>
+</tbody>
+</table>
+<p>The <code class="docutils literal notranslate"><span class="pre">id</span></code> is one or more groups of digits joined by hyphens. It is what SAGE keys geometry and district
+attributes on, and it is the value to hand back to the API when a request needs to name a district: the
+<code class="docutils literal notranslate"><span class="pre">district</span></code> parameter of a <a class="reference internal" href="#map">map</a> request takes an <code class="docutils literal notranslate"><span class="pre">id</span></code>, not a display code.</p>
+<p>For most types the <code class="docutils literal notranslate"><span class="pre">id</span></code> and the <code class="docutils literal notranslate"><span class="pre">district</span></code> code are the same string. They differ when the natural public
+code is not what SAGE stores districts under - counties are keyed on their GNIS id but publicly known by a
+county code, and towns and cities are keyed on their GNIS id but carry a short abbreviation as their code.
+The hyphenated form exists because some types have no single identifying number: an election district’s
+<code class="docutils literal notranslate"><span class="pre">id</span></code> is its municipality, assembly district, village, ward, county legislative district, and ED number
+joined together, since the ED number by itself repeats across the state.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Type</p></th>
+<th class="head"><p>id</p></th>
+<th class="head"><p>district</p></th>
+<th class="head"><p>name</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>senate</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">28</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">28</span></code></p></td>
+<td><p>Senate District 28</p></td>
+</tr>
+<tr class="row-odd"><td><p>county</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">974129</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">62</span></code></p></td>
+<td><p>New York County</p></td>
+</tr>
+<tr class="row-even"><td><p>town</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">2395220</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-NYC</span></code></p></td>
+<td><p>New York City</p></td>
+</tr>
+<tr class="row-odd"><td><p>election</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">978659-1-1</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p></td>
+<td><p>City of Albany, Ward 1 ED 1</p></td>
+</tr>
+</tbody>
+</table>
+<p>District objects in an assignment response additionally carry a <code class="docutils literal notranslate"><span class="pre">displayName</span></code>, which names the district
+<em>type</em> rather than the district (“Senate”, “Town/City”, “Electric Utility”).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Election districts assigned from the streetfile source are identified by their ED number alone,
+since that is all the Board of Elections data carries. Only the shapefile source yields the fully
+qualified election <code class="docutils literal notranslate"><span class="pre">id</span></code>, and only such an id resolves to a <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</div>
+</section>
 <section id="assign">
 <h4>Assign<a class="headerlink" href="#assign" title="Link to this heading">¶</a></h4>
 <p>The default query usage is as follows:</p>
@@ -532,7 +606,7 @@ Parsed Format:
 <p>The district assignment response:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;SUCCESS&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;source&quot;</span> <span class="p">:</span> <span class="s2">&quot;STREETFILE, SHAPEFILE&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;sources&quot;</span> <span class="p">:</span> <span class="s2">&quot;STREETFILE, SHAPEFILE&quot;</span><span class="p">,</span>
   <span class="s2">&quot;address&quot;</span> <span class="p">:</span> <span class="p">{</span>
     <span class="s2">&quot;addr1&quot;</span> <span class="p">:</span> <span class="s2">&quot;280 Madison Ave&quot;</span><span class="p">,</span>
     <span class="s2">&quot;addr2&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
@@ -542,12 +616,12 @@ Parsed Format:
     <span class="s2">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s2">&quot;0801&quot;</span>
   <span class="p">},</span>
   <span class="s2">&quot;geocode&quot;</span> <span class="p">:</span> <span class="p">{</span>
-    <span class="s2">&quot;lat&quot;</span> <span class="p">:</span> <span class="mf">40.7514214</span><span class="p">,</span>
-    <span class="s2">&quot;lon&quot;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">73.9805145</span><span class="p">,</span>
+    <span class="s2">&quot;lat&quot;</span> <span class="p">:</span> <span class="s2">&quot;40.7514214&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;lon&quot;</span> <span class="p">:</span> <span class="s2">&quot;-73.9805145&quot;</span><span class="p">,</span>
     <span class="s2">&quot;quality&quot;</span> <span class="p">:</span> <span class="s2">&quot;HOUSE&quot;</span><span class="p">,</span>
     <span class="s2">&quot;method&quot;</span> <span class="p">:</span> <span class="s2">&quot;GOOGLE&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;cached&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-    <span class="s2">&quot;openLocCode&quot;</span><span class="p">:</span> <span class="s2">&quot;87G8Q229+HQ&quot;</span>
+    <span class="s2">&quot;cached&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+    <span class="s2">&quot;openLocCode&quot;</span> <span class="p">:</span> <span class="s2">&quot;87G8Q229+HQ&quot;</span>
   <span class="p">},</span>
   <span class="s2">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
   <span class="s2">&quot;districtAssigned&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
@@ -556,66 +630,77 @@ Parsed Format:
   <span class="s2">&quot;matchLevel&quot;</span> <span class="p">:</span> <span class="s2">&quot;HOUSE&quot;</span><span class="p">,</span>
   <span class="s2">&quot;districts&quot;</span> <span class="p">:</span> <span class="p">{</span>
     <span class="s2">&quot;senate&quot;</span> <span class="p">:</span> <span class="p">{</span>
-      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY Senate District 28&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;28&quot;</span><span class="p">,</span>
       <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;28&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;senator&quot;</span> <span class="p">:</span> <span class="p">(</span><span class="n">excluded</span> <span class="k">for</span> <span class="n">length</span><span class="p">)</span>
-    <span class="p">},</span>
-    <span class="s2">&quot;congressional&quot;</span> <span class="p">:</span> <span class="p">{</span>
-      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY Congressional District 12&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;12&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;map&quot;</span><span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-      <span class="s2">&quot;member&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Nadler, Jerrold&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://nadler.house.gov&quot;</span>
-        <span class="p">}</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Senate District 28&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;member&quot;</span> <span class="p">:</span> <span class="p">(</span><span class="n">excluded</span> <span class="k">for</span> <span class="n">length</span><span class="p">),</span>
+      <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Senate&quot;</span>
     <span class="p">},</span>
     <span class="s2">&quot;assembly&quot;</span> <span class="p">:</span> <span class="p">{</span>
-      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY Assembly District 73&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;73&quot;</span><span class="p">,</span>
       <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;73&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;map&quot;</span><span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-      <span class="s2">&quot;member&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Alex Bores&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://www.nyassembly.gov/mem/Alex-Bores&quot;</span>
-      <span class="p">}</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Assembly District 73&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;member&quot;</span> <span class="p">:</span> <span class="p">(</span><span class="n">excluded</span> <span class="k">for</span> <span class="n">length</span><span class="p">),</span>
+      <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Assembly&quot;</span>
     <span class="p">},</span>
-    <span class="s2">&quot;county&quot;</span> <span class="p">:</span> <span class="p">{</span>
-      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;New York County&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;62&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;map&quot;</span><span class="p">:</span> <span class="n">null</span>
-    <span class="p">},</span>
-    <span class="s2">&quot;election&quot;</span> <span class="p">:</span> <span class="p">{</span>
-      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;8&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;map&quot;</span><span class="p">:</span> <span class="n">null</span>
-    <span class="p">},</span>
-    <span class="s2">&quot;school&quot;</span> <span class="p">:</span> <span class="p">{</span>
-      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Manhattan SD&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;369&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;map&quot;</span><span class="p">:</span> <span class="n">null</span>
-    <span class="p">},</span>
-    <span class="s2">&quot;town&quot;</span> <span class="p">:</span> <span class="p">{</span>
-      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;New York&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;-NYC&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;map&quot;</span><span class="p">:</span> <span class="n">null</span>
+    <span class="s2">&quot;congressional&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;12&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;12&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Congressional District 12&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;member&quot;</span> <span class="p">:</span> <span class="p">(</span><span class="n">excluded</span> <span class="k">for</span> <span class="n">length</span><span class="p">),</span>
+      <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Congressional&quot;</span>
     <span class="p">},</span>
     <span class="s2">&quot;zip&quot;</span> <span class="p">:</span> <span class="p">{</span>
-      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Zipcode 10016&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;10016&quot;</span><span class="p">,</span>
       <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;10016&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;map&quot;</span><span class="p">:</span> <span class="n">null</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Zipcode 10016&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Zip&quot;</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;county&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;974129&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;62&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;New York County&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;County&quot;</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;town&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;2395220&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;-NYC&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;New York City&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Town/City&quot;</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;school&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;369&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;369&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Manhattan SD&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;School&quot;</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;electricUtility&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;1002&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;1002&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Consolidated Edison&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Electric Utility&quot;</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;election&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;8&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;8&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Election&quot;</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;ward&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+    <span class="s2">&quot;cityCouncil&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;4&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;4&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;City Council District 4&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;City Council&quot;</span>
     <span class="p">},</span>
     <span class="s2">&quot;cleg&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-    <span class="s2">&quot;ward&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
     <span class="s2">&quot;village&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-    <span class="s2">&quot;cityCouncil&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-        <span class="s2">&quot;district&quot;</span><span class="p">:</span> <span class="s2">&quot;4&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;map&quot;</span><span class="p">:</span> <span class="n">null</span>
+    <span class="s2">&quot;municipalCourt&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;9&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;9&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Municipal Court District 9&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Municipal Court&quot;</span>
     <span class="p">},</span>
-    <span class="s2">&quot;electricUtility&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Consolidated Edison&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;district&quot;</span><span class="p">:</span> <span class="s2">&quot;7&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;map&quot;</span><span class="p">:</span> <span class="n">null</span>
-    <span class="p">}</span>
+    <span class="s2">&quot;fire&quot;</span> <span class="p">:</span> <span class="n">null</span>
   <span class="p">},</span>
   <span class="s2">&quot;multiMatch&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
   <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
@@ -628,7 +713,9 @@ The <code class="docutils literal notranslate"><span class="pre">senateAssigned<
 <p>The main components of the response are <code class="docutils literal notranslate"><span class="pre">address</span></code>, <code class="docutils literal notranslate"><span class="pre">geocode</span></code>, and <code class="docutils literal notranslate"><span class="pre">districts</span></code>. The <code class="docutils literal notranslate"><span class="pre">address</span></code> typically contains
 a corrected address response from the geocode provider or is the result of USPS correction if <code class="docutils literal notranslate"><span class="pre">uspsValidated</span></code> is true.
 The <code class="docutils literal notranslate"><span class="pre">geocode</span></code> contains the coordinates that were used to perform district assignment. The <code class="docutils literal notranslate"><span class="pre">districts</span></code> object contains all
-the district types supported by the service. <code class="docutils literal notranslate"><span class="pre">district</span></code> refers to the code or number that represents the district.</p>
+the district types supported by the service; a type that was not assigned is null. Each assigned district carries the
+<code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">district</span></code>, and <code class="docutils literal notranslate"><span class="pre">name</span></code> fields described under <a class="reference internal" href="#district-identifiers"><span class="std std-ref">District Identifiers</span></a>. Fields that have no value are
+omitted, which is why a district with no name or no member data has no <code class="docutils literal notranslate"><span class="pre">name</span></code> or <code class="docutils literal notranslate"><span class="pre">member</span></code> key at all.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">matchLevel</span></code> indicates how granular the district assignment is. The following table describes the different <code class="docutils literal notranslate"><span class="pre">matchLevel</span></code> values:</p>
 <table class="docutils align-default">
 <thead>
@@ -661,12 +748,12 @@ overlap boundaries and street ranges. The output of that is described below.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>/api/v2/district/assign?addr=280 Madison Ave, NY&amp;showMaps=true
 </pre></div>
 </div>
-<p>each district portion of the response will include geometry data in <code class="docutils literal notranslate"><span class="pre">map.geom</span></code>, and a geometry data type under <code class="docutils literal notranslate"><span class="pre">map.type</span></code>.
-Any district that does not have any map data associated with it will have <code class="docutils literal notranslate"><span class="pre">map</span></code> : null;</p>
+<p>each district portion of the response will include its geometry under <code class="docutils literal notranslate"><span class="pre">map</span></code>. A district that has no map data
+associated with it has no <code class="docutils literal notranslate"><span class="pre">map</span></code> key at all.</p>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
-<p>‘geom’ is an array containing an array of coordinate pairs which are represented as two floats in an array,
-e.g geom[0] -&gt; array of coordinate pairs (represented as [lat, lon]) of the first polygon.</p>
+<p><code class="docutils literal notranslate"><span class="pre">map</span></code> is a GeoJSON geometry: a <code class="docutils literal notranslate"><span class="pre">type</span></code> of <code class="docutils literal notranslate"><span class="pre">Polygon</span></code> or <code class="docutils literal notranslate"><span class="pre">MultiPolygon</span></code> and a <code class="docutils literal notranslate"><span class="pre">coordinates</span></code> array
+nested to match, whose innermost entries are <code class="docutils literal notranslate"><span class="pre">[lon,</span> <span class="pre">lat]</span></code> pairs.</p>
 </div>
 <p>District assignment via coordinate pairs is also supported:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>/api/v2/district/assign?lat=40.751352&amp;lon=-73.980335
@@ -739,124 +826,139 @@ print_r($result);
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="s2">&quot;results&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">{</span>
     <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;SUCCESS&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;source&quot;</span> <span class="p">:</span> <span class="s2">&quot;StreetFile&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+    <span class="s2">&quot;sources&quot;</span> <span class="p">:</span> <span class="s2">&quot;STREETFILE, SHAPEFILE&quot;</span><span class="p">,</span>
     <span class="s2">&quot;address&quot;</span> <span class="p">:</span> <span class="p">{</span>
       <span class="s2">&quot;addr1&quot;</span> <span class="p">:</span> <span class="s2">&quot;100 Nyroy Dr&quot;</span><span class="p">,</span>
       <span class="s2">&quot;addr2&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
       <span class="s2">&quot;city&quot;</span> <span class="p">:</span> <span class="s2">&quot;Troy&quot;</span><span class="p">,</span>
       <span class="s2">&quot;state&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY&quot;</span><span class="p">,</span>
       <span class="s2">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s2">&quot;12180&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s2">&quot;1921&quot;</span>
+      <span class="s2">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s2">&quot;1928&quot;</span>
     <span class="p">},</span>
     <span class="s2">&quot;geocode&quot;</span> <span class="p">:</span> <span class="p">{</span>
-      <span class="s2">&quot;lat&quot;</span> <span class="p">:</span> <span class="mf">42.741112</span><span class="p">,</span>
-      <span class="s2">&quot;lon&quot;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">73.668762</span><span class="p">,</span>
+      <span class="s2">&quot;lat&quot;</span> <span class="p">:</span> <span class="s2">&quot;42.7410467&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;lon&quot;</span> <span class="p">:</span> <span class="s2">&quot;-73.6691371&quot;</span><span class="p">,</span>
       <span class="s2">&quot;quality&quot;</span> <span class="p">:</span> <span class="s2">&quot;HOUSE&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;method&quot;</span> <span class="p">:</span> <span class="s2">&quot;YahooDao&quot;</span>
+      <span class="s2">&quot;method&quot;</span> <span class="p">:</span> <span class="s2">&quot;GOOGLE&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;cached&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+      <span class="s2">&quot;openLocCode&quot;</span> <span class="p">:</span> <span class="s2">&quot;87J8P8RJ+C8&quot;</span>
     <span class="p">},</span>
     <span class="s2">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
     <span class="s2">&quot;districtAssigned&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
     <span class="s2">&quot;senateAssigned&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-    <span class="s2">&quot;uspsValidated&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+    <span class="s2">&quot;uspsValidated&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
     <span class="s2">&quot;matchLevel&quot;</span> <span class="p">:</span> <span class="s2">&quot;HOUSE&quot;</span><span class="p">,</span>
     <span class="s2">&quot;districts&quot;</span> <span class="p">:</span> <span class="p">{</span>
       <span class="s2">&quot;senate&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY Senate District 44&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;44&quot;</span><span class="p">,</span> <span class="s2">&quot;senator&quot;</span> <span class="p">:</span> <span class="n">null</span>
-      <span class="p">},</span>
-      <span class="s2">&quot;congressional&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY Congressional District 20&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;20&quot;</span><span class="p">,</span> <span class="s2">&quot;member&quot;</span> <span class="p">:</span> <span class="n">null</span>
+        <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;43&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;43&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Senate District 43&quot;</span><span class="p">,</span> <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Senate&quot;</span>
       <span class="p">},</span>
       <span class="s2">&quot;assembly&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY Assembly District 107&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;107&quot;</span><span class="p">,</span> <span class="s2">&quot;member&quot;</span> <span class="p">:</span> <span class="n">null</span>
+        <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;108&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;108&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Assembly District 108&quot;</span><span class="p">,</span> <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Assembly&quot;</span>
       <span class="p">},</span>
-      <span class="s2">&quot;county&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;38&quot;</span>
-      <span class="p">},</span>
-      <span class="s2">&quot;election&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;12&quot;</span>
-      <span class="p">},</span>
-      <span class="s2">&quot;school&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-      <span class="s2">&quot;town&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;-TROY&quot;</span>
+      <span class="s2">&quot;congressional&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;20&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;20&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Congressional District 20&quot;</span><span class="p">,</span> <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Congressional&quot;</span>
       <span class="p">},</span>
       <span class="s2">&quot;zip&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;12180&quot;</span>
+        <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;12180&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;12180&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Zipcode 12180&quot;</span><span class="p">,</span> <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Zip&quot;</span>
       <span class="p">},</span>
+      <span class="s2">&quot;county&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;974140&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;38&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Rensselaer County&quot;</span><span class="p">,</span> <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;County&quot;</span>
+      <span class="p">},</span>
+      <span class="s2">&quot;town&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;979559&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;-TROY&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;City of Troy&quot;</span><span class="p">,</span> <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Town/City&quot;</span>
+      <span class="p">},</span>
+      <span class="s2">&quot;school&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;642&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;642&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Troy City SD&quot;</span><span class="p">,</span> <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;School&quot;</span>
+      <span class="p">},</span>
+      <span class="s2">&quot;electricUtility&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;1004&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;1004&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;National Grid&quot;</span><span class="p">,</span> <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Electric Utility&quot;</span>
+      <span class="p">},</span>
+      <span class="s2">&quot;election&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;12&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;12&quot;</span><span class="p">,</span> <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Election&quot;</span>
+      <span class="p">},</span>
+      <span class="s2">&quot;ward&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s2">&quot;cityCouncil&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
       <span class="s2">&quot;cleg&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;1&quot;</span>
+        <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;County Legislature District 1&quot;</span><span class="p">,</span> <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;County Legislature&quot;</span>
       <span class="p">},</span>
-      <span class="s2">&quot;ward&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="n">null</span>
-      <span class="p">},</span>
-      <span class="s2">&quot;village&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="n">null</span>
-      <span class="p">}</span>
+      <span class="s2">&quot;village&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s2">&quot;municipalCourt&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s2">&quot;fire&quot;</span> <span class="p">:</span> <span class="n">null</span>
     <span class="p">},</span>
     <span class="s2">&quot;multiMatch&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
     <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
     <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;Success.&quot;</span>
   <span class="p">},</span> <span class="p">{</span>
     <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;SUCCESS&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;source&quot;</span> <span class="p">:</span> <span class="s2">&quot;StreetFile&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+    <span class="s2">&quot;sources&quot;</span> <span class="p">:</span> <span class="s2">&quot;STREETFILE, SHAPEFILE&quot;</span><span class="p">,</span>
     <span class="s2">&quot;address&quot;</span> <span class="p">:</span> <span class="p">{</span>
       <span class="s2">&quot;addr1&quot;</span> <span class="p">:</span> <span class="s2">&quot;44 Fairlawn Ave&quot;</span><span class="p">,</span>
       <span class="s2">&quot;addr2&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
       <span class="s2">&quot;city&quot;</span> <span class="p">:</span> <span class="s2">&quot;Albany&quot;</span><span class="p">,</span>
       <span class="s2">&quot;state&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY&quot;</span><span class="p">,</span>
       <span class="s2">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s2">&quot;12203&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s2">&quot;1933&quot;</span>
+      <span class="s2">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s2">&quot;1914&quot;</span>
     <span class="p">},</span>
     <span class="s2">&quot;geocode&quot;</span> <span class="p">:</span> <span class="p">{</span>
-      <span class="s2">&quot;lat&quot;</span> <span class="p">:</span> <span class="mf">42.670583</span><span class="p">,</span>
-      <span class="s2">&quot;lon&quot;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">73.799606</span><span class="p">,</span>
+      <span class="s2">&quot;lat&quot;</span> <span class="p">:</span> <span class="s2">&quot;42.6711474&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;lon&quot;</span> <span class="p">:</span> <span class="s2">&quot;-73.79940049999999&quot;</span><span class="p">,</span>
       <span class="s2">&quot;quality&quot;</span> <span class="p">:</span> <span class="s2">&quot;HOUSE&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;method&quot;</span> <span class="p">:</span> <span class="s2">&quot;YahooDao&quot;</span>
+      <span class="s2">&quot;method&quot;</span> <span class="p">:</span> <span class="s2">&quot;GOOGLE&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;cached&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+      <span class="s2">&quot;openLocCode&quot;</span> <span class="p">:</span> <span class="s2">&quot;87J8M6C2+F6&quot;</span>
     <span class="p">},</span>
     <span class="s2">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
     <span class="s2">&quot;districtAssigned&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
     <span class="s2">&quot;senateAssigned&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-    <span class="s2">&quot;uspsValidated&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+    <span class="s2">&quot;uspsValidated&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
     <span class="s2">&quot;matchLevel&quot;</span> <span class="p">:</span> <span class="s2">&quot;HOUSE&quot;</span><span class="p">,</span>
     <span class="s2">&quot;districts&quot;</span> <span class="p">:</span> <span class="p">{</span>
       <span class="s2">&quot;senate&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY Senate District 44&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;44&quot;</span><span class="p">,</span> <span class="s2">&quot;senator&quot;</span> <span class="p">:</span> <span class="n">null</span>
-      <span class="p">},</span>
-      <span class="s2">&quot;congressional&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY Congressional District 20&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;20&quot;</span><span class="p">,</span> <span class="s2">&quot;member&quot;</span> <span class="p">:</span> <span class="n">null</span>
+        <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;46&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;46&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Senate District 46&quot;</span><span class="p">,</span> <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Senate&quot;</span>
       <span class="p">},</span>
       <span class="s2">&quot;assembly&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY Assembly District 109&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;109&quot;</span><span class="p">,</span> <span class="s2">&quot;member&quot;</span> <span class="p">:</span> <span class="n">null</span>
+        <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;109&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;109&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Assembly District 109&quot;</span><span class="p">,</span> <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Assembly&quot;</span>
       <span class="p">},</span>
-      <span class="s2">&quot;county&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;1&quot;</span>
-      <span class="p">},</span>
-      <span class="s2">&quot;election&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;5&quot;</span>
-      <span class="p">},</span>
-      <span class="s2">&quot;school&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-      <span class="s2">&quot;town&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;-ALBAN&quot;</span>
+      <span class="s2">&quot;congressional&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;20&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;20&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Congressional District 20&quot;</span><span class="p">,</span> <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Congressional&quot;</span>
       <span class="p">},</span>
       <span class="s2">&quot;zip&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;12203&quot;</span>
+        <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;12203&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;12203&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Zipcode 12203&quot;</span><span class="p">,</span> <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Zip&quot;</span>
       <span class="p">},</span>
-      <span class="s2">&quot;cleg&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;13&quot;</span>
+      <span class="s2">&quot;county&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;974099&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Albany County&quot;</span><span class="p">,</span> <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;County&quot;</span>
+      <span class="p">},</span>
+      <span class="s2">&quot;town&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;978659&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;-ALBAN&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;City of Albany&quot;</span><span class="p">,</span> <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Town/City&quot;</span>
+      <span class="p">},</span>
+      <span class="s2">&quot;school&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;5&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;5&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Albany City SD&quot;</span><span class="p">,</span> <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;School&quot;</span>
+      <span class="p">},</span>
+      <span class="s2">&quot;electricUtility&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;1004&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;1004&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;National Grid&quot;</span><span class="p">,</span> <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Electric Utility&quot;</span>
+      <span class="p">},</span>
+      <span class="s2">&quot;election&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;4&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;4&quot;</span><span class="p">,</span> <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Election&quot;</span>
       <span class="p">},</span>
       <span class="s2">&quot;ward&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;13&quot;</span>
+        <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;13&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;13&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Ward 13&quot;</span><span class="p">,</span> <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Ward&quot;</span>
       <span class="p">},</span>
-      <span class="s2">&quot;village&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="n">null</span>
-      <span class="p">}</span>
+      <span class="s2">&quot;cityCouncil&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s2">&quot;cleg&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;13&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;13&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;County Legislature District 13&quot;</span><span class="p">,</span> <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;County Legislature&quot;</span>
+      <span class="p">},</span>
+      <span class="s2">&quot;village&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s2">&quot;municipalCourt&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s2">&quot;fire&quot;</span> <span class="p">:</span> <span class="n">null</span>
     <span class="p">},</span>
     <span class="s2">&quot;multiMatch&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
     <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
     <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;Success.&quot;</span>
   <span class="p">}</span> <span class="p">],</span>
- <span class="s2">&quot;total&quot;</span> <span class="p">:</span> <span class="mi">2</span>
+  <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;SUCCESS&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;total&quot;</span> <span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+  <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;Success.&quot;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -867,6 +969,98 @@ print_r($result);
   <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;The supplied batch address list could not be parsed.&quot;</span>
 <span class="p">}</span>
 </pre></div>
+</div>
+</section>
+<section id="district-info">
+<span id="info"></span><h4>District Info<a class="headerlink" href="#district-info" title="Link to this heading">¶</a></h4>
+<p><code class="docutils literal notranslate"><span class="pre">info</span></code> lists every district of a single type that SAGE knows about, along with the attributes it holds for each
+one. It is the way to resolve an <code class="docutils literal notranslate"><span class="pre">id</span></code> returned elsewhere in the API to a name, or to populate a district picker
+without hardcoding a list. It takes one required parameter:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Param</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>type</p></td>
+<td><p>The district type to list. Required.</p></td>
+</tr>
+</tbody>
+</table>
+<p>The <code class="docutils literal notranslate"><span class="pre">type</span></code> is a district type name: <code class="docutils literal notranslate"><span class="pre">SENATE</span></code>, <code class="docutils literal notranslate"><span class="pre">ASSEMBLY</span></code>, <code class="docutils literal notranslate"><span class="pre">CONGRESSIONAL</span></code>, <code class="docutils literal notranslate"><span class="pre">ZIP</span></code>, <code class="docutils literal notranslate"><span class="pre">COUNTY</span></code>,
+<code class="docutils literal notranslate"><span class="pre">TOWN_CITY</span></code>, <code class="docutils literal notranslate"><span class="pre">SCHOOL</span></code>, <code class="docutils literal notranslate"><span class="pre">ELECTRIC_UTILITY</span></code>, <code class="docutils literal notranslate"><span class="pre">ELECTION</span></code>, <code class="docutils literal notranslate"><span class="pre">WARD</span></code>, <code class="docutils literal notranslate"><span class="pre">CITY_COUNCIL</span></code>,
+<code class="docutils literal notranslate"><span class="pre">COUNTY_LEGISLATURE</span></code>, <code class="docutils literal notranslate"><span class="pre">VILLAGE</span></code>, <code class="docutils literal notranslate"><span class="pre">MUNICIPAL_COURT</span></code>, or <code class="docutils literal notranslate"><span class="pre">FIRE</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>/api/v2/district/info?type=COUNTY
+</pre></div>
+</div>
+<p>The response is a list of key/value pairs rather than an object keyed by district, because numeric keys are not
+valid <code class="docutils literal notranslate"><span class="pre">XML</span></code> element names:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;items&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">{</span>
+    <span class="s2">&quot;key&quot;</span> <span class="p">:</span> <span class="s2">&quot;974099&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;value&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;gnis_id&quot;</span> <span class="p">:</span> <span class="s2">&quot;974099&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;code&quot;</span> <span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Albany County&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;fips_code&quot;</span> <span class="p">:</span> <span class="s2">&quot;36001&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;swis&quot;</span> <span class="p">:</span> <span class="s2">&quot;010000&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;link&quot;</span> <span class="p">:</span> <span class="s2">&quot;https://www.albanycountyny.gov/departments/health&quot;</span>
+    <span class="p">}</span>
+  <span class="p">},</span> <span class="p">{</span>
+    <span class="s2">&quot;key&quot;</span> <span class="p">:</span> <span class="s2">&quot;974100&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;value&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;gnis_id&quot;</span> <span class="p">:</span> <span class="s2">&quot;974100&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;code&quot;</span> <span class="p">:</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Allegany County&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;fips_code&quot;</span> <span class="p">:</span> <span class="s2">&quot;36003&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;swis&quot;</span> <span class="p">:</span> <span class="s2">&quot;020000&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;link&quot;</span> <span class="p">:</span> <span class="s2">&quot;https://www.alleganyco.gov/health-department/&quot;</span>
+    <span class="p">}</span>
+  <span class="p">},</span>
+  <span class="o">...</span> <span class="p">],</span>
+  <span class="s2">&quot;size&quot;</span> <span class="p">:</span> <span class="mi">62</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Each <code class="docutils literal notranslate"><span class="pre">key</span></code> is a district <code class="docutils literal notranslate"><span class="pre">id</span></code> (see <a class="reference internal" href="#district-identifiers"><span class="std std-ref">District Identifiers</span></a>) and each <code class="docutils literal notranslate"><span class="pre">value</span></code> is that district’s attributes,
+flattened into a single object. <code class="docutils literal notranslate"><span class="pre">size</span></code> is the number of districts returned.</p>
+<p>The attributes are whatever columns SAGE stores for that district type, so they vary from type to type: a county
+carries its FIPS and SWIS codes and a health department link, a senate district carries little beyond its name.
+Two of them are meaningful across every type - <code class="docutils literal notranslate"><span class="pre">name</span></code>, which is always present, and <code class="docutils literal notranslate"><span class="pre">code</span></code>, the display code
+returned as <code class="docutils literal notranslate"><span class="pre">district</span></code> in an assignment or map response. A type whose <code class="docutils literal notranslate"><span class="pre">id</span></code> already is its public code has no
+separate <code class="docutils literal notranslate"><span class="pre">code</span></code> attribute.</p>
+<p>An election district, whose <code class="docutils literal notranslate"><span class="pre">id</span></code> is compound, carries the parts it was built from:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;key&quot;</span> <span class="p">:</span> <span class="s2">&quot;978666-2391509-1&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;value&quot;</span> <span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;978666-2391509-1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;code&quot;</span> <span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Town of Allegany, Village of Allegany, ED 1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;county&quot;</span> <span class="p">:</span> <span class="s2">&quot;Cattaraugus&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;town_city_id&quot;</span> <span class="p">:</span> <span class="s2">&quot;978666&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;village_id&quot;</span> <span class="p">:</span> <span class="s2">&quot;2391509&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ward&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+    <span class="s2">&quot;assembly_district&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+    <span class="s2">&quot;county_legislature&quot;</span> <span class="p">:</span> <span class="n">null</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Districts are ordered by <code class="docutils literal notranslate"><span class="pre">id</span></code>: numeric ids first, in ascending order, then the rest lexicographically.</p>
+<p>Requesting a type SAGE does not recognize returns:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;PROVIDER_NOT_SUPPORTED&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;className&quot;</span> <span class="p">:</span> <span class="s2">&quot;gov.nysenate.sage.controller.api.DistrictAssignController&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+  <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;The requested provider is unsupported.&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="admonition caution">
+<p class="admonition-title">Caution</p>
+<p>Some types have no data loaded at all - <code class="docutils literal notranslate"><span class="pre">FIRE</span></code> currently has none - and a request for one of those
+fails rather than returning an empty list.</p>
 </div>
 </section>
 </section>
@@ -894,7 +1088,7 @@ Board of Election Street File data and can be searched via zip code.</p>
 <p>The response is:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;SUCCESS&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;source&quot;</span> <span class="p">:</span> <span class="s2">&quot;STREETFILE&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;sources&quot;</span> <span class="p">:</span> <span class="s2">&quot;STREETFILE&quot;</span><span class="p">,</span>
   <span class="s2">&quot;streets&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">{</span>
     <span class="s2">&quot;bldgLoNum&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
     <span class="s2">&quot;bldgHiNum&quot;</span><span class="p">:</span> <span class="mi">18</span><span class="p">,</span>
@@ -902,12 +1096,11 @@ Board of Election Street File data and can be searched via zip code.</p>
     <span class="s2">&quot;location&quot;</span><span class="p">:</span> <span class="s2">&quot;ALBANY&quot;</span><span class="p">,</span>
     <span class="s2">&quot;zip5&quot;</span><span class="p">:</span> <span class="s2">&quot;12210&quot;</span><span class="p">,</span>
     <span class="s2">&quot;parity&quot;</span><span class="p">:</span> <span class="s2">&quot;EVENS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;senate&quot;</span><span class="p">:</span> <span class="s2">&quot;46&quot;</span><span class="p">,</span>
     <span class="s2">&quot;congressional&quot;</span><span class="p">:</span> <span class="s2">&quot;20&quot;</span><span class="p">,</span>
     <span class="s2">&quot;assembly&quot;</span><span class="p">:</span> <span class="s2">&quot;109&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;election&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;town&quot;</span><span class="p">:</span> <span class="s2">&quot;-ALBAN&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;senate&quot;</span><span class="p">:</span> <span class="s2">&quot;46&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;county&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span>
+    <span class="s2">&quot;town&quot;</span><span class="p">:</span> <span class="s2">&quot;978659&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;county&quot;</span><span class="p">:</span> <span class="s2">&quot;974099&quot;</span>
   <span class="p">},</span>
   <span class="p">{</span>
     <span class="s2">&quot;bldgLoNum&quot;</span><span class="p">:</span> <span class="mi">24</span><span class="p">,</span>
@@ -916,17 +1109,19 @@ Board of Election Street File data and can be searched via zip code.</p>
     <span class="s2">&quot;location&quot;</span><span class="p">:</span> <span class="s2">&quot;ALBANY&quot;</span><span class="p">,</span>
     <span class="s2">&quot;zip5&quot;</span><span class="p">:</span> <span class="s2">&quot;12210&quot;</span><span class="p">,</span>
     <span class="s2">&quot;parity&quot;</span><span class="p">:</span> <span class="s2">&quot;EVENS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;senate&quot;</span><span class="p">:</span> <span class="s2">&quot;46&quot;</span><span class="p">,</span>
     <span class="s2">&quot;congressional&quot;</span><span class="p">:</span> <span class="s2">&quot;20&quot;</span><span class="p">,</span>
     <span class="s2">&quot;assembly&quot;</span><span class="p">:</span> <span class="s2">&quot;109&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;election&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;town&quot;</span><span class="p">:</span> <span class="s2">&quot;-ALBAN&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;senate&quot;</span><span class="p">:</span> <span class="s2">&quot;46&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;county&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span>
+    <span class="s2">&quot;town&quot;</span><span class="p">:</span> <span class="s2">&quot;978659&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;county&quot;</span><span class="p">:</span> <span class="s2">&quot;974099&quot;</span>
   <span class="p">},</span>
   <span class="o">...</span> <span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
 </div>
+<p>Each district type is reported as its <code class="docutils literal notranslate"><span class="pre">id</span></code> - the town above is GNIS id <code class="docutils literal notranslate"><span class="pre">978659</span></code>, not the <code class="docutils literal notranslate"><span class="pre">-ALBAN</span></code> code
+that a district assignment shows. Only the types the street range actually resolves to are present.
+See <a class="reference internal" href="#district-identifiers"><span class="std std-ref">District Identifiers</span></a>, and <a class="reference internal" href="#info">info</a> for resolving these ids to names.</p>
 <p>An invalid response, typically due to a non matching zip code is:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;NO_STREET_LOOKUP_RESULT&quot;</span><span class="p">,</span>
@@ -952,7 +1147,7 @@ actually represent the district type to retrieve maps for. The available types a
 </thead>
 <tbody>
 <tr class="row-even"><td><p>district</p></td>
-<td><p>Specify the district code. If unspecified, all districts will be retrieved.</p></td>
+<td><p>Specify the district <code class="docutils literal notranslate"><span class="pre">id</span></code>. If unspecified, all districts will be retrieved.</p></td>
 </tr>
 <tr class="row-odd"><td><p>showMembers</p></td>
 <td><p>If true: senator, assembly member, and congressional member data will be appended.</p></td>
@@ -962,6 +1157,13 @@ actually represent the district type to retrieve maps for. The available types a
 </tr>
 </tbody>
 </table>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p><code class="docutils literal notranslate"><span class="pre">district</span></code> takes the district’s <code class="docutils literal notranslate"><span class="pre">id</span></code>, not its display code. The two are the same for senate,
+assembly, and congressional districts, but not for the types where they differ - New York County
+is <code class="docutils literal notranslate"><span class="pre">district=974129</span></code>, not <code class="docutils literal notranslate"><span class="pre">district=62</span></code>. See <a class="reference internal" href="#district-identifiers"><span class="std std-ref">District Identifiers</span></a>, and <a class="reference internal" href="#info">info</a> for the
+ids of a given type. An id with no map loaded returns <code class="docutils literal notranslate"><span class="pre">NO_MAP_RESULT</span></code>.</p>
+</div>
 <p>To retrieve map and member data for all senate districts:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>/api/v2/map/senate?showMembers=true
 </pre></div>
@@ -973,25 +1175,47 @@ actually represent the district type to retrieve maps for. The available types a
 <p>The response of the second query is:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;SUCCESS&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;source&quot;</span> <span class="p">:</span> <span class="s2">&quot;SHAPEFILE&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;sources&quot;</span> <span class="p">:</span> <span class="s2">&quot;SHAPEFILE&quot;</span><span class="p">,</span>
   <span class="s2">&quot;map&quot;</span> <span class="p">:</span> <span class="p">{</span>
-    <span class="s2">&quot;geom&quot;</span> <span class="p">:</span> <span class="p">(</span><span class="n">truncated</span><span class="p">)</span>
-    <span class="s2">&quot;type&quot;</span> <span class="p">:</span> <span class="s2">&quot;Polygon&quot;</span>
+    <span class="s2">&quot;type&quot;</span> <span class="p">:</span> <span class="s2">&quot;MultiPolygon&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;coordinates&quot;</span> <span class="p">:</span> <span class="p">(</span><span class="n">truncated</span><span class="p">)</span>
   <span class="p">},</span>
-  <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Senate District 1&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;SENATE&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;link&quot;</span><span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-  <span class="s2">&quot;member&quot;</span><span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-  <span class="s2">&quot;district&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;statusCode&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-  <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Success.&quot;</span>
+  <span class="s2">&quot;member&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+  <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Senate District 1&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;type&quot;</span> <span class="p">:</span> <span class="s2">&quot;SENATE&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;link&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+  <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;Success.&quot;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
+<p>A single district’s map is flattened onto the response, and reports the district by its display code in
+<code class="docutils literal notranslate"><span class="pre">district</span></code>. The all-districts response instead nests one object per district under <code class="docutils literal notranslate"><span class="pre">districts</span></code>, each carrying
+the full <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">district</span></code>, and <code class="docutils literal notranslate"><span class="pre">name</span></code> set along with the area of the district in square kilometers:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;SUCCESS&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;sources&quot;</span> <span class="p">:</span> <span class="s2">&quot;SHAPEFILE&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;districts&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">{</span>
+    <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;974099&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Albany County&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;link&quot;</span> <span class="p">:</span> <span class="s2">&quot;https://www.albanycountyny.gov/departments/health&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;area&quot;</span> <span class="p">:</span> <span class="mf">1379.9243756892906</span><span class="p">,</span>
+    <span class="s2">&quot;type&quot;</span> <span class="p">:</span> <span class="s2">&quot;COUNTY&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;map&quot;</span> <span class="p">:</span> <span class="p">(</span><span class="n">truncated</span><span class="p">)</span>
+  <span class="p">},</span>
+  <span class="o">...</span> <span class="p">],</span>
+  <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;Success.&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">link</span></code> is only populated for county maps.</p>
 <p>The member data for senate, assembly, and congressional districts will have the same senator output as in district assignment.</p>
 </section>
 <section id="options">
-<span id="id3"></span><h3>Options<a class="headerlink" href="#options" title="Link to this heading">¶</a></h3>
+<span id="id4"></span><h3>Options<a class="headerlink" href="#options" title="Link to this heading">¶</a></h3>
 <p>The <a class="reference internal" href="#address">address</a>, <a class="reference internal" href="#geo">geo</a>, <a class="reference internal" href="#district">district</a>, and <a class="reference internal" href="#map">map</a> services each expose an <code class="docutils literal notranslate"><span class="pre">options</span></code> method that lists the values their
 enumerated parameters accept. Rather than hardcoding provider or district type names, a client can query these
 at runtime and stay in sync with the backend. Each takes no parameters:</p>
@@ -1101,9 +1325,11 @@ other methods it is not part of the <code class="docutils literal notranslate"><
 </ul>
 </li>
 <li><a class="reference internal" href="#district">District</a><ul>
+<li><a class="reference internal" href="#district-identifiers">District Identifiers</a></li>
 <li><a class="reference internal" href="#assign">Assign</a></li>
 <li><a class="reference internal" href="#bluebirdcrm">BluebirdCRM</a></li>
 <li><a class="reference internal" href="#batch-district-assign">Batch District Assign</a></li>
+<li><a class="reference internal" href="#district-info">District Info</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#street">Street</a></li>
