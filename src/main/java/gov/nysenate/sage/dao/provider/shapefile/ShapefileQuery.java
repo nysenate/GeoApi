@@ -6,7 +6,7 @@ public enum ShapefileQuery implements BasicSqlQuery {
     // Map geometry is simplified to cut the payload.
     // The 0.0001-degree tolerance (~11m) and 6 coordinate digits (~10cm) are invisible at
     // display zooms: this causes no district collapses, the median border barely shifts,
-    // and no type has even 0.1% of its area displaced. In return, the largest laters shrink ~3x.
+    // and no type has even 0.1% of its area displaced. In return, the largest layers shrink ~3x.
     GET_DISTRICT_MAPS("""
             SELECT *, ST_AsGeoJson(ST_CoverageSimplify(ST_MakeValid(full_geom), 0.0001) OVER (), 6) AS map,
                 area_in_sq_km(full_geom) AS area
