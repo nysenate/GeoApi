@@ -7,8 +7,6 @@ import gov.nysenate.sage.client.response.district.BatchDistrictResponse;
 import gov.nysenate.sage.client.response.district.DistrictResponse;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
-import gov.nysenate.sage.model.district.DistrictId;
-import gov.nysenate.sage.model.district.DistrictInfo;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.model.result.*;
@@ -174,8 +172,12 @@ public class DistrictAssignController extends BaseDistrictController<LocalSource
      * (GET)    /api/v2/district/info?type=SENATE
      */
     @GetMapping(value = "/info")
-    public ListResponse<Map.Entry<DistrictId, DistrictInfo>> infos(@RequestParam String type) {
-        return new ListResponse<>(infoCache.get(getValue(DistrictType.class, type)).entrySet()
+    public Object infos(@RequestParam String type) {
+        var dataMap = infoCache.get(getValue(DistrictType.class, type));
+        if (dataMap == null) {
+            return new ApiError(VALUE_NOT_SUPPORTED);
+        }
+        return new ListResponse<>(dataMap.entrySet()
                 .stream().sorted((entry1, entry2) ->
                         NUMBERS_FIRST.compare(entry1.getKey().toString(), entry2.getKey().toString())).toList());
     }

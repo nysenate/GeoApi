@@ -4,7 +4,7 @@ public enum ResultStatus {
     SUCCESS(0, "Success."),
 
     EMPTY_GEOMETRY_TABLE(1, "The new geometry table is empty."),
-    PROVIDER_NOT_SUPPORTED(3, "The requested provider is unsupported."),
+    VALUE_NOT_SUPPORTED(3, "The requested value is unsupported."),
 
     API_KEY_INVALID(10, "The supplied API key could not be authenticated."),
     API_KEY_MISSING(11, "An API key is required."),
