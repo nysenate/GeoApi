@@ -4,8 +4,8 @@ PROG=$(basename "$0")
 
 function usage() {
   echo "Usage: $PROG [SOURCE] DISTRICT_TYPE" >&2
-  echo "  SOURCE         Either a path to a zip archive containing the district geometry," >&2
-  echo "                 or the URL of an ArcGIS REST feature service layer, e.g." >&2
+  echo "  SOURCE         Either a path or URL of a zip archive containing the district" >&2
+  echo "                 geometry, or the URL of an ArcGIS REST feature service layer, e.g." >&2
   echo "                 https://<host>/arcgis/rest/services/<service>/FeatureServer/6" >&2
   echo "                 Omitted for a type listed in sources.conf, which supplies it." >&2
   echo "  DISTRICT_TYPE  District type (used as the target table name in the districts schema)." >&2
@@ -58,6 +58,7 @@ if ! curl -fsS "${baseUrl}/ping" >/dev/null; then
 fi
 
 LAYER_URL=""
+ZIPFILE=""
 if [[ "$SOURCE" =~ ^https?://.*/(Feature|Map)Server/[0-9]+/?$ ]]; then
   # GDAL's ESRIJSON driver reads a feature service's /query endpoint directly and pages
   # through it automatically, so there's nothing to download by hand.
@@ -68,6 +69,18 @@ if [[ "$SOURCE" =~ ^https?://.*/(Feature|Map)Server/[0-9]+/?$ ]]; then
   # places 23 of the 995 town_city polygons came back self-intersecting, which fails the
   # ST_IsValid check cleanMaps ends with and leaves the layer too invalid to simplify.
   DATA_SOURCE="ESRIJSON:${LAYER_URL}/query?where=1=1&outFields=*&outSR=4326&f=json"
+elif [[ ( "$SOURCE" == http://* || "$SOURCE" == https://* ) && "$SOURCE" == *.zip ]]; then
+  # GDAL reads a remote archive in chunks, which causes LATFOR to block the script after a couple requests.
+  # So, we simply fetch the whole thing at once.
+  if ! ZIPFILE=$(mktemp --suffix=.zip); then
+    echo "$PROG: ERROR: could not create a temporary file in /tmp." >&2
+    exit 1
+  fi
+  echo "Downloading $SOURCE..."
+  if ! curl -fsS -o "$ZIPFILE" "$SOURCE"; then
+    echo "$PROG: ERROR: failed to download $SOURCE." >&2
+    exit 1
+  fi
 elif [[ "$SOURCE" == http://* || "$SOURCE" == https://* ]]; then
   # Any other URL is handed to GDAL as-is, which covers a plain geospatial file served over HTTP.
   DATA_SOURCE="$SOURCE"
@@ -76,13 +89,16 @@ else
     echo "$PROG: ERROR: $SOURCE not found." >&2
     exit 1
   fi
-  ZIPFILE_ABS=$(readlink -f "$SOURCE")
+  ZIPFILE=$(readlink -f "$SOURCE")
+fi
+
+if [ -n "$ZIPFILE" ]; then
   # GDAL's /vsizip/ doesn't recurse into subdirectories, so if the geospatial
   # file is nested, point at it explicitly. Match common OGR-readable formats.
-  INNER=$(unzip -Z1 "$ZIPFILE_ABS" \
+  INNER=$(unzip -Z1 "$ZIPFILE" \
     | grep -iE '\.(shp|geojson|json|gpkg|kml|gml|tab|gdb)$' \
     | head -n1)
-  DATA_SOURCE="/vsizip/${ZIPFILE_ABS}"
+  DATA_SOURCE="/vsizip/${ZIPFILE}"
   if [ -n "$INNER" ] && [ "$INNER" != "$(basename "$INNER")" ]; then
     DATA_SOURCE="${DATA_SOURCE}/${INNER}"
   fi
