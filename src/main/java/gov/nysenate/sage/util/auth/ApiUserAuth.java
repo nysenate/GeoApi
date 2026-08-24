@@ -58,7 +58,8 @@ public class ApiUserAuth {
      *                      Upon failure, null is returned.
      */
     public ApiUser addApiUser(String name, String description, boolean admin) {
-        var apiUser = new ApiUser(RandomStringUtils.randomAlphanumeric(32), name, description, admin);
+        // secure() backs the generator with SecureRandom, which makes output unpredictable to an attacker.
+        var apiUser = new ApiUser(RandomStringUtils.secure().nextAlphanumeric(32), name, description, admin);
         if (apiUserDao.addApiUser(apiUser)) {
             return apiUserDao.getApiUserByKey(apiUser.getApiKey());
         }
