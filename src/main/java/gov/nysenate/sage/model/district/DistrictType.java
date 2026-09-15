@@ -1,7 +1,7 @@
 package gov.nysenate.sage.model.district;
 
 import gov.nysenate.sage.util.HasDisplayName;
-import org.apache.commons.lang.WordUtils;
+import org.apache.commons.text.WordUtils;
 
 public enum DistrictType implements HasDisplayName {
     SENATE, ASSEMBLY, CONGRESSIONAL, ZIP, COUNTY, TOWN_CITY, SCHOOL, ELECTRIC_UTILITY,

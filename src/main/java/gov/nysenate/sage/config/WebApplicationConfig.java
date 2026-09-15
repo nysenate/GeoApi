@@ -3,6 +3,7 @@ package gov.nysenate.sage.config;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import gov.nysenate.sage.controller.interceptor.PageSetupInterceptor;
 import gov.nysenate.sage.dao.logger.deployment.SqlDeploymentLogger;
+import jakarta.annotation.PostConstruct;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +25,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.FixedLocaleResolver;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
-import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;

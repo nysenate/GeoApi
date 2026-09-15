@@ -19,6 +19,7 @@ import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.PostOfficeCacheManager;
 import gov.nysenate.sage.provider.geocache.GeoCache;
 import gov.nysenate.sage.util.ExecutorUtil;
+import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +28,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nonnull;
-import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

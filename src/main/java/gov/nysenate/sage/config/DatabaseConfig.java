@@ -84,8 +84,6 @@ public class DatabaseConfig {
         pool.setTestConnectionOnCheckout(false);
         pool.setTestConnectionOnCheckin(true);
         pool.setIdleConnectionTestPeriod(60);
-        // Fast query to execute when testing connections
-        pool.setPreferredTestQuery("SELECT 1");
 
         return pool;
     }

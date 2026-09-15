@@ -2,6 +2,7 @@ package gov.nysenate.sage.service.security;
 
 import gov.nysenate.sage.model.admin.AdminUser;
 import gov.nysenate.sage.util.auth.AdminUserAuth;
+import jakarta.annotation.PostConstruct;
 import org.apache.shiro.authc.*;
 import org.apache.shiro.authc.credential.CredentialsMatcher;
 import org.apache.shiro.authc.pam.UnsupportedTokenException;
@@ -14,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.util.Collection;
 
 @Component
