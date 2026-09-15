@@ -64,6 +64,10 @@ public class WebInitializer implements WebApplicationInitializer
         DelegatingFilterProxy apiAuthFilter = new DelegatingFilterProxy("apiFilter", dispatcherContext);
         servletContext.addFilter("apiFilter", apiAuthFilter)
                 .addMappingForUrlPatterns(EnumSet.of(REQUEST, FORWARD, INCLUDE), false, ConstantUtil.REST_PATH + "*");
+
+        /** Servlets are destroyed before listeners are notified, so the JDBC driver is deregistered only after
+         * the dispatcher's context, and the connection pool in it, has shut down. */
+        servletContext.addListener(new JdbcDriverDeregistrationListener());
     }
 }
 
