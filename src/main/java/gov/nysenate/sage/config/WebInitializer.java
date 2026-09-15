@@ -2,7 +2,6 @@ package gov.nysenate.sage.config;
 
 import gov.nysenate.sage.util.controller.ConstantUtil;
 import org.springframework.web.WebApplicationInitializer;
-import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
 import org.springframework.web.servlet.DispatcherServlet;
@@ -15,7 +14,7 @@ import static jakarta.servlet.DispatcherType.*;
 
 /**
  * Java based Spring configuration. This implementation is responsible for creating
- * the root and web Spring contexts and to setup the necessary servlets and filters.
+ * the web Spring context and to setup the necessary servlets and filters.
  * Note that this class is functionally equivalent to a web.xml configuration but we try
  * to do as much in Java to reduce complexity.
  */
@@ -36,17 +35,10 @@ public class WebInitializer implements WebApplicationInitializer
      */
     @Override
     public void onStartup(ServletContext servletContext) {
-        /** Create the root Spring application context. */
-        AnnotationConfigWebApplicationContext rootContext = new AnnotationConfigWebApplicationContext();
-
-        /** Manage the lifecycle of the root application context. */
-        servletContext.addListener(new ContextLoaderListener(rootContext));
-
-        /** The dispatcher servlet has it's own application context in which it can override
-         * beans from the parent root context. */
+        /** The only Spring context. The filter proxies below refresh it before the dispatcher servlet starts,
+         * so the servlet context must be set here for the active profile in web.xml to take effect. */
         AnnotationConfigWebApplicationContext dispatcherContext = new AnnotationConfigWebApplicationContext();
         dispatcherContext.setServletContext(servletContext);
-        dispatcherContext.setParent(rootContext);
         dispatcherContext.register(WebApplicationConfig.class);
 
         /** Register the dispatcher servlet which basically serves as the front controller for Spring.
