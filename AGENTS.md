@@ -38,7 +38,7 @@ The `bin/admin/` scripts read their own `bin/admin/admin.script.properties`, cop
 - A React rewrite of that frontend lives on the unmerged `react` branch, which replaces `src/main/webapp/js` wholesale and adds a `package.json`/`webpack.config.js` under `src/main/webapp`. Neither exists on `dev`, so an untracked `node_modules/`, `static/dist/`, or bundled `target/` in the working tree is a leftover from that branch rather than part of this build.
 - `dao/provider/` holds the external service DAOs, but `HttpGoogleDao`, `HttpNYSGeoDao`, and `DistrictInfoDao` sit directly in it rather than in its `shapefile/`, `streetfile/`, `usps/` subpackages. `SqlTable` in `dao/base/` is what reads `districts.type_info`.
 - The `@UnitTest`/`@IntegrationTest` annotations are in `src/main`, not `src/test`.
-- `WebInitializer` bootstraps the servlet context programmatically, so there is no `web.xml` at runtime.
+- `WebInitializer` bootstraps the servlet context programmatically, but `WEB-INF/web.xml` still matters: it sets the active Spring profile, maps error pages, and uses `<absolute-ordering>` to limit container scanning to spring-web. A library that registers its own web fragment or container initializer is ignored until it is added there.
 
 **Jakarta namespace**: The project uses `jakarta.servlet`, `jakarta.annotation`, etc. (not the old `javax.*` equivalents). Shiro dependencies use the `jakarta` classifier.
 
@@ -57,4 +57,4 @@ The script then upserts the type into `districts.type_info` (`type_name` → `id
 
 **Security**: Apache Shiro for authentication. API requests are filtered by `controller/api/filter/ApiFilter` — requests matching `user.ip.filter` bypass API key checks; others require a valid key.
 
-**Batch jobs**: Uploaded CSV files are geocoded/district-assigned in batch. Processing is scheduled via cron and uses multi-threaded execution.
+**Batch jobs**: Uploaded CSV files are geocoded/district-assigned in batch. Processing runs in-app on a Spring `@Scheduled` cron (`job.process.cron`), not a system crontab, and uses multi-threaded execution.
