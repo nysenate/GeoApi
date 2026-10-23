@@ -135,27 +135,26 @@
         <fast-util.version>8.5.12</fast-util.version>
         <guava.version>33.4.2-jre</guava.version>
         <hamcrest-core.version>2.2</hamcrest-core.version>
-        <jackson.version>2.21.3</jackson.version>
+        <jackson.version>2.22.4</jackson.version>
         <jakarta.mail.version>2.0.5</jakarta.mail.version>
         <jakarta.servlet-api.version>6.1.0</jakarta.servlet-api.version>
         <jasypt.version>1.9.3</jasypt.version>
         <jbcrypt.version>0.4</jbcrypt.version>
         <jdom.version>2.0.2</jdom.version>
-        <jsoup.version>1.22.2</jsoup.version>
+        <jsoup.version>1.23.2</jsoup.version>
         <junit.version>4.13.2</junit.version>
-        <log4j.version>2.26.0</log4j.version>
+        <log4j.version>2.26.1</log4j.version>
         <lombok.version>1.18.38</lombok.version>
-        <maven-core.version>3.9.16</maven-core.version>
         <mockito.version>5.23.0</mockito.version>
         <nysenate-java-client.version>2.3</nysenate-java-client.version>
         <openlocationcode.version>1.0.4</openlocationcode.version>
-        <postgres-jdbc.version>42.7.13</postgres-jdbc.version>
-        <shiro.version>2.2.1</shiro.version>
+        <postgres-jdbc.version>42.7.14</postgres-jdbc.version>
+        <shiro.version>3.0.1</shiro.version>
         <signpost-core.version>2.1.1</signpost-core.version>
         <slf4j.version>2.0.18</slf4j.version>
-        <spring.version>6.2.18</spring.version>
+        <spring.version>7.0.10</spring.version>
         <super-csv.version>2.4.0</super-csv.version>
-        <tomcat.version>11.0.24</tomcat.version>
+        <tomcat.version>11.0.27</tomcat.version>
         <univocity.version>2.9.1</univocity.version>
         <xstream.version>1.4.21</xstream.version>
         <!--This property fixes some warnings.-->
@@ -177,6 +176,12 @@
                 <version>${spring.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <!-- Transitive dependencies pinned past the vulnerable versions their parents bring in. -->
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>1.86</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -295,13 +300,6 @@
             <artifactId>tomcat-embed-websocket</artifactId>
             <version>${tomcat.version}</version>
             <scope>provided</scope>
-        </dependency>
-
-        <!-- Maven API Dependencies -->
-        <dependency>
-            <groupId>org.apache.maven</groupId>
-            <artifactId>maven-core</artifactId>
-            <version>${maven-core.version}</version>
         </dependency>
 
         <dependency>
@@ -496,21 +494,18 @@
             <groupId>org.apache.shiro</groupId>
             <artifactId>shiro-core</artifactId>
             <version>${shiro.version}</version>
-            <classifier>jakarta</classifier>
         </dependency>
 
         <dependency>
             <groupId>org.apache.shiro</groupId>
             <artifactId>shiro-web</artifactId>
             <version>${shiro.version}</version>
-            <classifier>jakarta</classifier>
         </dependency>
 
         <dependency>
             <groupId>org.apache.shiro</groupId>
             <artifactId>shiro-spring</artifactId>
             <version>${shiro.version}</version>
-            <classifier>jakarta</classifier>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.shiro</groupId>
