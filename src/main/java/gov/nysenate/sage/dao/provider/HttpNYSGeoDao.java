@@ -84,8 +84,7 @@ public class HttpNYSGeoDao implements GeocoderDao {
                 return null;
             }
             JsonNode node = objectMapper.readTree(response);
-            int score = -1;
-            String addrType = null;
+            String addrType;
             Address address;
 
             if (isRevGeocode && node.has("address") && node.get("address") != null) {
@@ -98,6 +97,7 @@ public class HttpNYSGeoDao implements GeocoderDao {
             }
             else if (node.has("candidates") && node.get("candidates").get(0) != null) {
                 JsonNode bestNode = node.get("candidates").get(0);
+                int score = -1;
                 for (JsonNode candidateNode : node.get("candidates")) {
                     int currScore = candidateNode.get("score").asInt();
                     if (currScore > score) {
