@@ -9,6 +9,7 @@ import gov.nysenate.sage.model.geo.Geocode;
 import gov.nysenate.sage.model.geo.Point;
 import gov.nysenate.sage.provider.geocode.Geocoder;
 import gov.nysenate.sage.util.UrlRequest;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +51,8 @@ public class HttpGoogleDao implements GeocoderDao {
      */
     @Override
     public GeocodedAddress getGeocodedAddress(Address address) {
-        if (address.getZip5() == null) {
+        // Google may charge per request, so we only Geocode cacheable addresses.
+        if (!address.isCacheable()) {
             return null;
         }
         String url = baseUrl + String.format(GEOCODE_QUERY,
@@ -154,8 +156,11 @@ public class HttpGoogleDao implements GeocoderDao {
         return switch (locationType) {
             case "ROOFTOP" -> Accuracy.HOUSE;
             case "RANGE_INTERPOLATED" -> Accuracy.STREET;
-            case "GEOMETRIC_CENTER" -> Accuracy.REGION;
-            default -> Accuracy.UNKNOWN;
+            case "GEOMETRIC_CENTER", "APPROXIMATE" -> Accuracy.REGION;
+            default -> {
+                logger.warn("Unmapped Google location_type '{}'; defaulting to UNKNOWN accuracy.", locationType);
+                yield Accuracy.UNKNOWN;
+            }
         };
     }
 }

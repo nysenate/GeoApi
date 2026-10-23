@@ -40,12 +40,12 @@ public class HttpNYSGeoDao implements GeocoderDao {
 
     /** {@inheritDoc} */
     public GeocodedAddress getGeocodedAddress(Address address) {
-        if (!address.isValid()) {
+        // A ZIP or town alone still matches, as a single point for that area.
+        if (StringUtils.isAllBlank(address.getPrimaryAddr1(), address.getPostalCity()) && address.getZip5() == null) {
             return null;
         }
-        // TODO: use zipcode centroids?
         String url = UriComponentsBuilder.fromUriString(DEFAULT_BASE_URL + GEOCODE_EXTENSION)
-                .queryParam("Address", address.getPrimaryAddr1())
+                .queryParamIfPresent("Address", Optional.ofNullable(StringUtils.trimToNull(address.getPrimaryAddr1())))
                 .queryParamIfPresent("City", Optional.ofNullable(StringUtils.trimToNull(address.getPostalCity())))
                 .queryParamIfPresent("Region", Optional.ofNullable(StringUtils.trimToNull(address.getState())))
                 .queryParamIfPresent("Postal", Optional.ofNullable(address.getZip5()))

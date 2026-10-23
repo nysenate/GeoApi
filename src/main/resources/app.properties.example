@@ -46,7 +46,7 @@ usps.ams.ui.url = http://localhost:8080/USPS-AMS/
 # NYSenate.gov (full url, no trailing slash)
 nysenate.domain = https://www.nysenate.gov
 
-# Google Geocoder (free service, daily rate limit)
+# Google Geocoder (billed per request past a monthly free allowance)
 google.geocoder.url = https://maps.googleapis.com/maps/api/geocode/json
 google.geocoder.key = API Key obtained from Google
 
