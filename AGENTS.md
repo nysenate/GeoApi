@@ -8,7 +8,7 @@ SAGE (Senate Address Geo-coding Engine) is a Java web application for the NY Sta
 
 ## Build & Test Commands
 
-This is a Maven project (Java 21, Spring 6, WAR packaging, deployed on Tomcat 11).
+This is a Maven project (Java 21, Spring 7, Shiro 3, WAR packaging, deployed on Tomcat 11).
 
 - **Build**: `mvn clean package`
 - **Unit tests**: `mvn test` (runs tests annotated with `@UnitTest`)
@@ -40,7 +40,7 @@ The `bin/admin/` scripts read their own `bin/admin/admin.script.properties`, cop
 - The `@UnitTest`/`@IntegrationTest` annotations are in `src/main`, not `src/test`.
 - `WebInitializer` bootstraps the servlet context programmatically, but `WEB-INF/web.xml` still matters: it sets the active Spring profile, maps error pages, and uses `<absolute-ordering>` to limit container scanning to spring-web. A library that registers its own web fragment or container initializer is ignored until it is added there.
 
-**Jakarta namespace**: The project uses `jakarta.servlet`, `jakarta.annotation`, etc. (not the old `javax.*` equivalents). Shiro dependencies use the `jakarta` classifier.
+**Jakarta namespace**: The project uses `jakarta.servlet`, `jakarta.annotation`, etc. (not the old `javax.*` equivalents). Spring ignores `javax.annotation.PostConstruct`, `PreDestroy`, and `Resource`, so a lifecycle method annotated with one silently never runs. The `javax.annotation.Nonnull` imports are JSR-305, which has no Jakarta replacement.
 
 **Database**: PostgreSQL. Schema-change SQL lives in `src/main/resources/sql/` and is applied manually — Flyway was removed, so do not create new `V{date}__`-prefixed versioned migration files (the existing ones are historical).
 
