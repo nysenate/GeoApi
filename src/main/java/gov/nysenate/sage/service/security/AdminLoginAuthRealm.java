@@ -115,7 +115,7 @@ public class AdminLoginAuthRealm extends SageAuthorizingRealm {
      */
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
-        Collection collection = principals.fromRealm(getName());
+        Collection<?> collection = principals.fromRealm(getName());
         if (!collection.isEmpty()) {
             SimpleAuthorizationInfo info = new SimpleAuthorizationInfo();
             String principal = collection.iterator().next().toString();
