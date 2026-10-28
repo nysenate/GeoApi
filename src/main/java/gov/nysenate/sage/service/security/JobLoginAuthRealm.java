@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.Optional;
+import java.util.UUID;
 
 @Component
 public class JobLoginAuthRealm extends SageAuthorizingRealm
@@ -38,6 +40,15 @@ public class JobLoginAuthRealm extends SageAuthorizingRealm
             String newPass = new String(userToken.getPassword());
             String registeredPass = (String) info.getCredentials();
             return newPass.equals(registeredPass);
+        }
+
+        /**
+         * Shiro checks these when no job user has the submitted email. The token's password
+         * is a stored bcrypt hash, which a UUID can never equal.
+         */
+        @Override
+        public Optional<AuthenticationInfo> createSimulatedCredentials() {
+            return Optional.of(new SimpleAuthenticationInfo("", UUID.randomUUID().toString(), ""));
         }
     }
 
@@ -76,11 +87,14 @@ public class JobLoginAuthRealm extends SageAuthorizingRealm
      * This method uses the JobUser service to query the database and see if
      * the given username.
      * @param info The given UsernamePasswordToken
-     * @return A new SimpleAuthenticationInfo object if the user is a valid job user, or AuthenticationException
+     * @return A new SimpleAuthenticationInfo object if the user is a valid job user, or null if there is no such job user
      */
     protected AuthenticationInfo queryForAuthenticationInfo(UsernamePasswordToken info) {
         String username = info.getUsername();
         JobUser jobuser = jobUserAuth.getJobUser(username);
+        if (jobuser == null) {
+            return null;
+        }
         return new SimpleAuthenticationInfo(jobuser.getEmail(), jobuser.getPassword(), getName());
     }
 
@@ -91,7 +105,7 @@ public class JobLoginAuthRealm extends SageAuthorizingRealm
      */
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
-        Collection collection = principals.fromRealm(getName());
+        Collection<?> collection = principals.fromRealm(getName());
         if (!collection.isEmpty()) {
             SimpleAuthorizationInfo info = new SimpleAuthorizationInfo();
             String principal = collection.iterator().next().toString();

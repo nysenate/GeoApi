@@ -2,7 +2,7 @@ package gov.nysenate.sage.service.security;
 
 import gov.nysenate.sage.model.api.ApiUser;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
@@ -38,7 +38,7 @@ public class ApiUserAuthRealm extends SageAuthorizingRealm {
         @Override
         public boolean doCredentialsMatch(AuthenticationToken token, AuthenticationInfo info) {
             if (token != null && info != null && token.getPrincipal() != null && info.getPrincipals() != null) {
-                return StringUtils.equals(token.getPrincipal().toString(),
+                return Strings.CS.equals(token.getPrincipal().toString(),
                         info.getPrincipals().getPrimaryPrincipal().toString());
             }
             return false;
@@ -96,7 +96,7 @@ public class ApiUserAuthRealm extends SageAuthorizingRealm {
      */
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
-        Collection collection = principals.fromRealm(getName());
+        Collection<?> collection = principals.fromRealm(getName());
         if (!collection.isEmpty()) {
             SimpleAuthorizationInfo info = new SimpleAuthorizationInfo();
             String principal = collection.iterator().next().toString();

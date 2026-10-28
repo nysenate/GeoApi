@@ -1,42 +1,33 @@
 package gov.nysenate.sage.model.district;
 
-import com.google.common.collect.ImmutableMap;
-import gov.nysenate.sage.model.Accuracy;
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import javax.annotation.Nonnull;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
-/**
- * A container for all assigned district names and codes.
- */
-public record DistrictInfo(ImmutableMap<DistrictType, SingleDistrict> typeToDistrictMap, Accuracy accuracy) {
-    public static final DistrictInfo empty = new DistrictInfo(Map.of(), null);
+public class DistrictInfo {
+    public static final String NAME_COLUMN = "name";
+    private final Map<String, String> internalMap = new HashMap<>();
 
-    public DistrictInfo(Map<DistrictType, SingleDistrict> typeToDistrictMap, Accuracy accuracy) {
-        this(ImmutableMap.copyOf(typeToDistrictMap), accuracy);
+    public void put(String columnName, String value) {
+        internalMap.put(columnName, value);
     }
 
-    public String getDistCode(DistrictType districtType) {
-        SingleDistrict singleDistrict = typeToDistrictMap.get(districtType);
-        return singleDistrict == null ? null : singleDistrict.code();
+    /**
+     * Serializes the columns directly onto this object, instead of nesting them.
+     */
+    @JsonAnyGetter
+    public Map<String, String> getInternalMap() {
+        return internalMap;
     }
 
-    public SingleDistrict getDistrict(DistrictType districtType) {
-        return typeToDistrictMap.get(districtType);
+    public String get(String columnName) {
+        return internalMap.get(columnName);
     }
 
-    public Set<DistrictType> getAssignedTypes() {
-        return typeToDistrictMap.keySet();
-    }
-
-    @Nonnull
-    @Override
-    public String toString() {
-        var out = new StringBuilder().append(accuracy).append('\n');
-        for (DistrictType t : typeToDistrictMap.keySet()) {
-            out.append(t).append(": ").append(getDistrict(t)).append("\n");
-        }
-        return out.toString();
+    @JsonIgnore
+    public String getName() {
+        return get(NAME_COLUMN);
     }
 }

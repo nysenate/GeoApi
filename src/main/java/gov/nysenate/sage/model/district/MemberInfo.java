@@ -1,7 +1,7 @@
 package gov.nysenate.sage.model.district;
 
 import gov.nysenate.services.model.Senator;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public record MemberInfo(String nameStart, String nameEnd, String imageUrl, String url, String email) {
     public MemberInfo {

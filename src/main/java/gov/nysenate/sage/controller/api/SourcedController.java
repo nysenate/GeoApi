@@ -9,14 +9,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
+import static gov.nysenate.sage.model.result.ResultStatus.MISSING_DISTRICT_ID;
 import static gov.nysenate.sage.model.result.ResultStatus.UNSUPPORTED_DISTRICT_MAP;
 
-public abstract class SourcedController<E extends Enum<E> & HasDisplayName> {
+public abstract class SourcedController<E extends Enum<E> & HasDisplayName> extends BaseApiController {
     @SuppressWarnings("unchecked")
     private final Class<E> sourceClass = Objects.requireNonNull(
             (Class<E>) GenericTypeResolver.resolveTypeArgument(getClass(), SourcedController.class)
@@ -34,7 +36,17 @@ public abstract class SourcedController<E extends Enum<E> & HasDisplayName> {
         return new ApiError(UNSUPPORTED_DISTRICT_MAP);
     }
 
-    protected  <T extends Enum<T>> T getValue(Class<T> enumClass, String strValue) {
+    /**
+     * A request parameter that couldn't be converted to its declared type is a bad request, not a
+     * server error. Without this, BaseApiController's catch-all would report it as a 500.
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
+    public ApiError handleTypeMismatchException(MethodArgumentTypeMismatchException e) {
+        return new ApiError(MISSING_DISTRICT_ID);
+    }
+
+    protected <T extends Enum<T>> T getValue(Class<T> enumClass, String strValue) {
         try {
             return T.valueOf(enumClass, strValue.trim().toUpperCase());
         } catch (NullPointerException | IllegalArgumentException e) {
@@ -46,7 +58,7 @@ public abstract class SourcedController<E extends Enum<E> & HasDisplayName> {
         return getValue(sourceClass, strValue);
     }
 
-    protected  <T extends Enum<T>> List<T> getListOrNull(Class<T> enumClass, String strValue) {
+    protected <T extends Enum<T>> List<T> getListOrNull(Class<T> enumClass, String strValue) {
         if (strValue == null || strValue.isBlank()) {
             return null;
         }

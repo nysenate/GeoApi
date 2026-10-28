@@ -406,6 +406,8 @@ The district_ service has the following method(s).
 +-------------+-----------------------------------------------------------------+
 | bluebird    | Performs district assign with preset options for Bluebird       |
 +-------------+-----------------------------------------------------------------+
+| info_       | List every district of one type along with its attributes       |
++-------------+-----------------------------------------------------------------+
 | options_    | List the available district sources                             |
 +-------------+-----------------------------------------------------------------+
 
@@ -441,6 +443,54 @@ Specifying districtSource or geocoder is not recommended as it may reduce the ac
 
 .. caution:: USPS validation will only work when addr1, city/zip, and state are provided. See address section above for details.
 
+.. _district-identifiers:
+
+District Identifiers
+^^^^^^^^^^^^^^^^^^^^
+
+Wherever a district appears in a response - district assignment, map_ data, or info_ - it is described by the
+same three fields:
+
++-------------+-------------------------------------------------------------------------------------+
+| Field       | Description                                                                         |
++=============+=====================================================================================+
+| id          | SAGE's identifier for the district. Unique within the district type.                |
++-------------+-------------------------------------------------------------------------------------+
+| district    | The display code: the short code or number this district is known by publicly.      |
++-------------+-------------------------------------------------------------------------------------+
+| name        | The human readable name of the district.                                            |
++-------------+-------------------------------------------------------------------------------------+
+
+The ``id`` is one or more groups of digits joined by hyphens. It is what SAGE keys geometry and district
+attributes on, and it is the value to hand back to the API when a request needs to name a district: the
+``district`` parameter of a map_ request takes an ``id``, not a display code.
+
+For most types the ``id`` and the ``district`` code are the same string. They differ when the natural public
+code is not what SAGE stores districts under - counties are keyed on their GNIS id but publicly known by a
+county code, and towns and cities are keyed on their GNIS id but carry a short abbreviation as their code.
+The hyphenated form exists because some types have no single identifying number: an election district's
+``id`` is its municipality, assembly district, village, ward, county legislative district, and ED number
+joined together, since the ED number by itself repeats across the state.
+
++------------+--------------------+------------+------------------------------+
+| Type       | id                 | district   | name                         |
++============+====================+============+==============================+
+| senate     | ``28``             | ``28``     | Senate District 28           |
++------------+--------------------+------------+------------------------------+
+| county     | ``974129``         | ``62``     | New York County              |
++------------+--------------------+------------+------------------------------+
+| town       | ``2395220``        | ``-NYC``   | New York City                |
++------------+--------------------+------------+------------------------------+
+| election   | ``978659-1-1``     | ``1``      | City of Albany, Ward 1 ED 1  |
++------------+--------------------+------------+------------------------------+
+
+District objects in an assignment response additionally carry a ``displayName``, which names the district
+*type* rather than the district ("Senate", "Town/City", "Electric Utility").
+
+.. note:: Election districts assigned from the streetfile source are identified by their ED number alone,
+          since that is all the Board of Elections data carries. Only the shapefile source yields the fully
+          qualified election ``id``, and only such an id resolves to a ``name``.
+
 Assign
 ^^^^^^
 
@@ -456,7 +506,7 @@ The district assignment response::
 
     {
       "status" : "SUCCESS",
-      "source" : "STREETFILE, SHAPEFILE",
+      "sources" : "STREETFILE, SHAPEFILE",
       "address" : {
         "addr1" : "280 Madison Ave",
         "addr2" : "",
@@ -466,12 +516,12 @@ The district assignment response::
         "zip4" : "0801"
       },
       "geocode" : {
-        "lat" : 40.7514214,
-        "lon" : -73.9805145,
+        "lat" : "40.7514214",
+        "lon" : "-73.9805145",
         "quality" : "HOUSE",
         "method" : "GOOGLE",
-        "cached": true,
-        "openLocCode": "87G8Q229+HQ"
+        "cached" : true,
+        "openLocCode" : "87G8Q229+HQ"
       },
       "geocoded" : true,
       "districtAssigned" : true,
@@ -480,66 +530,77 @@ The district assignment response::
       "matchLevel" : "HOUSE",
       "districts" : {
         "senate" : {
-          "name" : "NY Senate District 28",
+          "id" : "28",
           "district" : "28",
-          "senator" : (excluded for length)
-        },
-        "congressional" : {
-          "name" : "NY Congressional District 12",
-          "district" : "12",
-          "map": null,
-          "member": {
-            "name": "Nadler, Jerrold",
-                "url": "https://nadler.house.gov"
-            }
+          "name" : "Senate District 28",
+          "member" : (excluded for length),
+          "displayName" : "Senate"
         },
         "assembly" : {
-          "name" : "NY Assembly District 73",
+          "id" : "73",
           "district" : "73",
-          "map": null,
-          "member": {
-            "name": "Alex Bores",
-            "url": "https://www.nyassembly.gov/mem/Alex-Bores"
-          }
+          "name" : "Assembly District 73",
+          "member" : (excluded for length),
+          "displayName" : "Assembly"
         },
-        "county" : {
-          "name" : "New York County",
-          "district" : "62",
-          "map": null
-        },
-        "election" : {
-          "name" : null,
-          "district" : "8",
-          "map": null
-        },
-        "school" : {
-          "name" : "Manhattan SD",
-          "district" : "369",
-          "map": null
-        },
-        "town" : {
-          "name" : "New York",
-          "district" : "-NYC",
-          "map": null
+        "congressional" : {
+          "id" : "12",
+          "district" : "12",
+          "name" : "Congressional District 12",
+          "member" : (excluded for length),
+          "displayName" : "Congressional"
         },
         "zip" : {
-          "name" : "Zipcode 10016",
+          "id" : "10016",
           "district" : "10016",
-          "map": null
+          "name" : "Zipcode 10016",
+          "displayName" : "Zip"
+        },
+        "county" : {
+          "id" : "974129",
+          "district" : "62",
+          "name" : "New York County",
+          "displayName" : "County"
+        },
+        "town" : {
+          "id" : "2395220",
+          "district" : "-NYC",
+          "name" : "New York City",
+          "displayName" : "Town/City"
+        },
+        "school" : {
+          "id" : "369",
+          "district" : "369",
+          "name" : "Manhattan SD",
+          "displayName" : "School"
+        },
+        "electricUtility" : {
+          "id" : "1002",
+          "district" : "1002",
+          "name" : "Consolidated Edison",
+          "displayName" : "Electric Utility"
+        },
+        "election" : {
+          "id" : "8",
+          "district" : "8",
+          "displayName" : "Election"
+        },
+        "ward" : null,
+        "cityCouncil" : {
+          "id" : "4",
+          "district" : "4",
+          "name" : "City Council District 4",
+          "displayName" : "City Council"
         },
         "cleg" : null,
-        "ward" : null,
         "village" : null,
-        "cityCouncil": {
-            "name": null,
-            "district": "4",
-            "map": null
+        "municipalCourt" : {
+          "id" : "9",
+          "district" : "9",
+          "name" : "Municipal Court District 9",
+          "displayName" : "Municipal Court"
         },
-        "electricUtility": {
-            "name": "Consolidated Edison",
-            "district": "7",
-            "map": null
-        }
+        "fire" : null
       },
       "multiMatch" : false,
       "statusCode" : 0,
@@ -552,7 +613,9 @@ The ``senateAssigned`` field will be true if the senate district was assigned.
 The main components of the response are ``address``, ``geocode``, and ``districts``. The ``address`` typically contains
 a corrected address response from the geocode provider or is the result of USPS correction if ``uspsValidated`` is true.
 The ``geocode`` contains the coordinates that were used to perform district assignment. The ``districts`` object contains all
-the district types supported by the service. ``district`` refers to the code or number that represents the district.
+the district types supported by the service; a type that was not assigned is null. Each assigned district carries the
+``id``, ``district``, and ``name`` fields described under :ref:`district-identifiers`. Fields that have no value are
+omitted, which is why a district with no name or no member data has no ``name`` or ``member`` key at all.
 
 The ``matchLevel`` indicates how granular the district assignment is. The following table describes the different ``matchLevel`` values:
 
@@ -580,12 +643,12 @@ If ``showMaps`` is set to true::
 
     /api/v2/district/assign?addr=280 Madison Ave, NY&showMaps=true
 
-each district portion of the response will include geometry data in ``map.geom``, and a geometry data type under ``map.type``.
-Any district that does not have any map data associated with it will have ``map`` : null;
+each district portion of the response will include its geometry under ``map``. A district that has no map data
+associated with it has no ``map`` key at all.
 
 .. tip::
-     'geom' is an array containing an array of coordinate pairs which are represented as two floats in an array,
-     e.g geom[0] -> array of coordinate pairs (represented as [lat, lon]) of the first polygon.
+     ``map`` is a GeoJSON geometry: a ``type`` of ``Polygon`` or ``MultiPolygon`` and a ``coordinates`` array
+     nested to match, whose innermost entries are ``[lon, lat]`` pairs.
 
 District assignment via coordinate pairs is also supported::
 
@@ -662,124 +725,139 @@ And the response::
     {
       "results" : [ {
         "status" : "SUCCESS",
-        "source" : "StreetFile",
-        "messages" : [ ],
+        "sources" : "STREETFILE, SHAPEFILE",
         "address" : {
           "addr1" : "100 Nyroy Dr",
           "addr2" : "",
           "city" : "Troy",
           "state" : "NY",
           "zip5" : "12180",
-          "zip4" : "1921"
+          "zip4" : "1928"
         },
         "geocode" : {
-          "lat" : 42.741112,
-          "lon" : -73.668762,
+          "lat" : "42.7410467",
+          "lon" : "-73.6691371",
           "quality" : "HOUSE",
-          "method" : "YahooDao"
+          "method" : "GOOGLE",
+          "cached" : true,
+          "openLocCode" : "87J8P8RJ+C8"
         },
         "geocoded" : true,
         "districtAssigned" : true,
         "senateAssigned" : true,
-        "uspsValidated" : false,
+        "uspsValidated" : true,
         "matchLevel" : "HOUSE",
         "districts" : {
           "senate" : {
-            "name" : "NY Senate District 44", "district" : "44", "senator" : null
-          },
-          "congressional" : {
-            "name" : "NY Congressional District 20", "district" : "20", "member" : null
+            "id" : "43", "district" : "43", "name" : "Senate District 43", "displayName" : "Senate"
           },
           "assembly" : {
-            "name" : "NY Assembly District 107", "district" : "107", "member" : null
+            "id" : "108", "district" : "108", "name" : "Assembly District 108", "displayName" : "Assembly"
           },
-          "county" : {
-            "name" : null, "district" : "38"
-          },
-          "election" : {
-            "name" : null, "district" : "12"
-          },
-          "school" : null,
-          "town" : {
-            "name" : null, "district" : "-TROY"
+          "congressional" : {
+            "id" : "20", "district" : "20", "name" : "Congressional District 20", "displayName" : "Congressional"
           },
           "zip" : {
-            "name" : null, "district" : "12180"
+            "id" : "12180", "district" : "12180", "name" : "Zipcode 12180", "displayName" : "Zip"
           },
+          "county" : {
+            "id" : "974140", "district" : "38", "name" : "Rensselaer County", "displayName" : "County"
+          },
+          "town" : {
+            "id" : "979559", "district" : "-TROY", "name" : "City of Troy", "displayName" : "Town/City"
+          },
+          "school" : {
+            "id" : "642", "district" : "642", "name" : "Troy City SD", "displayName" : "School"
+          },
+          "electricUtility" : {
+            "id" : "1004", "district" : "1004", "name" : "National Grid", "displayName" : "Electric Utility"
+          },
+          "election" : {
+            "id" : "12", "district" : "12", "displayName" : "Election"
+          },
+          "ward" : null,
+          "cityCouncil" : null,
           "cleg" : {
-            "name" : null, "district" : "1"
+            "id" : "1", "district" : "1", "name" : "County Legislature District 1", "displayName" : "County Legislature"
           },
-          "ward" : {
-            "name" : null, "district" : null
-          },
-          "village" : {
-            "name" : null, "district" : null
-          }
+          "village" : null,
+          "municipalCourt" : null,
+          "fire" : null
         },
         "multiMatch" : false,
         "statusCode" : 0,
         "description" : "Success."
       }, {
         "status" : "SUCCESS",
-        "source" : "StreetFile",
-        "messages" : [ ],
+        "sources" : "STREETFILE, SHAPEFILE",
         "address" : {
           "addr1" : "44 Fairlawn Ave",
           "addr2" : "",
           "city" : "Albany",
           "state" : "NY",
           "zip5" : "12203",
-          "zip4" : "1933"
+          "zip4" : "1914"
         },
         "geocode" : {
-          "lat" : 42.670583,
-          "lon" : -73.799606,
+          "lat" : "42.6711474",
+          "lon" : "-73.79940049999999",
           "quality" : "HOUSE",
-          "method" : "YahooDao"
+          "method" : "GOOGLE",
+          "cached" : true,
+          "openLocCode" : "87J8M6C2+F6"
         },
         "geocoded" : true,
         "districtAssigned" : true,
         "senateAssigned" : true,
-        "uspsValidated" : false,
+        "uspsValidated" : true,
         "matchLevel" : "HOUSE",
         "districts" : {
           "senate" : {
-            "name" : "NY Senate District 44", "district" : "44", "senator" : null
-          },
-          "congressional" : {
-            "name" : "NY Congressional District 20", "district" : "20", "member" : null
+            "id" : "46", "district" : "46", "name" : "Senate District 46", "displayName" : "Senate"
           },
           "assembly" : {
-            "name" : "NY Assembly District 109", "district" : "109", "member" : null
+            "id" : "109", "district" : "109", "name" : "Assembly District 109", "displayName" : "Assembly"
           },
-          "county" : {
-            "name" : null, "district" : "1"
-          },
-          "election" : {
-            "name" : null, "district" : "5"
-          },
-          "school" : null,
-          "town" : {
-            "name" : null, "district" : "-ALBAN"
+          "congressional" : {
+            "id" : "20", "district" : "20", "name" : "Congressional District 20", "displayName" : "Congressional"
           },
           "zip" : {
-            "name" : null, "district" : "12203"
+            "id" : "12203", "district" : "12203", "name" : "Zipcode 12203", "displayName" : "Zip"
           },
-          "cleg" : {
-            "name" : null, "district" : "13"
+          "county" : {
+            "id" : "974099", "district" : "1", "name" : "Albany County", "displayName" : "County"
+          },
+          "town" : {
+            "id" : "978659", "district" : "-ALBAN", "name" : "City of Albany", "displayName" : "Town/City"
+          },
+          "school" : {
+            "id" : "5", "district" : "5", "name" : "Albany City SD", "displayName" : "School"
+          },
+          "electricUtility" : {
+            "id" : "1004", "district" : "1004", "name" : "National Grid", "displayName" : "Electric Utility"
+          },
+          "election" : {
+            "id" : "4", "district" : "4", "displayName" : "Election"
           },
           "ward" : {
-            "name" : null, "district" : "13"
+            "id" : "13", "district" : "13", "name" : "Ward 13", "displayName" : "Ward"
           },
-          "village" : {
-            "name" : null, "district" : null
-          }
+          "cityCouncil" : null,
+          "cleg" : {
+            "id" : "13", "district" : "13", "name" : "County Legislature District 13", "displayName" : "County Legislature"
+          },
+          "village" : null,
+          "municipalCourt" : null,
+          "fire" : null
         },
         "multiMatch" : false,
         "statusCode" : 0,
         "description" : "Success."
       } ],
-     "total" : 2
+      "status" : "SUCCESS",
+      "total" : 2,
+      "statusCode" : 0,
+      "description" : "Success."
     }
 
 And a parse error response in case of invalid input::
@@ -793,6 +871,96 @@ And a parse error response in case of invalid input::
 .. note: Batch district assignment can be configured by the application to follow a different strategy for
          purposes of improving performance. In this example the configuration was set to use street files only
          hence why many of the results are partial successes.
+
+.. _info:
+
+District Info
+^^^^^^^^^^^^^
+
+``info`` lists every district of a single type that SAGE knows about, along with the attributes it holds for each
+one. It is the way to resolve an ``id`` returned elsewhere in the API to a name, or to populate a district picker
+without hardcoding a list. It takes one required parameter:
+
++-------------+-------------------------------------------------------------------------------+
+| Param       | Description                                                                   |
++=============+===============================================================================+
+| type        | The district type to list. Required.                                          |
++-------------+-------------------------------------------------------------------------------+
+
+The ``type`` is a district type name: ``SENATE``, ``ASSEMBLY``, ``CONGRESSIONAL``, ``ZIP``, ``COUNTY``,
+``TOWN_CITY``, ``SCHOOL``, ``ELECTRIC_UTILITY``, ``ELECTION``, ``WARD``, ``CITY_COUNCIL``,
+``COUNTY_LEGISLATURE``, ``VILLAGE``, ``MUNICIPAL_COURT``, or ``FIRE``::
+
+    /api/v2/district/info?type=COUNTY
+
+The response is a list of key/value pairs rather than an object keyed by district, because numeric keys are not
+valid ``XML`` element names::
+
+    {
+      "items" : [ {
+        "key" : "974099",
+        "value" : {
+          "gnis_id" : "974099",
+          "code" : "1",
+          "name" : "Albany County",
+          "fips_code" : "36001",
+          "swis" : "010000",
+          "link" : "https://www.albanycountyny.gov/departments/health"
+        }
+      }, {
+        "key" : "974100",
+        "value" : {
+          "gnis_id" : "974100",
+          "code" : "2",
+          "name" : "Allegany County",
+          "fips_code" : "36003",
+          "swis" : "020000",
+          "link" : "https://www.alleganyco.gov/health-department/"
+        }
+      },
+      ... ],
+      "size" : 62
+    }
+
+Each ``key`` is a district ``id`` (see :ref:`district-identifiers`) and each ``value`` is that district's attributes,
+flattened into a single object. ``size`` is the number of districts returned.
+
+The attributes are whatever columns SAGE stores for that district type, so they vary from type to type: a county
+carries its FIPS and SWIS codes and a health department link, a senate district carries little beyond its name.
+Two of them are meaningful across every type - ``name``, which is always present, and ``code``, the display code
+returned as ``district`` in an assignment or map response. A type whose ``id`` already is its public code has no
+separate ``code`` attribute.
+
+An election district, whose ``id`` is compound, carries the parts it was built from::
+
+    {
+      "key" : "978666-2391509-1",
+      "value" : {
+        "id" : "978666-2391509-1",
+        "code" : "1",
+        "name" : "Town of Allegany, Village of Allegany, ED 1",
+        "county" : "Cattaraugus",
+        "town_city_id" : "978666",
+        "village_id" : "2391509",
+        "ward" : null,
+        "assembly_district" : null,
+        "county_legislature" : null
+      }
+    }
+
+Districts are ordered by ``id``: numeric ids first, in ascending order, then the rest lexicographically.
+
+Requesting a type SAGE does not recognize returns::
+
+    {
+      "status" : "PROVIDER_NOT_SUPPORTED",
+      "className" : "gov.nysenate.sage.controller.api.DistrictAssignController",
+      "statusCode" : 3,
+      "description" : "The requested provider is unsupported."
+    }
+
+.. caution:: Some types have no data loaded at all - ``FIRE`` currently has none - and a request for one of those
+             fails rather than returning an empty list.
 
 Street
 ------
@@ -816,7 +984,7 @@ The response is::
 
     {
       "status" : "SUCCESS",
-      "source" : "STREETFILE",
+      "sources" : "STREETFILE",
       "streets" : [ {
         "bldgLoNum": 2,
         "bldgHiNum": 18,
@@ -824,12 +992,11 @@ The response is::
         "location": "ALBANY",
         "zip5": "12210",
         "parity": "EVENS",
+        "senate": "46",
         "congressional": "20",
         "assembly": "109",
-        "election": "1",
-        "town": "-ALBAN",
-        "senate": "46",
-        "county": "1"
+        "town": "978659",
+        "county": "974099"
       },
       {
         "bldgLoNum": 24,
@@ -838,15 +1005,18 @@ The response is::
         "location": "ALBANY",
         "zip5": "12210",
         "parity": "EVENS",
+        "senate": "46",
         "congressional": "20",
         "assembly": "109",
-        "election": "1",
-        "town": "-ALBAN",
-        "senate": "46",
-        "county": "1"
+        "town": "978659",
+        "county": "974099"
       },
       ... ]
     }
+
+Each district type is reported as its ``id`` - the town above is GNIS id ``978659``, not the ``-ALBAN`` code
+that a district assignment shows. Only the types the street range actually resolves to are present.
+See :ref:`district-identifiers`, and info_ for resolving these ids to names.
 
 An invalid response, typically due to a non matching zip code is::
 
@@ -870,12 +1040,17 @@ The parameters are:
 +---------------+------------------------------------------------------------------------------------+
 | Params        | Description                                                                        |
 +===============+====================================================================================+
-| district      | Specify the district code. If unspecified, all districts will be retrieved.        |
+| district      | Specify the district ``id``. If unspecified, all districts will be retrieved.      |
 +---------------+------------------------------------------------------------------------------------+
 | showMembers   | If true: senator, assembly member, and congressional member data will be appended. |
 +---------------+------------------------------------------------------------------------------------+
 | meta          | If true, doesn't return map geometry data.                                         |
 +---------------+------------------------------------------------------------------------------------+
+
+.. important:: ``district`` takes the district's ``id``, not its display code. The two are the same for senate,
+               assembly, and congressional districts, but not for the types where they differ - New York County
+               is ``district=974129``, not ``district=62``. See :ref:`district-identifiers`, and info_ for the
+               ids of a given type. An id with no map loaded returns ``NO_MAP_RESULT``.
 
 To retrieve map and member data for all senate districts::
 
@@ -889,19 +1064,42 @@ The response of the second query is::
 
     {
       "status" : "SUCCESS",
-      "source" : "SHAPEFILE",
+      "sources" : "SHAPEFILE",
       "map" : {
-        "geom" : (truncated)
-        "type" : "Polygon"
+        "type" : "MultiPolygon",
+        "coordinates" : (truncated)
       },
-      "name": "Senate District 1",
-      "type": "SENATE",
-      "link": null,
-      "member": null,
-      "district": "1",
-      "statusCode": 0,
-      "description": "Success."
+      "member" : null,
+      "district" : "1",
+      "name" : "Senate District 1",
+      "type" : "SENATE",
+      "link" : null,
+      "statusCode" : 0,
+      "description" : "Success."
     }
+
+A single district's map is flattened onto the response, and reports the district by its display code in
+``district``. The all-districts response instead nests one object per district under ``districts``, each carrying
+the full ``id``, ``district``, and ``name`` set along with the area of the district in square kilometers::
+
+    {
+      "status" : "SUCCESS",
+      "sources" : "SHAPEFILE",
+      "districts" : [ {
+        "id" : "974099",
+        "district" : "1",
+        "name" : "Albany County",
+        "link" : "https://www.albanycountyny.gov/departments/health",
+        "area" : 1379.9243756892906,
+        "type" : "COUNTY",
+        "map" : (truncated)
+      },
+      ... ],
+      "statusCode" : 0,
+      "description" : "Success."
+    }
+
+``link`` is only populated for county maps.
 
 The member data for senate, assembly, and congressional districts will have the same senator output as in district assignment.
 

@@ -7,12 +7,12 @@ import java.util.Map;
 
 public interface BasicSqlQuery {
     /**
-     * Return the sql query as is.
+     * Return the SQL query as is.
      */
     String getSql();
 
     /**
-     * Retrieve a formatted sql String with the envSchema value replaced where
+     * Retrieve a formatted SQL String with the envSchema value replaced where
      * applicable. This is needed for allowing configurable schema names.
      */
     default String getSql(String envSchema) {
@@ -20,7 +20,7 @@ public interface BasicSqlQuery {
     }
 
     /**
-     * Replaces the ${schema} placeholder in the given sql String with the given schema name, among other replacements.
+     * Replaces the ${schema} placeholder in the given SQL String with the given schema name, among other replacements.
      * This is mainly used for queries where the schema name can be user defined, e.g. the environment schema.
      */
     default String getSql(String envSchema, Map<String, String> otherReplacements) {

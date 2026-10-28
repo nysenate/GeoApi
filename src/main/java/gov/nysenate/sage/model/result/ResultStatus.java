@@ -4,7 +4,7 @@ public enum ResultStatus {
     SUCCESS(0, "Success."),
 
     EMPTY_GEOMETRY_TABLE(1, "The new geometry table is empty."),
-    PROVIDER_NOT_SUPPORTED(3, "The requested provider is unsupported."),
+    VALUE_NOT_SUPPORTED(3, "The requested value is unsupported."),
 
     API_KEY_INVALID(10, "The supplied API key could not be authenticated."),
     API_KEY_MISSING(11, "An API key is required."),
@@ -35,7 +35,7 @@ public enum ResultStatus {
 
     NO_MAP_RESULT(80, "Map request returned no results"),
     UNSUPPORTED_DISTRICT_MAP(81, "Maps for the requested district type are not available"),
-    MISSING_DISTRICT_CODE(82, "A district code is required"),
+    MISSING_DISTRICT_ID(82, "A district ID is required"),
     BAD_OVERLAY(83, "Same type overlay is not supported"),
 
     NO_STREETFILES_TO_PROCESS(90, "There were no streetfiles to process. No action was taken."),

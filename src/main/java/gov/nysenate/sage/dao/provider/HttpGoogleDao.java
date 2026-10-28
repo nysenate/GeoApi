@@ -1,0 +1,165 @@
+package gov.nysenate.sage.dao.provider;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nysenate.sage.model.address.Address;
+import gov.nysenate.sage.model.address.GeocodedAddress;
+import gov.nysenate.sage.model.Accuracy;
+import gov.nysenate.sage.model.geo.Geocode;
+import gov.nysenate.sage.model.geo.Point;
+import gov.nysenate.sage.provider.geocode.Geocoder;
+import gov.nysenate.sage.util.UrlRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Repository;
+
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
+@Repository
+public class HttpGoogleDao implements GeocoderDao {
+    private static final Logger logger = LoggerFactory.getLogger(HttpGoogleDao.class);
+    private static final String GEOCODE_QUERY = "?address=%s&key=%s";
+    private static final String REV_GEOCODE_QUERY = "?latlng=%s&key=%s";
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    private final String baseUrl;
+    private final String apiKey;
+
+    @Autowired
+    public HttpGoogleDao(@Value("${google.geocoder.url:https://maps.googleapis.com/maps/api/geocode/json}") String googleGeocoderUrl,
+                         @Value("${google.geocoder.key:API Key obtained from Google}") String apiKey) {
+        this.baseUrl = googleGeocoderUrl;
+        this.apiKey = apiKey;
+    }
+
+    @Override
+    public Geocoder geocoder() {
+        return Geocoder.GOOGLE;
+    }
+
+    /**
+     * This method performs geocoding.
+     * Retrieves a GeocodedAddress given an Address using Google.
+     *
+     * @param address   Address to geocode
+     * @return          GeocodedAddress containing best matched Geocode.
+     */
+    @Override
+    public GeocodedAddress getGeocodedAddress(Address address) {
+        // Google may charge per request, so we only Geocode cacheable addresses.
+        if (!address.isCacheable()) {
+            return null;
+        }
+        String url = baseUrl + String.format(GEOCODE_QUERY,
+                URLEncoder.encode(address.toString(), StandardCharsets.UTF_8),
+                apiKey);
+        return getGeocodedAddress(url);
+    }
+
+    /**
+     * This method performs reverse geocoding.
+     * Retrieves a GeocodedAddress given a Point using Google.
+     *
+     * @param point Point to reverse geocode.
+     * @return      GeocodedAddress containing best matched Address.
+     */
+    public GeocodedAddress getGeocodedAddress(Point point) {
+        GeocodedAddress geocodedAddress = null;
+        try {
+            String formattedQuery = String.format(REV_GEOCODE_QUERY, point.toString(), apiKey);
+            String url = baseUrl + formattedQuery;
+            geocodedAddress = getGeocodedAddress(url); // Response is identical to address->geocode response.
+        }
+        catch (NullPointerException ex) {
+            logger.error("Null pointer while performing google geocode!", ex);
+        }
+        return geocodedAddress;
+    }
+
+    /**
+     * Sends out a request to google at the given url and returns a GeocodedAddress if successful.
+     * @param url String
+     * @return GeocodedAddress, or null if no match
+     */
+    private GeocodedAddress getGeocodedAddress(String url) {
+        try {
+            String response = UrlRequest.getResponseFromUrl(url);
+            if (response == null) {
+                return null;
+            }
+            JsonNode node = objectMapper.readTree(response);
+            if (node.has("status") && node.get("status").asText().equals("OK")) {
+                JsonNode results = node.get("results");
+                if (!results.isArray() || results.isEmpty()) return null;
+                JsonNode result = results.get(0);
+                String streetNumber = "", street = "", city = "", state = "", zip5 = "", zip4 = "";
+                JsonNode addressComponents = result.get("address_components");
+                for (JsonNode component : addressComponents) {
+                    for (JsonNode type : component.get("types")) {
+                        String typeText = type.asText();
+                        switch (typeText) {
+                            case "street_number":
+                                streetNumber = component.get("long_name").asText();
+                                break;
+                            case "route":
+                                street = component.get("long_name").asText();
+                                break;
+                            case "locality":
+                                city = component.get("long_name").asText();
+                                break;
+                            case "administrative_area_level_3":
+                                if (city.isEmpty()) {
+                                    city = component.get("short_name").asText();
+                                }
+                                break;
+                            case "administrative_area_level_1":
+                                state = component.get("short_name").asText();
+                                break;
+                            case "postal_code":
+                                zip5 = component.get("short_name").asText();
+                                break;
+                            case "postal_code_suffix":
+                                zip4 = component.get("short_name").asText();
+                                break;
+                        }
+                    }
+                }
+                var address = new Address(streetNumber + " " + street, "", city, state, zip5, zip4);
+                JsonNode geometry = result.get("geometry");
+                JsonNode location = geometry.get("location");
+                String lat = location.get("lat").asText("0");
+                String lon = location.get("lng").asText("0");
+                String locationType = geometry.get("location_type").asText();
+                var geocode = new Geocode(
+                        new Point(lat, lon), resolveAccuracy(locationType), geocoder(), false);
+                return new GeocodedAddress(address, geocode);
+            }
+            else if (node.has("status") && node.get("status").asText().equals("OVER_QUERY_LIMIT")) {
+                logger.warn("Google geocoder is reporting that we have exceeded the query limit!");
+            }
+        }
+        catch (IOException ex) {
+            logger.error("Failed to retrieve data from google api!", ex);
+        }
+        catch (NullPointerException ex) {
+            logger.error("NullPointerException while parsing google geocoder response!", ex);
+        }
+        return null;
+    }
+
+    private static Accuracy resolveAccuracy(String locationType) {
+        return switch (locationType) {
+            case "ROOFTOP" -> Accuracy.HOUSE;
+            case "RANGE_INTERPOLATED" -> Accuracy.STREET;
+            case "GEOMETRIC_CENTER", "APPROXIMATE" -> Accuracy.REGION;
+            default -> {
+                logger.warn("Unmapped Google location_type '{}'; defaulting to UNKNOWN accuracy.", locationType);
+                yield Accuracy.UNKNOWN;
+            }
+        };
+    }
+}

@@ -3,7 +3,6 @@ package gov.nysenate.sage.model.job;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.result.AddressResult;
-import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.GeocodeResult;
 
 import java.util.ArrayList;
@@ -63,13 +62,13 @@ public record JobBatch(List<JobRecord> jobRecords, int fromRecord, int toRecord)
         }
     }
 
-    public void setDistrictResults(List<DistrictResult> districtResults) {
-        if (jobRecords.size() != districtResults.size()) {
+    public void setDistrictResults(List<AssignedDistrictCodes> codeResults) {
+        if (jobRecords.size() != codeResults.size()) {
             return;
         }
-        for (int i = 0; i < districtResults.size(); i++) {
+        for (int i = 0; i < codeResults.size(); i++) {
             if (jobRecords.get(i) != null) {
-                jobRecords.get(i).applyDistrictResult(districtResults.get(i));
+                jobRecords.get(i).applyDistrictCodes(codeResults.get(i));
             }
         }
     }

@@ -24,7 +24,7 @@ public class SqlAdminUserDao extends BaseDao implements AdminUserDao {
     public boolean checkAdminUser(String username, String password) {
         try {
             AdminUser adminUser = getAdminUser(username);
-            return BCrypt.checkpw(password, adminUser.getPassword());
+            return adminUser != null && BCrypt.checkpw(password, adminUser.getPassword());
         }
         catch (Exception ex) {
             logger.error("Failed to retrieve admin user!", ex);

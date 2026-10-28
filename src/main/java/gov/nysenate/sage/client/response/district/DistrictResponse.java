@@ -6,10 +6,10 @@ import gov.nysenate.sage.client.view.district.DistrictView;
 import gov.nysenate.sage.client.view.geo.GeocodeView;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
-import gov.nysenate.sage.model.district.DistrictMap;
+import gov.nysenate.sage.model.district.DistrictId;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.geo.Geocode;
-import gov.nysenate.sage.model.result.DistrictResultWithMembers;
+import gov.nysenate.sage.model.result.DistrictResult;
 import lombok.Getter;
 import org.apache.commons.text.CaseUtils;
 
@@ -28,22 +28,18 @@ public class DistrictResponse extends SourcedResponse {
     private String matchLevel;
     private final Map<String, DistrictView> districts = new LinkedHashMap<>();
 
-    public DistrictResponse(DistrictResultWithMembers districtResult, GeocodedAddress geoAddr,
-                            boolean usePunct) {
-        this(districtResult, geoAddr, usePunct, Map.of());
-    }
-
-    public DistrictResponse(DistrictResultWithMembers districtResult, GeocodedAddress geoAddr,
-                            boolean usePunct, Map<DistrictType, DistrictMap> geomMap) {
+    public DistrictResponse(DistrictResult districtResult, GeocodedAddress geoAddr, boolean usePunct) {
         super(districtResult);
         if (districtResult == null) {
             return;
         }
-        this.districtAssigned = !districtResult.getAssignedDistricts().isEmpty();
-        this.senateAssigned = districtResult.getAssignedDistricts().contains(DistrictType.SENATE);
-        this.matchLevel = Objects.toString(districtResult.getDistrictInfo().accuracy(), null);
+        this.districtAssigned = !districtResult.getAssignedDistrictTypes().isEmpty();
+        this.senateAssigned = districtResult.getAssignedDistrictTypes().contains(DistrictType.SENATE);
+        this.matchLevel = Objects.toString(districtResult.getAssignedDistricts().accuracy(), null);
         for (DistrictType districtType : DistrictType.values()) {
-            districts.put(getFieldName(districtType), DistrictView.from(districtType, districtResult, geomMap.get(districtType)));
+            DistrictId currCode = districtResult.getAssignedDistricts().getDistId(districtType);
+            districts.put(getFieldName(districtType),
+                    currCode == null ? null : new DistrictView(districtType, currCode));
         }
         if (geoAddr == null) {
             return;
@@ -63,7 +59,7 @@ public class DistrictResponse extends SourcedResponse {
     private static String getFieldName(DistrictType type) {
         return switch (type) {
             case TOWN_CITY -> "town";
-            case COUNTY_LEG -> "cleg";
+            case COUNTY_LEGISLATURE -> "cleg";
             default -> CaseUtils.toCamelCase(type.name(), false, '_');
         };
     }

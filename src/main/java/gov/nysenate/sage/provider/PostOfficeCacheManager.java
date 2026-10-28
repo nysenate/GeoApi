@@ -13,7 +13,7 @@ import gov.nysenate.sage.provider.geocode.Geocoder;
 
 import java.util.*;
 
-import static gov.nysenate.sage.controller.api.DistrictUtil.consolidateResultsWithoutConflicts;
+import static gov.nysenate.sage.util.DistrictUtil.consolidateResultsWithoutConflicts;
 import static gov.nysenate.sage.model.result.ResultStatus.*;
 
 public final class PostOfficeCacheManager {

@@ -2,10 +2,9 @@ package gov.nysenate.sage.dao.provider.streetfile;
 
 import com.google.common.collect.ImmutableMap;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
-import gov.nysenate.sage.controller.api.DistrictUtil;
+import gov.nysenate.sage.util.DistrictUtil;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.dao.base.SqlTable;
-import gov.nysenate.sage.dao.provider.SingleDistrictService;
 import gov.nysenate.sage.model.Accuracy;
 import gov.nysenate.sage.model.address.*;
 import gov.nysenate.sage.model.district.*;
@@ -29,7 +28,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static gov.nysenate.sage.model.district.DistrictType.*;
 import static gov.nysenate.sage.scripts.streetfinder.model.StreetParity.EVENS;
@@ -38,19 +36,19 @@ import static gov.nysenate.sage.scripts.streetfinder.model.StreetParity.ODDS;
 @Repository
 public class StreetfileDao extends BaseDao {
     private static final Logger logger = LoggerFactory.getLogger(StreetfileDao.class);
-    private static final Map<DistrictType, String> distColMap;
+    public static final ImmutableMap<DistrictType, String> distColMap;
     private static final String copySqlTemplate = "COPY public.streetfile(%s) FROM STDIN CSV NULL '%s'";
     private final String columnOrder;
     private final BaseConnection connection;
-    private final SingleDistrictService nameDao;
     private boolean locked = false;
 
+    // TODO: these should be dynamically generated
     static {
         var tempMap = new HashMap<DistrictType, String>();
         for (DistrictType type : List.of(CONGRESSIONAL, SENATE, ASSEMBLY, ELECTION, CITY_COUNCIL, MUNICIPAL_COURT)) {
             tempMap.put(type, type.name().toLowerCase() + "_district");
         }
-        for (DistrictType type : List.of(COUNTY, COUNTY_LEG, TOWN_CITY, WARD)) {
+        for (DistrictType type : List.of(COUNTY, COUNTY_LEGISLATURE, TOWN_CITY, WARD)) {
             tempMap.put(type, type.name().toLowerCase() + "_code");
         }
         tempMap.put(ZIP, "zip5");
@@ -58,13 +56,11 @@ public class StreetfileDao extends BaseDao {
     }
 
     @Autowired
-    public StreetfileDao(ComboPooledDataSource geoApiPostgresDataSource,
-                         SingleDistrictService nameDao) throws SQLException {
+    public StreetfileDao(ComboPooledDataSource geoApiPostgresDataSource) throws SQLException {
         List<String> colList = new ArrayList<>(List.of("bldg_low", "bldg_high", "parity", "street", "postal_city", "zip5"));
         colList.addAll(order().stream().map(distColMap::get).toList());
         this.columnOrder = String.join(", ", colList);
         this.connection = geoApiPostgresDataSource.getConnection().unwrap(BaseConnection.class);
-        this.nameDao = nameDao;
     }
 
     public String nullString() {
@@ -88,14 +84,14 @@ public class StreetfileDao extends BaseDao {
      * Performs a lookup in the streetfile table, consolidating districts if needed.
      * @return a districted address, with the highest possible match level.
      */
-    public DistrictInfo getDistrictInfo(Address addr) {
+    public AssignedDistricts getDistrictInfo(Address addr) {
         return getDistrictInfo(addr, Accuracy.HOUSE);
     }
 
-    private DistrictInfo getDistrictInfo(Address addr, Accuracy accuracy) {
+    private AssignedDistricts getDistrictInfo(Address addr, Accuracy accuracy) {
         logger.debug("Getting district info for {} at level {}", addr, accuracy);
         if (addr == null || accuracy == Accuracy.UNKNOWN || accuracy == null) {
-            return DistrictInfo.empty;
+            return AssignedDistricts.empty;
         }
         var whereList = new ArrayList<String>();
         var params = new MapSqlParameterSource();
@@ -128,7 +124,7 @@ public class StreetfileDao extends BaseDao {
             }
         }
         if (whereList.isEmpty()) {
-            return DistrictInfo.empty;
+            return AssignedDistricts.empty;
         }
 
         checkLock();
@@ -139,7 +135,7 @@ public class StreetfileDao extends BaseDao {
             return getDistrictInfo(addr, accuracy.getNextHighestLevel());
         }
         return DistrictUtil.getDistrictInfoWithoutConflicts(ranges.stream()
-                .map(DistrictedStreetRange::districtInfo).toList(), accuracy);
+                .map(DistrictedStreetRange::assignedDistricts).toList(), accuracy);
     }
 
     /**
@@ -162,21 +158,21 @@ public class StreetfileDao extends BaseDao {
         }
     }
 
-    private class DistrictStreetRangeMapper implements RowMapper<DistrictedStreetRange> {
+    private static class DistrictStreetRangeMapper implements RowMapper<DistrictedStreetRange> {
         @Override
         public DistrictedStreetRange mapRow(@Nonnull ResultSet rs, int rowNum) throws SQLException {
             var awn = new AddressWithoutNum(rs.getString("street"),
                     rs.getString("postal_city"), rs.getString("zip5"));
             var sar = new StreetAddressRange(rs.getInt("bldg_low"), rs.getInt("bldg_high"),
                     rs.getString("parity"), awn);
-            var typeToDistrictMap = new HashMap<DistrictType, SingleDistrict>();
+            var typeToDistrictMap = new HashMap<DistrictType, DistrictId>();
             for (DistrictType type : distColMap.keySet()) {
                 String code = rs.getString(distColMap.get(type));
                 if (code != null) {
-                    typeToDistrictMap.put(type, nameDao.getSingleDistrict(type, code));
+                    typeToDistrictMap.put(type, new DistrictId(code));
                 }
             }
-            return new DistrictedStreetRange(sar, new DistrictInfo(typeToDistrictMap, Accuracy.HOUSE));
+            return new DistrictedStreetRange(sar, new AssignedDistricts(typeToDistrictMap, Accuracy.HOUSE));
         }
     }
 }

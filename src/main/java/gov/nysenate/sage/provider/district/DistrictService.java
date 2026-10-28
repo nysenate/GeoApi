@@ -3,26 +3,26 @@ package gov.nysenate.sage.provider.district;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
-import gov.nysenate.sage.controller.api.DistrictUtil;
+import gov.nysenate.sage.util.DistrictUtil;
 import gov.nysenate.sage.dao.provider.streetfile.StreetfileDao;
 import gov.nysenate.sage.model.PostOfficeCache;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.address.GeocodedPostOfficeBox;
 import gov.nysenate.sage.model.address.PostOfficeBox;
-import gov.nysenate.sage.model.district.DistrictInfo;
+import gov.nysenate.sage.model.district.AssignedDistricts;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.result.DistrictResult;
 import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.PostOfficeCacheManager;
 import gov.nysenate.sage.util.ExecutorUtil;
+import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PreDestroy;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -71,8 +71,7 @@ public class DistrictService {
                 return getPostOfficeResult(poBox, providers, poBoxGeoAddr);
             }
             else {
-                logger.warn("Error handling PO box {}", poBox);
-                return new DistrictResult(INTERNAL_ERROR);
+                return new DistrictResult(INVALID_ADDRESS);
             }
         }
 
@@ -81,15 +80,15 @@ public class DistrictService {
         Set<DistrictType> typesToAssign = EnumSet.copyOf(requiredTypes);
         for (LocalSource provider : providers) {
             ResultStatus status = getStatus(geocodedAddress, provider);
-            DistrictInfo districtInfo = DistrictInfo.empty;
+            AssignedDistricts assignedDistricts = AssignedDistricts.empty;
             if (status == SUCCESS) {
-                districtInfo = switch (provider) {
+                assignedDistricts = switch (provider) {
                     case STREETFILE -> streetfileDao.getDistrictInfo(address);
                     case SHAPEFILE -> shapefileService.getDistrictInfo(geocodedAddress.getGeocode(), typesToAssign);
                 };
-                typesToAssign.removeAll(districtInfo.getAssignedTypes());
+                typesToAssign.removeAll(assignedDistricts.getAssignedTypes());
             }
-            results.add(new DistrictResult(List.of(provider), status, districtInfo));
+            results.add(new DistrictResult(List.of(provider), status, assignedDistricts));
         }
         return DistrictUtil.consolidateResults(results);
     }
@@ -119,7 +118,7 @@ public class DistrictService {
                                                             GeocodedPostOfficeBox geoPoBox) {
         // This strange monitor ensures we won't district assign the same post office in parallel,
         // while allowing other post offices to be assigned at the same time.
-        synchronized (poBox.getZip5().toString().intern()) {
+        synchronized (String.valueOf(poBox.getZip5()).intern()) {
             var cacheResult = poBoxCache.get(poBox, providers);
             if (cacheResult == null) {
                 Multimap<String, DistrictResult> postalCityMap = ArrayListMultimap.create();

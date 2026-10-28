@@ -1,7 +1,7 @@
 package gov.nysenate.sage.provider.geocache;
 
 import gov.nysenate.sage.dao.base.BaseDao;
-import gov.nysenate.sage.dao.provider.nysgeo.GeocoderDao;
+import gov.nysenate.sage.dao.provider.GeocoderDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.Accuracy;

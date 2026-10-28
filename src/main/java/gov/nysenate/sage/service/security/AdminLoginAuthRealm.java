@@ -2,6 +2,7 @@ package gov.nysenate.sage.service.security;
 
 import gov.nysenate.sage.model.admin.AdminUser;
 import gov.nysenate.sage.util.auth.AdminUserAuth;
+import jakarta.annotation.PostConstruct;
 import org.apache.shiro.authc.*;
 import org.apache.shiro.authc.credential.CredentialsMatcher;
 import org.apache.shiro.authc.pam.UnsupportedTokenException;
@@ -14,8 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.util.Collection;
+import java.util.Optional;
+import java.util.UUID;
 
 @Component
 public class AdminLoginAuthRealm extends SageAuthorizingRealm {
@@ -43,6 +45,15 @@ public class AdminLoginAuthRealm extends SageAuthorizingRealm {
             String newPass = new String(userToken.getPassword());
             String registeredPass = (String) info.getCredentials();
             return newPass.equals(registeredPass);
+        }
+
+        /**
+         * Shiro checks these when no admin has the submitted username. The token's password
+         * is a stored bcrypt hash, which a UUID can never equal.
+         */
+        @Override
+        public Optional<AuthenticationInfo> createSimulatedCredentials() {
+            return Optional.of(new SimpleAuthenticationInfo("", UUID.randomUUID().toString(), ""));
         }
     }
 
@@ -86,11 +97,14 @@ public class AdminLoginAuthRealm extends SageAuthorizingRealm {
      * This method uses the AdminUser service to query the database and see if
      * the given username.
      * @param info The given UsernamePasswordToken
-     * @return A new SimpleAuthenticationInfo object if the user is a valid Admin, or AuthenticationException
+     * @return A new SimpleAuthenticationInfo object if the user is a valid Admin, or null if there is no such Admin
      */
     protected AuthenticationInfo queryForAuthenticationInfo(UsernamePasswordToken info) {
         String username = info.getUsername();
         AdminUser admin = adminUserAuth.getAdminUser(username);
+        if (admin == null) {
+            return null;
+        }
         return new SimpleAuthenticationInfo(admin.getUsername(), admin.getPassword(), getName());
     }
 
@@ -101,7 +115,7 @@ public class AdminLoginAuthRealm extends SageAuthorizingRealm {
      */
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
-        Collection collection = principals.fromRealm(getName());
+        Collection<?> collection = principals.fromRealm(getName());
         if (!collection.isEmpty()) {
             SimpleAuthorizationInfo info = new SimpleAuthorizationInfo();
             String principal = collection.iterator().next().toString();

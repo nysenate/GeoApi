@@ -1,11 +1,11 @@
 package gov.nysenate.sage.model.district;
 
 import gov.nysenate.sage.util.HasDisplayName;
-import org.apache.commons.lang.WordUtils;
+import org.apache.commons.text.WordUtils;
 
 public enum DistrictType implements HasDisplayName {
     SENATE, ASSEMBLY, CONGRESSIONAL, ZIP, COUNTY, TOWN_CITY, SCHOOL, ELECTRIC_UTILITY,
-    ELECTION, WARD, CITY_COUNCIL, COUNTY_LEG, VILLAGE, MUNICIPAL_COURT, FIRE;
+    ELECTION, WARD, CITY_COUNCIL, COUNTY_LEGISLATURE, VILLAGE, MUNICIPAL_COURT, FIRE;
 
     @Override
     public String getDisplayName() {
@@ -16,6 +16,9 @@ public enum DistrictType implements HasDisplayName {
     }
 
     public boolean coversState() {
-        return this != WARD && this != CITY_COUNCIL && this != COUNTY_LEG && this != VILLAGE;
+        return switch (this) {
+            case WARD, CITY_COUNCIL, COUNTY_LEGISLATURE, VILLAGE -> false;
+            default -> true;
+        };
     }
 }

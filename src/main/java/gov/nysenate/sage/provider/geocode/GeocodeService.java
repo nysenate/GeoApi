@@ -4,7 +4,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import gov.nysenate.sage.dao.post_office.PostOfficeDao;
-import gov.nysenate.sage.dao.provider.nysgeo.GeocoderDao;
+import gov.nysenate.sage.dao.provider.GeocoderDao;
 import gov.nysenate.sage.dao.stats.geocode.SqlGeocodeStatsDao;
 import gov.nysenate.sage.model.PostOfficeCache;
 import gov.nysenate.sage.model.address.Address;
@@ -19,6 +19,7 @@ import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.provider.PostOfficeCacheManager;
 import gov.nysenate.sage.provider.geocache.GeoCache;
 import gov.nysenate.sage.util.ExecutorUtil;
+import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +28,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nonnull;
-import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -149,7 +149,7 @@ public class GeocodeService {
     private GeocodeResult getPostOfficeResult(PostOfficeBox poBox, @Nonnull List<Geocoder> geocoders) {
         // This strange monitor ensures we won't geocode the same post office in parallel,
         // while allowing other post offices to be geocoded at the same time.
-        synchronized (poBox.getZip5().toString().intern()) {
+        synchronized (String.valueOf(poBox.getZip5()).intern()) {
             GeocodeResult result = poBoxCache.get(poBox, geocoders);
             if (result == null) {
                 Multimap<String, GeocodeResult> postalCityMap = ArrayListMultimap.create();

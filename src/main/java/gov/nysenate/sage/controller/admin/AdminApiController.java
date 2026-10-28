@@ -10,6 +10,7 @@ import gov.nysenate.sage.dao.stats.geocode.SqlGeocodeStatsDao;
 import gov.nysenate.sage.model.district.DistrictType;
 import gov.nysenate.sage.model.stats.DeploymentStats;
 import gov.nysenate.sage.provider.district.ShapefileService;
+import gov.nysenate.sage.service.ImmutableCache;
 import gov.nysenate.sage.util.auth.AdminUserAuth;
 import gov.nysenate.sage.util.auth.ApiUserAuth;
 import gov.nysenate.sage.util.controller.ConstantUtil;
@@ -36,8 +37,7 @@ public class AdminApiController extends BaseAdminApiController {
     @Autowired
     public AdminApiController(SqlApiUsageStatsDao sqlApiUsageStatsDao, SqlDeploymentStatsDao sqlDeploymentStatsDao,
                               ApiUserDao apiUserDao, SqlGeocodeStatsDao sqlGeocodeStatsDao,
-                              ShapefileService shapefileService,
-                              AdminUserAuth adminUserAuth, ApiUserAuth apiUserAuth) {
+                              ShapefileService shapefileService, AdminUserAuth adminUserAuth, ApiUserAuth apiUserAuth) {
         super(adminUserAuth,  apiUserAuth);
         this.sqlApiUsageStatsDao = sqlApiUsageStatsDao;
         this.sqlDeploymentStatsDao = sqlDeploymentStatsDao;
@@ -157,7 +157,7 @@ public class AdminApiController extends BaseAdminApiController {
             return invalidAuthResponse;
         }
         try {
-            shapefileService.cacheDistrictGeometryData();
+            ImmutableCache.refreshAll();
             return new GenericResponse(true,  SUCCESS.getCode() + ": " + SUCCESS.getDesc());
         } catch (Exception e) {
             return new ApiError(this.getClass(), INTERNAL_ERROR);

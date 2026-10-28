@@ -2,14 +2,11 @@ package gov.nysenate.sage.config;
 
 import org.apache.shiro.cache.MemoryConstrainedCacheManager;
 import org.apache.shiro.config.Ini;
-import org.apache.shiro.spring.LifecycleBeanPostProcessor;
 import org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor;
 import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
-import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 
 @Configuration
 public class SecurityConfig {
@@ -23,25 +20,6 @@ public class SecurityConfig {
         shiroFilter.setSecurityManager(securityManager());
         shiroFilter.setFilterChainDefinitionMap(shiroIniConfig().getSection("urls"));
         return shiroFilter;
-    }
-
-    /**
-     * Integrates Apache Shiro with Spring
-     * @return LifecycleBeanPostProcessor
-     */
-    @Bean
-    public LifecycleBeanPostProcessor lifecycleBeanPostProcessor() {
-        return new LifecycleBeanPostProcessor();
-    }
-
-    /**
-     * This is needed for Shiro annotations to work.
-     * @return DefaultAdvisorAutoProxyCreator
-     */
-    @Bean
-    @DependsOn("lifecycleBeanPostProcessor")
-    public DefaultAdvisorAutoProxyCreator defaultAdvisorAutoProxyCreator() {
-        return new DefaultAdvisorAutoProxyCreator();
     }
 
     @Bean

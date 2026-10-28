@@ -6,6 +6,15 @@
 
     <display-name>SAGE</display-name>
 
+    <!--
+        At startup the container parses every class in every listed jar, so only the jar that needs it is listed.
+        An unlisted jar's web fragment and container initializer are ignored. spring-web's initializer is what starts
+        the app, and a library added later that registers itself the same way has to be listed too.
+    -->
+    <absolute-ordering>
+        <name>spring_web</name>
+    </absolute-ordering>
+
     <context-param>
         <param-name>spring.profiles.active</param-name>
         <param-value>dev</param-value>

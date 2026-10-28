@@ -21,8 +21,6 @@ public enum SqlTable {
     ADMIN ("admin"),
     API_USER ("apiuser"),
     POST_OFFICE("post_office"),
-    PUBLIC_COUNTY ("county"),
-    SENATOR ("senator"),
     STREETFILE ("streetfile"),
     GEOCACHE ("geocache");
 
