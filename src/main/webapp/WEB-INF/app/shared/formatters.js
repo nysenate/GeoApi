@@ -47,22 +47,22 @@ export const POLY_COLORS = [
   '#09AA91', '#F56991', '#524656', '#547980',
 ]
 
-/** Formats an epoch-millis timestamp like the legacy medium date filter,
+/** Formats an ISO-8601 timestamp like the legacy medium date filter,
  *  e.g. "Sep 3, 2025, 12:05:08 PM". */
-export function formatDateMedium(millis) {
-  if (millis == null) {
+export function formatDateMedium(timestamp) {
+  if (timestamp == null) {
     return ''
   }
-  return new Date(millis).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'medium' })
+  return new Date(timestamp).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'medium' })
 }
 
-/** Formats an epoch-millis timestamp like the legacy short date filter,
+/** Formats an ISO-8601 timestamp like the legacy short date filter,
  *  e.g. "9/3/25, 12:05 PM". */
-export function formatDateShort(millis) {
-  if (millis == null) {
+export function formatDateShort(timestamp) {
+  if (timestamp == null) {
     return ''
   }
-  return new Date(millis).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })
+  return new Date(timestamp).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })
 }
 
 function notEmpty(input) {

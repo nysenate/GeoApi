@@ -9,7 +9,6 @@ import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
-import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectMapper;
 
 import java.sql.ResultSet;
@@ -19,8 +18,7 @@ import java.util.Map;
 
 @Repository
 public class MemberDao extends BaseDao {
-    private static final ObjectMapper mapper = FormatUtil.jackson2JsonMapper()
-            .enable(MapperFeature.DETECT_PARAMETER_NAMES).build();
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     public void refreshMemberData(DistrictType type, Map<Long, DistrictMember> newMemberMap) {
         synchronized (mapper) {

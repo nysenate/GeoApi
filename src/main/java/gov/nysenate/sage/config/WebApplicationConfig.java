@@ -2,7 +2,6 @@ package gov.nysenate.sage.config;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import gov.nysenate.sage.dao.logger.deployment.SqlDeploymentLogger;
-import gov.nysenate.sage.util.FormatUtil;
 import jakarta.annotation.PostConstruct;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -26,6 +25,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.FixedLocaleResolver;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.cfg.MapperBuilder;
+import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.dataformat.xml.XmlMapper;
 
 import java.time.LocalDateTime;
@@ -100,10 +100,9 @@ public class WebApplicationConfig implements WebMvcConfigurer {
 
     @Override
     public void configureMessageConverters(HttpMessageConverters.ServerBuilder builder) {
-        builder.withJsonConverter(new JacksonJsonHttpMessageConverter(
-                        configureApiMapper(FormatUtil.jackson2JsonMapper())))
+        builder.withJsonConverter(new JacksonJsonHttpMessageConverter(configureApiMapper(JsonMapper.builder())))
                 .withXmlConverter(new JacksonXmlHttpMessageConverter(configureApiMapper(
-                        FormatUtil.withJackson2Defaults(XmlMapper.builder(JacksonXmlHttpMessageConverter.defensiveXmlFactory())))));
+                        XmlMapper.builder(JacksonXmlHttpMessageConverter.defensiveXmlFactory()))));
     }
 
     /**

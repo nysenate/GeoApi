@@ -119,10 +119,13 @@ function Tooltip({ x, y, lines }) {
 /** Fills the hour slots between rangeFrom and rangeTo with the returned
  *  counts, defaulting the missing hours to zero (like the legacy chart). */
 function buildHourlySeries(rangeFrom, rangeTo, usageCounts) {
+  const end = Date.parse(rangeTo)
   const points = []
-  let next = rangeFrom
-  for (const { time, count } of usageCounts) {
-    while (next < time && next < rangeTo) {
+  let next = Date.parse(rangeFrom)
+  for (const usage of usageCounts) {
+    const time = Date.parse(usage.time)
+    const count = usage.count
+    while (next < time && next < end) {
       points.push({ time: next, count: 0 })
       next += HOUR_MILLIS
     }
