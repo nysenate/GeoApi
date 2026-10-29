@@ -1,5 +1,6 @@
 package gov.nysenate.sage.service.district;
 
+import gov.nysenate.NYSenateJSONClient;
 import gov.nysenate.sage.dao.model.member.MemberDao;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.district.*;
@@ -9,7 +10,6 @@ import gov.nysenate.sage.provider.geocode.GeocodeService;
 import gov.nysenate.sage.service.address.AddressService;
 import gov.nysenate.sage.util.AssemblyScraper;
 import gov.nysenate.sage.util.HouseScraper;
-import gov.nysenate.services.NYSenateJSONClient;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +59,7 @@ public class DistrictMemberProvider {
     public void updateDistrictMembers(DistrictType type) throws IOException {
         Map<Long, DistrictMember> newMemberMap = switch (type) {
             case SENATE -> new NYSenateJSONClient(nysenateDomain).getSenators().stream().collect(
-                    Collectors.toMap(senator -> Long.valueOf(senator.getDistrict().getNumber()),
+                    Collectors.toMap(senator -> Long.valueOf(senator.getDistrictNumber()),
                             senator -> new DistrictMember(senator, senator.getOffices()))
             );
             case ASSEMBLY -> AssemblyScraper.getAssemblyMembers();

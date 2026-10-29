@@ -1,10 +1,11 @@
 package gov.nysenate.sage.dao.provider.usps;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import gov.nysenate.sage.model.address.Address;
@@ -116,7 +117,7 @@ public class HttpUSPSAMSDao implements AddressDao {
             }
             return addressResults;
         }
-        catch (IOException | IllegalArgumentException ex) {
+        catch (IOException | JacksonException | IllegalArgumentException ex) {
             logger.error("Failed to get and parse response from batch validate request!", ex);
             return null;
         }
@@ -134,21 +135,21 @@ public class HttpUSPSAMSDao implements AddressDao {
         JsonNode addressNode = root.get("address");
         JsonNode footnotesNode = root.get("footnotes");
         List<String> messages = new ArrayList<>();
-        messages.add(String.format("Status: %s", root.get("status").get("shortDesc").asText()));
+        messages.add(String.format("Status: %s", root.get("status").get("shortDesc").asString()));
 
         for (int i = 0; i < footnotesNode.size(); i++) {
             JsonNode footnoteNode = footnotesNode.get(i);
-            String ftName = footnoteNode.get("shortDesc").asText();
-            String ftDesc = footnoteNode.get("longDesc").asText();
+            String ftName = footnoteNode.get("shortDesc").asString();
+            String ftDesc = footnoteNode.get("longDesc").asString();
             messages.add(String.format("%s - %s", ftName, ftDesc));
         }
 
-        String addr1 = initCapStreetLine(addressNode.get("addr1").asText());
-        String addr2 = initCapStreetLine(addressNode.get("addr2").asText());
-        String city = initCapStreetLine(addressNode.get("city").asText());
-        String state = addressNode.get("state").asText();
-        String zip5 = addressNode.get("zip5").asText();
-        String zip4 = addressNode.get("zip4").asText();
+        String addr1 = initCapStreetLine(addressNode.get("addr1").asString());
+        String addr2 = initCapStreetLine(addressNode.get("addr2").asString());
+        String city = initCapStreetLine(addressNode.get("city").asString());
+        String state = addressNode.get("state").asString();
+        String zip5 = addressNode.get("zip5").asString();
+        String zip4 = addressNode.get("zip4").asString();
         // Seems to stand for "non-deliverable".
         if ("ND".equals(zip4)) {
             zip4 = null;
@@ -176,7 +177,7 @@ public class HttpUSPSAMSDao implements AddressDao {
     private static String getStreetFromRecord(JsonNode record) {
         var streetPartList = new ArrayList<String>();
         for (String fieldName : streetParts) {
-            streetPartList.add(record.get(fieldName).asText());
+            streetPartList.add(record.get(fieldName).asString());
         }
         return String.join(" ", streetPartList).replaceAll(" +", " ").trim();
     }
@@ -226,7 +227,7 @@ public class HttpUSPSAMSDao implements AddressDao {
                 }
             }
         }
-        catch (IOException ex) {
+        catch (IOException | JacksonException ex) {
             logger.error("Failed to get and parse response from batch validate request!", ex);
         }
         return addressResults;
@@ -237,10 +238,10 @@ public class HttpUSPSAMSDao implements AddressDao {
             return null;
         }
         if (root.get("success").asBoolean(false)) {
-            String cityName = initCapStreetLine(root.get("cityName").asText());
+            String cityName = initCapStreetLine(root.get("cityName").asString());
             cityName = WordUtils.capitalizeFully(cityName.toLowerCase());
             return new CityStateResult(source(), cityName,
-                    root.get("stateAbbr").asText(), root.get("zipCode").asInt());
+                    root.get("stateAbbr").asString(), root.get("zipCode").asInt());
         }
         return new CityStateResult(source(), NO_ADDRESS_VALIDATE_RESULT);
 

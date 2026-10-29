@@ -1,12 +1,16 @@
 package gov.nysenate.sage.util;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.WordUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.core.json.JsonFactory;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.MapperBuilder;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -18,10 +22,26 @@ import java.util.function.Function;
 */
 public final class FormatUtil {
     private static final Logger logger = LoggerFactory.getLogger(FormatUtil.class);
-    private static final ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper mapper = jackson2JsonMapper().build();
     private static final int PRINT_BATCH_SIZE = 10000;
 
     private FormatUtil() {}
+
+    /**
+     * Jackson 3 changed defaults that are visible in serialized output: property order, date
+     * and enum formats, escaped forward slashes, and the names of properties whose getter
+     * starts with a single capital letter. Mappers configured here keep the Jackson 2 output
+     * that API clients and stored JSON were built against.
+     */
+    public static <M extends ObjectMapper, B extends MapperBuilder<M, B>> B withJackson2Defaults(B builder) {
+        return builder.configureForJackson2()
+                .disable(MapperFeature.FIX_FIELD_NAME_UPPER_CASE_PREFIX);
+    }
+
+    /** A JSON mapper builder with the Jackson 2 defaults of both the mapper and its factory. */
+    public static JsonMapper.Builder jackson2JsonMapper() {
+        return withJackson2Defaults(JsonMapper.builder(JsonFactory.builderWithJackson2Defaults().build()));
+    }
 
     public static String cleanString(String string) {
         if (string != null && !string.isEmpty()) {

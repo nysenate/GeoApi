@@ -1,6 +1,6 @@
 package gov.nysenate.sage.dao.model.job;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.job.JobProcess;
 import gov.nysenate.sage.model.job.JobProcessStatus;

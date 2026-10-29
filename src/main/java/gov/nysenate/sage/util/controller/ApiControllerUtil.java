@@ -1,7 +1,5 @@
 package gov.nysenate.sage.util.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import gov.nysenate.sage.client.response.base.BaseResponse;
 import gov.nysenate.sage.client.response.base.GenericResponse;
 import gov.nysenate.sage.model.address.Address;
@@ -10,6 +8,8 @@ import gov.nysenate.sage.model.result.ResultStatus;
 import gov.nysenate.sage.util.FormatUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -25,7 +25,8 @@ public final class ApiControllerUtil {
             new GenericResponse(false, "You must be logged in as an administrator to access this API."),
             successResponse = new BaseResponse(ResultStatus.SUCCESS);
     private static final Logger logger = LogManager.getLogger(ApiControllerUtil.class);
-    private static final ObjectMapper mapper = new ObjectMapper().registerModule(new ParameterNamesModule());
+    private static final ObjectMapper mapper = FormatUtil.jackson2JsonMapper()
+            .enable(MapperFeature.DETECT_PARAMETER_NAMES).build();
 
     private ApiControllerUtil() {}
 

@@ -1,7 +1,8 @@
 package gov.nysenate.sage.dao.provider;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.Accuracy;
@@ -92,7 +93,7 @@ public class HttpGoogleDao implements GeocoderDao {
                 return null;
             }
             JsonNode node = objectMapper.readTree(response);
-            if (node.has("status") && node.get("status").asText().equals("OK")) {
+            if (node.has("status") && node.get("status").asString().equals("OK")) {
                 JsonNode results = node.get("results");
                 if (!results.isArray() || results.isEmpty()) return null;
                 JsonNode result = results.get(0);
@@ -100,30 +101,30 @@ public class HttpGoogleDao implements GeocoderDao {
                 JsonNode addressComponents = result.get("address_components");
                 for (JsonNode component : addressComponents) {
                     for (JsonNode type : component.get("types")) {
-                        String typeText = type.asText();
+                        String typeText = type.asString();
                         switch (typeText) {
                             case "street_number":
-                                streetNumber = component.get("long_name").asText();
+                                streetNumber = component.get("long_name").asString();
                                 break;
                             case "route":
-                                street = component.get("long_name").asText();
+                                street = component.get("long_name").asString();
                                 break;
                             case "locality":
-                                city = component.get("long_name").asText();
+                                city = component.get("long_name").asString();
                                 break;
                             case "administrative_area_level_3":
                                 if (city.isEmpty()) {
-                                    city = component.get("short_name").asText();
+                                    city = component.get("short_name").asString();
                                 }
                                 break;
                             case "administrative_area_level_1":
-                                state = component.get("short_name").asText();
+                                state = component.get("short_name").asString();
                                 break;
                             case "postal_code":
-                                zip5 = component.get("short_name").asText();
+                                zip5 = component.get("short_name").asString();
                                 break;
                             case "postal_code_suffix":
-                                zip4 = component.get("short_name").asText();
+                                zip4 = component.get("short_name").asString();
                                 break;
                         }
                     }
@@ -131,18 +132,18 @@ public class HttpGoogleDao implements GeocoderDao {
                 var address = new Address(streetNumber + " " + street, "", city, state, zip5, zip4);
                 JsonNode geometry = result.get("geometry");
                 JsonNode location = geometry.get("location");
-                String lat = location.get("lat").asText("0");
-                String lon = location.get("lng").asText("0");
-                String locationType = geometry.get("location_type").asText();
+                String lat = location.get("lat").asString("0");
+                String lon = location.get("lng").asString("0");
+                String locationType = geometry.get("location_type").asString();
                 var geocode = new Geocode(
                         new Point(lat, lon), resolveAccuracy(locationType), geocoder(), false);
                 return new GeocodedAddress(address, geocode);
             }
-            else if (node.has("status") && node.get("status").asText().equals("OVER_QUERY_LIMIT")) {
+            else if (node.has("status") && node.get("status").asString().equals("OVER_QUERY_LIMIT")) {
                 logger.warn("Google geocoder is reporting that we have exceeded the query limit!");
             }
         }
-        catch (IOException ex) {
+        catch (IOException | JacksonException ex) {
             logger.error("Failed to retrieve data from google api!", ex);
         }
         catch (NullPointerException ex) {

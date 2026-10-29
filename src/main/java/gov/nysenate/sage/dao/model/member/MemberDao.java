@@ -1,7 +1,5 @@
 package gov.nysenate.sage.dao.model.member;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.dao.base.BaseDao;
 import gov.nysenate.sage.model.district.DistrictMember;
 import gov.nysenate.sage.model.district.DistrictType;
@@ -11,6 +9,8 @@ import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -19,7 +19,8 @@ import java.util.Map;
 
 @Repository
 public class MemberDao extends BaseDao {
-    private static final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
+    private static final ObjectMapper mapper = FormatUtil.jackson2JsonMapper()
+            .enable(MapperFeature.DETECT_PARAMETER_NAMES).build();
 
     public void refreshMemberData(DistrictType type, Map<Long, DistrictMember> newMemberMap) {
         synchronized (mapper) {
@@ -54,11 +55,7 @@ public class MemberDao extends BaseDao {
 
         @Override
         public void processRow(@NonNull ResultSet rs) throws SQLException {
-            try {
-                memberMap.put(rs.getLong("district"), mapper.readValue(rs.getString("data"), DistrictMember.class));
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
+            memberMap.put(rs.getLong("district"), mapper.readValue(rs.getString("data"), DistrictMember.class));
         }
     }
 }

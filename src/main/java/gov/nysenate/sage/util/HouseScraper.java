@@ -1,7 +1,7 @@
 package gov.nysenate.sage.util;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import gov.nysenate.sage.client.view.address.AddressView;
@@ -139,7 +139,7 @@ public class HouseScraper {
     /** Returns the trimmed text of {@code field} on {@code parent}, or {@code null} if absent/null. */
     private static String text(JsonNode parent, String field) {
         JsonNode node = parent.get(field);
-        return node == null || node.isNull() ? null : node.asText();
+        return node == null || node.isNull() ? null : node.asString();
     }
 
     private static Map<Long, String> getHouseMemberLinks() {

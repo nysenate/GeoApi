@@ -1,7 +1,7 @@
 package gov.nysenate.sage.model.district;
 
-import gov.nysenate.services.model.Office;
-import gov.nysenate.services.model.Senator;
+import gov.nysenate.Office;
+import gov.nysenate.Senator;
 
 import java.util.Collection;
 import java.util.List;

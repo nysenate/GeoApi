@@ -2,6 +2,7 @@ package gov.nysenate.sage.config;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import gov.nysenate.sage.dao.logger.deployment.SqlDeploymentLogger;
+import gov.nysenate.sage.util.FormatUtil;
 import jakarta.annotation.PostConstruct;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,8 +13,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter;
+import org.springframework.http.converter.HttpMessageConverters;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
+import org.springframework.http.converter.xml.JacksonXmlHttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
@@ -22,9 +24,11 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.FixedLocaleResolver;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.MapperBuilder;
+import tools.jackson.dataformat.xml.XmlMapper;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -94,19 +98,22 @@ public class WebApplicationConfig implements WebMvcConfigurer {
                 .favorParameter(true).ignoreAcceptHeader(true);
     }
 
+    @Override
+    public void configureMessageConverters(HttpMessageConverters.ServerBuilder builder) {
+        builder.withJsonConverter(new JacksonJsonHttpMessageConverter(
+                        configureApiMapper(FormatUtil.jackson2JsonMapper())))
+                .withXmlConverter(new JacksonXmlHttpMessageConverter(configureApiMapper(
+                        FormatUtil.withJackson2Defaults(XmlMapper.builder(JacksonXmlHttpMessageConverter.defensiveXmlFactory())))));
+    }
+
     /**
      * By default, a Map.Entry is serialized with the key becoming the field name, which is
      * invalid XML whenever that key is numeric. Requesting the OBJECT shape instead makes
      * Jackson fall back to MapEntryAsPOJOSerializer, which writes plain key and value fields.
      */
-    @Override
-    public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
-        for (var converter : converters) {
-            if (converter instanceof AbstractJackson2HttpMessageConverter jacksonConverter) {
-                jacksonConverter.getObjectMapper().configOverride(Map.Entry.class)
-                        .setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.OBJECT));
-            }
-        }
+    private static <M extends ObjectMapper, B extends MapperBuilder<M, B>> B configureApiMapper(B builder) {
+        return builder.withConfigOverride(Map.Entry.class,
+                        override -> override.setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.OBJECT)));
     }
 
     /**

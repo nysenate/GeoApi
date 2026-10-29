@@ -1,7 +1,7 @@
 package gov.nysenate.sage.client.response.base;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import tools.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import tools.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.google.common.collect.ImmutableList;
 
 import java.util.Collection;

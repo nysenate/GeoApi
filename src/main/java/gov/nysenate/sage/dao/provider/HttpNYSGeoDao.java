@@ -1,7 +1,8 @@
 package gov.nysenate.sage.dao.provider;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.GeocodedAddress;
 import gov.nysenate.sage.model.Accuracy;
@@ -89,11 +90,11 @@ public class HttpNYSGeoDao implements GeocoderDao {
 
             if (isRevGeocode && node.has("address") && node.get("address") != null) {
                 JsonNode addressNode = node.get("address");
-                addrType = addressNode.path("Addr_type").asText();
-                address = new Address(addressNode.path("Address").asText(),
-                        addressNode.path("City").asText(),
-                        addressNode.path("RegionAbbr").asText(),
-                        addressNode.path("Postal").asText());
+                addrType = addressNode.path("Addr_type").asString();
+                address = new Address(addressNode.path("Address").asString(),
+                        addressNode.path("City").asString(),
+                        addressNode.path("RegionAbbr").asString(),
+                        addressNode.path("Postal").asString());
             }
             else if (node.has("candidates") && node.get("candidates").get(0) != null) {
                 JsonNode bestNode = node.get("candidates").get(0);
@@ -107,24 +108,24 @@ public class HttpNYSGeoDao implements GeocoderDao {
                 }
                 node = bestNode;
                 JsonNode attributes = node.path("attributes");
-                addrType = attributes.path("Addr_type").asText();
-                address = new Address(attributes.path("StAddr").asText(),
-                        attributes.path("City").asText(),
-                        attributes.path("Region").asText(),
-                        attributes.path("Postal").asText());
+                addrType = attributes.path("Addr_type").asString();
+                address = new Address(attributes.path("StAddr").asString(),
+                        attributes.path("City").asString(),
+                        attributes.path("Region").asString(),
+                        attributes.path("Postal").asString());
             }
             else {
                 return null;
             }
 
             JsonNode location = node.get("location");
-            String lon = location.get("x").asText();
-            String lat = location.get("y").asText();
+            String lon = location.get("x").asString();
+            String lat = location.get("y").asString();
             var geocode = new Geocode(new Point(lat, lon),
                     resolveAccuracy(addrType), geocoder(), false);
             return new GeocodedAddress(address, geocode);
         }
-        catch (IOException ex) {
+        catch (IOException | JacksonException ex) {
             logger.error("Failed to retrieve data from NYS Geo api!", ex);
         }
         catch (NullPointerException ex) {

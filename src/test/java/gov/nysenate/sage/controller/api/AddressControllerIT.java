@@ -1,7 +1,7 @@
 package gov.nysenate.sage.controller.api;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import gov.nysenate.sage.WebAppBaseTests;
 import gov.nysenate.sage.annotation.SillyTest;
 import org.junit.Test;
@@ -38,13 +38,13 @@ public class AddressControllerIT extends WebAppBaseTests {
                 [{"addr1":"200 State St","postalCity":"Albany","state":"NY","zip5":"12210"},
                  {"addr1":"100 N Drive","postalCity":"Troy","state":"NY","zip5":"12180"}]""");
 
-        assertEquals("SUCCESS", root.get("status").asText());
+        assertEquals("SUCCESS", root.get("status").asString());
         assertEquals(2, root.get("total").asInt());
 
         JsonNode results = root.get("results");
-        assertTrue(results.get(0).get("address").get("addr1").asText().contains("State St"));
-        assertEquals("Albany", results.get(0).get("address").get("city").asText());
-        assertEquals("Troy", results.get(1).get("address").get("city").asText());
+        assertTrue(results.get(0).get("address").get("addr1").asString().contains("State St"));
+        assertEquals("Albany", results.get(0).get("address").get("city").asString());
+        assertEquals("Troy", results.get(1).get("address").get("city").asString());
     }
 
     @Test
@@ -53,7 +53,7 @@ public class AddressControllerIT extends WebAppBaseTests {
                 [{"addr1":"200 State St","postalCity":"Albany","state":"NY","zip5":"12210"}]""", "AIS");
 
         assertEquals(1, root.get("total").asInt());
-        assertEquals("AIS", root.get("results").get(0).get("sources").asText());
+        assertEquals("AIS", root.get("results").get(0).get("sources").asString());
     }
 
     @Test
@@ -68,7 +68,7 @@ public class AddressControllerIT extends WebAppBaseTests {
         JsonNode root = postBatch("""
                 {"addresses":[{"addr1":"200 State St","postalCity":"Albany","state":"NY","zip5":"12210"}]}""");
 
-        assertEquals("INVALID_BATCH_ADDRESSES", root.get("status").asText());
+        assertEquals("INVALID_BATCH_ADDRESSES", root.get("status").asString());
         assertEquals(55, root.get("statusCode").asInt());
     }
 
@@ -77,6 +77,6 @@ public class AddressControllerIT extends WebAppBaseTests {
     public void batchValidateRejectsAnEmptyArray() throws Exception {
         JsonNode root = postBatch("[]");
 
-        assertEquals("INVALID_BATCH_ADDRESSES", root.get("status").asText());
+        assertEquals("INVALID_BATCH_ADDRESSES", root.get("status").asString());
     }
 }

@@ -1,6 +1,6 @@
 package gov.nysenate.sage.model.job;
 
-import com.fasterxml.jackson.dataformat.xml.util.CaseInsensitiveNameSet;
+import tools.jackson.dataformat.xml.util.CaseInsensitiveNameSet;
 import gov.nysenate.sage.util.FormatUtil;
 
 import java.util.Set;
