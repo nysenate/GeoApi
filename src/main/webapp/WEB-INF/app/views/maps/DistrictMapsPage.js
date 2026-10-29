@@ -15,7 +15,7 @@ import DistrictMapSearch from 'app/views/maps/DistrictMapSearch'
 import MemberResults from 'app/views/maps/MemberResults'
 import IntersectResults from 'app/views/maps/IntersectResults'
 
-const ALL_DISTRICTS = { district: null, name: 'All districts' }
+const ALL_DISTRICTS = { id: null, name: 'All districts' }
 
 /**
  * District Maps page (/maps): browse the boundaries of any district type, view a
@@ -86,8 +86,8 @@ export default function DistrictMapsPage() {
     setOfficeMarkers([])
     try {
       // With no intersection requested (or "All districts" selected), just show the maps.
-      if (newIntersectType === 'none' || newIntersectType === type || district.district == null) {
-        const data = await fetchDistrictMaps(type, { district: district.district })
+      if (newIntersectType === 'none' || newIntersectType === type || district.id == null) {
+        const data = await fetchDistrictMaps(type, { id: district.id })
         if (data.statusCode !== 0) {
           closePane()
           setDisplay(null)
@@ -107,7 +107,7 @@ export default function DistrictMapsPage() {
           }
         }
       } else {
-        const data = await fetchIntersect(type, district.district, newIntersectType)
+        const data = await fetchIntersect(type, district.id, newIntersectType)
         if (data.statusCode != null && data.statusCode !== 0) {
           window.alert('You must select the type and district / member first. ' +
             'Same source and Intersection type is not supported')
@@ -158,7 +158,7 @@ export default function DistrictMapsPage() {
     setOfficeMarkers([ { office, focus: true } ])
   }
 
-  const showIntersectMenu = selectedDistrict != null && selectedDistrict.district != null
+  const showIntersectMenu = selectedDistrict != null && selectedDistrict.id != null
 
   return (
     <div id="contentwrapper">
@@ -217,7 +217,7 @@ function MapDisplay({ display, highlighted, onDistrictClick }) {
   if (display.kind === 'multi') {
     return display.districts.map((d, i) =>
       d.map &&
-        <DistrictPolygon key={`${d.type}-${d.district}`} geom={d.map} name={getMapName(d)}
+        <DistrictPolygon key={`${d.type}-${d.id}`} geom={d.map} name={getMapName(d)}
                          highlight={i === highlighted}
                          onClick={d.member != null ? () => onDistrictClick(i, d) : undefined}/>
     )
@@ -233,7 +233,7 @@ function MapDisplay({ display, highlighted, onDistrictClick }) {
       <React.Fragment>
         {fullOverlap == null && data.overlaps.map((overlap, i) =>
           overlap.map &&
-            <DistrictPolygon key={overlap.district} geom={overlap.map}
+            <DistrictPolygon key={overlap.id} geom={overlap.map}
                              name={`${overlap.name} Coverage`}
                              color={POLY_COLORS[i % POLY_COLORS.length]} fillOpacity={0.5}/>
         )}

@@ -31,7 +31,7 @@ export function cancelJobProcess(processId) {
 }
 
 /** The status endpoints return a JobStatusResponse:
- *  { success, statuses, processorRunning, message }. */
+ *  { success, statuses, processorRunning }. */
 export function fetchRunningJobs() {
   return fetchJson('/job/status/running')
 }

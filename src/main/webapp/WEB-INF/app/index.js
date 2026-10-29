@@ -36,7 +36,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/maps" element={<DistrictMapsPage />} />
       {/* Public embedded maps, forwarded here by EmbeddedMapController (no whitelist). */}
-      <Route path="/map/:districtType?/:districtCode?" element={<EmbeddedMapPage />} />
+      <Route path="/map/:districtType?/:districtId?" element={<EmbeddedMapPage />} />
       <Route path="/usps" element={<UspsLookupPage />} />
       <Route path="/street" element={<StreetFinderPage />} />
       <Route path="/revgeo" element={<RevGeoPage />} />

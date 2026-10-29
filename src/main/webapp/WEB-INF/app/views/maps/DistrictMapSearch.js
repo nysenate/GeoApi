@@ -101,7 +101,7 @@ export default function DistrictMapSearch({ districtTypes, type, onTypeChange, d
                 {showDropdown && districtList.length > 0 &&
                   <div className="typeahead-dropdown" onMouseDown={(e) => e.preventDefault()}>
                     {districtList.filter(matchesSearch).map((d, i) =>
-                      <div key={`${d.district ?? 'all'}-${d.name}`}
+                      <div key={d.id ?? 'all'}
                            className={`typeahead-item ${i === highlightIndex ? 'typeahead-item-default' : ''}`}
                            onClick={() => selectDistrict(d)}>{d.name}</div>
                     )}
@@ -118,7 +118,7 @@ export default function DistrictMapSearch({ districtTypes, type, onTypeChange, d
                           onChange={(e) => selectDistrict(memberList[Number(e.target.value)])}>
                     <option value="" disabled hidden></option>
                     {memberList.map((d, i) =>
-                      <option key={d.district} value={i}>{formatMemberName(d.member.info, true)}</option>
+                      <option key={d.id} value={i}>{formatMemberName(d.member.info, true)}</option>
                     )}
                   </select>
                 </div>

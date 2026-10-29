@@ -9,7 +9,7 @@ import { fetchDistrictMaps } from 'app/apis/mapApi'
 import { formatMemberName, getMapName } from 'app/shared/formatters'
 
 /**
- * Embedded map page (/map/{districtType}/{districtCode}), from maps.jsp: a map of
+ * Embedded map page (/map/{districtType}/{districtId}), from maps.jsp: a map of
  * one district, or all districts of a type, without any surrounding UI, for
  * iframing on external sites. In the all-districts view, clicking a senate
  * district opens an info panel with its senator and marks the senator's offices.
@@ -17,7 +17,7 @@ import { formatMemberName, getMapName } from 'app/shared/formatters'
  * instead. Served publicly (no whitelist) by EmbeddedMapController.
  */
 export default function EmbeddedMapPage() {
-  const { districtType, districtCode } = useParams()
+  const { districtType, districtId } = useParams()
   const [ searchParams ] = useSearchParams()
   const isDoh = districtType?.toLowerCase() === 'county' && searchParams.get('doh') === 'true'
   // Only districts of this type are clickable and show the info panel.
@@ -36,7 +36,7 @@ export default function EmbeddedMapPage() {
       return
     }
     setLoading(true)
-    fetchDistrictMaps(districtType, { district: districtCode })
+    fetchDistrictMaps(districtType, { id: districtId })
       .then((data) => {
         if (data.statusCode !== 0) {
           return
@@ -53,7 +53,7 @@ export default function EmbeddedMapPage() {
       // Embeds fail quietly (as the legacy page did); the empty base map remains.
       .catch(() => {})
       .finally(() => setLoading(false))
-  }, [ districtType, districtCode, clickableType ])
+  }, [ districtType, districtId, clickableType ])
 
   const onDistrictClick = (i, district) => {
     setSelected(i)
@@ -74,7 +74,7 @@ export default function EmbeddedMapPage() {
         <GoogleMap className="map-canvas">
           {display?.kind === 'multi' && display.districts.map((d, i) =>
             d.map &&
-              <DistrictPolygon key={`${d.type}-${d.district}`} geom={d.map} name={tooltipName(d)}
+              <DistrictPolygon key={`${d.type}-${d.id}`} geom={d.map} name={tooltipName(d)}
                                highlight={i === selected}
                                onClick={d.type?.toLowerCase() === clickableType
                                  ? () => onDistrictClick(i, d) : undefined}/>

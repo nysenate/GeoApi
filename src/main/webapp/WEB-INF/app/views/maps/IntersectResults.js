@@ -22,7 +22,7 @@ export default function IntersectResults({ data, onShowOverlap, onShowCoverage }
       {overlaps.map((overlap, i) => {
         const color = POLY_COLORS[i % POLY_COLORS.length]
         return (
-          <div key={overlap.district} className="info-container connected clickable slim2"
+          <div key={overlap.id} className="info-container connected clickable slim2"
                title="Show full district map"
                onClick={() => onShowOverlap(i, overlap)}>
             <table style={{ width: '100%' }}>

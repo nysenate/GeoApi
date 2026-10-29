@@ -19,7 +19,6 @@ const COLUMNS = [
   { key: 'assembly', label: 'Assembly' },
   { key: 'county', label: 'County' },
   { key: 'town', label: 'Town' },
-  { key: 'election', label: 'Election' },
 ]
 
 const PAGE_SIZES = [ 10, 20, 50, 100 ]

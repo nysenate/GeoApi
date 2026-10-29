@@ -18,9 +18,9 @@ public class EmbeddedMapController {
      * Usage:
      * (GET)    /map
      * (GET)    /map/{districtType}
-     * (GET)    /map/{districtType}/{districtCode}
+     * (GET)    /map/{districtType}/{districtId}
      */
-    @GetMapping({"/map", "/map/{districtType}", "/map/{districtType}/{districtCode}"})
+    @GetMapping({"/map", "/map/{districtType}", "/map/{districtType}/{districtId}"})
     public String map() {
         return "forward:/static/dist/index.html";
     }
