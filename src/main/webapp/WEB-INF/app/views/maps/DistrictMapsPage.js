@@ -49,6 +49,13 @@ export default function DistrictMapsPage() {
 
   useMapResize(mapRef, paneOpen)
 
+  // The overlays add their geometry in their own effects, which run before this
+  // one, so the blocker stays up through that work and the map's next frame.
+  React.useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setLoading(false))
+    return () => window.cancelAnimationFrame(frame)
+  }, [ display ])
+
   const closePane = () => {
     setPaneContent(null)
     setPaneOpen(false)
@@ -84,6 +91,8 @@ export default function DistrictMapsPage() {
     setLoading(true)
     setHighlighted(-1)
     setOfficeMarkers([])
+    // Once a new display is set, the effect that follows its drawing hides the blocker.
+    let drawing = false
     try {
       // With no intersection requested (or "All districts" selected), just show the maps.
       if (newIntersectType === 'none' || newIntersectType === type || district.id == null) {
@@ -95,10 +104,12 @@ export default function DistrictMapsPage() {
           return
         }
         if (data.districts) {
+          drawing = true
           setDisplay({ kind: 'multi', districts: data.districts })
           closePane()
           frameMultiView(data.districts)
         } else if (data.map) {
+          drawing = true
           setDisplay({ kind: 'single', district: data })
           if (data.member != null) {
             showMember(data)
@@ -113,16 +124,20 @@ export default function DistrictMapsPage() {
             'Same source and Intersection type is not supported')
           return
         }
+        drawing = true
         setDisplay({ kind: 'intersect', data, fullOverlap: null })
         setPaneContent({ kind: 'intersect', data })
         setPaneOpen(true)
       }
     } catch (e) {
+      drawing = false
       closePane()
       setDisplay(null)
       window.alert('Failed to retrieve district maps.')
     } finally {
-      setLoading(false)
+      if (!drawing) {
+        setLoading(false)
+      }
     }
   }
 
