@@ -11,6 +11,9 @@ import gov.nysenate.sage.service.ImmutableCache;
 import gov.nysenate.sage.service.district.DistrictIdCache;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -37,6 +40,16 @@ public class ShapefileService {
         this.typeInfoCache = new ImmutableCache<>(() -> this.typeDao.getTableInfos().stream()
                 .collect(Collectors.toMap(DistrictTableInfo::type, Function.identity())));
         this.mapCache = new DistrictIdCache<>(this::getGeometryMap);
+    }
+
+    /**
+     * Loading the geometry of every district type takes long enough to stall whichever request
+     * reaches the cache first, so it is loaded in the background as soon as the app starts.
+     */
+    @Async
+    @EventListener(ContextRefreshedEvent.class)
+    void warmMapCache() {
+        mapCache.refresh();
     }
 
     private Map<DistrictId, DistrictMap> getGeometryMap(DistrictType type) {
