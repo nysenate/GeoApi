@@ -9,6 +9,9 @@ module.exports = {
   corePlugins: {
     preflight: false,
   },
+  // Legacy class names that collide with Tailwind utilities. main.css's
+  // `.highlight-section.fixed` is a fixed-width centered panel, not fixed positioning.
+  blocklist: [ 'fixed' ],
   theme: {
     extend: {
       fontFamily: {

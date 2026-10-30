@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link, Navigate, useParams } from 'react-router-dom'
 import Header from 'app/shared/Header'
 import AdminApiUsage from 'app/views/admin/AdminApiUsage'
 import AdminApiUserStats from 'app/views/admin/AdminApiUserStats'
@@ -16,13 +17,15 @@ const TABS = [
 
 /**
  * Admin console (replaces adminmain.jsp): api usage stats, geocoder usage,
- * user management, and deployment history. The stats tabs share the date
- * range picked on the Api Usage tab (like the legacy DashboardController
- * scope); each tab fetches its data when opened or when the range changes.
- * Logout is a full page load so /globals reflects the ended session.
+ * user management, and deployment history. Each tab has its own URL,
+ * /admin/<tab id>; any other /admin URL redirects to the first tab. The stats
+ * tabs share the date range picked on the Api Usage tab (like the legacy
+ * DashboardController scope); each tab fetches its data when opened or when
+ * the range changes. Logout is a full page load so /globals reflects the
+ * ended session.
  */
 export default function AdminMain() {
-  const [ activeTab, setActiveTab ] = React.useState('api-usage')
+  const activeTab = useParams()['*']
   // The dates in the picker inputs (yyyy-MM-dd), defaulting to the past week.
   const [ dateRange, setDateRange ] = React.useState(() => ({
     from: toIsoDate(daysAgo(7)),
@@ -42,15 +45,18 @@ export default function AdminMain() {
     onUpdate: () => setQueryRange(toQueryRange(dateRange)),
   }
 
+  if (!TABS.some((tab) => tab.id === activeTab)) {
+    return <Navigate to={`/admin/${TABS[0].id}`} replace />
+  }
+
   return (
     <div id="contentwrapper" style={{ height: 'auto', paddingBottom: '20px' }}>
       <Header>
         {TABS.map((tab) => (
           <li key={tab.id}>
-            <a className={activeTab === tab.id ? 'active' : undefined}
-               onClick={() => setActiveTab(tab.id)}>
+            <Link className={activeTab === tab.id ? 'active' : undefined} to={`/admin/${tab.id}`}>
               <div className={tab.icon}></div>&nbsp;{tab.label}
-            </a>
+            </Link>
           </li>
         ))}
         <li><a href="/admindocs/html/index.html" target="_blank" rel="noreferrer">Admin Docs</a></li>

@@ -6,6 +6,7 @@ import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -25,7 +26,10 @@ public class ReactAppCtrl {
         this.env = env;
     }
 
-    @RequestMapping({"/", "/maps", "/usps", "/street", "/revgeo", "/admin", "/admin/home", "/job", "/job/home"})
+    @GetMapping({"/", "/maps", "/usps", "/street", "/revgeo",
+            "/admin", "/admin/login", "/admin/api-usage", "/admin/api-user-stats", "/admin/geocode-usage",
+            "/admin/user-console", "/admin/deployment-stats",
+            "/job", "/job/home"})
     public String home(HttpServletRequest request, HttpServletResponse response) {
         // Senate staff and API users are routed to the internal dev interface;
         // everyone else gets the 404 page.

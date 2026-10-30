@@ -4,10 +4,11 @@ import { adminLogin, isSuccess } from 'app/apis/adminApi'
 
 /**
  * Admin login page (replaces adminlogin.jsp). A successful login is followed
- * by a full page load of /admin/home so /globals reflects the new admin
- * session; failures show the error message under the form.
+ * by a full page load of redirectTo, the admin URL the user was sent here
+ * from, so /globals reflects the new admin session; failures show the error
+ * message under the form.
  */
-export default function AdminLogin() {
+export default function AdminLogin({ redirectTo = '/admin' }) {
   const [ username, setUsername ] = React.useState('')
   const [ password, setPassword ] = React.useState('')
   const [ errorMessage, setErrorMessage ] = React.useState('')
@@ -17,7 +18,7 @@ export default function AdminLogin() {
     try {
       const response = await adminLogin(username, password)
       if (isSuccess(response)) {
-        window.location.assign('/admin/home')
+        window.location.assign(redirectTo)
       } else {
         setErrorMessage(response.message)
       }

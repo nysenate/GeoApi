@@ -25,7 +25,7 @@ import static gov.nysenate.sage.util.controller.ConstantUtil.ADMIN_USERNAME_ATTR
 @RequestMapping(value = ADMIN_REST_PATH)
 public class AdminController {
     private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
-    private static final String ADMIN_MAIN_PATH = "/admin";
+    private static final String ADMIN_LOGIN_PAGE_PATH = "/admin/login";
     private final SqlAdminUserDao sqlAdminUserDao;
 
     @Autowired
@@ -74,6 +74,6 @@ public class AdminController {
         HttpSession session = request.getSession();
         session.setAttribute(ADMIN_USERNAME_ATTR, null);
         SecurityUtils.getSubject().logout();
-        response.sendRedirect(request.getContextPath() + ADMIN_MAIN_PATH);
+        response.sendRedirect(request.getContextPath() + ADMIN_LOGIN_PAGE_PATH);
     }
 }
