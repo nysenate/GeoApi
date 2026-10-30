@@ -4,10 +4,11 @@ import { jobLogin } from 'app/apis/jobApi'
 
 /**
  * Batch services login page (replaces joblogin.jsp). A successful login is
- * followed by a full page load of /job/home so /globals reflects the new
- * job user session; failures show the error message under the form.
+ * followed by a full page load of redirectTo, the job URL the user was sent
+ * here from, so /globals reflects the new job user session; failures show the
+ * error message under the form.
  */
-export default function JobLogin() {
+export default function JobLogin({ redirectTo = '/job/new' }) {
   const [ email, setEmail ] = React.useState('')
   const [ password, setPassword ] = React.useState('')
   const [ errorMessage, setErrorMessage ] = React.useState('')
@@ -17,7 +18,7 @@ export default function JobLogin() {
     try {
       const response = await jobLogin(email, password)
       if (response.success) {
-        window.location.assign('/job/home')
+        window.location.assign(redirectTo)
       } else {
         setErrorMessage(response.message)
       }

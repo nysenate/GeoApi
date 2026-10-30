@@ -69,7 +69,7 @@ public class JobController {
     @GetMapping(value = "/logout")
     public void jobLogout(HttpServletRequest request, HttpServletResponse response) throws IOException {
         SecurityUtils.getSubject().logout();
-        response.sendRedirect(request.getContextPath() + "/job");
+        response.sendRedirect(request.getContextPath() + "/job/login");
     }
 
 
@@ -97,6 +97,8 @@ public class JobController {
             logger.warn("Job login blocked for {}: {}", email, ex.getMessage());
             return new JobActionResponse(false, "Login is not permitted from your location.");
         }
+        // A session id issued before login must not stay valid after it (session fixation).
+        request.changeSessionId();
         setJobUser(request, jobUser);
         getJobRequest(request).clear();
         return new JobActionResponse(true, null);

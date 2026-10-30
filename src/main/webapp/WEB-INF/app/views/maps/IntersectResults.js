@@ -1,5 +1,6 @@
 import React from 'react'
 import { formatMemberName, POLY_COLORS, showsCodeLine } from 'app/shared/formatters'
+import safeHref from 'app/shared/safeHref'
 
 /**
  * Results panel content listing the districts that intersect the selected source
@@ -36,7 +37,7 @@ export default function IntersectResults({ data, onShowOverlap, onShowCoverage }
                     <div className="senator" style={{ height: '56px' }}>
                       {overlap.member.info?.imageUrl &&
                         <div className="senator-pic-holder" style={{ width: '50px', height: '50px' }}>
-                          <a target="_blank" rel="noreferrer" href={overlap.member.info?.url}
+                          <a target="_blank" rel="noreferrer" href={safeHref(overlap.member.info?.url)}
                              onClick={(e) => e.stopPropagation()}>
                             <img src={overlap.member.info.imageUrl}
                                  alt={formatMemberName(overlap.member.info)} className="senator-pic"/>
@@ -45,7 +46,7 @@ export default function IntersectResults({ data, onShowOverlap, onShowCoverage }
                       }
                       <div style={{ lineHeight: '25px' }}>
                         <p className="senator member-name" style={{ fontSize: '16px' }}>
-                          <a target="_blank" rel="noreferrer" href={overlap.member.info?.url}
+                          <a target="_blank" rel="noreferrer" href={safeHref(overlap.member.info?.url)}
                              onClick={(e) => e.stopPropagation()}>{formatMemberName(overlap.member.info)}</a>
                         </p>
                         <p style={{ fontSize: '16px', color: color }} className="senate district">

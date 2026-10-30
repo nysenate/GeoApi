@@ -1,5 +1,6 @@
 import React from 'react'
 import { formatMemberName } from 'app/shared/formatters'
+import safeHref from 'app/shared/safeHref'
 
 /**
  * Results panel content showing the member (senator etc.) for a selected
@@ -20,7 +21,7 @@ export default function MemberResults({ member, districtName, onLocateOffice }) 
         }
         <div style={{ marginTop: '10px' }}>
           <p className="senator member-name">
-            <a target="_blank" rel="noreferrer" href={info?.url}>{formatMemberName(info)}</a>
+            <a target="_blank" rel="noreferrer" href={safeHref(info?.url)}>{formatMemberName(info)}</a>
           </p>
           <p className="senate district">{districtName}</p><br/>
         </div>

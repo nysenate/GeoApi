@@ -49,8 +49,9 @@ function AppRoutes() {
 
 /**
  * Prevents the rendering of our application until globals have been loaded.
- * Whitelisting is enforced server-side: ReactAppCtrl only serves the app to
- * users with the ui:view permission or an IP inside the whitelist.
+ * The bundle itself is public, since the embedded maps load it, so access
+ * control rests on the endpoints the pages call rather than on which pages
+ * ReactAppCtrl serves.
  */
 function RequireGlobals({ children }) {
   const globals = useGlobals()
@@ -64,5 +65,14 @@ function RequireGlobals({ children }) {
     </React.Fragment>
   )
 }
+
+// The back/forward cache restores a page exactly as it was left, so after a
+// logout the back button would show the admin or job console with its data.
+// Reloading instead re-checks the session through /globals.
+window.addEventListener('pageshow', (event) => {
+  if (event.persisted) {
+    window.location.reload()
+  }
+})
 
 createRoot(document.getElementById('app')).render(<App />)

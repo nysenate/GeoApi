@@ -52,6 +52,10 @@ public class WebInitializer implements WebApplicationInitializer
         dispatcher.addMapping("/");
         dispatcher.setAsyncSupported(true);
 
+        /** The admin and job consoles authenticate by session cookie alone, with no CSRF token, so the
+         * cookie must not ride along on cross-site POSTs. Lax still sends it on top-level navigation. */
+        servletContext.getSessionCookieConfig().setAttribute("SameSite", "Lax");
+
         /** Resolve the real client IP from X-Forwarded-For, but only when the request arrives
          * via a trusted proxy. This must run first so every downstream filter, the Shiro realms,
          * and the controllers see the corrected request.getRemoteAddr(). Without this, a client

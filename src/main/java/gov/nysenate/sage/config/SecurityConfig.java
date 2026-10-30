@@ -18,6 +18,9 @@ public class SecurityConfig {
     public ShiroFilterFactoryBean shiroFilter() {
         ShiroFilterFactoryBean shiroFilter = new ShiroFilterFactoryBean();
         shiroFilter.setSecurityManager(securityManager());
+        // Where the roles filter sends an unauthenticated request. It guards only the batch job
+        // endpoints, and the React app at /job/login shows their login form.
+        shiroFilter.setLoginUrl("/job/login");
         shiroFilter.setFilterChainDefinitionMap(shiroIniConfig().getSection("urls"));
         return shiroFilter;
     }

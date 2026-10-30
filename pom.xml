@@ -502,8 +502,9 @@
                 <artifactId>maven-war-plugin</artifactId>
                 <version>3.5.1</version>
                 <configuration>
-                    <!-- The node dependencies are only needed to build the React bundle in static/dist. -->
-                    <packagingExcludes>node_modules/**</packagingExcludes>
+                    <!-- The React sources, their build config, and the node dependencies are only
+                         needed to build the bundle in static/dist. -->
+                    <packagingExcludes>node_modules/**,WEB-INF/app/**,.nvmrc,package.json,package-lock.json,postcss.config.js,tailwind.config.js,webpack.config.js</packagingExcludes>
                 </configuration>
             </plugin>
             <!-- Builds the React frontend. `npm ci` triggers a production webpack build

@@ -48,4 +48,13 @@ public interface JobProcessDao {
      * @return List<JobProcessStatus>
      */
     List<JobProcessStatus> getJobStatusesByConditions(List<JobProcessStatus.Condition> conditions, JobUser jobUser, Timestamp start, Timestamp end);
+
+    /**
+     * Retrieves the COMPLETED processes that finished at or after completedAfter, most recently
+     * completed first. This filters on when a job finished rather than when it was requested, so
+     * a job requested long ago that just finished is included.
+     * @param jobUser JobUser to retrieve results for. If null or admin user, all results returned.
+     * @return List<JobProcessStatus>
+     */
+    List<JobProcessStatus> getJobStatusesCompletedAfter(Timestamp completedAfter, JobUser jobUser);
 }

@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static gov.nysenate.sage.util.controller.JobControllerUtil.getJobUser;
@@ -96,9 +97,8 @@ public class JobStatusController {
      */
     @GetMapping(value = "/recentlyCompleted")
     public Object jobRecentlyCompleted(HttpServletRequest request) {
-        Timestamp end = Timestamp.valueOf(LocalDateTime.now());
-        Timestamp start = Timestamp.valueOf(LocalDateTime.now().minusDays(1));
-        return getResponse(request, start, end, JobProcessStatus.Condition.COMPLETED);
+        Timestamp completedAfter = Timestamp.valueOf(LocalDateTime.now().minusDays(1));
+        return getResponse(request, jobUser -> sqlJobProcessDao.getJobStatusesCompletedAfter(completedAfter, jobUser));
     }
 
     /**
@@ -126,11 +126,11 @@ public class JobStatusController {
     }
 
     private Object getResponse(HttpServletRequest request, Timestamp start, Timestamp end, JobProcessStatus.Condition... conditions) {
-        return getResponse(() -> {
-            JobUser jobUser = getJobUser(request);
-            List<JobProcessStatus.Condition> conditionsList = Arrays.stream(conditions).filter(Objects::nonNull).toList();
-            List<JobProcessStatus> processStatuses = sqlJobProcessDao.getJobStatusesByConditions(conditionsList, jobUser, start, end);
-            return new JobStatusResponse(processStatuses, jobBatchProcessor.isRunning());
-        });
+        List<JobProcessStatus.Condition> conditionsList = Arrays.stream(conditions).filter(Objects::nonNull).toList();
+        return getResponse(request, jobUser -> sqlJobProcessDao.getJobStatusesByConditions(conditionsList, jobUser, start, end));
+    }
+
+    private Object getResponse(HttpServletRequest request, Function<JobUser, List<JobProcessStatus>> statusGetter) {
+        return getResponse(() -> new JobStatusResponse(statusGetter.apply(getJobUser(request)), jobBatchProcessor.isRunning()));
     }
 }

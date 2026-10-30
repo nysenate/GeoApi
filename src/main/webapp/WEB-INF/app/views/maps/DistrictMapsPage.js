@@ -187,7 +187,7 @@ export default function DistrictMapsPage() {
             <MapMarker key={office.name} lat={office.point.lat} lon={office.point.lon}
                        title={`${office.name} - ${office.address?.addr1}`}
                        center={focus}
-                       infoContent={focus ? undefined : officeInfoContent(office)}/>
+                       infoContent={focus ? undefined : () => officeInfoContent(office)}/>
           )}
         </GoogleMap>
         <DistrictMapSearch districtTypes={districtTypes} type={type} onTypeChange={onTypeChange}

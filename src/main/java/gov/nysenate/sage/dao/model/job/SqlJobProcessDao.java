@@ -117,20 +117,38 @@ public class SqlJobProcessDao extends BaseDao implements JobProcessDao {
                 .addValue("startTime", (start == null) ? new Timestamp(0) : start)
                 .addValue("endTime", (end == null) ? new Timestamp(System.currentTimeMillis()) : end);
 
-        String sql = JobProcessQuery.GET_JOB_PROCESS_STATUS_BY_CONDITIONS.getSql(getJobSchema());
-        // Admins see every user's jobs, everyone else only sees their own.
-        if (jobUser != null && !jobUser.isAdmin()) {
-            sql += "\nAND userId = :userId";
-            params.addValue("userId", jobUser.getId());
-        }
-        sql += "\nORDER BY processId DESC";
-
+        String sql = JobProcessQuery.GET_JOB_PROCESS_STATUS_BY_CONDITIONS.getSql(getJobSchema())
+                + userFilter(jobUser, params) + "\nORDER BY processId DESC";
         try {
             return namedJdbcTemplate.query(sql, params, new JobStatusHandler());
         } catch (Exception ex) {
             logger.error("Failed to retrieve statuses by conditions!", ex);
         }
         return null;
+    }
+
+    /** {@inheritDoc} */
+    public List<JobProcessStatus> getJobStatusesCompletedAfter(Timestamp completedAfter, JobUser jobUser) {
+        var params = new MapSqlParameterSource()
+                .addValue("condition", Condition.COMPLETED.name())
+                .addValue("completedAfter", completedAfter);
+        String sql = JobProcessQuery.GET_JOB_PROCESS_STATUS_COMPLETED_AFTER.getSql(getJobSchema())
+                + userFilter(jobUser, params) + "\nORDER BY status.completeTime DESC";
+        try {
+            return namedJdbcTemplate.query(sql, params, new JobStatusHandler());
+        } catch (Exception ex) {
+            logger.error("Failed to retrieve recently completed statuses!", ex);
+        }
+        return null;
+    }
+
+    /** Admins see every user's jobs, everyone else only sees their own. */
+    private static String userFilter(JobUser jobUser, MapSqlParameterSource params) {
+        if (jobUser == null || jobUser.isAdmin()) {
+            return "";
+        }
+        params.addValue("userId", jobUser.getId());
+        return "\nAND userId = :userId";
     }
 
     private class JobStatusHandler implements RowMapper<JobProcessStatus> {

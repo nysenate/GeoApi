@@ -56,6 +56,8 @@ public class AdminController {
             logger.warn("Admin login blocked for {}: {}", username, ex.getMessage());
             return new GenericResponse(false, "Login is not permitted from your location.");
         }
+        // A session id issued before login must not stay valid after it (session fixation).
+        request.changeSessionId();
         setAuthenticated(request, true, username);
         return new GenericResponse(true, null);
     }

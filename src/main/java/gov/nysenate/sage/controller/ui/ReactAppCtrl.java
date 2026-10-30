@@ -29,7 +29,7 @@ public class ReactAppCtrl {
     @GetMapping({"/", "/maps", "/usps", "/street", "/revgeo",
             "/admin", "/admin/login", "/admin/api-usage", "/admin/api-user-stats", "/admin/geocode-usage",
             "/admin/user-console", "/admin/deployment-stats",
-            "/job", "/job/home"})
+            "/job", "/job/login", "/job/new", "/job/current", "/job/history"})
     public String home(HttpServletRequest request, HttpServletResponse response) {
         // Senate staff and API users are routed to the internal dev interface;
         // everyone else gets the 404 page.

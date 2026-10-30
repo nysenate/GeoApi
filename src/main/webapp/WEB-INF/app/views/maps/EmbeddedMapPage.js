@@ -7,6 +7,7 @@ import officeInfoContent from 'app/shared/maps/officeInfoContent'
 import UiBlocker from 'app/shared/UiBlocker'
 import { fetchDistrictMaps } from 'app/apis/mapApi'
 import { formatMemberName, getMapName } from 'app/shared/formatters'
+import safeHref from 'app/shared/safeHref'
 
 /**
  * Embedded map page (/map/{districtType}/{districtId}), from maps.jsp: a map of
@@ -86,7 +87,7 @@ export default function EmbeddedMapPage() {
           {officeMarkers.map((office) =>
             <MapMarker key={office.name} lat={office.point.lat} lon={office.point.lon}
                        title={`${office.name} - ${office.address?.addr1}`}
-                       infoContent={officeInfoContent(office)}/>
+                       infoContent={() => officeInfoContent(office)}/>
           )}
         </GoogleMap>
       </div>
@@ -131,14 +132,14 @@ function InfoPanel({ info, isDoh }) {
             <React.Fragment>
               {member?.imageUrl &&
                 <div className="mini-senator-pic-holder">
-                  <a href={member.url} target="_top">
+                  <a href={safeHref(member.url)} target="_top">
                     <img src={member.imageUrl} alt={formatMemberName(member)} className="senator-pic"/>
                   </a>
                 </div>
               }
               <div>
                 <p className="senator member-name">
-                  <a target="_blank" rel="noreferrer" href={member?.url}>{formatMemberName(member)}</a>
+                  <a target="_blank" rel="noreferrer" href={safeHref(member?.url)}>{formatMemberName(member)}</a>
                 </p>
                 <p className="senate district">Senate District {info.district}</p>
               </div>
@@ -147,7 +148,7 @@ function InfoPanel({ info, isDoh }) {
           {isDoh &&
             <React.Fragment>
               <p className="senator district">
-                <a target="_blank" rel="noreferrer" href={info.link}>Department of Health</a>
+                <a target="_blank" rel="noreferrer" href={safeHref(info.link)}>Department of Health</a>
               </p>
               <p className="senate member-name">{info.name}</p>
             </React.Fragment>

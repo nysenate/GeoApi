@@ -75,6 +75,8 @@ export function deleteJobUser(id) {
   return postAction('/deleteJobUser', { id })
 }
 
+// The params go in the form body, not the query string, so a new job user's
+// password doesn't end up in access logs.
 function postAction(path, params) {
-  return fetchJson(`${BASE_API}${path}?${new URLSearchParams(params)}`, { method: 'POST' })
+  return fetchJson(`${BASE_API}${path}`, { method: 'POST', body: new URLSearchParams(params) })
 }

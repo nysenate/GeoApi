@@ -1,5 +1,6 @@
 import React from 'react'
 import { formatAddressLines, formatMemberName, showsCodeLine } from 'app/shared/formatters'
+import safeHref from 'app/shared/safeHref'
 
 const MATCH_LEVEL_TEXT = {
   HOUSE: 'Showing matching results for address',
@@ -132,7 +133,7 @@ function SenatorSection({ senate, onShowDistrict, onLocateOffice }) {
            onClick={() => senate.map && onShowDistrict('senate')}>
         {info?.imageUrl &&
           <div className="senator-pic-holder">
-            <a target="_blank" rel="noreferrer" href={info.url} onClick={(e) => e.stopPropagation()}>
+            <a target="_blank" rel="noreferrer" href={safeHref(info.url)} onClick={(e) => e.stopPropagation()}>
               <img src={info.imageUrl} alt={formatMemberName(info)} className="senator-pic"/>
             </a>
           </div>
@@ -143,7 +144,7 @@ function SenatorSection({ senate, onShowDistrict, onLocateOffice }) {
             <tr>
               <td>
                 <p className="senator member-name">
-                  <a target="_blank" rel="noreferrer" href={info?.url}
+                  <a target="_blank" rel="noreferrer" href={safeHref(info?.url)}
                      onClick={(e) => e.stopPropagation()}>{formatMemberName(info)}</a>
                 </p>
                 <p className="senate district">Senate District {senate.district}</p>
@@ -236,7 +237,7 @@ function DistrictList({ districts, onShowDistrict }) {
               <td>
                 {district.member &&
                   <p className="member-name">
-                    <a target="_blank" rel="noreferrer" href={district.member.info?.url}
+                    <a target="_blank" rel="noreferrer" href={safeHref(district.member.info?.url)}
                        onClick={(e) => e.stopPropagation()}>{formatMemberName(district.member.info)}</a>
                   </p>
                 }

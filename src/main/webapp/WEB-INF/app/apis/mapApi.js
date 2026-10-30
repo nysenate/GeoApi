@@ -19,7 +19,7 @@ export function fetchDistrictMaps(type, { id, meta } = {}) {
   } else if (id) {
     params.set('district', id)
   }
-  return fetchJson(`${BASE_API}/map/${type}?${params}`)
+  return fetchJson(`${BASE_API}/map/${encodeURIComponent(type)}?${params}`)
 }
 
 /** Finds the districts of intersectType that overlap the source district with the given id. */
