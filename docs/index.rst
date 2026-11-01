@@ -7,7 +7,7 @@ SAGE API v2 Reference
 =================================
 
 The SAGE API exposes methods for geocoding, address correction, and district assignment given addresses or geo-coordinates
-as input. The API supports ``JSON``, ``JSON-P``, and ``XML`` output formats.
+as input. The API supports ``JSON`` and ``XML`` output formats.
 
 SAGE is also able to handle BluebirdCRM_ district assignment requests.
 
@@ -23,14 +23,12 @@ within the NY Senate's network. The key is supplied using the query parameter ``
 
     /api/v2/<group>/<method>?<params..>&key=YOUR KEY HERE
 
-The default output format is ``JSON``. To change the output to ``XML`` or ``JSON-P`` simply set the ``format`` query
-parameter to ``xml`` or ``jsonp``. For example to set to xml::
+The map_ group is public and needs no key.
 
-    /api/v2/geo/geocode?addr=200 State St, Albany NY&format=xml
+The default output format is ``JSON``. To change the output to ``XML`` set the ``format`` query
+parameter to ``xml``::
 
-To output JSON-P a callback must also be specified.::
-
-    /api/v2/geo/geocode?addr=200 State St, Albany NY&format=jsonp&callback=methodName
+    /api/v2/district/assign?addr=200 State St, Albany NY&format=xml
 
 Groups
 ~~~~~~
@@ -68,6 +66,8 @@ To supply a single address string use the parameter ``addr``::
 To supply the individual components use the following parameters: ``addr1``, ``addr2``, ``city``, ``state``, ``zip5``, ``zip4``. The above query would be written as::
 
     /api/v2/<group>/<method>?addr1=200 State St&city=Albany&state=NY&zip5=12210
+
+``geo/geocode`` accepts only the individual components, not ``addr``.
 
 Geo-coordinate pairs can be supplied to the appropriate method using ``lat`` and ``lon``::
 
@@ -129,7 +129,7 @@ A failed validation response::
 
     {
       "status" : "NO_ADDRESS_VALIDATE_RESULT",
-      "source" : "AMS",
+      "sources" : "AMS",
       "address" : null,
       "validated" : false,
       "statusCode" : 73,
@@ -149,10 +149,10 @@ The city/state response::
 
     {
       "status" : "SUCCESS",
-      "source" : "AMS",
+      "sources" : "AMS",
       "city" : "ALBANY",
       "state" : "NY",
-      "zip5" : "12210",
+      "zip5" : 12210,
       "statusCode" : 0,
       "description" : "Success."
     }
@@ -173,6 +173,14 @@ To force the request to use a certain provider supply the query parameter ``prov
 
     /api/v2/address/<method>?<params..>&provider=AMS
     /api/v2/address/<method>?<params..>&provider=AIS
+
+Multiple addresses can be validated in one request by POSTing them to::
+
+    /api/v2/address/validate/batch
+
+The payload is a JSON array of addresses in the same format as :ref:`batch-geocode`. ``provider`` and ``punct``
+apply as above. The response holds one ``validate`` response per address under ``results``, in payload order,
+along with a ``total``.
 
 Geo
 ---
@@ -218,14 +226,15 @@ Geocode
 
 The usage of ``geocode`` with an address input::
 
-    /api/v2/geo/geocode?addr=200 State St, Albany NY 12210
     /api/v2/geo/geocode?addr1=200 State St&city=Albany&state=NY&zip5=12210
+
+The address is corrected through USPS before it is geocoded.
 
 The geocode response::
 
     {
         status: "SUCCESS",
-        source: "GEOCACHE",
+        sources: "GEOCACHE",
         address: {
             addr1: "200 State Street",
             addr2: "",
@@ -235,8 +244,8 @@ The geocode response::
             zip4: ""
         },
         geocode: {
-            lat: 42.6533668,
-            lon: -73.7599828,
+            lat: "42.6533668",
+            lon: "-73.7599828",
             quality: "HOUSE",
             method: "GOOGLE",
             cached: true,
@@ -247,25 +256,23 @@ The geocode response::
         statusCode: 0
     }
 
-The ``source`` indicates where the response was returned from whereas ``geocode.method`` indicates where the geocode was computed.
+The ``sources`` indicates where the response was returned from whereas ``geocode.method`` indicates where the geocode was computed.
 
 The ``address`` is typically a normalized representation of the input address.
 
-The ``geocode.quality`` metric indicates the accuracy/confidence level of the geocode. A successful geocode response will have
-one of the following quality levels ordered from most accurate to least:
+The ``geocode.quality`` metric indicates the accuracy/confidence level of the geocode. The quality levels, ordered from
+most accurate to least:
 
-* POINT
 * HOUSE
-* ZIP_EXT
 * STREET
-* ZIP
-* CITY
+* REGION
+* UNKNOWN
 
 An unsuccessful response will resemble the following::
 
     {
       "status" : "NO_GEOCODE_RESULT",
-      "source" : "GOOGLE",
+      "sources" : "GOOGLE",
       "address" : null,
       "geocode" : null,
       "geocoded" : false,
@@ -293,7 +300,7 @@ The reverse geocode response::
         "city": "Albany",
         "state": "NY",
         "zip5": "12207",
-        "zip4": "1901",
+        "zip4": "1901"
       },
       "geocode": {
         "lat": "42.65240034765009",
@@ -320,8 +327,11 @@ The format of the batch geocoding call is::
 
     /api/v2/geo/geocode/batch
 
-The addresses must be JSON encoded and sent in the POST request payload.
-The fields are identical to the query parameter fields for an address.
+The addresses must be JSON encoded and sent in the POST request payload, as an array of objects with the fields
+``addr1``, ``addr2``, ``postalCity``, ``state``, ``zip5``, and ``zip4``.
+
+.. important:: The city goes in ``postalCity``, not ``city`` as in the query parameters. Unrecognized fields are
+               ignored, so a ``city`` field is silently dropped. A single-string ``addr`` is not accepted.
 
 Unlike the single request version, the batch call takes no parameters. It always uses the default ranked
 fallback, trying each geocoder in turn until a match is obtained.
@@ -332,13 +342,13 @@ A sample batch geocoding request in PHP::
     $addresses = array(
         array(
             "addr1" => "100 Nyroy Dr",
-            "city" => "Troy",
+            "postalCity" => "Troy",
             "state" => "NY",
             "zip5" => "12180"
         ),
         array(
             "addr1" => "44 Fairlawn Ave",
-            "city" => "Albany",
+            "postalCity" => "Albany",
             "state" => "NY",
             "zip5" => "12203"
         )
@@ -346,7 +356,7 @@ A sample batch geocoding request in PHP::
 
     $post_body = json_encode($addresses);
 
-    $ch = curl_init("http://localhost:8080/GeoApi/geo/geocode/batch");
+    $ch = curl_init("http://localhost:8080/GeoApi/api/v2/geo/geocode/batch");
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
     curl_setopt($ch, CURLOPT_POSTFIELDS, $post_body);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -359,23 +369,28 @@ A sample batch geocoding request in PHP::
 
 And the response::
 
-    {  "results" :[
-        { "status" : "SUCCESS",
-          "source" : "GeoCache", "messages" : [ ],
-          "address" : { "addr1" : "100 Nyroy Dr", "addr2" : "", "city" : "Troy", "state" : "NY", "zip5" : "12180", "zip4" : "" },
-          "geocode" : { "lat" : 42.741112, "lon" : -73.668762, "quality" : "HOUSE", "method" : "YahooDao" }, "geocoded" : true,
-          "statusCode" : 0,
-          "description" : "Success."
-        },
-        { "status" : "SUCCESS",
-          "source" : "GeoCache",
-          "messages" : [ ],
-          "address" : { "addr1" : "44 Fairlawn Ave", "addr2" : "", "city" : "Albany", "state" : "NY", "zip5" : "12203", "zip4" : "" },
-          "geocode" : { "lat" : 42.670583, "lon" : -73.799606, "quality" : "HOUSE", "method" : "YahooDao" },
-          "geocoded" : true, "statusCode" : 0, "description" : "Success."
-        }
-      ],
-      "total" : 2
+    {
+      "results" : [ {
+        "status" : "SUCCESS",
+        "sources" : "GEOCACHE",
+        "address" : { "addr1" : "100 Nyroy Dr", "addr2" : "", "city" : "Troy", "state" : "NY", "zip5" : "12180", "zip4" : "1928" },
+        "geocode" : { "lat" : "42.7410467", "lon" : "-73.6691371", "quality" : "HOUSE", "method" : "GOOGLE", "cached" : true, "openLocCode" : "87J8P8RJ+C8" },
+        "geocoded" : true,
+        "statusCode" : 0,
+        "description" : "Success."
+      }, {
+        "status" : "SUCCESS",
+        "sources" : "GEOCACHE",
+        "address" : { "addr1" : "44 Fairlawn Ave", "addr2" : "", "city" : "Albany", "state" : "NY", "zip5" : "12203", "zip4" : "1914" },
+        "geocode" : { "lat" : "42.6711474", "lon" : "-73.79940049999999", "quality" : "HOUSE", "method" : "GOOGLE", "cached" : true, "openLocCode" : "87J8M6C2+F6" },
+        "geocoded" : true,
+        "statusCode" : 0,
+        "description" : "Success."
+      } ],
+      "status" : "SUCCESS",
+      "total" : 2,
+      "statusCode" : 0,
+      "description" : "Success."
     }
 
 The results array consists of the same geocode responses that would be returned using the single geocode call.
@@ -386,8 +401,7 @@ In the event that the payload fails to parse, the response will be::
 
     {
       "status" : "INVALID_BATCH_ADDRESSES",
-      "source" : "GeocodeController",
-      "messages" : [ ],
+      "className" : "gov.nysenate.sage.controller.api.GeocodeController",
       "statusCode" : 55,
       "description" : "The supplied batch address list could not be parsed."
     }
@@ -430,7 +444,8 @@ The available providers are:
 +------------------+-------------------------------------------------------------------------------+
 | geocoder         | Specify which geocoder to use.                                                |
 +------------------+-------------------------------------------------------------------------------+
-| uspsValidate     | If true: USPS will be used to perform address correction.                     |
+| uspsValidate     | Defaults to true. The address is always corrected through USPS before it is   |
+|                  | geocoded; if false, the response reports the address as supplied instead.     |
 +------------------+-------------------------------------------------------------------------------+
 | usePunct         | If true: punctuation will be added to abbreviations.                          |
 +------------------+-------------------------------------------------------------------------------+
@@ -581,8 +596,9 @@ The district assignment response::
           "displayName" : "Electric Utility"
         },
         "election" : {
-          "id" : "8",
+          "id" : "2395220-73-8",
           "district" : "8",
+          "name" : "New York City, AD 73 ED 8",
           "displayName" : "Election"
         },
         "ward" : null,
@@ -626,16 +642,13 @@ The ``matchLevel`` indicates how granular the district assignment is. The follow
 +------------------+-----------------------------------------------------------------+
 | STREET           | A street range was assigned within the given city or zip5.      |
 +------------------+-----------------------------------------------------------------+
-| ZIP5             | A zip5 region was assigned.                                     |
-+------------------+-----------------------------------------------------------------+
-| CITY             | The union of zip5 regions that belong to a city were assigned.  |
+| REGION           | The city or zip5 as a whole was assigned.                       |
 +------------------+-----------------------------------------------------------------+
 
-If the ``matchLevel`` is not HOUSE, the ``multiMatch`` field will be true. The assigned districts for a non HOUSE match will
-be those that completely encompass that geographic region. If a street spans multiple senate districts, it will not have it's
-senate district assigned. However if a street is contained fully by a senate district, it will have been assigned with that district.
-The same applies to ZIP5 and CITY level lookups. Optionally the ``showMultiMatch`` parameter can be set to true to view all possible
-overlap boundaries and street ranges. The output of that is described below.
+The assigned districts for a match coarser than HOUSE are those that completely encompass that geographic region.
+If a street spans multiple senate districts, it will not have its senate district assigned. However if a street is
+contained fully by a senate district, it will have been assigned with that district. The same applies to REGION level
+lookups. The ``multiMatch`` field is always false.
 
 Map polygon data can be retrieved for purposes of rendering to a 3rd party mapping application.
 
@@ -672,6 +685,7 @@ Bluebird district assign is similar to the default assign except that these opti
     districtSource: missing
     geocoder: missing
     uspsValidate: true
+    showMaps: false
 
 The response is identical to that of a default district assign with those parameters.
 
@@ -693,13 +707,13 @@ A sample batch district assign in PHP::
     $addresses = array(
             array(
                     "addr1" => "100 Nyroy Dr",
-                    "city" => "Troy",
+                    "postalCity" => "Troy",
                     "state" => "NY",
                     "zip5" => "12180"
             ),
             array(
                     "addr1" => "44 Fairlawn Ave",
-                    "city" => "Albany",
+                    "postalCity" => "Albany",
                     "state" => "NY",
                     "zip5" => "12203"
             )
@@ -773,7 +787,7 @@ And the response::
             "id" : "1004", "district" : "1004", "name" : "National Grid", "displayName" : "Electric Utility"
           },
           "election" : {
-            "id" : "12", "district" : "12", "displayName" : "Election"
+            "id" : "979559-12", "district" : "12", "name" : "City of Troy, ED 12", "displayName" : "Election"
           },
           "ward" : null,
           "cityCouncil" : null,
@@ -837,7 +851,7 @@ And the response::
             "id" : "1004", "district" : "1004", "name" : "National Grid", "displayName" : "Electric Utility"
           },
           "election" : {
-            "id" : "4", "district" : "4", "displayName" : "Election"
+            "id" : "978659-13-4", "district" : "4", "name" : "City of Albany, Ward 13 ED 4", "displayName" : "Election"
           },
           "ward" : {
             "id" : "13", "district" : "13", "name" : "Ward 13", "displayName" : "Ward"
@@ -864,13 +878,10 @@ And a parse error response in case of invalid input::
 
     {
       "status": "INVALID_BATCH_ADDRESSES",
+      "className": "gov.nysenate.sage.controller.api.DistrictAssignController",
       "statusCode": 55,
       "description": "The supplied batch address list could not be parsed."
     }
-
-.. note: Batch district assignment can be configured by the application to follow a different strategy for
-         purposes of improving performance. In this example the configuration was set to use street files only
-         hence why many of the results are partial successes.
 
 .. _info:
 
@@ -953,10 +964,10 @@ Districts are ordered by ``id``: numeric ids first, in ascending order, then the
 Requesting a type SAGE does not recognize returns::
 
     {
-      "status" : "PROVIDER_NOT_SUPPORTED",
+      "status" : "VALUE_NOT_SUPPORTED",
       "className" : "gov.nysenate.sage.controller.api.DistrictAssignController",
       "statusCode" : 3,
-      "description" : "The requested provider is unsupported."
+      "description" : "The requested value is unsupported."
     }
 
 .. caution:: Some types have no data loaded at all - ``FIRE`` currently has none - and a request for one of those
@@ -1015,15 +1026,14 @@ The response is::
     }
 
 Each district type is reported as its ``id`` - the town above is GNIS id ``978659``, not the ``-ALBAN`` code
-that a district assignment shows. Only the types the street range actually resolves to are present.
+that a district assignment shows. A type the street range does not resolve to is ``null``.
 See :ref:`district-identifiers`, and info_ for resolving these ids to names.
 
 An invalid response, typically due to a non matching zip code is::
 
     {
       "status" : "NO_STREET_LOOKUP_RESULT",
-      "source" : "STREETFILE",
-      "messages" : [ ],
+      "sources" : "STREETFILE",
       "streets" : [ ],
       "statusCode" : 74,
       "description" : "Street lookup returned no results for the given zip5"
@@ -1102,6 +1112,52 @@ the full ``id``, ``district``, and ``name`` set along with the area of the distr
 ``link`` is only populated for county maps.
 
 The member data for senate, assembly, and congressional districts will have the same senator output as in district assignment.
+
+Intersect
+^^^^^^^^^
+
+``intersect`` finds the districts of one type that overlap a single district of another type. It is requested as
+``/api/v2/map/intersect`` and takes three required parameters:
+
++---------------+------------------------------------------------------------------------------------+
+| Params        | Description                                                                        |
++===============+====================================================================================+
+| sourceType    | The type of the reference district.                                                |
++---------------+------------------------------------------------------------------------------------+
+| sourceId      | The ``id`` of the reference district.                                              |
++---------------+------------------------------------------------------------------------------------+
+| intersectType | The type of the districts to intersect with it. Must differ from ``sourceType``.   |
++---------------+------------------------------------------------------------------------------------+
+
+For example, the assembly districts that overlap senate district 46::
+
+    /api/v2/map/intersect?sourceType=senate&sourceId=46&intersectType=assembly
+
+The response has no status wrapper. Its fields:
+
++---------------------------+-------------------------------------------------------------------------------+
+| Field                     | Description                                                                   |
++===========================+===============================================================================+
+| overlaps                  | One object per overlapping district (see below).                              |
++---------------------------+-------------------------------------------------------------------------------+
+| intersectType             | The ``intersectType`` requested.                                              |
++---------------------------+-------------------------------------------------------------------------------+
+| intersectTypeDisplayName  | Its human-readable name.                                                      |
++---------------------------+-------------------------------------------------------------------------------+
+| referenceMap              | The reference district's GeoJSON geometry.                                    |
++---------------------------+-------------------------------------------------------------------------------+
+| totalReferenceArea        | The reference district's area, in ``areaUnit``.                               |
++---------------------------+-------------------------------------------------------------------------------+
+| areaUnit                  | ``SQ_KILOMETERS``.                                                            |
++---------------------------+-------------------------------------------------------------------------------+
+
+Each overlap carries the ``id``, ``district``, ``name``, and member data of the overlapping district, its ``area`` and
+``areaPercentage`` of the reference district, ``map`` holding only the overlapping portion, and ``fullMap`` holding
+the whole district. Overlaps under 0.05% of the reference district are dropped, since bordering districts can
+register small false overlaps.
+
+Supplying the same type twice returns ``BAD_OVERLAY``; a type with no shapefile loaded returns
+``UNSUPPORTED_DISTRICT_MAP``.
 
 .. _Options:
 

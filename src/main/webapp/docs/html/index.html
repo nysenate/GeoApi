@@ -33,7 +33,7 @@
   <section id="sage-api-v2-reference">
 <h1>SAGE API v2 Reference<a class="headerlink" href="#sage-api-v2-reference" title="Link to this heading">¶</a></h1>
 <p>The SAGE API exposes methods for geocoding, address correction, and district assignment given addresses or geo-coordinates
-as input. The API supports <code class="docutils literal notranslate"><span class="pre">JSON</span></code>, <code class="docutils literal notranslate"><span class="pre">JSON-P</span></code>, and <code class="docutils literal notranslate"><span class="pre">XML</span></code> output formats.</p>
+as input. The API supports <code class="docutils literal notranslate"><span class="pre">JSON</span></code> and <code class="docutils literal notranslate"><span class="pre">XML</span></code> output formats.</p>
 <p>SAGE is also able to handle <a class="reference internal" href="#bluebirdcrm">BluebirdCRM</a> district assignment requests.</p>
 <section id="basics">
 <h2>Basics<a class="headerlink" href="#basics" title="Link to this heading">¶</a></h2>
@@ -46,13 +46,10 @@ within the NY Senate’s network. The key is supplied using the query parameter 
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>/api/v2/&lt;group&gt;/&lt;method&gt;?&lt;params..&gt;&amp;key=YOUR KEY HERE
 </pre></div>
 </div>
-<p>The default output format is <code class="docutils literal notranslate"><span class="pre">JSON</span></code>. To change the output to <code class="docutils literal notranslate"><span class="pre">XML</span></code> or <code class="docutils literal notranslate"><span class="pre">JSON-P</span></code> simply set the <code class="docutils literal notranslate"><span class="pre">format</span></code> query
-parameter to <code class="docutils literal notranslate"><span class="pre">xml</span></code> or <code class="docutils literal notranslate"><span class="pre">jsonp</span></code>. For example to set to xml:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>/api/v2/geo/geocode?addr=200 State St, Albany NY&amp;format=xml
-</pre></div>
-</div>
-<p>To output JSON-P a callback must also be specified.:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>/api/v2/geo/geocode?addr=200 State St, Albany NY&amp;format=jsonp&amp;callback=methodName
+<p>The <a class="reference internal" href="#map">map</a> group is public and needs no key.</p>
+<p>The default output format is <code class="docutils literal notranslate"><span class="pre">JSON</span></code>. To change the output to <code class="docutils literal notranslate"><span class="pre">XML</span></code> set the <code class="docutils literal notranslate"><span class="pre">format</span></code> query
+parameter to <code class="docutils literal notranslate"><span class="pre">xml</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>/api/v2/district/assign?addr=200 State St, Albany NY&amp;format=xml
 </pre></div>
 </div>
 </section>
@@ -98,6 +95,7 @@ To supply a single address string use the parameter <code class="docutils litera
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>/api/v2/&lt;group&gt;/&lt;method&gt;?addr1=200 State St&amp;city=Albany&amp;state=NY&amp;zip5=12210
 </pre></div>
 </div>
+<p><code class="docutils literal notranslate"><span class="pre">geo/geocode</span></code> accepts only the individual components, not <code class="docutils literal notranslate"><span class="pre">addr</span></code>.</p>
 <p>Geo-coordinate pairs can be supplied to the appropriate method using <code class="docutils literal notranslate"><span class="pre">lat</span></code> and <code class="docutils literal notranslate"><span class="pre">lon</span></code>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>/api/v2/&lt;group&gt;/&lt;method&gt;?lat=43.00&amp;lon=-73.10
 </pre></div>
@@ -170,7 +168,7 @@ To supply a single address string use the parameter <code class="docutils litera
 <p>A failed validation response:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;NO_ADDRESS_VALIDATE_RESULT&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;source&quot;</span> <span class="p">:</span> <span class="s2">&quot;AMS&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;sources&quot;</span> <span class="p">:</span> <span class="s2">&quot;AMS&quot;</span><span class="p">,</span>
   <span class="s2">&quot;address&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
   <span class="s2">&quot;validated&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
   <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">73</span><span class="p">,</span>
@@ -191,10 +189,10 @@ to enable punctuation.</p>
 <p>The city/state response:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;SUCCESS&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;source&quot;</span> <span class="p">:</span> <span class="s2">&quot;AMS&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;sources&quot;</span> <span class="p">:</span> <span class="s2">&quot;AMS&quot;</span><span class="p">,</span>
   <span class="s2">&quot;city&quot;</span> <span class="p">:</span> <span class="s2">&quot;ALBANY&quot;</span><span class="p">,</span>
   <span class="s2">&quot;state&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s2">&quot;12210&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;zip5&quot;</span> <span class="p">:</span> <span class="mi">12210</span><span class="p">,</span>
   <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
   <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;Success.&quot;</span>
 <span class="p">}</span>
@@ -217,6 +215,13 @@ to enable punctuation.</p>
 /api/v2/address/&lt;method&gt;?&lt;params..&gt;&amp;provider=AIS
 </pre></div>
 </div>
+<p>Multiple addresses can be validated in one request by POSTing them to:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">v2</span><span class="o">/</span><span class="n">address</span><span class="o">/</span><span class="n">validate</span><span class="o">/</span><span class="n">batch</span>
+</pre></div>
+</div>
+<p>The payload is a JSON array of addresses in the same format as <a class="reference internal" href="#batch-geocode"><span class="std std-ref">Batch Geocode</span></a>. <code class="docutils literal notranslate"><span class="pre">provider</span></code> and <code class="docutils literal notranslate"><span class="pre">punct</span></code>
+apply as above. The response holds one <code class="docutils literal notranslate"><span class="pre">validate</span></code> response per address under <code class="docutils literal notranslate"><span class="pre">results</span></code>, in payload order,
+along with a <code class="docutils literal notranslate"><span class="pre">total</span></code>.</p>
 </section>
 <section id="geo">
 <h3>Geo<a class="headerlink" href="#geo" title="Link to this heading">¶</a></h3>
@@ -278,14 +283,14 @@ to enable punctuation.</p>
 <section id="geocode">
 <h4>Geocode<a class="headerlink" href="#geocode" title="Link to this heading">¶</a></h4>
 <p>The usage of <code class="docutils literal notranslate"><span class="pre">geocode</span></code> with an address input:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>/api/v2/geo/geocode?addr=200 State St, Albany NY 12210
-/api/v2/geo/geocode?addr1=200 State St&amp;city=Albany&amp;state=NY&amp;zip5=12210
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>/api/v2/geo/geocode?addr1=200 State St&amp;city=Albany&amp;state=NY&amp;zip5=12210
 </pre></div>
 </div>
+<p>The address is corrected through USPS before it is geocoded.</p>
 <p>The geocode response:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="n">status</span><span class="p">:</span> <span class="s2">&quot;SUCCESS&quot;</span><span class="p">,</span>
-    <span class="n">source</span><span class="p">:</span> <span class="s2">&quot;GEOCACHE&quot;</span><span class="p">,</span>
+    <span class="n">sources</span><span class="p">:</span> <span class="s2">&quot;GEOCACHE&quot;</span><span class="p">,</span>
     <span class="n">address</span><span class="p">:</span> <span class="p">{</span>
         <span class="n">addr1</span><span class="p">:</span> <span class="s2">&quot;200 State Street&quot;</span><span class="p">,</span>
         <span class="n">addr2</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
@@ -295,8 +300,8 @@ to enable punctuation.</p>
         <span class="n">zip4</span><span class="p">:</span> <span class="s2">&quot;&quot;</span>
     <span class="p">},</span>
     <span class="n">geocode</span><span class="p">:</span> <span class="p">{</span>
-        <span class="n">lat</span><span class="p">:</span> <span class="mf">42.6533668</span><span class="p">,</span>
-        <span class="n">lon</span><span class="p">:</span> <span class="o">-</span><span class="mf">73.7599828</span><span class="p">,</span>
+        <span class="n">lat</span><span class="p">:</span> <span class="s2">&quot;42.6533668&quot;</span><span class="p">,</span>
+        <span class="n">lon</span><span class="p">:</span> <span class="s2">&quot;-73.7599828&quot;</span><span class="p">,</span>
         <span class="n">quality</span><span class="p">:</span> <span class="s2">&quot;HOUSE&quot;</span><span class="p">,</span>
         <span class="n">method</span><span class="p">:</span> <span class="s2">&quot;GOOGLE&quot;</span><span class="p">,</span>
         <span class="n">cached</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
@@ -308,22 +313,20 @@ to enable punctuation.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">source</span></code> indicates where the response was returned from whereas <code class="docutils literal notranslate"><span class="pre">geocode.method</span></code> indicates where the geocode was computed.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">sources</span></code> indicates where the response was returned from whereas <code class="docutils literal notranslate"><span class="pre">geocode.method</span></code> indicates where the geocode was computed.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">address</span></code> is typically a normalized representation of the input address.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">geocode.quality</span></code> metric indicates the accuracy/confidence level of the geocode. A successful geocode response will have
-one of the following quality levels ordered from most accurate to least:</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">geocode.quality</span></code> metric indicates the accuracy/confidence level of the geocode. The quality levels, ordered from
+most accurate to least:</p>
 <ul class="simple">
-<li><p>POINT</p></li>
 <li><p>HOUSE</p></li>
-<li><p>ZIP_EXT</p></li>
 <li><p>STREET</p></li>
-<li><p>ZIP</p></li>
-<li><p>CITY</p></li>
+<li><p>REGION</p></li>
+<li><p>UNKNOWN</p></li>
 </ul>
 <p>An unsuccessful response will resemble the following:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;NO_GEOCODE_RESULT&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;source&quot;</span> <span class="p">:</span> <span class="s2">&quot;GOOGLE&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;sources&quot;</span> <span class="p">:</span> <span class="s2">&quot;GOOGLE&quot;</span><span class="p">,</span>
   <span class="s2">&quot;address&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
   <span class="s2">&quot;geocode&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
   <span class="s2">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
@@ -350,7 +353,7 @@ one of the following quality levels ordered from most accurate to least:</p>
     <span class="s2">&quot;city&quot;</span><span class="p">:</span> <span class="s2">&quot;Albany&quot;</span><span class="p">,</span>
     <span class="s2">&quot;state&quot;</span><span class="p">:</span> <span class="s2">&quot;NY&quot;</span><span class="p">,</span>
     <span class="s2">&quot;zip5&quot;</span><span class="p">:</span> <span class="s2">&quot;12207&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;zip4&quot;</span><span class="p">:</span> <span class="s2">&quot;1901&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;zip4&quot;</span><span class="p">:</span> <span class="s2">&quot;1901&quot;</span>
   <span class="p">},</span>
   <span class="s2">&quot;geocode&quot;</span><span class="p">:</span> <span class="p">{</span>
     <span class="s2">&quot;lat&quot;</span><span class="p">:</span> <span class="s2">&quot;42.65240034765009&quot;</span><span class="p">,</span>
@@ -375,8 +378,13 @@ The format of the batch geocoding call is:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">v2</span><span class="o">/</span><span class="n">geo</span><span class="o">/</span><span class="n">geocode</span><span class="o">/</span><span class="n">batch</span>
 </pre></div>
 </div>
-<p>The addresses must be JSON encoded and sent in the POST request payload.
-The fields are identical to the query parameter fields for an address.</p>
+<p>The addresses must be JSON encoded and sent in the POST request payload, as an array of objects with the fields
+<code class="docutils literal notranslate"><span class="pre">addr1</span></code>, <code class="docutils literal notranslate"><span class="pre">addr2</span></code>, <code class="docutils literal notranslate"><span class="pre">postalCity</span></code>, <code class="docutils literal notranslate"><span class="pre">state</span></code>, <code class="docutils literal notranslate"><span class="pre">zip5</span></code>, and <code class="docutils literal notranslate"><span class="pre">zip4</span></code>.</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>The city goes in <code class="docutils literal notranslate"><span class="pre">postalCity</span></code>, not <code class="docutils literal notranslate"><span class="pre">city</span></code> as in the query parameters. Unrecognized fields are
+ignored, so a <code class="docutils literal notranslate"><span class="pre">city</span></code> field is silently dropped. A single-string <code class="docutils literal notranslate"><span class="pre">addr</span></code> is not accepted.</p>
+</div>
 <p>Unlike the single request version, the batch call takes no parameters. It always uses the default ranked
 fallback, trying each geocoder in turn until a match is obtained.</p>
 <p>A sample batch geocoding request in PHP:</p>
@@ -384,13 +392,13 @@ fallback, trying each geocoder in turn until a match is obtained.</p>
 $addresses = array(
     array(
         &quot;addr1&quot; =&gt; &quot;100 Nyroy Dr&quot;,
-        &quot;city&quot; =&gt; &quot;Troy&quot;,
+        &quot;postalCity&quot; =&gt; &quot;Troy&quot;,
         &quot;state&quot; =&gt; &quot;NY&quot;,
         &quot;zip5&quot; =&gt; &quot;12180&quot;
     ),
     array(
         &quot;addr1&quot; =&gt; &quot;44 Fairlawn Ave&quot;,
-        &quot;city&quot; =&gt; &quot;Albany&quot;,
+        &quot;postalCity&quot; =&gt; &quot;Albany&quot;,
         &quot;state&quot; =&gt; &quot;NY&quot;,
         &quot;zip5&quot; =&gt; &quot;12203&quot;
     )
@@ -398,7 +406,7 @@ $addresses = array(
 
 $post_body = json_encode($addresses);
 
-$ch = curl_init(&quot;http://localhost:8080/GeoApi/geo/geocode/batch&quot;);
+$ch = curl_init(&quot;http://localhost:8080/GeoApi/api/v2/geo/geocode/batch&quot;);
 curl_setopt($ch, CURLOPT_CUSTOMREQUEST, &quot;POST&quot;);
 curl_setopt($ch, CURLOPT_POSTFIELDS, $post_body);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -411,23 +419,28 @@ $result = curl_exec($ch);
 </pre></div>
 </div>
 <p>And the response:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>  <span class="s2">&quot;results&quot;</span> <span class="p">:[</span>
-    <span class="p">{</span> <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;SUCCESS&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;source&quot;</span> <span class="p">:</span> <span class="s2">&quot;GeoCache&quot;</span><span class="p">,</span> <span class="s2">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
-      <span class="s2">&quot;address&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;addr1&quot;</span> <span class="p">:</span> <span class="s2">&quot;100 Nyroy Dr&quot;</span><span class="p">,</span> <span class="s2">&quot;addr2&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;city&quot;</span> <span class="p">:</span> <span class="s2">&quot;Troy&quot;</span><span class="p">,</span> <span class="s2">&quot;state&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY&quot;</span><span class="p">,</span> <span class="s2">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s2">&quot;12180&quot;</span><span class="p">,</span> <span class="s2">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span> <span class="p">},</span>
-      <span class="s2">&quot;geocode&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;lat&quot;</span> <span class="p">:</span> <span class="mf">42.741112</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">73.668762</span><span class="p">,</span> <span class="s2">&quot;quality&quot;</span> <span class="p">:</span> <span class="s2">&quot;HOUSE&quot;</span><span class="p">,</span> <span class="s2">&quot;method&quot;</span> <span class="p">:</span> <span class="s2">&quot;YahooDao&quot;</span> <span class="p">},</span> <span class="s2">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-      <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-      <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;Success.&quot;</span>
-    <span class="p">},</span>
-    <span class="p">{</span> <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;SUCCESS&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;source&quot;</span> <span class="p">:</span> <span class="s2">&quot;GeoCache&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
-      <span class="s2">&quot;address&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;addr1&quot;</span> <span class="p">:</span> <span class="s2">&quot;44 Fairlawn Ave&quot;</span><span class="p">,</span> <span class="s2">&quot;addr2&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;city&quot;</span> <span class="p">:</span> <span class="s2">&quot;Albany&quot;</span><span class="p">,</span> <span class="s2">&quot;state&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY&quot;</span><span class="p">,</span> <span class="s2">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s2">&quot;12203&quot;</span><span class="p">,</span> <span class="s2">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span> <span class="p">},</span>
-      <span class="s2">&quot;geocode&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;lat&quot;</span> <span class="p">:</span> <span class="mf">42.670583</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">73.799606</span><span class="p">,</span> <span class="s2">&quot;quality&quot;</span> <span class="p">:</span> <span class="s2">&quot;HOUSE&quot;</span><span class="p">,</span> <span class="s2">&quot;method&quot;</span> <span class="p">:</span> <span class="s2">&quot;YahooDao&quot;</span> <span class="p">},</span>
-      <span class="s2">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span> <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;Success.&quot;</span>
-    <span class="p">}</span>
-  <span class="p">],</span>
-  <span class="s2">&quot;total&quot;</span> <span class="p">:</span> <span class="mi">2</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;results&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">{</span>
+    <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;SUCCESS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;sources&quot;</span> <span class="p">:</span> <span class="s2">&quot;GEOCACHE&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;address&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;addr1&quot;</span> <span class="p">:</span> <span class="s2">&quot;100 Nyroy Dr&quot;</span><span class="p">,</span> <span class="s2">&quot;addr2&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;city&quot;</span> <span class="p">:</span> <span class="s2">&quot;Troy&quot;</span><span class="p">,</span> <span class="s2">&quot;state&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY&quot;</span><span class="p">,</span> <span class="s2">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s2">&quot;12180&quot;</span><span class="p">,</span> <span class="s2">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s2">&quot;1928&quot;</span> <span class="p">},</span>
+    <span class="s2">&quot;geocode&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;lat&quot;</span> <span class="p">:</span> <span class="s2">&quot;42.7410467&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span> <span class="p">:</span> <span class="s2">&quot;-73.6691371&quot;</span><span class="p">,</span> <span class="s2">&quot;quality&quot;</span> <span class="p">:</span> <span class="s2">&quot;HOUSE&quot;</span><span class="p">,</span> <span class="s2">&quot;method&quot;</span> <span class="p">:</span> <span class="s2">&quot;GOOGLE&quot;</span><span class="p">,</span> <span class="s2">&quot;cached&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span> <span class="s2">&quot;openLocCode&quot;</span> <span class="p">:</span> <span class="s2">&quot;87J8P8RJ+C8&quot;</span> <span class="p">},</span>
+    <span class="s2">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+    <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;Success.&quot;</span>
+  <span class="p">},</span> <span class="p">{</span>
+    <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;SUCCESS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;sources&quot;</span> <span class="p">:</span> <span class="s2">&quot;GEOCACHE&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;address&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;addr1&quot;</span> <span class="p">:</span> <span class="s2">&quot;44 Fairlawn Ave&quot;</span><span class="p">,</span> <span class="s2">&quot;addr2&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;city&quot;</span> <span class="p">:</span> <span class="s2">&quot;Albany&quot;</span><span class="p">,</span> <span class="s2">&quot;state&quot;</span> <span class="p">:</span> <span class="s2">&quot;NY&quot;</span><span class="p">,</span> <span class="s2">&quot;zip5&quot;</span> <span class="p">:</span> <span class="s2">&quot;12203&quot;</span><span class="p">,</span> <span class="s2">&quot;zip4&quot;</span> <span class="p">:</span> <span class="s2">&quot;1914&quot;</span> <span class="p">},</span>
+    <span class="s2">&quot;geocode&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;lat&quot;</span> <span class="p">:</span> <span class="s2">&quot;42.6711474&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span> <span class="p">:</span> <span class="s2">&quot;-73.79940049999999&quot;</span><span class="p">,</span> <span class="s2">&quot;quality&quot;</span> <span class="p">:</span> <span class="s2">&quot;HOUSE&quot;</span><span class="p">,</span> <span class="s2">&quot;method&quot;</span> <span class="p">:</span> <span class="s2">&quot;GOOGLE&quot;</span><span class="p">,</span> <span class="s2">&quot;cached&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span> <span class="s2">&quot;openLocCode&quot;</span> <span class="p">:</span> <span class="s2">&quot;87J8M6C2+F6&quot;</span> <span class="p">},</span>
+    <span class="s2">&quot;geocoded&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+    <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;Success.&quot;</span>
+  <span class="p">}</span> <span class="p">],</span>
+  <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;SUCCESS&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;total&quot;</span> <span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+  <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;Success.&quot;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -437,8 +450,7 @@ order of the addresses in the JSON payload.</p>
 <p>In the event that the payload fails to parse, the response will be:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;INVALID_BATCH_ADDRESSES&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;source&quot;</span> <span class="p">:</span> <span class="s2">&quot;GeocodeController&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+  <span class="s2">&quot;className&quot;</span> <span class="p">:</span> <span class="s2">&quot;gov.nysenate.sage.controller.api.GeocodeController&quot;</span><span class="p">,</span>
   <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">55</span><span class="p">,</span>
   <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;The supplied batch address list could not be parsed.&quot;</span>
 <span class="p">}</span>
@@ -505,7 +517,8 @@ order of the addresses in the JSON payload.</p>
 <td><p>Specify which geocoder to use.</p></td>
 </tr>
 <tr class="row-even"><td><p>uspsValidate</p></td>
-<td><p>If true: USPS will be used to perform address correction.</p></td>
+<td><p>Defaults to true. The address is always corrected through USPS before it is
+geocoded; if false, the response reports the address as supplied instead.</p></td>
 </tr>
 <tr class="row-odd"><td><p>usePunct</p></td>
 <td><p>If true: punctuation will be added to abbreviations.</p></td>
@@ -681,8 +694,9 @@ Parsed Format:
       <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Electric Utility&quot;</span>
     <span class="p">},</span>
     <span class="s2">&quot;election&quot;</span> <span class="p">:</span> <span class="p">{</span>
-      <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;8&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;2395220-73-8&quot;</span><span class="p">,</span>
       <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;8&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;New York City, AD 73 ED 8&quot;</span><span class="p">,</span>
       <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Election&quot;</span>
     <span class="p">},</span>
     <span class="s2">&quot;ward&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
@@ -730,19 +744,15 @@ omitted, which is why a district with no name or no member data has no <code cla
 <tr class="row-odd"><td><p>STREET</p></td>
 <td><p>A street range was assigned within the given city or zip5.</p></td>
 </tr>
-<tr class="row-even"><td><p>ZIP5</p></td>
-<td><p>A zip5 region was assigned.</p></td>
-</tr>
-<tr class="row-odd"><td><p>CITY</p></td>
-<td><p>The union of zip5 regions that belong to a city were assigned.</p></td>
+<tr class="row-even"><td><p>REGION</p></td>
+<td><p>The city or zip5 as a whole was assigned.</p></td>
 </tr>
 </tbody>
 </table>
-<p>If the <code class="docutils literal notranslate"><span class="pre">matchLevel</span></code> is not HOUSE, the <code class="docutils literal notranslate"><span class="pre">multiMatch</span></code> field will be true. The assigned districts for a non HOUSE match will
-be those that completely encompass that geographic region. If a street spans multiple senate districts, it will not have it’s
-senate district assigned. However if a street is contained fully by a senate district, it will have been assigned with that district.
-The same applies to ZIP5 and CITY level lookups. Optionally the <code class="docutils literal notranslate"><span class="pre">showMultiMatch</span></code> parameter can be set to true to view all possible
-overlap boundaries and street ranges. The output of that is described below.</p>
+<p>The assigned districts for a match coarser than HOUSE are those that completely encompass that geographic region.
+If a street spans multiple senate districts, it will not have its senate district assigned. However if a street is
+contained fully by a senate district, it will have been assigned with that district. The same applies to REGION level
+lookups. The <code class="docutils literal notranslate"><span class="pre">multiMatch</span></code> field is always false.</p>
 <p>Map polygon data can be retrieved for purposes of rendering to a 3rd party mapping application.</p>
 <p>If <code class="docutils literal notranslate"><span class="pre">showMaps</span></code> is set to true:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>/api/v2/district/assign?addr=280 Madison Ave, NY&amp;showMaps=true
@@ -775,6 +785,7 @@ Parsed Format:
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">districtSource</span><span class="p">:</span> <span class="n">missing</span>
 <span class="n">geocoder</span><span class="p">:</span> <span class="n">missing</span>
 <span class="n">uspsValidate</span><span class="p">:</span> <span class="n">true</span>
+<span class="n">showMaps</span><span class="p">:</span> <span class="n">false</span>
 </pre></div>
 </div>
 <p>The response is identical to that of a default district assign with those parameters.</p>
@@ -794,13 +805,13 @@ addresses only. Coordinate pairs are not supported.</p>
 $addresses = array(
         array(
                 &quot;addr1&quot; =&gt; &quot;100 Nyroy Dr&quot;,
-                &quot;city&quot; =&gt; &quot;Troy&quot;,
+                &quot;postalCity&quot; =&gt; &quot;Troy&quot;,
                 &quot;state&quot; =&gt; &quot;NY&quot;,
                 &quot;zip5&quot; =&gt; &quot;12180&quot;
         ),
         array(
                 &quot;addr1&quot; =&gt; &quot;44 Fairlawn Ave&quot;,
-                &quot;city&quot; =&gt; &quot;Albany&quot;,
+                &quot;postalCity&quot; =&gt; &quot;Albany&quot;,
                 &quot;state&quot; =&gt; &quot;NY&quot;,
                 &quot;zip5&quot; =&gt; &quot;12203&quot;
         )
@@ -874,7 +885,7 @@ print_r($result);
         <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;1004&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;1004&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;National Grid&quot;</span><span class="p">,</span> <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Electric Utility&quot;</span>
       <span class="p">},</span>
       <span class="s2">&quot;election&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;12&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;12&quot;</span><span class="p">,</span> <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Election&quot;</span>
+        <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;979559-12&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;12&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;City of Troy, ED 12&quot;</span><span class="p">,</span> <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Election&quot;</span>
       <span class="p">},</span>
       <span class="s2">&quot;ward&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
       <span class="s2">&quot;cityCouncil&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
@@ -938,7 +949,7 @@ print_r($result);
         <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;1004&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;1004&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;National Grid&quot;</span><span class="p">,</span> <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Electric Utility&quot;</span>
       <span class="p">},</span>
       <span class="s2">&quot;election&quot;</span> <span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;4&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;4&quot;</span><span class="p">,</span> <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Election&quot;</span>
+        <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;978659-13-4&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;4&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;City of Albany, Ward 13 ED 4&quot;</span><span class="p">,</span> <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Election&quot;</span>
       <span class="p">},</span>
       <span class="s2">&quot;ward&quot;</span> <span class="p">:</span> <span class="p">{</span>
         <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;13&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;13&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Ward 13&quot;</span><span class="p">,</span> <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Ward&quot;</span>
@@ -965,6 +976,7 @@ print_r($result);
 <p>And a parse error response in case of invalid input:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;INVALID_BATCH_ADDRESSES&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;className&quot;</span><span class="p">:</span> <span class="s2">&quot;gov.nysenate.sage.controller.api.DistrictAssignController&quot;</span><span class="p">,</span>
   <span class="s2">&quot;statusCode&quot;</span><span class="p">:</span> <span class="mi">55</span><span class="p">,</span>
   <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;The supplied batch address list could not be parsed.&quot;</span>
 <span class="p">}</span>
@@ -1050,10 +1062,10 @@ separate <code class="docutils literal notranslate"><span class="pre">code</span
 <p>Districts are ordered by <code class="docutils literal notranslate"><span class="pre">id</span></code>: numeric ids first, in ascending order, then the rest lexicographically.</p>
 <p>Requesting a type SAGE does not recognize returns:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;PROVIDER_NOT_SUPPORTED&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;VALUE_NOT_SUPPORTED&quot;</span><span class="p">,</span>
   <span class="s2">&quot;className&quot;</span> <span class="p">:</span> <span class="s2">&quot;gov.nysenate.sage.controller.api.DistrictAssignController&quot;</span><span class="p">,</span>
   <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
-  <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;The requested provider is unsupported.&quot;</span>
+  <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;The requested value is unsupported.&quot;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -1120,13 +1132,12 @@ Board of Election Street File data and can be searched via zip code.</p>
 </pre></div>
 </div>
 <p>Each district type is reported as its <code class="docutils literal notranslate"><span class="pre">id</span></code> - the town above is GNIS id <code class="docutils literal notranslate"><span class="pre">978659</span></code>, not the <code class="docutils literal notranslate"><span class="pre">-ALBAN</span></code> code
-that a district assignment shows. Only the types the street range actually resolves to are present.
+that a district assignment shows. A type the street range does not resolve to is <code class="docutils literal notranslate"><span class="pre">null</span></code>.
 See <a class="reference internal" href="#district-identifiers"><span class="std std-ref">District Identifiers</span></a>, and <a class="reference internal" href="#info">info</a> for resolving these ids to names.</p>
 <p>An invalid response, typically due to a non matching zip code is:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="s2">&quot;NO_STREET_LOOKUP_RESULT&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;source&quot;</span> <span class="p">:</span> <span class="s2">&quot;STREETFILE&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;messages&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
+  <span class="s2">&quot;sources&quot;</span> <span class="p">:</span> <span class="s2">&quot;STREETFILE&quot;</span><span class="p">,</span>
   <span class="s2">&quot;streets&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">],</span>
   <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">74</span><span class="p">,</span>
   <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;Street lookup returned no results for the given zip5&quot;</span>
@@ -1213,6 +1224,67 @@ the full <code class="docutils literal notranslate"><span class="pre">id</span><
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">link</span></code> is only populated for county maps.</p>
 <p>The member data for senate, assembly, and congressional districts will have the same senator output as in district assignment.</p>
+<section id="intersect">
+<h4>Intersect<a class="headerlink" href="#intersect" title="Link to this heading">¶</a></h4>
+<p><code class="docutils literal notranslate"><span class="pre">intersect</span></code> finds the districts of one type that overlap a single district of another type. It is requested as
+<code class="docutils literal notranslate"><span class="pre">/api/v2/map/intersect</span></code> and takes three required parameters:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Params</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>sourceType</p></td>
+<td><p>The type of the reference district.</p></td>
+</tr>
+<tr class="row-odd"><td><p>sourceId</p></td>
+<td><p>The <code class="docutils literal notranslate"><span class="pre">id</span></code> of the reference district.</p></td>
+</tr>
+<tr class="row-even"><td><p>intersectType</p></td>
+<td><p>The type of the districts to intersect with it. Must differ from <code class="docutils literal notranslate"><span class="pre">sourceType</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+<p>For example, the assembly districts that overlap senate district 46:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>/api/v2/map/intersect?sourceType=senate&amp;sourceId=46&amp;intersectType=assembly
+</pre></div>
+</div>
+<p>The response has no status wrapper. Its fields:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>overlaps</p></td>
+<td><p>One object per overlapping district (see below).</p></td>
+</tr>
+<tr class="row-odd"><td><p>intersectType</p></td>
+<td><p>The <code class="docutils literal notranslate"><span class="pre">intersectType</span></code> requested.</p></td>
+</tr>
+<tr class="row-even"><td><p>intersectTypeDisplayName</p></td>
+<td><p>Its human-readable name.</p></td>
+</tr>
+<tr class="row-odd"><td><p>referenceMap</p></td>
+<td><p>The reference district’s GeoJSON geometry.</p></td>
+</tr>
+<tr class="row-even"><td><p>totalReferenceArea</p></td>
+<td><p>The reference district’s area, in <code class="docutils literal notranslate"><span class="pre">areaUnit</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>areaUnit</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SQ_KILOMETERS</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Each overlap carries the <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">district</span></code>, <code class="docutils literal notranslate"><span class="pre">name</span></code>, and member data of the overlapping district, its <code class="docutils literal notranslate"><span class="pre">area</span></code> and
+<code class="docutils literal notranslate"><span class="pre">areaPercentage</span></code> of the reference district, <code class="docutils literal notranslate"><span class="pre">map</span></code> holding only the overlapping portion, and <code class="docutils literal notranslate"><span class="pre">fullMap</span></code> holding
+the whole district. Overlaps under 0.05% of the reference district are dropped, since bordering districts can
+register small false overlaps.</p>
+<p>Supplying the same type twice returns <code class="docutils literal notranslate"><span class="pre">BAD_OVERLAY</span></code>; a type with no shapefile loaded returns
+<code class="docutils literal notranslate"><span class="pre">UNSUPPORTED_DISTRICT_MAP</span></code>.</p>
+</section>
 </section>
 <section id="options">
 <span id="id4"></span><h3>Options<a class="headerlink" href="#options" title="Link to this heading">¶</a></h3>
@@ -1333,7 +1405,10 @@ other methods it is not part of the <code class="docutils literal notranslate"><
 </ul>
 </li>
 <li><a class="reference internal" href="#street">Street</a></li>
-<li><a class="reference internal" href="#map">Map</a></li>
+<li><a class="reference internal" href="#map">Map</a><ul>
+<li><a class="reference internal" href="#intersect">Intersect</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#options">Options</a></li>
 <li><a class="reference internal" href="#ping">Ping</a></li>
 </ul>

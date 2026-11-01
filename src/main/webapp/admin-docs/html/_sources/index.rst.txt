@@ -60,8 +60,10 @@ The following methods manage the admin session. They are served directly under `
 | logout   | GET    | Log out of the SAGE admin panel                         |
 +----------+--------+---------------------------------------------------------+
 
-``login`` requires ``username`` and ``password`` query parameters. On success the caller is
-redirected to the admin home page; on failure the login page is redisplayed with an error.
+``login`` requires ``username`` and ``password`` query parameters and returns a JSON response,
+``success: true`` on a successful login. A failed login returns ``success: false`` with a ``message``
+explaining why: invalid credentials, or a login attempted from a location that is not permitted.
+``logout`` redirects to the login page.
 
 ::
 
@@ -96,13 +98,14 @@ The following methods are served under ``/admin/api`` and back the various admin
 +------------------+--------+----------------------------------------------------------------+
 | deleteJobUser    | POST   | Deletes a job user                                             |
 +------------------+--------+----------------------------------------------------------------+
-| cleanMaps        | GET    | Validates/cleans cached map geometry for a district type       |
+| cleanMaps        | GET    | Cleans and validates the geometry table for a district type    |
 +------------------+--------+----------------------------------------------------------------+
-| recache          | GET    | Rebuilds the cached district map geometry from the shapefiles  |
+| recache          | GET    | Reloads SAGE's in-memory district caches from the database     |
 +------------------+--------+----------------------------------------------------------------+
 
 The ``usage``, ``apiUserUsage``, and ``geocodeUsage`` stats methods accept optional ``from`` and
-``to`` timestamps to bound the reporting window.
+``to`` timestamps, in epoch milliseconds, to bound the reporting window. It defaults to the last
+seven days.
 
 createApiUser
 ^^^^^^^^^^^^^
@@ -186,7 +189,9 @@ Deletes a job user by id.
 cleanMaps
 ^^^^^^^^^
 
-Validates and cleans the cached map geometry for a single district type.
+Cleans the geometry table for a single district type, merging the rows of any district split across
+several into one, then checks that every geometry is valid. It finishes by reloading the in-memory
+caches, as ``recache`` does.
 
 +------------+----------+--------------------------------------------------------------+
 | Param      | Required | Description                                                  |
@@ -205,14 +210,15 @@ A successful response::
         message: "Cleaned maps"
     }
 
-If the geometry table for the type is empty an error is returned; if some geometries are invalid
-the call still succeeds but reports that manual fixes are required.
+If some geometries are invalid, the maps are still cleaned, but the response has ``success: false``
+and reports that manual fixes are required. A type with no entry in ``districts.type_info`` returns
+``EMPTY_GEOMETRY_TABLE``, and a ``type`` that is not a district type returns ``INTERNAL_ERROR``.
 
 recache
 ^^^^^^^
 
-Rebuilds the cached district map geometry from the LATFOR shapefiles. This is the same operation
-performed when district maps are refreshed.
+Reloads every in-memory district cache from the database: the type table info, district geometry,
+district attributes, and member data. Run it after changing those tables outside of SAGE.
 
 ::
 
@@ -289,6 +295,8 @@ chambers to (re)generate:
 | congress   | Generate metadata for Congressional members (alias: c)            |
 +------------+-------------------------------------------------------------------+
 
+Any other option does nothing, and still returns success.
+
 The usage of the generate metadata call::
 
     /admin/api/datagen/genmetadata/all
@@ -331,7 +339,7 @@ code of ``0``; the rest are error statuses:
 +-------------------------------+------+----------------------------------------------------------------------------------------+
 | EMPTY_GEOMETRY_TABLE          | 1    | The new geometry table is empty.                                                       |
 +-------------------------------+------+----------------------------------------------------------------------------------------+
-| PROVIDER_NOT_SUPPORTED        | 3    | The requested provider is unsupported.                                                 |
+| VALUE_NOT_SUPPORTED           | 3    | The requested value is unsupported.                                                    |
 +-------------------------------+------+----------------------------------------------------------------------------------------+
 | API_KEY_INVALID               | 10   | The supplied API key could not be authenticated.                                       |
 +-------------------------------+------+----------------------------------------------------------------------------------------+
@@ -375,7 +383,7 @@ code of ``0``; the rest are error statuses:
 +-------------------------------+------+----------------------------------------------------------------------------------------+
 | UNSUPPORTED_DISTRICT_MAP      | 81   | Maps for the requested district type are not available.                                |
 +-------------------------------+------+----------------------------------------------------------------------------------------+
-| MISSING_DISTRICT_CODE         | 82   | A district code is required.                                                           |
+| MISSING_DISTRICT_ID           | 82   | A district ID is required.                                                             |
 +-------------------------------+------+----------------------------------------------------------------------------------------+
 | BAD_OVERLAY                   | 83   | Same type overlay is not supported.                                                    |
 +-------------------------------+------+----------------------------------------------------------------------------------------+

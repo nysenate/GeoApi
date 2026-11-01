@@ -100,8 +100,10 @@ after signing in through /admin/login).</p></td>
 </tr>
 </tbody>
 </table>
-<p><code class="docutils literal notranslate"><span class="pre">login</span></code> requires <code class="docutils literal notranslate"><span class="pre">username</span></code> and <code class="docutils literal notranslate"><span class="pre">password</span></code> query parameters. On success the caller is
-redirected to the admin home page; on failure the login page is redisplayed with an error.</p>
+<p><code class="docutils literal notranslate"><span class="pre">login</span></code> requires <code class="docutils literal notranslate"><span class="pre">username</span></code> and <code class="docutils literal notranslate"><span class="pre">password</span></code> query parameters and returns a JSON response,
+<code class="docutils literal notranslate"><span class="pre">success:</span> <span class="pre">true</span></code> on a successful login. A failed login returns <code class="docutils literal notranslate"><span class="pre">success:</span> <span class="pre">false</span></code> with a <code class="docutils literal notranslate"><span class="pre">message</span></code>
+explaining why: invalid credentials, or a login attempted from a location that is not permitted.
+<code class="docutils literal notranslate"><span class="pre">logout</span></code> redirects to the login page.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">admin</span><span class="o">/</span><span class="n">login</span>        <span class="p">(</span><span class="n">POST</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span>
 <span class="o">/</span><span class="n">admin</span><span class="o">/</span><span class="n">logout</span>       <span class="p">(</span><span class="n">GET</span><span class="p">)</span>
 </pre></div>
@@ -159,16 +161,17 @@ redirected to the admin home page; on failure the login page is redisplayed with
 </tr>
 <tr class="row-even"><td><p>cleanMaps</p></td>
 <td><p>GET</p></td>
-<td><p>Validates/cleans cached map geometry for a district type</p></td>
+<td><p>Cleans and validates the geometry table for a district type</p></td>
 </tr>
 <tr class="row-odd"><td><p>recache</p></td>
 <td><p>GET</p></td>
-<td><p>Rebuilds the cached district map geometry from the shapefiles</p></td>
+<td><p>Reloads SAGE’s in-memory district caches from the database</p></td>
 </tr>
 </tbody>
 </table>
 <p>The <code class="docutils literal notranslate"><span class="pre">usage</span></code>, <code class="docutils literal notranslate"><span class="pre">apiUserUsage</span></code>, and <code class="docutils literal notranslate"><span class="pre">geocodeUsage</span></code> stats methods accept optional <code class="docutils literal notranslate"><span class="pre">from</span></code> and
-<code class="docutils literal notranslate"><span class="pre">to</span></code> timestamps to bound the reporting window.</p>
+<code class="docutils literal notranslate"><span class="pre">to</span></code> timestamps, in epoch milliseconds, to bound the reporting window. It defaults to the last
+seven days.</p>
 <section id="createapiuser">
 <h4>createApiUser<a class="headerlink" href="#createapiuser" title="Link to this heading">¶</a></h4>
 <p>Creates a new API user. Required and optional parameters:</p>
@@ -287,7 +290,9 @@ redirected to the admin home page; on failure the login page is redisplayed with
 </section>
 <section id="cleanmaps">
 <h4>cleanMaps<a class="headerlink" href="#cleanmaps" title="Link to this heading">¶</a></h4>
-<p>Validates and cleans the cached map geometry for a single district type.</p>
+<p>Cleans the geometry table for a single district type, merging the rows of any district split across
+several into one, then checks that every geometry is valid. It finishes by reloading the in-memory
+caches, as <code class="docutils literal notranslate"><span class="pre">recache</span></code> does.</p>
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Param</p></th>
@@ -312,13 +317,14 @@ redirected to the admin home page; on failure the login page is redisplayed with
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>If the geometry table for the type is empty an error is returned; if some geometries are invalid
-the call still succeeds but reports that manual fixes are required.</p>
+<p>If some geometries are invalid, the maps are still cleaned, but the response has <code class="docutils literal notranslate"><span class="pre">success:</span> <span class="pre">false</span></code>
+and reports that manual fixes are required. A type with no entry in <code class="docutils literal notranslate"><span class="pre">districts.type_info</span></code> returns
+<code class="docutils literal notranslate"><span class="pre">EMPTY_GEOMETRY_TABLE</span></code>, and a <code class="docutils literal notranslate"><span class="pre">type</span></code> that is not a district type returns <code class="docutils literal notranslate"><span class="pre">INTERNAL_ERROR</span></code>.</p>
 </section>
 <section id="recache">
 <h4>recache<a class="headerlink" href="#recache" title="Link to this heading">¶</a></h4>
-<p>Rebuilds the cached district map geometry from the LATFOR shapefiles. This is the same operation
-performed when district maps are refreshed.</p>
+<p>Reloads every in-memory district cache from the database: the type table info, district geometry,
+district attributes, and member data. Run it after changing those tables outside of SAGE.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">admin</span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">recache</span>
 </pre></div>
 </div>
@@ -419,6 +425,7 @@ chambers to (re)generate:</p>
 </tr>
 </tbody>
 </table>
+<p>Any other option does nothing, and still returns success.</p>
 <p>The usage of the generate metadata call:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">admin</span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">datagen</span><span class="o">/</span><span class="n">genmetadata</span><span class="o">/</span><span class="nb">all</span>
 </pre></div>
@@ -468,9 +475,9 @@ code of <code class="docutils literal notranslate"><span class="pre">0</span></c
 <td><p>1</p></td>
 <td><p>The new geometry table is empty.</p></td>
 </tr>
-<tr class="row-even"><td><p>PROVIDER_NOT_SUPPORTED</p></td>
+<tr class="row-even"><td><p>VALUE_NOT_SUPPORTED</p></td>
 <td><p>3</p></td>
-<td><p>The requested provider is unsupported.</p></td>
+<td><p>The requested value is unsupported.</p></td>
 </tr>
 <tr class="row-odd"><td><p>API_KEY_INVALID</p></td>
 <td><p>10</p></td>
@@ -556,9 +563,9 @@ code of <code class="docutils literal notranslate"><span class="pre">0</span></c
 <td><p>81</p></td>
 <td><p>Maps for the requested district type are not available.</p></td>
 </tr>
-<tr class="row-even"><td><p>MISSING_DISTRICT_CODE</p></td>
+<tr class="row-even"><td><p>MISSING_DISTRICT_ID</p></td>
 <td><p>82</p></td>
-<td><p>A district code is required.</p></td>
+<td><p>A district ID is required.</p></td>
 </tr>
 <tr class="row-odd"><td><p>BAD_OVERLAY</p></td>
 <td><p>83</p></td>
