@@ -713,8 +713,7 @@ Parsed Format:
       <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;9&quot;</span><span class="p">,</span>
       <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Municipal Court District 9&quot;</span><span class="p">,</span>
       <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;Municipal Court&quot;</span>
-    <span class="p">},</span>
-    <span class="s2">&quot;fire&quot;</span> <span class="p">:</span> <span class="n">null</span>
+    <span class="p">}</span>
   <span class="p">},</span>
   <span class="s2">&quot;multiMatch&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
   <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
@@ -893,8 +892,7 @@ print_r($result);
         <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;County Legislature District 1&quot;</span><span class="p">,</span> <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;County Legislature&quot;</span>
       <span class="p">},</span>
       <span class="s2">&quot;village&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-      <span class="s2">&quot;municipalCourt&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-      <span class="s2">&quot;fire&quot;</span> <span class="p">:</span> <span class="n">null</span>
+      <span class="s2">&quot;municipalCourt&quot;</span> <span class="p">:</span> <span class="n">null</span>
     <span class="p">},</span>
     <span class="s2">&quot;multiMatch&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
     <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
@@ -959,8 +957,7 @@ print_r($result);
         <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;13&quot;</span><span class="p">,</span> <span class="s2">&quot;district&quot;</span> <span class="p">:</span> <span class="s2">&quot;13&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;County Legislature District 13&quot;</span><span class="p">,</span> <span class="s2">&quot;displayName&quot;</span> <span class="p">:</span> <span class="s2">&quot;County Legislature&quot;</span>
       <span class="p">},</span>
       <span class="s2">&quot;village&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-      <span class="s2">&quot;municipalCourt&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-      <span class="s2">&quot;fire&quot;</span> <span class="p">:</span> <span class="n">null</span>
+      <span class="s2">&quot;municipalCourt&quot;</span> <span class="p">:</span> <span class="n">null</span>
     <span class="p">},</span>
     <span class="s2">&quot;multiMatch&quot;</span> <span class="p">:</span> <span class="n">false</span><span class="p">,</span>
     <span class="s2">&quot;statusCode&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
@@ -1002,7 +999,7 @@ without hardcoding a list. It takes one required parameter:</p>
 </table>
 <p>The <code class="docutils literal notranslate"><span class="pre">type</span></code> is a district type name: <code class="docutils literal notranslate"><span class="pre">SENATE</span></code>, <code class="docutils literal notranslate"><span class="pre">ASSEMBLY</span></code>, <code class="docutils literal notranslate"><span class="pre">CONGRESSIONAL</span></code>, <code class="docutils literal notranslate"><span class="pre">ZIP</span></code>, <code class="docutils literal notranslate"><span class="pre">COUNTY</span></code>,
 <code class="docutils literal notranslate"><span class="pre">TOWN_CITY</span></code>, <code class="docutils literal notranslate"><span class="pre">SCHOOL</span></code>, <code class="docutils literal notranslate"><span class="pre">ELECTRIC_UTILITY</span></code>, <code class="docutils literal notranslate"><span class="pre">ELECTION</span></code>, <code class="docutils literal notranslate"><span class="pre">WARD</span></code>, <code class="docutils literal notranslate"><span class="pre">CITY_COUNCIL</span></code>,
-<code class="docutils literal notranslate"><span class="pre">COUNTY_LEGISLATURE</span></code>, <code class="docutils literal notranslate"><span class="pre">VILLAGE</span></code>, <code class="docutils literal notranslate"><span class="pre">MUNICIPAL_COURT</span></code>, or <code class="docutils literal notranslate"><span class="pre">FIRE</span></code>:</p>
+<code class="docutils literal notranslate"><span class="pre">COUNTY_LEGISLATURE</span></code>, <code class="docutils literal notranslate"><span class="pre">VILLAGE</span></code>, or <code class="docutils literal notranslate"><span class="pre">MUNICIPAL_COURT</span></code>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>/api/v2/district/info?type=COUNTY
 </pre></div>
 </div>
@@ -1068,11 +1065,6 @@ separate <code class="docutils literal notranslate"><span class="pre">code</span
   <span class="s2">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;The requested value is unsupported.&quot;</span>
 <span class="p">}</span>
 </pre></div>
-</div>
-<div class="admonition caution">
-<p class="admonition-title">Caution</p>
-<p>Some types have no data loaded at all - <code class="docutils literal notranslate"><span class="pre">FIRE</span></code> currently has none - and a request for one of those
-fails rather than returning an empty list.</p>
 </div>
 </section>
 </section>

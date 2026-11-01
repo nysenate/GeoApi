@@ -7,7 +7,7 @@ public enum StreetFileField {
 //    ASSEMBLY(true, true), SENATE(true, true),
 //    CONGRESSIONAL(true, true), BOE_TOWN_CODE(true),
 //    WARD(true), BOE_SCHOOL(false), SCHOOL(false), CLEG(true),
-//    CITY_COUNCIL(true, true), FIRE(true), CITY(false), VILLAGE(true),
+//    CITY_COUNCIL(true, true), CITY(false), VILLAGE(true),
 //    ID(true, true);
 //
 //    private final boolean isNonEmpty, isNumeric;

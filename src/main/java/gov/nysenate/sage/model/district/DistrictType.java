@@ -5,7 +5,7 @@ import org.apache.commons.text.WordUtils;
 
 public enum DistrictType implements HasDisplayName {
     SENATE, ASSEMBLY, CONGRESSIONAL, ZIP, COUNTY, TOWN_CITY, SCHOOL, ELECTRIC_UTILITY,
-    ELECTION, WARD, CITY_COUNCIL, COUNTY_LEGISLATURE, VILLAGE, MUNICIPAL_COURT, FIRE;
+    ELECTION, WARD, CITY_COUNCIL, COUNTY_LEGISLATURE, VILLAGE, MUNICIPAL_COURT;
 
     @Override
     public String getDisplayName() {

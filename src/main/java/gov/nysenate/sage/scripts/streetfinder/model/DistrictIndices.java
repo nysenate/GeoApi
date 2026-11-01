@@ -16,7 +16,6 @@ public class DistrictIndices {
 //        fieldToPattern.put(SCHOOL, "Schl");
 //        fieldToPattern.put(VILLAGE, "Vill");
 //        fieldToPattern.put(CLEG, "Cleg|CLE|CLEG|Leg|LEG");
-//        fieldToPattern.put(FIRE, "Fire|FD|FIRE");
 //        fieldToPattern.put(CITY_COUNCIL, "CC");
 //        fieldToPattern.put(CITY, "City");
     }

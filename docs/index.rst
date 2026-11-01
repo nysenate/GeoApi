@@ -615,8 +615,7 @@ The district assignment response::
           "district" : "9",
           "name" : "Municipal Court District 9",
           "displayName" : "Municipal Court"
-        },
-        "fire" : null
+        }
       },
       "multiMatch" : false,
       "statusCode" : 0,
@@ -795,8 +794,7 @@ And the response::
             "id" : "1", "district" : "1", "name" : "County Legislature District 1", "displayName" : "County Legislature"
           },
           "village" : null,
-          "municipalCourt" : null,
-          "fire" : null
+          "municipalCourt" : null
         },
         "multiMatch" : false,
         "statusCode" : 0,
@@ -861,8 +859,7 @@ And the response::
             "id" : "13", "district" : "13", "name" : "County Legislature District 13", "displayName" : "County Legislature"
           },
           "village" : null,
-          "municipalCourt" : null,
-          "fire" : null
+          "municipalCourt" : null
         },
         "multiMatch" : false,
         "statusCode" : 0,
@@ -900,7 +897,7 @@ without hardcoding a list. It takes one required parameter:
 
 The ``type`` is a district type name: ``SENATE``, ``ASSEMBLY``, ``CONGRESSIONAL``, ``ZIP``, ``COUNTY``,
 ``TOWN_CITY``, ``SCHOOL``, ``ELECTRIC_UTILITY``, ``ELECTION``, ``WARD``, ``CITY_COUNCIL``,
-``COUNTY_LEGISLATURE``, ``VILLAGE``, ``MUNICIPAL_COURT``, or ``FIRE``::
+``COUNTY_LEGISLATURE``, ``VILLAGE``, or ``MUNICIPAL_COURT``::
 
     /api/v2/district/info?type=COUNTY
 
@@ -969,9 +966,6 @@ Requesting a type SAGE does not recognize returns::
       "statusCode" : 3,
       "description" : "The requested value is unsupported."
     }
-
-.. caution:: Some types have no data loaded at all - ``FIRE`` currently has none - and a request for one of those
-             fails rather than returning an empty list.
 
 Street
 ------
