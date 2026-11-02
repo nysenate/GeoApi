@@ -1,5 +1,5 @@
 import React from 'react'
-import { Navigate, useLocation, useParams } from 'react-router-dom'
+import { Navigate, useLocation, useParams } from 'react-router'
 import useGlobals from 'app/shared/useGlobals'
 import AdminLogin from 'app/views/admin/AdminLogin'
 import AdminMain from 'app/views/admin/AdminMain'

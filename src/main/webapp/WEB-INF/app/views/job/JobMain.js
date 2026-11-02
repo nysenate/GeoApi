@@ -1,5 +1,5 @@
 import React from 'react'
-import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useNavigate, useParams } from 'react-router'
 import Header from 'app/shared/Header'
 import JobUpload from 'app/views/job/JobUpload'
 import JobStatus from 'app/views/job/JobStatus'

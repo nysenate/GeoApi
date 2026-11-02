@@ -1,5 +1,5 @@
 import React from 'react'
-import { Link, Navigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useParams } from 'react-router'
 import Header from 'app/shared/Header'
 import AdminApiUsage from 'app/views/admin/AdminApiUsage'
 import AdminApiUserStats from 'app/views/admin/AdminApiUserStats'

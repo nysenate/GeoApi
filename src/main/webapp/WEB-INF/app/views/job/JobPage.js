@@ -1,5 +1,5 @@
 import React from 'react'
-import { Navigate, useLocation, useParams } from 'react-router-dom'
+import { Navigate, useLocation, useParams } from 'react-router'
 import useGlobals from 'app/shared/useGlobals'
 import JobLogin from 'app/views/job/JobLogin'
 import JobMain from 'app/views/job/JobMain'

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router'
 
 /**
  * The blue SAGE header bar with the tool menu, styled by the legacy main.css.

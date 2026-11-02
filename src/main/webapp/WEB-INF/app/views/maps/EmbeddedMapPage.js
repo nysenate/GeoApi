@@ -1,5 +1,5 @@
 import React from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router'
 import GoogleMap from 'app/shared/maps/GoogleMap'
 import MapMarker from 'app/shared/maps/MapMarker'
 import DistrictPolygon from 'app/shared/maps/DistrictPolygon'

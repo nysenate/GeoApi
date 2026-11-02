@@ -1,6 +1,6 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Route, Routes } from 'react-router'
 import './app.css'
 import useGlobals, { GlobalsProvider } from 'app/shared/useGlobals'
 import ErrorBoundary from 'app/views/ErrorBoundary'
