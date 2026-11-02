@@ -50,9 +50,6 @@ export default function DistrictMapSearch({ districtTypes, type, onTypeChange, d
     }
   }
 
-  // Delay hiding so clicks on dropdown items register first (legacy behavior).
-  const hideDropdown = () => setTimeout(() => setShowDropdown(false), 200)
-
   const memberIndex = memberList.indexOf(selectedDistrict)
 
   return (
@@ -78,7 +75,7 @@ export default function DistrictMapSearch({ districtTypes, type, onTypeChange, d
           <div className="search-container-content">
             <div className="section">
               <div style={{ float: 'left' }}>
-                <label htmlFor="districtTypeMenu" className="menu-overhead">Type:</label>
+                <label htmlFor="districtTypeMenu" className="menu-overhead">Type</label>
                 <select id="districtTypeMenu" className="menu" style={{ width: '115px' }}
                         value={type} onChange={(e) => onTypeChange(e.target.value)}>
                   <option value="" disabled hidden>Choose</option>
@@ -88,16 +85,20 @@ export default function DistrictMapSearch({ districtTypes, type, onTypeChange, d
                 </select>
               </div>
               <div style={{ position: 'relative', float: 'left' }}>
-                <label htmlFor="districtCodeMenu" className="menu-overhead">District name:
-                  <a onClick={() => setDistrictSearch('')} className="clear-btn">Clear</a>
+                <label htmlFor="districtCodeMenu" className="menu-overhead">District name
+                  <a onClick={() => { setDistrictSearch(''); setHighlightIndex(0) }} className="clear-btn">Clear</a>
                 </label>
+                {/* onClick as well as onFocus: after a selection the input keeps focus, so a
+                    second click into it fires no focus event. */}
                 <input id="districtCodeMenu" type="text" className="menu" autoComplete="off"
                        value={districtSearch} placeholder="Type to filter..."
                        onChange={(e) => { setDistrictSearch(e.target.value); setShowDropdown(true); setHighlightIndex(0) }}
                        onFocus={() => setShowDropdown(true)}
-                       onBlur={hideDropdown}
+                       onClick={() => setShowDropdown(true)}
+                       onBlur={() => setShowDropdown(false)}
                        onKeyDown={handleKeydown}
                        style={{ width: '214px', height: '30px', fontSize: '14px' }}/>
+                {/* Keeping focus on the input lets an item's click land before blur hides the list. */}
                 {showDropdown && districtList.length > 0 &&
                   <div className="typeahead-dropdown" onMouseDown={(e) => e.preventDefault()}>
                     {districtList.filter(matchesSearch).map((d, i) =>

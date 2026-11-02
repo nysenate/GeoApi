@@ -1,5 +1,20 @@
 const path = require('path')
+const fs = require('fs')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+
+// The dev server proxies to the Tomcat that SAGE's own app.properties names as its base url.
+function backendUrl() {
+  try {
+    const props = fs.readFileSync(path.resolve(__dirname, '../resources/app.properties'), 'utf8')
+    const match = props.match(/^\s*base\.url\s*[=:]\s*(\S+)/m)
+    if (match) {
+      return match[1]
+    }
+  } catch (e) {
+    // app.properties is untracked, so a fresh checkout may not have one.
+  }
+  return 'http://localhost:8080'
+}
 
 module.exports = {
   entry: './WEB-INF/app/index.js',
@@ -48,7 +63,7 @@ module.exports = {
     proxy: [
       {
         context: ['/api', '/admin', '/job', '/globals', '/static', '/docs', '/admindocs', '/css', '/favicon.ico'],
-        target: 'http://localhost:8080',
+        target: backendUrl(),
         secure: false,
         changeOrigin: true,
       }

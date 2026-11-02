@@ -11,7 +11,7 @@ SAGE (Senate Address Geo-coding Engine) is a Java web application for the NY Sta
 This is a Maven project (Java 21, Spring 7, Shiro 3, WAR packaging, deployed on Tomcat 11).
 
 - **Build**: `mvn clean package`. Needs Node ≥ 24 and npm on the PATH: Maven runs `npm ci` in `src/main/webapp` during `generate-sources`, and its `postinstall` builds the React bundle. Every Maven build does this, including `mvn test`.
-- **Frontend dev server**: `npm start` in `src/main/webapp` serves on port 3000 with hot reload and proxies API and backend paths to Tomcat on `localhost:8080`.
+- **Frontend dev server**: `npm start` in `src/main/webapp` serves on port 3000 with hot reload and proxies API and backend paths to the `base.url` in `app.properties`, or to `localhost:8080` without one.
 - **Unit tests**: `mvn test` (runs tests annotated with `@UnitTest`)
 - **Integration tests**: `mvn verify` (runs tests annotated with `@IntegrationTest` via failsafe)
 - **Single test**: `mvn test -Dtest=TestClassName`
