@@ -10,7 +10,8 @@ SAGE (Senate Address Geo-coding Engine) is a Java web application for the NY Sta
 
 This is a Maven project (Java 21, Spring 7, Shiro 3, WAR packaging, deployed on Tomcat 11).
 
-- **Build**: `mvn clean package`
+- **Build**: `mvn clean package`. Needs Node ≥ 24 and npm on the PATH: Maven runs `npm ci` in `src/main/webapp` during `generate-sources`, and its `postinstall` builds the React bundle. Every Maven build does this, including `mvn test`.
+- **Frontend dev server**: `npm start` in `src/main/webapp` serves on port 3000 with hot reload and proxies API and backend paths to Tomcat on `localhost:8080`.
 - **Unit tests**: `mvn test` (runs tests annotated with `@UnitTest`)
 - **Integration tests**: `mvn verify` (runs tests annotated with `@IntegrationTest` via failsafe)
 - **Single test**: `mvn test -Dtest=TestClassName`
@@ -34,8 +35,7 @@ The `bin/admin/` scripts read their own `bin/admin/admin.script.properties`, cop
 
 **Package layout**: the top-level packages under `gov.nysenate.sage` (`controller/`, `provider/`, `dao/`, `model/`, `service/`, `client/`, `scripts/`, `config/`, `util/`, `factory/`, `annotation/`) hold what their names say. The parts that a reading of the tree would get wrong:
 
-- The frontend is AngularJS rather than server-rendered. `AngularAppCtrl` only picks which JSP in `src/main/webapp/WEB-INF/views` to return; the pages themselves are Angular templates (`ng-*` attributes, `{{ }}` bindings) inline in the JSP, driven by the controllers in `src/main/webapp/js`.
-- A React rewrite of that frontend lives on the unmerged `react` branch, which replaces `src/main/webapp/js` wholesale and adds a `package.json`/`webpack.config.js` under `src/main/webapp`. Neither exists on `dev`, so an untracked `node_modules/`, `static/dist/`, or bundled `target/` in the working tree is a leftover from that branch rather than part of this build.
+- The frontend is a React single-page app, not server-rendered. Its sources are in `src/main/webapp/WEB-INF/app`, and webpack bundles them into `src/main/webapp/static/dist`, which is untracked. A page route has to be registered twice: client-side in `WEB-INF/app/index.js`, and in `ReactAppCtrl`'s mapping, which forwards whitelisted users to `static/dist/index.html` and everyone else to `static/404.html`. The public embedded maps under `/map` go through `EmbeddedMapController` instead and skip the whitelist. The app reads its server-side config from `/globals`. Stylesheets in `src/main/webapp/css` are linked straight from the app's `index.html`, outside the bundle.
 - `dao/provider/` holds the external service DAOs, but `HttpGoogleDao`, `HttpNYSGeoDao`, and `DistrictInfoDao` sit directly in it rather than in its `shapefile/`, `streetfile/`, `usps/` subpackages. `SqlTable` in `dao/base/` is what reads `districts.type_info`.
 - The `@UnitTest`/`@IntegrationTest` annotations are in `src/main`, not `src/test`.
 - `WebInitializer` bootstraps the servlet context programmatically, but `WEB-INF/web.xml` still matters: it sets the active Spring profile, maps error pages, and uses `<absolute-ordering>` to limit container scanning to spring-web. A library that registers its own web fragment or container initializer is ignored until it is added there.
