@@ -105,14 +105,6 @@ public class AddressService {
         return result;
     }
 
-    public List<CityStateResult> lookupCityState(List<Zip5> zips, AddressSource source) {
-        List<CityStateResult> results = providerMap.get(source).lookupCityStates(zips);
-        if (results == null) {
-            return List.of(new CityStateResult(source, ResultStatus.NO_ADDRESS_VALIDATE_RESULT));
-        }
-        return results;
-    }
-
     private static Address getOrDefault(AddressResult result, Address defaultAddress) {
         return result != null && result.isSuccess() ? result.getAddress() : defaultAddress;
     }

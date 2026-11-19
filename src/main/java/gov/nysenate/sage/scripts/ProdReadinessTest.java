@@ -2,8 +2,7 @@ package gov.nysenate.sage.scripts;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import tools.jackson.databind.node.ArrayNode;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.geo.Point;
 import lombok.Getter;
@@ -18,6 +17,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
@@ -91,20 +91,34 @@ public class ProdReadinessTest {
     }
 
     private String turnAddressesIntoJson() {
-        return convertObjToJson(testAddresses);
+        return convertAddressesToJson(testAddresses);
     }
 
     private String turnBadAddressesIntoJson() {
-        return convertObjToJson(badTestAddresses);
+        return convertAddressesToJson(badTestAddresses);
     }
 
     private String turnPointsIntoJson() {
-        return convertObjToJson(testPoints);
+        return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(testPoints);
     }
 
-    private String convertObjToJson(List<?> list) {
-        Gson prettyGson = new GsonBuilder().setPrettyPrinting().create();
-        return prettyGson.toJson(list);
+    /**
+     * Writes addresses in the batch payload format the API reads, with zips as strings.
+     * The fields are listed by hand because Address's getters include derived flags,
+     * and Zip exposes no properties for Jackson to serialize.
+     */
+    private String convertAddressesToJson(List<Address> addresses) {
+        ArrayNode array = objectMapper.createArrayNode();
+        for (Address address : addresses) {
+            array.addObject()
+                    .put("addr1", address.getAddr1())
+                    .put("addr2", address.getAddr2())
+                    .put("postalCity", address.getPostalCity())
+                    .put("state", address.getState())
+                    .put("zip5", Objects.toString(address.getZip5(), null))
+                    .put("zip4", Objects.toString(address.getZip4(), null));
+        }
+        return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(array);
     }
 
     private int standardSuccessResponseCheck(JsonNode jsonResponse) {
@@ -115,12 +129,6 @@ public class ProdReadinessTest {
         JsonNode results = jsonResponse.get("results");
         results.forEach( (JsonNode addrResponse) ->
                 assertEquals(0,standardSuccessResponseCheck(addrResponse) ));
-    }
-
-    private void cityStateBatchResponseCheck(JsonNode jsonResponse) {
-        JsonNode results = jsonResponse.get("results");
-        results.forEach( (JsonNode result) ->
-                assertEquals(0, result.get("statusCode").asInt() ));
     }
 
     private void addressBatchValidateResponseCheck(JsonNode jsonResponse) {
@@ -288,17 +296,6 @@ public class ProdReadinessTest {
                 baseUrl,
                 "/api/v2/address/validate/batch?provider=AIS", addressJson);
         prodReadinessTest.addressBatchValidateResponseCheck(jsonResponse);
-
-
-        jsonResponse = prodReadinessTest.sendPostRequest(
-                baseUrl,
-                "/api/v2/address/citystate/batch", addressJson);
-        prodReadinessTest.cityStateBatchResponseCheck(jsonResponse);
-
-        jsonResponse = prodReadinessTest.sendPostRequest(
-                baseUrl,
-                "/api/v2/address/citystate/batch?provider=AIS", addressJson);
-        prodReadinessTest.cityStateBatchResponseCheck(jsonResponse);
 
         // Geocode Batch Validation
         jsonResponse = prodReadinessTest.sendPostRequest(

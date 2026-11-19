@@ -192,48 +192,30 @@ public class USPSAIS implements AddressDao {
 
 
     @Override
-    public List<CityStateResult> lookupCityStates(List<Zip5> zips) {
+    public CityStateResult lookupCityState(Zip5 zip5) {
         String url = "";
         Document response = null;
-
-        var results = new ArrayList<CityStateResult>();
-        String xmlStartTag = "<CityStateLookupRequest USERID=\""+ apiKey +"\">";
-        StringBuilder xmlRequest = new StringBuilder(xmlStartTag);
-
-        for (int i = 0; i < zips.size(); i++) {
-            xmlRequest.append(String.format("<ZipCode ID=\"%s\"><Zip5>%s</Zip5></ZipCode>", i, zips.get(i).toString()));
-        }
+        String xmlRequest = "<CityStateLookupRequest USERID=\"" + apiKey + "\">"
+                + "<ZipCode ID=\"0\"><Zip5>" + zip5 + "</Zip5></ZipCode>"
+                + "</CityStateLookupRequest>";
 
         try {
-            xmlRequest.append("</CityStateLookupRequest>");
-            url = baseUrl +"?API=CityStateLookup&XML=" + URLEncoder.encode(xmlRequest.toString(), StandardCharsets.UTF_8);
+            url = baseUrl + "?API=CityStateLookup&XML=" + URLEncoder.encode(xmlRequest, StandardCharsets.UTF_8);
             response = xmlBuilder.parse(UrlRequest.getInputStreamFromUrl(url));
 
-            // If the request failed, mark them all as such.
-            Node error = (Node)xpath.evaluate("Error", response, XPathConstants.NODE);
-            if (error != null) {
-                var result = new CityStateResult(source(), NO_ADDRESS_VALIDATE_RESULT);
-                for (int i = 0; i < zips.size(); i++) {
-                    results.add(result);
-                }
-                return results;
+            // An Error can come back at the top level for the whole request, or inside the ZipCode element.
+            if (xpath.evaluate("Error", response, XPathConstants.NODE) != null) {
+                return new CityStateResult(source(), NO_ADDRESS_VALIDATE_RESULT);
             }
-            NodeList responses = (NodeList)xpath.evaluate("CityStateLookupResponse/ZipCode", response, XPathConstants.NODESET);
-            for (int i = 0; i < responses.getLength(); i++) {
-                Node addressResponse = responses.item(i);
-
-                error = (Node)xpath.evaluate("Error", addressResponse, XPathConstants.NODE);
-                if (error != null) {
-                    results.add(new CityStateResult(source(), NO_ADDRESS_VALIDATE_RESULT));
-                    continue;
-                }
-
-                String state = xpath.evaluate("State", addressResponse);
-                String city = xpath.evaluate("City", addressResponse);
-                city = WordUtils.capitalizeFully(city);
-                String zip5 = xpath.evaluate("Zip5", addressResponse);
-                results.add(new CityStateResult(source(), city, state, Integer.parseInt(zip5)));
+            Node zipResponse = (Node)xpath.evaluate("CityStateLookupResponse/ZipCode", response, XPathConstants.NODE);
+            if (zipResponse == null || xpath.evaluate("Error", zipResponse, XPathConstants.NODE) != null) {
+                return new CityStateResult(source(), NO_ADDRESS_VALIDATE_RESULT);
             }
+
+            String state = xpath.evaluate("State", zipResponse);
+            String city = WordUtils.capitalizeFully(xpath.evaluate("City", zipResponse));
+            String responseZip5 = xpath.evaluate("Zip5", zipResponse);
+            return new CityStateResult(source(), city, state, Integer.parseInt(responseZip5));
         }
         catch (MalformedURLException e) {
             logger.error("Malformed URL '{}', check api key and address values.", url, e);
@@ -251,8 +233,6 @@ public class USPSAIS implements AddressDao {
             logger.error("Unexpected XML Schema\n\n{}", response.toString(), e);
             return null;
         }
-
-        return results;
     }
 
     /** The USPS API expects Address2 to contain the street address. For the request Address1 is set to

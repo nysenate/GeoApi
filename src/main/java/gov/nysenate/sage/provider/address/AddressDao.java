@@ -22,13 +22,5 @@ public interface AddressDao {
 
     List<AddressResult> validate(List<Address> addresses);
 
-    default CityStateResult lookupCityState(Zip5 zip5) {
-        List<CityStateResult> resultList = lookupCityStates(List.of(zip5));
-        if (resultList == null) {
-            return null;
-        }
-        return resultList.getFirst();
-    }
-
-    List<CityStateResult> lookupCityStates(List<Zip5> zips);
+    CityStateResult lookupCityState(Zip5 zip5);
 }

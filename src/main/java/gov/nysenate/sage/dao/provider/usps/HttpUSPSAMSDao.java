@@ -6,8 +6,6 @@ import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.JsonNodeFactory;
 import tools.jackson.databind.node.ObjectNode;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import gov.nysenate.sage.model.address.Address;
 import gov.nysenate.sage.model.address.BuildingAddress;
 import gov.nysenate.sage.model.address.PostOfficeBox;
@@ -30,7 +28,6 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static gov.nysenate.sage.model.result.ResultStatus.NO_ADDRESS_VALIDATE_RESULT;
 import static gov.nysenate.sage.model.result.ResultStatus.SUCCESS;
@@ -204,33 +201,6 @@ public class HttpUSPSAMSDao implements AddressDao {
             logger.error("Failed to parse response!", ex);
         }
         return null;
-    }
-
-    public List<CityStateResult> lookupCityStates(List<Zip5> zips) {
-        List<CityStateResult> addressResults = new ArrayList<>();
-        var zip5List = zips.stream().map(Zip5::toString).collect(Collectors.toList());
-        Gson prettyGson = new GsonBuilder().setPrettyPrinting().create();
-
-        String jsonPayload = prettyGson.toJson(zip5List);
-        String url = uspsApiUrl + CITYSTATE_METHOD;
-        try {
-            String json = UrlRequest.getResponseFromUrlUsingPOST(url, jsonPayload);
-            if (json != null && !json.isEmpty()) {
-                JsonNode responseRoot = objectMapper.readTree(json);
-                if (responseRoot != null) {
-                    int total = responseRoot.get("total").asInt();
-                    JsonNode resultsNode = responseRoot.get("results");
-                    for (int i = 0; i < total; i++) {
-                        JsonNode resultNode = resultsNode.get(i);
-                        addressResults.add(getAddressResultFromJsonCityState(resultNode));
-                    }
-                }
-            }
-        }
-        catch (IOException | JacksonException ex) {
-            logger.error("Failed to get and parse response from batch validate request!", ex);
-        }
-        return addressResults;
     }
 
     private CityStateResult getAddressResultFromJsonCityState(JsonNode root) {
