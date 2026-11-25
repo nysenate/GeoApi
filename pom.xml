@@ -63,7 +63,7 @@
         <log4j.version>2.26.1</log4j.version>
         <lombok.version>1.18.38</lombok.version>
         <mockito.version>5.23.0</mockito.version>
-        <nysenate-java-client.version>3.0.1</nysenate-java-client.version>
+        <nysenate-java-client.version>3.1</nysenate-java-client.version>
         <openlocationcode.version>1.0.4</openlocationcode.version>
         <postgres-jdbc.version>42.7.14</postgres-jdbc.version>
         <shiro.version>3.0.2</shiro.version>
